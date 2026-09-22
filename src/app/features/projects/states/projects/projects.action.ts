@@ -4,13 +4,13 @@ import {
   emptyPayload,
   payload,
 } from 'ngx-statewise';
-import { Project } from '../../models';
+import { ProjectCatalog } from '../../models';
 
 export const getProjectsActions = defineActionsGroup({
   source: 'GET_PROJECTS',
   events: {
     request: emptyPayload,
-    success: payload<readonly Project[]>(),
+    success: payload<ProjectCatalog>(),
     failure: emptyPayload,
   },
 });

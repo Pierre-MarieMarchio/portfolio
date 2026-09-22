@@ -19,6 +19,7 @@ import { ProjectsManager } from '@app/features/projects/states';
 import { StationManager } from '@app/features/station/states';
 import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
 import { navigationItems } from '../../app.navigation';
+import { AboutWindowComponent } from './about-window.component';
 import { ContactRailComponent } from './contact-rail.component';
 import { NotFoundWindowComponent } from './not-found-window.component';
 
@@ -39,6 +40,7 @@ const FOCUS_DEADLINE_MS = 2500;
 @Component({
   selector: 'app-station',
   imports: [
+    AboutWindowComponent,
     ContactRailComponent,
     NotFoundWindowComponent,
     PageBarComponent,

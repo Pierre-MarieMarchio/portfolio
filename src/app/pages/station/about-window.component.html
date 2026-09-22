@@ -1,0 +1,131 @@
+<app-window
+  title="À propos"
+  label="Fenêtre : à propos"
+  size="l"
+  [margin]="76"
+  [pinned]="pinned()"
+  (pinToggled)="pinToggled.emit()"
+  (closed)="closed.emit()"
+>
+  <app-segmented
+    toolbar
+    label="Parties du profil"
+    [items]="parts()"
+    (selected)="choose($event)"
+  />
+  <div body>
+    <h1 tabindex="-1" class="landing">{{ heading() }}</h1>
+    @switch (current()?.key) {
+      @case ('00') {
+        <p class="lead">
+          Je viens de l’archéologie. J’en ai gardé une habitude : ne rien
+          affirmer sans preuve.
+        </p>
+        <dl class="facts">
+          <div>
+            <dt>Poste</dt>
+            <dd>Concepteur développeur d’applications, Skyted</dd>
+          </div>
+          <div>
+            <dt>Pile</dt>
+            <dd class="data">
+              .NET · MAUI · Angular · Swift · Kotlin · PostgreSQL
+            </dd>
+          </div>
+          <div>
+            <dt>Lieu</dt>
+            <dd class="quiet">Lorem ipsum — ville et mobilité à renseigner</dd>
+          </div>
+          <div>
+            <dt>Écoute</dt>
+            <dd class="quiet">
+              Lorem ipsum — CDI, mission, freelance : à préciser
+            </dd>
+          </div>
+        </dl>
+        <p class="prose first">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Deux
+          applications publiées sur les magasins, deux socles open source écrits
+          seul : ce que vous lisez ici est vérifiable en trois clics.
+        </p>
+        <p class="prose">
+          Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut
+          enim ad minim veniam quis nostrud exercitation ullamco laboris.
+        </p>
+      }
+      @case ('01') {
+        <section>
+          <p class="caps">Ce sur quoi j’ai livré</p>
+          <dl class="domains">
+            @for (domain of domains; track domain.label) {
+              <div>
+                <dt class="number">{{ domain.number }}</dt>
+                <dt class="label">{{ domain.label }}</dt>
+                <dd class="data quiet">{{ domain.value }}</dd>
+              </div>
+            }
+          </dl>
+          <p class="prose after">
+            Lorem ipsum dolor sit amet : chaque ligne renvoie à un projet du
+            relevé, pas à une liste de mots-clés.
+          </p>
+        </section>
+      }
+      @case ('02') {
+        <section>
+          <p class="caps">Comment je travaille</p>
+          <ul class="method">
+            <li>
+              <span class="step">01</span
+              ><span class="text"
+                >Tenir un projet jusqu’à la mise en production : c’est la seule
+                façon d’en voir le coût réel.</span
+              >
+            </li>
+            <li>
+              <span class="step">02</span
+              ><span class="text"
+                >Lorem ipsum dolor sit amet — des décisions qu’on explique, du
+                code qu’on peut relire.</span
+              >
+            </li>
+            <li>
+              <span class="step">03</span
+              ><span class="text"
+                >Consectetur adipiscing elit — des résultats qu’on peut aller
+                vérifier soi-même.</span
+              >
+            </li>
+          </ul>
+        </section>
+      }
+      @case ('03') {
+        <section>
+          <div class="steps-head">
+            <p class="caps">Étapes</p>
+            <span class="grow"></span>
+            <span class="caps missing">années à renseigner</span>
+          </div>
+          <dl class="milestones">
+            @for (milestone of milestones; track milestone.fact) {
+              <div>
+                <dt>{{ milestone.year }}</dt>
+                <dd>{{ milestone.fact }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+      }
+    }
+  </div>
+  <ng-container footer>
+    <p class="position">{{ current()?.title }}</p>
+    @if (next(); as next) {
+      <button type="button" class="next" (click)="advance()">
+        Suite : {{ next.label }} →
+      </button>
+    } @else {
+      <a class="next" routerLink="/projets">Tous les projets →</a>
+    }
+  </ng-container>
+</app-window>

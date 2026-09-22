@@ -111,6 +111,8 @@ CLAUDE.md
 CLAUDE.local.md
 **/CLAUDE.md
 **/CLAUDE.local.md
+# Framing and task documents produced by the local workflow
+docs/workstreams/
 # Cross-tool instruction files
 AGENTS.md
 **/AGENTS.md

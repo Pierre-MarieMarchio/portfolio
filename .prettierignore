@@ -1,0 +1,10 @@
+dist
+coverage
+node_modules
+.angular
+package-lock.json
+
+# Reference documents, kept exactly as they were received. The Claude Design
+# exports carry their component's JS inline; reformatting would alter it.
+docs/maquette
+docs/architecture/passation-showcase.md

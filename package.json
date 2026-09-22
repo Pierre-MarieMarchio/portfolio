@@ -1,0 +1,54 @@
+{
+  "name": "portfolio",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^24.15.0"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "serve:static": "npx --yes serve@14 dist/portfolio/browser",
+    "test": "ng test --watch=false",
+    "test:watch": "ng test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run test && npm run build",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@angular/common": "^22.1.5",
+    "@angular/compiler": "^22.1.5",
+    "@angular/core": "^22.1.5",
+    "@angular/platform-browser": "^22.1.5",
+    "@angular/platform-server": "^22.1.5",
+    "@angular/router": "^22.1.5",
+    "@angular/ssr": "^22.1.7",
+    "ngx-statewise": "1.0.0-beta.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.1.7",
+    "@angular/cli": "^22.1.7",
+    "@angular/compiler-cli": "^22.1.5",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "angular-eslint": "^22.5.0",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^4.0.8"
+  }
+}

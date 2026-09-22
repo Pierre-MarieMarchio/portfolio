@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+/* l'ouverture se joue sur la propriété `translate`, pas sur `transform` :
+   `transform` appartient au déplacement à la souris, et une animation en
+   fill-mode « both » écraserait la position choisie par l'utilisateur */
+@keyframes fen-rise{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+</style>
+</helmet>
+
+<section ref="{{ racineRef }}" id="{{ ident }}" aria-label="{{ aria }}" style="height:auto;display:flex;flex-direction:column;min-height:0;overflow:hidden;pointer-events:auto;text-align:left;border:1px solid var(--line, #2a3040);background:var(--vitre, rgba(14,16,22,0.78));backdrop-filter:blur(11px) saturate(1.08);animation:fen-rise 560ms both">
+
+  <div ref="{{ barreRef }}" onPointerDown="{{ onPrise }}" onDoubleClick="{{ basculeRepli }}" style="flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:5px 5px 5px 12px;border-bottom:1px solid var(--line, #2a3040);cursor:grab;touch-action:none;user-select:none">
+    <span aria-hidden="true" style="flex:0 0 auto;width:7px;height:7px;background:var(--accent, #7cc0f5)"></span>
+    <h2 style="font-family:var(--mono, monospace);font-size:var(--m2,12px);letter-spacing:var(--ls-title,0.18em);text-transform:uppercase;font-weight:500;color:var(--ink, #e8ebf2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ titre }}</h2>
+    <span style="flex:1 1 auto;min-width:8px"></span>
+    <p style="font-family:var(--mono, monospace);font-size:var(--m1,11px);letter-spacing:var(--ls-caps,0.14em);text-transform:uppercase;color:var(--sig, #e7b269);white-space:nowrap">{{ meta }}</p>
+    <button type="button" onClick="{{ basculeEpingle }}" aria-pressed="{{ epinglee }}" aria-label="{{ ariaEpingle }}" title="{{ ariaEpingle }}" style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:34px;height:32px;padding:0;background:transparent;border:1px solid transparent;border-radius:2px;color:{{ couleurEpingle }};cursor:pointer;font-family:var(--mono, monospace);font-size:var(--m4,14px);line-height:1;transition:color 180ms,background 180ms" style-hover="color:var(--ink, #e8ebf2);background:var(--vitre-2, rgba(120,140,180,0.16))">{{ glypheEpingle }}</button>
+    <button type="button" onClick="{{ basculeRepli }}" aria-expanded="{{ deplie }}" aria-label="{{ ariaRepli }}" title="{{ ariaRepli }}" style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:34px;height:32px;padding:0;background:transparent;border:1px solid transparent;border-radius:2px;color:var(--ink-2, #9aa6bd);cursor:pointer;font-family:var(--mono, monospace);font-size:var(--m4,14px);line-height:1;transition:color 180ms,background 180ms" style-hover="color:var(--ink, #e8ebf2);background:var(--vitre-2, rgba(120,140,180,0.16))">{{ glypheRepli }}</button>
+    <sc-if value="{{ fermable }}" hint-placeholder-val="{{ true }}">
+      <button type="button" onClick="{{ onFermer }}" aria-label="{{ ariaFermer }}" title="{{ ariaFermer }}" style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;width:34px;height:32px;padding:0;background:transparent;border:1px solid transparent;border-radius:2px;color:var(--ink-2, #9aa6bd);cursor:pointer;font-family:var(--mono, monospace);font-size:var(--m4,14px);line-height:1;transition:color 180ms,background 180ms" style-hover="color:var(--sig, #e7b269);background:var(--vitre-2, rgba(120,140,180,0.16))">✕</button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ deplie }}" hint-placeholder-val="{{ true }}">
+    {{ children }}
+  </sc-if>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:300},&quot;titre&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Projets · le relevé&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;meta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;07 fiches&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;taille&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;s&quot;,&quot;m&quot;,&quot;l&quot;],&quot;default&quot;:&quot;m&quot;,&quot;tsType&quot;:&quot;'s'|'m'|'l'&quot;,&quot;section&quot;:&quot;Fenêtre&quot;},&quot;ident&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;fen-demo&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;aria&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Fenêtre&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;epinglee&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;fermable&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onEpingler&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onFermer&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+/* Fenêtre de la station : une seule grammaire pour toutes les vues.
+   Quatre gestes, toujours au même endroit et dans le même ordre :
+   épingler (garder la fenêtre en changeant de page) · replier (ne garder que
+   l'en-tête, rendre la vue à l'objet) · fermer · et la barre de titre se
+   saisit pour déplacer. Le double-clic sur la barre replie, comme partout.
+
+   Le déplacement et le repli sont écrits DANS le DOM, pas dans l'état React :
+   une fenêtre qu'on traîne ne doit pas relancer le rendu de son contenu à
+   chaque image. L'épingle, elle, appartient à l'appelant : c'est lui qui
+   décide de garder la fenêtre montée. */
+class Component extends DCLogic {
+  state = { repli:false };
+  racineRef = React.createRef();
+  barreRef = React.createRef();
+  dx = 0; dy = 0;
+
+  /* Trois tailles nommées, et rien d'autre : une fenêtre prend la hauteur de
+     son contenu jusqu'à son plafond. Court contenu = fenêtre courte ; contenu
+     long = fenêtre plafonnée qui défile. C'est ce qui permet d'employer la
+     même fenêtre pour un aperçu de projet et pour un relevé de sept lignes.
+     Écrit dans le DOM, pas dans l'état : aucun rerendu du contenu. */
+  plafonds = { s:300, m:470, l:920 };
+  appliqueTaille(){
+    const el = this.racineRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    if (this.state.repli){ el.style.maxHeight = ''; return; }
+    const r = el.getBoundingClientRect();
+    const haut = r.top - (this.dy || 0);
+    /* marge : la place qu'on laisse libre SOUS la fenêtre. Ce n'est pas du
+       décor — c'est là que vit la cartouche fixe de la station, et une fenêtre
+       qui descend dessous cache son propre pied. */
+    const marge = Number(this.props.marge) || 26;
+    /* Ancrée en bas, la fenêtre grandit vers le haut : la place se mesure
+       depuis son bord bas — sinon le calcul se mord la queue (plus elle
+       grandit, plus son haut remonte, plus elle croit avoir de place). Dans ce
+       cas `marge` est la réserve au-dessus d'elle, là où vivent la barre de
+       pages et le titre. */
+    const dispo = this.props.ancrage === 'bas'
+      ? Math.max(200, (r.bottom - (this.dy || 0)) - marge)
+      : Math.max(200, (window.innerHeight || 800) - haut - marge);
+    const p = this.plafonds[this.props.taille || 'm'] || this.plafonds.m;
+    el.style.maxHeight = Math.min(dispo, p) + 'px';
+  }
+  onRedim = () => this.appliqueTaille();
+  componentDidMount(){ this.appliqueTaille(); window.addEventListener('resize', this.onRedim); }
+  componentDidUpdate(){ this.appliqueTaille(); }
+  componentWillUnmount(){ this.detache(); window.removeEventListener('resize', this.onRedim); }
+
+  basculeRepli = () => this.setState(s => ({ repli: !s.repli }));
+  basculeEpingle = () => { if (this.props.onEpingler) this.props.onEpingler(); };
+
+  /* on ne saisit pas la fenêtre par ses boutons : sinon un clic sur « fermer »
+     devient un micro-déplacement et l'action se perd */
+  onPrise = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    if (e.target && e.target.closest && e.target.closest('button,a')) return;
+    this.prise = { x:e.clientX, y:e.clientY, dx:this.dx, dy:this.dy };
+    const b = this.barreRef.current;
+    if (b) b.style.cursor = 'grabbing';
+    window.addEventListener('pointermove', this.onGlisse, { passive:false });
+    window.addEventListener('pointerup', this.onLache);
+    window.addEventListener('pointercancel', this.onLache);
+  };
+  onGlisse = (e) => {
+    const p = this.prise, el = this.racineRef.current;
+    if (!p || !el) return;
+    e.preventDefault();
+    let dx = p.dx + (e.clientX - p.x);
+    let dy = p.dy + (e.clientY - p.y);
+    /* une fenêtre ne peut pas se perdre hors du cadre : sa barre de titre
+       reste toujours rattrapable */
+    const r = el.getBoundingClientRect();
+    const l0 = r.left - this.dx, t0 = r.top - this.dy;
+    const vw = window.innerWidth || 1200, vh = window.innerHeight || 800;
+    dx = Math.max(16 - l0 - r.width + 150, Math.min(vw - 150 - l0, dx));
+    dy = Math.max(12 - t0, Math.min(vh - 60 - t0, dy));
+    this.dx = dx; this.dy = dy;
+    el.style.transform = 'translate(' + Math.round(dx) + 'px,' + Math.round(dy) + 'px)';
+  };
+  onLache = () => {
+    this.prise = null;
+    const b = this.barreRef.current;
+    if (b) b.style.cursor = 'grab';
+    this.detache();
+  };
+  detache(){
+    window.removeEventListener('pointermove', this.onGlisse);
+    window.removeEventListener('pointerup', this.onLache);
+    window.removeEventListener('pointercancel', this.onLache);
+  }
+
+  renderVals(){
+    const ep = !!this.props.epinglee;
+    return {
+      racineRef: this.racineRef,
+      barreRef: this.barreRef,
+      onPrise: this.onPrise,
+      basculeRepli: this.basculeRepli,
+      basculeEpingle: this.basculeEpingle,
+      onFermer: this.props.onFermer,
+      fermable: this.props.fermable !== false && !!this.props.onFermer,
+      deplie: !this.state.repli,
+      glypheRepli: this.state.repli ? '+' : '–',
+      ariaRepli: this.state.repli ? 'Déplier la fenêtre' : 'Replier la fenêtre',
+      epinglee: ep,
+      glypheEpingle: ep ? '●' : '○',
+      couleurEpingle: ep ? 'var(--sig, #e7b269)' : 'var(--ink-2, #9aa6bd)',
+      ariaEpingle: ep ? 'Détacher : la fenêtre se refermera en changeant de page' : 'Épingler : garder la fenêtre ouverte en changeant de page',
+      ariaFermer: 'Fermer la fenêtre',
+      children: this.props.children
+    };
+  }
+}
+</script>
+</body>
+</html>

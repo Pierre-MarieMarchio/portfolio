@@ -1,0 +1,36 @@
+/*
+ * Global styles only: a reset and the few rules every page shares. The
+ * mockup's design tokens are not here yet; they arrive with the mockup, as
+ * their own partial under src/assets/.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark light;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.visually-hidden:not(:focus-within, :active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

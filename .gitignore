@@ -1,0 +1,125 @@
+# Everything here is generated, local or secret. Source, config and the
+# lockfile are committed; nothing a command can rebuild is.
+
+# --- Build output ------------------------------------------------------------
+/dist/
+/out-tsc/
+/tmp/
+/bazel-out/
+*.tsbuildinfo
+
+# --- Dependencies ------------------------------------------------------------
+node_modules/
+.pnpm-store/
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+.pnp.*
+*.tgz
+
+# --- Angular -----------------------------------------------------------------
+# The whole folder: cache today, and whatever the CLI puts there next.
+/.angular/
+.sass-cache/
+/connect.lock
+/libpeerconnection.log
+/typings/
+
+# --- Tests and coverage ------------------------------------------------------
+/coverage/
+/.nyc_output/
+__screenshots__/
+# Vitest
+.vitest/
+vite.config.*.timestamp-*
+# Playwright, once end-to-end tests arrive
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# --- Tool caches -------------------------------------------------------------
+.cache/
+.eslintcache
+.prettiercache
+.stylelintcache
+# Husky writes its own runtime here; the hooks beside it are committed.
+.husky/_/
+
+# --- Environment and secrets -------------------------------------------------
+# Real values never enter the repository; an example file documents the keys.
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+
+# --- Deployment tooling --------------------------------------------------------
+.vercel/
+.netlify/
+.firebase/
+firebase-debug.log*
+.wrangler/
+.dev.vars
+.docker-data/
+
+# --- Logs ----------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+testem.log
+
+# --- Editors and IDEs ----------------------------------------------------------
+.idea/
+*.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
+.history/
+# VS Code: the shared settings are committed, the rest is personal.
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# --- AI assistants: their local notes and personal settings -------------------
+.claude/settings.local.json
+CLAUDE.md
+.codex/
+.agents/
+
+# --- Operating systems -----------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.directory
+.Trash-*
+
+# --- Archives and backups ---------------------------------------------------------
+*.bak
+*.orig
+*.tar.gz
+*.zip

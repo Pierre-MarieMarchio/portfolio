@@ -10,21 +10,25 @@ docs/
     passation-showcase.md     la référence d'architecture : couches, loi de
                               dépendance, ngx-statewise, SSR, outillage
   maquette/                   le design du site (« la station »), à implémenter
-    README.md                 à lire d'abord : ce qui est là, ce qui manque
+    README.md                 à lire d'abord : contenu, ordre de lecture, exports
+    Portfolio v5-A - la station.dc.html
+                              la maquette entière (export Claude Design, avec le JS)
     passation-la-station.md   le design : routes, jetons, composants, comportements
     decoupage-angular.md      le découpage Angular proposé et l'ordre de travail
+    objet-canvas.md           la spécification du rendu canvas
     composants/
-      fenetre.dc.html         le prototype du composant fenêtre
+      Fenetre.dc.html         la fenêtre (export Claude Design)
+      Segmente.dc.html        le sélecteur segmenté (export Claude Design)
     captures/                 23 captures, une par vue et par état (924 × 540)
 ```
 
 ## Quel document fait foi
 
-| Question                                | Document                             |
-| --------------------------------------- | ------------------------------------ |
-| Où ranger un fichier, qui importe quoi  | `architecture/passation-showcase.md` |
-| À quoi ressemble et se comporte le site | `maquette/passation-la-station.md`   |
-| Dans quel ordre implémenter la maquette | `maquette/decoupage-angular.md` (§4) |
+| Question                                | Document                                                                   |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| Où ranger un fichier, qui importe quoi  | `architecture/passation-showcase.md`                                       |
+| À quoi ressemble et se comporte le site | `maquette/passation-la-station.md`, et l'export `.dc.html` en cas de doute |
+| Dans quel ordre implémenter la maquette | `maquette/decoupage-angular.md` (§4)                                       |
 
 Quand la maquette propose une arborescence (`decoupage-angular.md` §3 :
 `objet/`, `vues/`, `chassis/`…), **c'est l'architecture qui l'emporte** : la

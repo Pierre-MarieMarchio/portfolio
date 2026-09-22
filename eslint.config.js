@@ -1,6 +1,7 @@
 // @ts-check
 import { readdirSync } from 'node:fs';
 import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import prettier from 'eslint-config-prettier';
 import angular from 'angular-eslint';
 import tseslint from 'typescript-eslint';
@@ -21,9 +22,9 @@ const FEATURES = ['projects'];
 const onDisk = readdirSync(`${APP}/features`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && entry.name !== 'common')
   .map((entry) => entry.name)
-  .sort();
+  .sort((a, b) => a.localeCompare(b));
 
-if (onDisk.join() !== [...FEATURES].sort().join()) {
+if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   throw new Error(
     `eslint.config.js: FEATURES lists [${FEATURES.join(', ')}] but ` +
       `${APP}/features holds [${onDisk.join(', ')}]. Each feature needs its ` +
@@ -35,10 +36,18 @@ const SIBLING_WHY =
   'no feature imports another feature; the need descends into features/common, or is joined in pages/';
 
 /**
+ * @typedef {object} Zone
+ * @property {string} zone   A folder under `src/app/`.
+ * @property {string} why    The sentence the lint error gives back.
+ * @property {string[]} denies  Names of `GROUPS` this zone may not import.
+ */
+
+/**
  * The zones and what each is forbidden to reach for. Read a row as "this zone
  * may not import those". `core` sits at the bottom and knows nothing, `pages`
  * sits at the top and composes everything.
  */
+/** @type {Zone[]} */
 const ZONES = [
   {
     zone: 'core',
@@ -72,6 +81,7 @@ const ZONES = [
  * A pattern matches the import string, not a resolved path, so the alias form
  * and the relative forms are both listed.
  */
+/** @type {Record<string, string[]>} */
 const GROUPS = {
   core: ['@app/core', '@app/core/**', '**/core', '**/core/**'],
   shared: ['@shared/**', '@app/shared/**', '**/shared/**'],
@@ -100,7 +110,12 @@ const GROUPS = {
   escapes: ['../../*', '../../**', '@testing/**'],
 };
 
-/** Turns the table of zones into one lint block each. */
+/**
+ * Turns the table of zones into one lint block each.
+ *
+ * @param {{ app: string, zones: Zone[], groups: Record<string, string[]> }} law
+ * @returns {import('eslint').Linter.Config[]}
+ */
 function zoneLaws({ app, zones, groups }) {
   return zones
     .filter(({ denies }) => denies.length > 0)
@@ -112,7 +127,7 @@ function zoneLaws({ app, zones, groups }) {
           {
             patterns: [
               {
-                group: denies.flatMap((name) => groups[name]),
+                group: denies.flatMap((name) => groups[name] ?? []),
                 message: `${zone}/ — ${why}. See README.md, "La loi de dépendance".`,
               },
             ],
@@ -122,7 +137,7 @@ function zoneLaws({ app, zones, groups }) {
     }));
 }
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: [
       'dist/**',
@@ -137,11 +152,34 @@ export default tseslint.config(
     files: ['src/**/*.ts'],
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended,
+      ...tseslint.configs.recommendedTypeChecked,
       ...angular.configs.tsRecommended,
     ],
     processor: angular.processInlineTemplates,
+    // Type-aware, because banning `any` has to see the ones nobody wrote: a
+    // library returning `any`, a `JSON.parse`, a matcher. `no-explicit-any`
+    // alone only catches the keyword.
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
+      // `any` is banned from this repository, written or inherited. What is
+      // not known yet is `unknown`, and gets narrowed before it is used.
+      '@typescript-eslint/no-explicit-any': ['error', { fixToUnknown: true }],
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/no-unsafe-declaration-merging': 'error',
+      '@typescript-eslint/no-unsafe-function-type': 'error',
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        { 'ts-expect-error': 'allow-with-description' },
+      ],
       '@angular-eslint/component-selector': [
         'error',
         { type: 'element', prefix: 'app', style: 'kebab-case' },
@@ -178,6 +216,10 @@ export default tseslint.config(
       ...angular.configs.templateRecommended,
       ...angular.configs.templateAccessibility,
     ],
+    rules: {
+      // The template's own way of writing `any`.
+      '@angular-eslint/template/no-any': 'error',
+    },
   },
 
   // The dependency law, enforced rather than documented.

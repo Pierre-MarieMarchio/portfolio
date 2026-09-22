@@ -4,57 +4,65 @@ Le design du portfolio : un trou noir en `<canvas>`, les projets en orbite, et
 par-dessus une interface à fenêtres. **Il n'est pas encore implémenté** : la
 base du dépôt a été posée d'abord, sans lui.
 
+## Contenu
+
+```
+docs/maquette/
+  Portfolio v5-A - la station.dc.html   la maquette entière (export Claude Design) :
+                                        gabarit, données projets[] / faits[] / fiches[],
+                                        routage, canvas, TOUT le JS
+  passation-la-station.md               le design expliqué : routes, jetons, composants,
+                                        comportements, accessibilité, contenus manquants
+  decoupage-angular.md                  le découpage Angular proposé, l'ordre de travail (§4)
+                                        et les pièges (§5)
+  objet-canvas.md                       la spécification du rendu canvas, à porter telle quelle
+  composants/
+    Fenetre.dc.html                     la fenêtre (export Claude Design)
+    Segmente.dc.html                    le sélecteur segmenté (export Claude Design)
+  captures/                             23 captures, une par vue et par état (924 × 540)
+```
+
 ## Ordre de lecture
 
-1. `passation-la-station.md`, le design complet : routes, jetons de couleur et
-   de typographie, composants (fenêtre, sélecteur segmenté, relevé, fiche,
-   accueil), comportements clavier et accessibilité, données, contenus
-   manquants.
-2. `decoupage-angular.md`, le découpage Angular proposé, l'ordre de travail
-   (§4) et les pièges (§5).
-3. `captures/`, pour voir chaque vue et chaque état.
+1. `passation-la-station.md`, pour comprendre ce que le site doit faire.
+2. `decoupage-angular.md`, pour l'ordre de travail et les pièges.
+3. `Portfolio v5-A - la station.dc.html`, la source de vérité du comportement
+   et des données : en cas de doute entre un texte et l'export, l'export fait
+   foi.
+4. `objet-canvas.md` avant de toucher au canvas, les `composants/` avant la
+   fenêtre et le sélecteur, `captures/` pour chaque état.
 
 ## Les exports Claude Design (`.dc.html`)
 
 La maquette a été faite avec **Claude Design**. Ses fichiers `.dc.html` ne
-sont pas de simples pages : chacun contient le gabarit **et tout le JS** du
-composant, dans un bloc `<script type="text/x-dc">` (la classe `Component`
-et sa logique). C'est la source la plus complète du comportement attendu,
-à lire en entier avant d'implémenter.
+sont pas de simples pages : chacun contient le gabarit **et tout le JS**, dans
+un bloc `<script type="text/x-dc">` (la classe `Component` et sa logique).
 
-- Ils sont **exclus de Prettier et d'ESLint** : on ne les reformate jamais,
-  ils restent octet pour octet ce que Claude Design a exporté.
-- Ils chargent `./support.js`, le runtime de Claude Design, qui n'est pas
-  dans le dossier : ouverts en local, ils ne s'affichent pas. Pour les voir
-  tourner, les rouvrir dans Claude Design ; pour les lire, un éditeur suffit.
-- Un nouvel export se dépose dans `composants/` (un composant) ou à la racine
-  de ce dossier (la maquette entière), sous le nom que Claude Design lui donne.
+- Ils sont **exclus de Prettier et d'ESLint** et ne se modifient jamais : ils
+  restent octet pour octet ce que Claude Design a exporté. Un nouvel export
+  remplace l'ancien, sous le nom que Claude Design lui donne.
+- Ils chargent `./support.js`, le runtime de Claude Design, qui n'est pas dans
+  le dossier : ouverts en local, ils ne s'affichent pas. Pour les voir tourner,
+  les rouvrir dans Claude Design ; pour les lire, un éditeur suffit.
+- Aucun export n'en charge un autre : leur emplacement dans ce dossier est
+  libre.
 
-## Ce qui manque
-
-Les documents renvoient à trois fichiers **absents de ce dossier** (déjà
-absents à la réception : le fichier nommé `Portfolio v5-A…` était en réalité
-une capture JPEG). Il faut les ré-exporter depuis Claude Design avant
-d'implémenter les parties concernées :
-
-| Fichier absent                        | Ce qu'il contient                                         | Bloque                                  |
-| ------------------------------------- | --------------------------------------------------------- | --------------------------------------- |
-| `Portfolio v5-A - la station.dc.html` | l'export Claude Design de la maquette entière : gabarit, données `projets[]`/`faits[]`/`fiches[]`, routage et canvas, **tout le JS** | le contenu réel et le comportement de toutes les vues |
-| `Segmente.dc.html`                    | l'export Claude Design du sélecteur segmenté              | le composant segmenté (décrit en §4.2)  |
-| `objet-canvas.md`                     | la spécification du rendu canvas, à porter telle quelle  | tout l'objet 3D                         |
-
-Tant que les données manquent, `src/app/features/projects/data/projects.data.ts`
-ne contient que ce qui est sûr : les slugs, les titres, la famille et l'ordre.
-Aucun texte n'y est inventé.
+Les données de l'export (`projets[]`, `faits[]`, `fiches[]`) sont la seule
+source du contenu. `src/app/features/projects/data/projects.data.ts` n'en
+reprend pour l'instant que les slugs, titres, familles et l'ordre ; le reste
+arrive avec l'implémentation de la maquette, recopié depuis l'export, jamais
+réécrit.
 
 ## Ce qui a été renommé
 
-Les fichiers étaient arrivés décalés : chaque nom portait le contenu de
+Les fichiers de la première livraison étaient arrivés décalés : chaque nom portait le contenu de
 l'élément situé deux rangs plus loin (le fichier nommé `05-…` montrait la
 capture `03`, `Fenetre.dc.html` était la capture `22`, `objet-canvas.md` était
 le prototype de la fenêtre, `angular.md` était la passation du design…). Chaque
 fichier a été ouvert et renommé d'après **ce qu'il contient**, le 22 septembre
-2026. Les noms actuels sont donc fiables.
+2026. Les exports manquants (la maquette entière, le segmenté, la spec canvas)
+ont été ré-exportés le même jour et vérifiés : chacun contient bien ce que son
+nom annonce. Les noms actuels sont donc fiables.
 
 Deux captures ne montrent pas tout ce que leur nom annonce, parce que la vue est
 défilée en haut : `15-fiche-ngx-statewise-figure-flux` et
@@ -68,7 +76,10 @@ d'origine. Correspondance :
 
 | Chemin cité dans les documents   | Chemin actuel                                  |
 | -------------------------------- | ---------------------------------------------- |
-| `maquette/Fenetre.dc.html`       | `docs/maquette/composants/fenetre.dc.html`     |
+| `maquette/Portfolio v5-A - la station.dc.html` | `docs/maquette/Portfolio v5-A - la station.dc.html` |
+| `maquette/Fenetre.dc.html`       | `docs/maquette/composants/Fenetre.dc.html`     |
+| `maquette/Segmente.dc.html`      | `docs/maquette/composants/Segmente.dc.html`    |
+| `objet-canvas.md`                | `docs/maquette/objet-canvas.md`                |
 | `angular.md` (le découpage)      | `docs/maquette/decoupage-angular.md`           |
 | le README de la passation        | `docs/maquette/passation-la-station.md`        |
 | `captures/`                      | `docs/maquette/captures/`                      |

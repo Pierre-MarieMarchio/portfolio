@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+</helmet>
+
+<ul role="group" aria-label="{{ aria }}" style="display:flex;flex-wrap:wrap;gap:2px;padding:2px;border:1px solid var(--line, #2a3040);width:fit-content;max-width:100%">
+  <sc-for list="{{ items }}" as="it" hint-placeholder-count="3">
+    <li style="display:flex">
+      <button type="button" onClick="{{ it.onClic }}" aria-pressed="{{ it.actif }}" data-seg-actif="{{ it.actif }}" aria-label="{{ it.aria }}" title="{{ it.aria }}" style="display:flex;align-items:center;gap:7px;min-height:34px;padding:5px 11px;border:1px solid transparent;border-radius:2px;background:{{ it.fond }};color:{{ it.encre }};cursor:pointer;font-family:var(--mono, monospace);font-size:var(--m2,12px);letter-spacing:var(--ls-caps,0.14em);text-transform:uppercase;white-space:nowrap;transition:color 180ms,background 180ms" style-hover="color:var(--ink, #e8ebf2);background:var(--vitre-2, rgba(120,140,180,0.16))">
+        <span>{{ it.label }}</span>
+        <sc-if value="{{ it.compte }}" hint-placeholder-val="{{ false }}">
+          <span aria-hidden="true" style="font-size:var(--m1,11px);color:{{ it.encreCompte }}">{{ it.compte }}</span>
+        </sc-if>
+      </button>
+    </li>
+  </sc-for>
+</ul>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:80},&quot;items&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{label:string,compte?:string,actif?:boolean,aria?:string,onClic:()=&gt;void}[]&quot;},&quot;aria&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Sélection&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+/* Sélecteur segmenté : le même geste et le même dessin partout — pages,
+   familles de projets, chapitres d'une fiche, parties de la page « à propos ».
+   L'appelant ne fournit que du sens (libellé, compte, actif, clic) ; l'aspect
+   est décidé ici une seule fois, pour que deux sélecteurs ne divergent jamais. */
+class Component extends DCLogic {
+  renderVals(){
+    const src = this.props.items || [];
+    return {
+      aria: this.props.aria || 'Sélection',
+      items: src.map((it, i) => ({
+        label: it.label,
+        compte: it.compte || false,
+        actif: !!it.actif,
+        aria: it.aria || it.label,
+        onClic: it.onClic,
+        fond: it.actif ? 'var(--vitre-2, rgba(120,140,180,0.16))' : 'transparent',
+        encre: it.actif ? 'var(--ink, #e8ebf2)' : 'var(--ink-2, #9aa6bd)',
+        /* --line est une couleur de filet, pas une encre : un compteur écrit
+           avec elle tombe à 1,5:1 sur le fond de fenêtre. Le compte inactif
+           reste lisible, seule la teinte distingue l'actif. */
+        encreCompte: it.actif ? 'var(--sig, #e7b269)' : 'var(--ink-2, #9aa6bd)'
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

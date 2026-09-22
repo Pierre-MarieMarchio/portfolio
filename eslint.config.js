@@ -145,6 +145,9 @@ export default defineConfig(
       'node_modules/**',
       '.angular/**',
       'docs/maquette/**',
+      // Local tooling, ignored by git: an agent's worktree lives here while
+      // it works, and its unfinished code is not this checkout's.
+      '.claude/**',
     ],
   },
 

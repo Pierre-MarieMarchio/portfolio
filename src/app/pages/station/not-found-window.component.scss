@@ -1,0 +1,32 @@
+:host {
+  display: contents;
+  --window-body-padding: var(--s3) 12px;
+}
+
+h1 {
+  font-size: var(--h2);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  outline: none;
+}
+
+p {
+  margin-top: var(--s2);
+  font-size: var(--p2);
+  color: var(--ink-2);
+}
+
+.grow {
+  flex: 1;
+}
+
+a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  font-family: var(--mono);
+  font-size: var(--m2);
+  letter-spacing: var(--ls-mono);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+}

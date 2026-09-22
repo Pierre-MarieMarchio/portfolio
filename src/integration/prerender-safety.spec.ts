@@ -99,7 +99,7 @@ describe('prerender safety', () => {
   });
 
   /** A window that drags or measures itself must render on the server too. */
-  it('answers no viewport and listens to nothing on the server', () => {
+  it('answers no viewport, listens to nothing and waits for no frame on the server', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
     on('server');
     const environment = TestBed.inject(BrowserEnvironment);
@@ -107,6 +107,10 @@ describe('prerender safety', () => {
     expect(environment.viewport()).toBeNull();
     environment.listen('resize', () => undefined)();
     expect(addEventListener).not.toHaveBeenCalled();
+    const frame = vi.spyOn(window, 'requestAnimationFrame');
+    environment.nextFrame(() => undefined)();
+    expect(frame).not.toHaveBeenCalled();
+    frame.mockRestore();
 
     addEventListener.mockRestore();
   });

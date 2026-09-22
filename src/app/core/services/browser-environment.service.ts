@@ -81,6 +81,22 @@ export class BrowserEnvironment {
     };
   }
 
+  /**
+   * Calls back at the next frame, and returns the function that cancels it.
+   * Inert on the server, where no frame ever comes: a caller waiting for one
+   * simply never runs, which is what a prerender wants.
+   */
+  public nextFrame(callback: (time: number) => void): () => void {
+    const view = this.view();
+    if (!view || typeof view.requestAnimationFrame !== 'function') {
+      return () => undefined;
+    }
+    const id = view.requestAnimationFrame(callback);
+    return () => {
+      view.cancelAnimationFrame(id);
+    };
+  }
+
   private view(): Window | null {
     return this.isBrowser ? this.document.defaultView : null;
   }

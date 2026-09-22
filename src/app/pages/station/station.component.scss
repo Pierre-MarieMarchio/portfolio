@@ -1,0 +1,105 @@
+:host {
+  display: block;
+}
+
+main {
+  outline: none;
+}
+
+.scene {
+  position: relative;
+  height: 100svh;
+  min-height: 380px;
+  overflow: hidden;
+}
+
+/* The void closes one notch back: under everything, and out of the tab
+   order, since Escape does the same from the keyboard. */
+.void {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-scene);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: default;
+}
+
+.home-title {
+  position: absolute;
+  left: clamp(20px, 4vw, 44px);
+  top: clamp(64px, 10vh, 96px);
+  z-index: var(--z-scene-top);
+  max-width: min(27ch, 44vw);
+  pointer-events: none;
+  animation: rise 1500ms 700ms both;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  font-family: var(--mono);
+  font-size: var(--m2);
+  letter-spacing: var(--ls-title);
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+
+  span {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+  }
+}
+
+h1 {
+  margin-top: var(--s3);
+  font-family: var(--mono);
+  font-size: var(--h1);
+  line-height: 1.18;
+  letter-spacing: -0.005em;
+  font-weight: 500;
+  color: var(--ink);
+  outline: none;
+}
+
+/* The slots place the windows; the windows take the pointer, the slots let
+   it through to the object. Their stacking is written by the station. */
+.slot {
+  position: absolute;
+  right: clamp(20px, 4vw, 44px);
+  top: clamp(78px, 10.5vh, 98px);
+  z-index: var(--z-window);
+  width: min(58ch, max(52vw, 320px));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  pointer-events: none;
+}
+
+.slot--index {
+  width: min(78ch, max(56vw, 320px));
+}
+
+.slot--sheet {
+  top: clamp(96px, 13vh, 120px);
+  z-index: calc(var(--z-window) + 1);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-title {
+    animation: none;
+  }
+}

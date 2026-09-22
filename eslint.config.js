@@ -17,7 +17,7 @@ const APP = 'src/app';
  * is done. Without it, a new folder would lint with no law at all, and the
  * first cross-feature import would pass in silence.
  */
-const FEATURES = ['projects'];
+const FEATURES = ['projects', 'station'];
 
 const onDisk = readdirSync(`${APP}/features`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && entry.name !== 'common')

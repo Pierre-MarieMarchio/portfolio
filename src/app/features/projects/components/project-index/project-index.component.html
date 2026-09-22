@@ -1,0 +1,85 @@
+<app-window
+  title="Projets · le relevé"
+  label="Fenêtre : relevé des projets"
+  size="l"
+  [margin]="76"
+  scrollKey="index"
+  [meta]="meta()"
+  [pinned]="pinned()"
+  (pinToggled)="pinToggled.emit()"
+  (closed)="closed.emit()"
+>
+  <app-segmented
+    toolbar
+    label="Familles de projets"
+    [items]="familyItems()"
+    (selected)="chooseFamily($event)"
+  />
+  <h1 tabindex="-1" class="landing">{{ heading() }}</h1>
+  <div class="columns" aria-hidden="true">
+    <span>Réf</span><span>Projet</span><span>Ce qu’on peut vérifier</span
+    ><span>Rôle tenu</span>
+  </div>
+  <ul body class="rows">
+    @for (row of rows(); track row.slug) {
+      <li>
+        <button
+          type="button"
+          class="row"
+          [attr.aria-pressed]="row.isSelected"
+          [attr.aria-label]="row.label"
+          [attr.data-selection]="row.isSelected"
+          (click)="toggle(row.slug)"
+          (mouseenter)="hovered.emit(row.slug)"
+          (mouseleave)="hovered.emit(null)"
+          (focus)="hovered.emit(row.slug)"
+          (blur)="hovered.emit(null)"
+        >
+          <span
+            class="number"
+            aria-hidden="true"
+            [class.featured]="row.featured"
+            >{{ row.number }}</span
+          >
+          <span class="project">
+            <span class="title"
+              ><span>{{ row.title }}</span>
+              @if (row.isVisited) {
+                <span class="read">lu</span>
+              }
+            </span>
+            <span class="stack">{{ row.facts.stack }}</span>
+          </span>
+          <span class="proof"
+            >{{ row.facts.proof
+            }}<span class="level">{{ row.level }}</span></span
+          >
+          <span class="role">{{ row.facts.role }}</span>
+        </button>
+        @if (row.isSelected) {
+          <div class="opened">
+            <span aria-hidden="true"></span>
+            <span class="opened-body">
+              <span class="subject">{{ row.subject }}</span>
+              <span class="links">
+                <a class="to-sheet" [routerLink]="['/projet', row.slug]"
+                  >Ouvrir la fiche →</a
+                >
+                @if (row.link; as link) {
+                  <a
+                    class="outbound"
+                    [href]="link.href"
+                    target="_blank"
+                    rel="noopener"
+                    >{{ link.label }} ↗</a
+                  >
+                }
+              </span>
+            </span>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+  <p footer class="state">{{ state() }}</p>
+</app-window>

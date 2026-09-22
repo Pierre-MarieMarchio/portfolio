@@ -1,2 +1,2 @@
-export { NavShellComponent } from './nav-shell.component';
+export { PageBarComponent } from './page-bar.component';
 export type { NavigationItem } from './navigation-item.model';

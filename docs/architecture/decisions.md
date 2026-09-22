@@ -63,3 +63,30 @@ chargement (une fiche n'est jamais là sans son projet), et le prérendu lit le
 même repository.
 
 **Écarté.** Des constantes importées par le manager ; une lecture par table.
+
+## 2026-09-23 — Les fenêtres vivent à la station, le routeur ne dit que l'adresse
+
+**Décision.** Les routes gardent leurs chemins, `title` et `data.description`,
+et chargent chacune un composant-marqueur de `pages/`, chargé d'emblée, qui
+déclare sa vue à la station (`StationManager.navigated`) dès son constructeur.
+La feature `station` tient l'état de l'instrument : vue, slug, épingles,
+aperçu, sélection du relevé, fiches lues, famille filtrée, volet, chapitre. Elle
+ne connaît que des slugs, jamais le catalogue. `pages/station` compose : elle
+monte chaque fenêtre sur « vue courante ou épinglée », joint la station et les
+projets, et décide entre fiche et adresse inconnue. `AppComponent` rend le
+`<router-outlet>` (qui ne rend que les marqueurs) avant la station.
+
+**Raison.** Une fenêtre épinglée reste montée quand la route change, ce qu'un
+`router-outlet` ne sait pas faire. Ce qui survit à une navigation dans l'export
+survit ici. Le HTML prérendu de chaque chemin contient sa fenêtre, et le premier
+rendu client voit la même vue que le serveur : l'hydratation reprend le DOM au
+lieu de le reconstruire.
+
+**Écarté.** Outlets nommés (les épingles dans l'URL, non prérendables) ;
+`RouteReuseStrategy` (une seule vue affichée à la fois) ; les quatre fenêtres
+toujours montées (plusieurs `<h1>`, contenu caché prérendu) ; composants routés
+doublés d'une copie épinglée (deux instances, état et position perdus).
+
+**À revoir** si `view` gagne un second écrivain, ou si le budget initial du
+bundle est dépassé : passer alors à `@defer` avec hydratation incrémentale,
+jamais à un `@defer` simple, dont le serveur ne rend que le substitut.

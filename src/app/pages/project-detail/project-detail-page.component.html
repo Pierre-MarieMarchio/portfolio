@@ -1,8 +1,0 @@
-@if (project(); as project) {
-  <h1>{{ project.title }}</h1>
-  <p>Fiche à venir.</p>
-} @else {
-  <h1>Projet introuvable</h1>
-  <p>Aucun projet ne répond à « {{ slug() }} ».</p>
-}
-<p><a routerLink="/projets">Retour aux projets</a></p>

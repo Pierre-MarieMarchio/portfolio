@@ -749,4 +749,29 @@ describe('WindowComponent', () => {
       expect(section.style.transform).toBe(transformBeforeDestroy);
     });
   });
+  describe('body scroll', () => {
+    it('reads and sets where the body is scrolled, 0 and inert while collapsed', async () => {
+      const { fixture, host } = await mount();
+      const body = host.querySelector<HTMLElement>('.body');
+      if (!body) {
+        throw new Error('expected a body');
+      }
+
+      fixture.componentInstance.scrollBodyTo(120);
+      expect(body.scrollTop).toBe(120);
+      expect(fixture.componentInstance.bodyScrollTop()).toBe(120);
+
+      host
+        .querySelector<HTMLButtonElement>(
+          `[aria-label="${COLLAPSE_OFF_LABEL}"]`,
+        )
+        ?.click();
+      await fixture.whenStable();
+
+      expect(fixture.componentInstance.bodyScrollTop()).toBe(0);
+      expect(() => {
+        fixture.componentInstance.scrollBodyTo(40);
+      }).not.toThrow();
+    });
+  });
 });

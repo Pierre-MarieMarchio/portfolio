@@ -59,7 +59,7 @@
   @if (!collapsed()) {
     <div class="toolbar"><ng-content select="[toolbar]" /></div>
     <ng-content />
-    <div class="body"><ng-content select="[body]" /></div>
+    <div #body class="body"><ng-content select="[body]" /></div>
     <div class="footer"><ng-content select="[footer]" /></div>
   }
 </section>

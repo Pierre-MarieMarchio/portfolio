@@ -124,6 +124,9 @@ export class StationComponent {
   protected readonly previewRank = computed(() =>
     this.rankOf(this.station.preview()),
   );
+  protected readonly selectedRank = computed(() =>
+    this.rankOf(this.station.selection()),
+  );
   protected readonly hoveredRank = computed(() =>
     this.rankOf(this.station.hovered()),
   );

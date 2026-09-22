@@ -49,6 +49,8 @@ export interface EngineInputs {
   readonly part: number;
   readonly preview: number;
   readonly hovered: number;
+  /** Rank of the index row open, -1 for none; read on the index only. */
+  readonly selected: number;
   readonly paused: boolean;
   readonly reduced: boolean;
   /** The home page's rest has arrived: planets and orbits may rise. */
@@ -154,6 +156,7 @@ export class ObjectEngine {
     part: 0,
     preview: -1,
     hovered: -1,
+    selected: -1,
     paused: false,
     reduced: false,
     revealed: false,
@@ -954,6 +957,7 @@ export class ObjectEngine {
     const mapMode = inputs.view === 'index' || inputs.view === 'not-found';
     const onSheet = inputs.view === 'sheet';
     const read = onSheet ? inputs.focus : -1;
+    const selected = inputs.view === 'index' ? inputs.selected : -1;
     const featured = inputs.featured;
     const shown =
       mapMode || onSheet ? orbits.length : Math.min(featured, orbits.length);
@@ -998,7 +1002,11 @@ export class ObjectEngine {
         if (!orbit) {
           continue;
         }
-        const lively = hovered === i || i === read || (open && active === i);
+        const lively =
+          hovered === i ||
+          selected === i ||
+          i === read ||
+          (open && active === i);
         const base =
           (lively ? 0.34 : 0.13) *
           (i >= featured ? 0.42 : 1) *
@@ -1111,14 +1119,15 @@ export class ObjectEngine {
       const coverFade = mapMode ? 1 : veil(sx, sy);
       // A cold body: smaller, darker, nameless. No extra colour, no icon.
       const cold = i >= featured;
-      const lively = hovered === i || i === read || (open && active === i);
+      const lively =
+        hovered === i || selected === i || i === read || (open && active === i);
       // A crisp halo and a thin ring that pulse slowly: the only things
       // brighter than the disk's core.
       const pulse = 1 + 0.18 * Math.sin(time * 0.9 + i * 2.1);
       const rBase =
         (cold ? (lively ? 4.2 : 3.2) : lively ? 6.6 : 5.2) * dpr * pulse * e;
       // The body aimed at never turns into a ghost behind the shadow.
-      const aimed = (open && active === i) || i === read;
+      const aimed = (open && active === i) || i === read || selected === i;
       const att =
         (open && active !== i ? 0.2 : 1) *
         (onSheet && i !== read ? 0.26 : 1) *
@@ -1150,9 +1159,9 @@ export class ObjectEngine {
       ctx.beginPath();
       ctx.arc(sx, sy, rBase * (lively ? 3.1 : 2.5), 0, TAU);
       ctx.stroke();
-      // The body read: a second ring, wider and held. Hovering is a flash,
-      // reading is a lock; the two never merge.
-      if (onSheet && i === read) {
+      // The selection (or the body read): a second ring, wider and held.
+      // Hovering is a flash, selecting is a lock; the two never merge.
+      if (selected === i || (onSheet && i === read)) {
         ctx.globalAlpha = 0.85 * e * marks;
         ctx.strokeStyle = accent;
         ctx.lineWidth = Math.max(1, 1.1 * dpr);

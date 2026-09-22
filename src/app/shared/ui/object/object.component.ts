@@ -79,6 +79,8 @@ export class ObjectComponent {
   public readonly preview = input(-1);
   /** Rank under the pointer, -1 for none. */
   public readonly hovered = input(-1);
+  /** Rank of the open index row, -1 for none: its planet wears the lock. */
+  public readonly selected = input(-1);
   public readonly paused = input(false);
 
   /** A planet was clicked: the composition decides what it means. */
@@ -213,6 +215,7 @@ export class ObjectComponent {
       part: this.part(),
       preview: this.preview(),
       hovered: this.hovered(),
+      selected: this.selected(),
       paused: this.paused(),
       reduced: this.reduced(),
       revealed: this.revealed || this.reduced(),

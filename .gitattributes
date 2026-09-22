@@ -1,0 +1,8 @@
+# Normalise text to LF so a Windows checkout cannot rewrite the tree.
+* text=auto eol=lf
+
+# Design exports are reference documents, kept byte for byte as received.
+*.dc.html -text
+
+*.jpg binary
+*.png binary

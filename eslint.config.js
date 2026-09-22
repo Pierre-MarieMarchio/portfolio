@@ -225,6 +225,69 @@ export default defineConfig(
   // The dependency law, enforced rather than documented.
   ...zoneLaws({ app: APP, zones: ZONES, groups: GROUPS }),
 
+  {
+    // Only the manager reads the state and only the updater writes it; the
+    // rest of the application talks to the manager. The base rule is used
+    // on purpose: the zone laws own `@typescript-eslint/no-restricted-imports`,
+    // and a second block on the same rule would replace them, not add to them.
+    files: [`${APP}/**/*.ts`],
+    ignores: [`${APP}/**/states/**`],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/*.state', '**/*.updater'],
+              message:
+                'state and updater stay behind the manager: import the manager from the states barrel.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    // The prerender runs with no window: a direct browser global either
+    // throws at build time or ships a page that was rendered wrong. These two
+    // services are the only doors, and are inert on the server.
+    files: [`${APP}/**/*.ts`],
+    ignores: [
+      `${APP}/**/*.spec.ts`,
+      `${APP}/core/services/browser-environment.service.ts`,
+      `${APP}/core/services/local-storage.service.ts`,
+    ],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        ...[
+          'window',
+          'document',
+          'navigator',
+          'localStorage',
+          'sessionStorage',
+          'matchMedia',
+          'requestAnimationFrame',
+          'cancelAnimationFrame',
+        ].map((name) => ({
+          name,
+          message: `${name} is not there at prerender: go through BrowserEnvironment or LocalStorageService, and extend them if they lack it.`,
+        })),
+      ],
+      'no-restricted-properties': [
+        'error',
+        ...['localStorage', 'sessionStorage', 'window', 'document'].map(
+          (property) => ({
+            object: 'globalThis',
+            property,
+            message: `globalThis.${property} dodges the same ban: go through BrowserEnvironment or LocalStorageService.`,
+          }),
+        ),
+      ],
+    },
+  },
+
   // Last: switches off every rule Prettier already decides.
   prettier,
 );

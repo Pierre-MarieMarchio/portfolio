@@ -25,7 +25,7 @@ npm start          # http://localhost:4200
 | `npm run serve:static` | sert `dist/portfolio/browser` comme un hébergeur static |
 | `npm test`             | Vitest + jsdom, une passe                               |
 | `npm run lint`         | ESLint, dont la loi de dépendance                       |
-| `npm run check`        | format:check → lint → test → build                      |
+| `npm run check`        | format:check → typecheck:tools → lint → test → build    |
 
 Les messages de commit suivent les Conventional Commits (Husky + commitlint).
 
@@ -113,6 +113,13 @@ reste en signals locaux dans la page.
   prérendu. `src/integration/prerender-safety.spec.ts` le vérifie.
 
 ## Conventions
+
+**`any` est proscrit du dépôt**, qu'il soit écrit ou hérité d'une bibliothèque :
+le lint est typé (`no-explicit-any`, et les règles `no-unsafe-*` qui suivent un
+`any` à travers une affectation, un appel ou un retour), `$any()` est interdit
+dans les templates, et les fichiers JS de configuration sont type-checkés en
+strict (`tsconfig.tools.json`). Ce qui n'est pas encore connu est `unknown`,
+et se restreint avant d'être utilisé.
 
 Composants standalone, `OnPush`, `templateUrl` + `styleUrl`, `inject()`,
 `input()`/`output()`, control flow `@if`/`@for`, accessibilité des membres

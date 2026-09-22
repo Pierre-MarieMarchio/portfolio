@@ -18,8 +18,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run test && npm run build",
-    "prepare": "husky"
+    "check": "npm run format:check && npm run typecheck:tools && npm run lint && npm run test && npm run build",
+    "prepare": "husky",
+    "typecheck:tools": "tsc -p tsconfig.tools.json"
   },
   "dependencies": {
     "@angular/common": "^22.1.5",

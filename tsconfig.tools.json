@@ -1,0 +1,20 @@
+/*
+ * The repository's own JavaScript (lint and commit configs), type-checked as
+ * strictly as the application: `any` is banned there too, and the editor and
+ * `npm run check` must agree on what counts as an error.
+ */
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"]
+  },
+  "include": ["eslint.config.js", "commitlint.config.js"]
+}

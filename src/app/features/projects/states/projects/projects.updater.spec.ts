@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
-import { sampleProject } from '@testing/fake-managers';
+import { sampleCatalog } from '@testing/fake-managers';
 import { getProjectsActions, projectsReset } from './projects.action';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';
 
-const PROJECTS = [sampleProject()];
+const CATALOG = sampleCatalog();
 
 /**
  * No effects are registered, so a dispatch runs the updater and nothing else.
@@ -37,11 +37,17 @@ describe('projectsUpdater', () => {
     expect(state.isError()).toBe(false);
   });
 
-  it('fills the projects and stops loading on success', () => {
+  /** One catalog, one write: facts and sheets never lag behind the projects. */
+  it('fills the whole catalog and stops loading on success', () => {
     statewise.dispatch(getProjectsActions.request());
-    statewise.dispatch(getProjectsActions.success(PROJECTS));
+    statewise.dispatch(getProjectsActions.success(CATALOG));
 
-    expect(state.projects()).toEqual(PROJECTS);
+    expect(state.projects()).toEqual(CATALOG.projects);
+    expect(state.facts()).toEqual(CATALOG.facts);
+    expect(state.sheets()).toEqual(CATALOG.sheets);
+    expect(state.proofLevelLabels()).toEqual(CATALOG.proofLevelLabels);
+    expect(state.defaultChapterTitles()).toEqual(CATALOG.defaultChapterTitles);
+    expect(state.layers()).toEqual(CATALOG.layers);
     expect(state.isLoading()).toBe(false);
   });
 
@@ -54,12 +60,15 @@ describe('projectsUpdater', () => {
   });
 
   it('empties everything on reset', () => {
-    statewise.dispatch(getProjectsActions.success(PROJECTS));
+    statewise.dispatch(getProjectsActions.success(CATALOG));
     statewise.dispatch(getProjectsActions.failure());
 
     statewise.dispatch(projectsReset());
 
     expect(state.projects()).toEqual([]);
+    expect(state.facts()).toEqual({});
+    expect(state.sheets()).toEqual({});
+    expect(state.layers()).toEqual([]);
     expect(state.isError()).toBe(false);
   });
 });

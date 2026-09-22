@@ -19,8 +19,8 @@ export class ProjectsEffect {
   public readonly getProjectsRequestEffect = createEffect(
     getProjectsActions.request,
     () =>
-      this.repository.getAll().pipe(
-        map((projects) => getProjectsActions.success(projects)),
+      this.repository.getCatalog().pipe(
+        map((catalog) => getProjectsActions.success(catalog)),
         catchError((error: unknown) => {
           this.errorHandler.handleError(error);
 

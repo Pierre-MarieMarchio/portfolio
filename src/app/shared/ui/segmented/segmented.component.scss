@@ -1,0 +1,65 @@
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+/* A block that wraps as a whole: its border grows with its rows, so a
+   second row never spills over what follows (the mockup's inline-sized list
+   let "Personnels" overflow onto the column headers at 924px). */
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  width: fit-content;
+  max-width: 100%;
+}
+
+li {
+  display: flex;
+}
+
+button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 5px 11px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: var(--m2);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    color 180ms,
+    background 180ms;
+
+  &:hover,
+  &[data-active='true'] {
+    color: var(--ink);
+    background: var(--vitre-2);
+  }
+}
+
+/* --line is a rule colour, not an ink: a count written with it falls to
+   1.5:1. The inactive count stays readable; only the hue marks the active. */
+.count {
+  font-size: var(--m1);
+  color: var(--ink-2);
+
+  [data-active='true'] > & {
+    color: var(--sig);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}

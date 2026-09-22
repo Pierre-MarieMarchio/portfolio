@@ -47,6 +47,22 @@ export const routes: Routes = [
     title: 'À propos',
     data: { description: 'Qui est Pierre-Marie Marchio.' },
   },
+  // The shared-component bench exists in development builds only. The
+  // condition reads `ngDevMode` itself rather than `isDevMode()`: the
+  // production build defines it as `false`, so the minifier drops the branch
+  // and the bench's chunk with it, where a function call would keep both.
+  ...(typeof ngDevMode === 'undefined' || ngDevMode
+    ? [
+        {
+          path: 'atelier',
+          loadComponent: () =>
+            import('./pages/workbench/workbench-page.component').then(
+              (m) => m.WorkbenchPageComponent,
+            ),
+          title: 'Atelier',
+        },
+      ]
+    : []),
   {
     path: '**',
     loadComponent: () =>

@@ -1,0 +1,69 @@
+<h1>Atelier des composants partagés</h1>
+<div class="controls">
+  <app-segmented
+    label="Scénario"
+    [items]="scenarioItems()"
+    (selected)="choose($event)"
+  />
+</div>
+
+@if (isClosed()) {
+  <p class="closed">
+    Fenêtre fermée.
+    <button type="button" (click)="isClosed.set(false)">Rouvrir</button>
+  </p>
+} @else {
+  <div
+    class="slot"
+    [class.slot--bottom]="scenario() === 'preview'"
+    [class.slot--narrow]="scenario() !== 'index'"
+  >
+    @switch (scenario()) {
+      @case ('short') {
+        <app-window
+          title="Adresse inconnue"
+          meta="404"
+          size="s"
+          [margin]="76"
+          [pinned]="pinned()"
+          (pinToggled)="pinned.set(!pinned())"
+          (closed)="isClosed.set(true)"
+        >
+          <div body><p>Corps court, sans barre d’outils.</p></div>
+          <div footer>
+            <span class="grow"></span><a href="#">Lien de pied →</a>
+          </div>
+        </app-window>
+      }
+      @default {
+        <app-window
+          [title]="scenario() === 'preview' ? 'Aperçu' : 'Projets · le relevé'"
+          [meta]="pinned() ? 'épinglée' : '07 fiches'"
+          [size]="size()"
+          [margin]="scenario() === 'preview' ? 88 : 76"
+          [anchor]="scenario() === 'preview' ? 'bottom' : 'top'"
+          [pinned]="pinned()"
+          [closable]="scenario() !== 'fixed'"
+          (pinToggled)="pinned.set(!pinned())"
+          (closed)="isClosed.set(true)"
+        >
+          <app-segmented
+            toolbar
+            label="Familles"
+            [items]="familyItems()"
+            (selected)="chooseFamily($event)"
+          />
+          <div class="columns" aria-hidden="true">
+            <span>Réf</span><span>Colonne</span><span>Colonne</span>
+          </div>
+          <ul body>
+            @for (row of rows; track row) {
+              <li>Ligne {{ row }} — <a href="#">lien</a></li>
+            }
+          </ul>
+          <p footer class="state">Position courante</p>
+        </app-window>
+      }
+    }
+  </div>
+}

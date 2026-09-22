@@ -10,6 +10,7 @@ import {
 import { ProjectsManager } from '@app/features/projects/states';
 import { StationEffect } from '@app/features/station/states';
 import { StationManager } from '@app/features/station/states';
+import { ObjectComponent } from '@shared/ui/object';
 import { StationComponent } from './station.component';
 
 describe('StationComponent', () => {
@@ -26,6 +27,9 @@ describe('StationComponent', () => {
   };
 
   const mount = async () => {
+    // jsdom has no 2D context: the object takes its no-canvas fallback, which
+    // is what these specs need, without jsdom logging "not implemented".
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
     TestBed.configureTestingModule({
       imports: [StationComponent],
       providers: [
@@ -51,6 +55,7 @@ describe('StationComponent', () => {
     // that beyond one spec, but destroying the fixture keeps every spec
     // starting from a station with no listener left behind.
     TestBed.resetTestingModule();
+    vi.restoreAllMocks();
   });
 
   it('renders the page bar and the contact rail, with no pause button for now', async () => {
@@ -267,5 +272,41 @@ describe('StationComponent', () => {
     expect(Number(second.style.zIndex)).toBeGreaterThan(
       Number(first.style.zIndex),
     );
+  });
+  /** The object knows ranks, the station slugs: the composition translates. */
+  it('hands the object the ranks of the sheet, the selection, the preview and the hovered body', async () => {
+    const { fixture, station } = await mount();
+    const object = (): ObjectComponent => {
+      const found = fixture.debugElement.query(
+        (node) => node.componentInstance instanceof ObjectComponent,
+      );
+      if (!found) {
+        throw new Error('expected the object to be mounted');
+      }
+      return found.componentInstance as ObjectComponent;
+    };
+
+    station.navigated('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(object().view()).toBe('sheet');
+    expect(object().focus()).toBe(0);
+
+    station.navigated('index');
+    station.select(KNOWN_SLUG);
+    station.hover(KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(object().selected()).toBe(0);
+    expect(object().hovered()).toBe(0);
+
+    station.select(null);
+    station.hover('unknown');
+    await fixture.whenStable();
+    expect(object().selected()).toBe(-1);
+    expect(object().hovered()).toBe(-1);
+
+    station.navigated('home');
+    station.showPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(object().preview()).toBe(0);
   });
 });

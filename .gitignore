@@ -100,11 +100,63 @@ testem.log
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
-# --- AI assistants: their local notes and personal settings -------------------
-.claude/settings.local.json
+# --- AI assistants ---------------------------------------------------------------
+# Local development tools, never imposed on whoever clones this repository:
+# their settings, agents, skills, hooks, memory and instruction files all stay
+# on the machine of the person who chose them. Nothing here is needed to build,
+# test or run the site.
+# Claude Code
+.claude/
 CLAUDE.md
-.codex/
+CLAUDE.local.md
+**/CLAUDE.md
+**/CLAUDE.local.md
+# Cross-tool instruction files
+AGENTS.md
+**/AGENTS.md
 .agents/
+.mcp.json
+mcp.json
+# OpenAI Codex
+.codex/
+# GitHub Copilot
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+.github/chatmodes/
+# Cursor
+.cursor/
+.cursorrules
+.cursorignore
+.cursorindexingignore
+# Windsurf / Codeium
+.windsurf/
+.windsurfrules
+.codeium/
+# Gemini
+.gemini/
+GEMINI.md
+# Aider
+.aider*
+# Cline, Roo, Continue, Kilo, Zed, JetBrains AI
+.cline/
+.clinerules
+.clinerules/
+.roo/
+.roomodes
+.continue/
+.kilocode/
+.zed/
+.junie/
+.aiassistant/
+.aiexclude
+# Amazon Q / Kiro, Tabnine
+.amazonq/
+.kiro/
+.tabnine/
+.tabnine_root
+# Local usage reports on working sessions, handed on outside this repository
+docs/session-reports/
 
 # --- Operating systems -----------------------------------------------------------
 .DS_Store

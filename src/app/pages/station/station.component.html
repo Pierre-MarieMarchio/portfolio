@@ -26,7 +26,17 @@
       </div>
     }
 
-    <div class="slot slot--about" data-slot="about"></div>
+    <div class="slot slot--about" data-slot="about">
+      @if (station.showsAbout()) {
+        <app-about-window
+          [pinned]="station.pins().about"
+          [part]="station.part()"
+          (partChange)="station.choosePart($event)"
+          (pinToggled)="station.togglePin('about')"
+          (closed)="station.close('about')"
+        />
+      }
+    </div>
 
     <div class="slot slot--index" data-slot="index">
       @if (station.showsIndex()) {

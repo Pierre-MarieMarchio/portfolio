@@ -3,26 +3,30 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   effect,
   ElementRef,
   inject,
+  linkedSignal,
   untracked,
   viewChild,
 } from '@angular/core';
 import { LANGS } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
-import { BrowserWindowService } from '@app/core/services';
 import {
   FeaturedBarComponent,
   ProjectListComponent,
   ProjectPreviewComponent,
   ProjectDetailComponent,
 } from '@app/features/projects/components';
+import { FAMILIES, FamilyFilter } from '@app/features/projects/models';
 import { ProjectsManager } from '@app/features/projects/states';
 import { DesktopSceneComponent } from '@app/features/desktop/components';
-import { DesktopWindow, Planet } from '@app/features/desktop/models';
-import { DesktopManager } from '@app/features/desktop/states';
+import {
+  DesktopView,
+  DesktopWindow,
+  Planet,
+} from '@app/features/desktop/models';
+import { AnimationManager, DesktopManager } from '@app/features/desktop/states';
 import { windowOf } from '../../features/desktop/rules/view.rules';
 import { SocialLink } from '@shared/ui/models';
 import { SocialLinksComponent } from '@shared/ui/components';
@@ -41,7 +45,6 @@ import { BottomEdgeVariableDirective } from '../../shared/ui/directives/bottom-e
 import { HomeTitleComponent } from '../../features/desktop/components/home-title/home-title.component';
 import { IntroCardComponent } from '../../features/desktop/components/intro-card/intro-card.component';
 import { NotFoundWindowComponent } from '../../features/desktop/components/not-found-window/not-found-window.component';
-import { DesktopProjectsBinding } from '../providers/desktop-projects.provider';
 import { DESKTOP_IDS } from '../../features/desktop/models/desktop-ids.model';
 import { StackedWindowDirective } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
@@ -51,10 +54,6 @@ import { WindowStackService } from '@shared/windows/services';
  * bar, the contact rail and the windows live here, above the router, which
  * only says the address. Each window shows on its own address or anywhere
  * once pinned.
- *
- * Composition only: the arrival and its curtain, the windows' depth, the
- * landing focus, the bar's measure and the meeting of the station with the
- * projects each live in a piece of their own, provided here.
  */
 @Component({
   selector: 'app-desktop-page',
@@ -74,25 +73,22 @@ import { WindowStackService } from '@shared/windows/services';
     ProjectDetailComponent,
     StackedWindowDirective,
   ],
-  providers: [
-    HomeRevealService,
-    FeaturedTourService,
-    DesktopProjectsBinding,
-    WindowStackService,
-  ],
+  providers: [HomeRevealService, FeaturedTourService, WindowStackService],
+  host: {
+    '(document:keydown.escape)': 'onEscape()',
+  },
   templateUrl: './desktop-page.component.html',
   styleUrl: './desktop-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesktopPageComponent {
-  private readonly browserWindow = inject(BrowserWindowService);
   private readonly landing = inject(ViewFocusService);
   private readonly stack = inject(WindowStackService);
   private readonly curtain = inject(FeaturedTourService);
   private readonly arrivalController = inject(HomeRevealService);
   protected readonly station = inject(DesktopManager);
-  protected readonly binding = inject(DesktopProjectsBinding);
-  private readonly projects = inject(ProjectsManager);
+  protected readonly animation = inject(AnimationManager);
+  protected readonly projects = inject(ProjectsManager);
 
   private readonly locale = inject(LocaleService);
   protected readonly texts = inject(PAGES_TEXTS);
@@ -137,6 +133,43 @@ export class DesktopPageComponent {
       .map(({ slug, title, short }) => ({ slug, title, short })),
   );
 
+  protected readonly sheetSlug = computed(() => {
+    const slug = this.station.slug();
+    return slug && this.projects.find(slug) ? slug : null;
+  });
+
+  protected readonly isNotFound = computed(
+    () =>
+      this.station.view() === 'not-found' ||
+      (this.station.view() === 'sheet' && this.sheetSlug() === null),
+  );
+
+  protected readonly sceneView = computed<DesktopView>(() =>
+    this.isNotFound() ? 'not-found' : this.station.view(),
+  );
+
+  protected readonly family = computed<FamilyFilter>(
+    () => FAMILIES.find((family) => family === this.station.family()) ?? 'all',
+  );
+
+  private readonly featuredSlugs = computed(() =>
+    this.projects.featured().map((project) => project.slug),
+  );
+
+  protected readonly featuredCount = computed(
+    () => this.projects.featured().length,
+  );
+
+  protected readonly projectCount = computed(
+    () => this.projects.ranked().length,
+  );
+
+  private readonly frontWindow = linkedSignal({
+    source: () => ({ view: this.station.view(), slug: this.station.slug() }),
+    computation: ({ view }) => windowOf(view),
+    equal: () => false,
+  });
+
   private readonly homeTitle = viewChild<
     HomeTitleComponent,
     ElementRef<HTMLElement>
@@ -172,53 +205,56 @@ export class DesktopPageComponent {
   private landed = false;
 
   constructor() {
-    const stopEscape = this.browserWindow.on('keydown', (event) => {
-      if (event.key === 'Escape') {
-        void this.station.escape();
-      }
-    });
-    inject(DestroyRef).onDestroy(stopEscape);
-
-    // Browser only: on the server there is no one to arrive, and the
-    // prerendered page keeps its CSS timing. From then on the reader has
-    // landed, and a new view is a navigation.
     afterNextRender(() => {
       this.landed = true;
       this.arrivalController.start(
         untracked(() => this.station.view()) === 'home',
         () => {
-          this.curtain.play(() => this.binding.featuredSlugs());
+          this.curtain.play(() => this.featuredSlugs());
         },
       );
     });
 
-    this.followNavigations();
+    this.revealOnLeavingHome();
+    this.bringViewWindowToFront();
+    this.focusAfterNavigations();
   }
 
-  /**
-   * On a view: its window comes to the front of the pinned ones. After a
-   * navigation, and only then (D6), the focus goes to its heading: on the
-   * first load it stays at the top of the document, where a reader with a
-   * screen reader or a keyboard expects to start.
-   */
-  private followNavigations(): void {
+  private revealOnLeavingHome(): void {
+    effect(() => {
+      if (this.station.view() !== 'home') {
+        untracked(() => {
+          this.arrivalController.arrive();
+        });
+      }
+    });
+  }
+
+  private bringViewWindowToFront(): void {
+    effect(() => {
+      const front = this.frontWindow();
+      if (front) {
+        untracked(() => {
+          this.stack.bringToFront(front);
+        });
+      }
+    });
+  }
+
+  private focusAfterNavigations(): void {
     let withdraw: (() => void) | undefined;
     effect(() => {
-      const view = this.station.view();
+      const shown = windowOf(this.station.view());
       this.station.slug();
       untracked(() => {
-        // Leaving the home page is a sign the reader is there.
-        if (view !== 'home') {
-          this.arrivalController.arrive();
-        }
-        const shown = windowOf(view);
-        if (shown) {
-          this.stack.bringToFront(shown);
-        }
         withdraw?.();
         withdraw = this.landed ? this.claimFocus(shown) : undefined;
       });
     });
+  }
+
+  protected onEscape(): void {
+    void this.station.escape();
   }
 
   /**
@@ -229,8 +265,8 @@ export class DesktopPageComponent {
   protected onBodyClicked(slug: string): void {
     const view = this.station.view();
     if (view === 'index') {
-      this.station.select(this.station.selection() === slug ? null : slug);
-    } else if (view === 'home' && this.binding.isFeatured(slug)) {
+      this.station.select(this.station.selected() === slug ? null : slug);
+    } else if (view === 'home' && this.projects.isFeatured(slug)) {
       this.station.togglePreview(slug);
     }
   }

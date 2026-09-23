@@ -216,7 +216,7 @@ describe('StationComponent', () => {
     const { fixture, station, host } = await mount();
     expect(host.querySelector('#home-title')?.tagName).toBe('H1');
     expect(host.querySelector('#home-title')?.textContent?.trim()).toBe(
-      'Concepteur développeur d’applications',
+      'Développeur .NET et Angular',
     );
 
     station.syncRoute('about');
@@ -256,7 +256,7 @@ describe('StationComponent', () => {
     const notFound = host.querySelector('app-not-found-window');
     expect(notFound).not.toBeNull();
     expect(notFound?.querySelector('h1')?.textContent?.trim()).toBe(
-      'Cette réalisation n’existe pas.',
+      'Rien en orbite à cette adresse.',
     );
     const link = notFound?.querySelector('a');
     expect(link?.textContent?.trim()).toBe('Tous les projets →');
@@ -295,9 +295,7 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     const button = host.querySelector('button.void');
-    expect(button?.getAttribute('aria-label')).toBe(
-      'Refermer et revenir à la vue d’ensemble',
-    );
+    expect(button?.getAttribute('aria-label')).toBe('Fermer les fenêtres');
     expect(button?.getAttribute('tabindex')).toBe('-1');
   });
 

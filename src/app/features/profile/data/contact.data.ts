@@ -4,7 +4,7 @@ export const CONTACT_ADDRESSES: readonly ContactAddress[] = [
   {
     href: 'mailto:pierremariemarchio.pro@gmail.com',
     icon: 'email',
-    title: 'Email',
+    title: 'E-mail',
     external: false,
   },
   {

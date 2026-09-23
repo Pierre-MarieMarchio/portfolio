@@ -30,11 +30,9 @@ describe('AnimationToggleComponent', () => {
 
     expect(rule()?.getAttribute('aria-hidden')).toBe('true');
     expect(pause()?.getAttribute('aria-label')).toBe(
-      'Mettre l’animation de l’objet en pause',
+      'Mettre l’animation en pause',
     );
-    expect(pause()?.getAttribute('title')).toBe(
-      'Mettre l’animation de l’objet en pause',
-    );
+    expect(pause()?.getAttribute('title')).toBe('Mettre l’animation en pause');
     expect(pause()?.textContent?.trim()).toBe('❚❚');
   });
 
@@ -58,9 +56,7 @@ describe('AnimationToggleComponent', () => {
     animation.togglePause();
     await fixture.whenStable();
 
-    expect(pause()?.getAttribute('aria-label')).toBe(
-      'Reprendre l’animation de l’objet',
-    );
+    expect(pause()?.getAttribute('aria-label')).toBe('Relancer l’animation');
     expect(pause()?.textContent?.trim()).toBe('▶');
   });
 });

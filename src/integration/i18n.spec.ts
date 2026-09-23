@@ -88,7 +88,7 @@ describe('i18n', () => {
       host.querySelector('app-main-nav nav')?.getAttribute('aria-label'),
     ).toBe('Main navigation');
     expect(host.querySelector('.window h2')?.textContent?.trim()).toBe(
-      'Projects · the index',
+      'Projects',
     );
   });
 

@@ -1,13 +1,7 @@
 import { draft } from '@app/core/rules';
 import { Catalog } from '../models/catalog.model';
+import { EN_PROFILE } from './en-profile.data';
 
-/**
- * Every text of the interface, in English: the one file to open to change
- * one. Written without the author's review, so each text is marked
- * `draft(…)` until it is read; `src/integration/drafts.spec.ts` counts the
- * ones left. The lorem ipsum and the "to be filled in" lines stand where the
- * French placeholders do.
- */
 export const EN: Catalog = {
   shared: {
     segmented: { label: draft('Selection') },
@@ -21,8 +15,8 @@ export const EN: Catalog = {
   },
 
   windows: {
-    pin: draft('Pin: keep the window open when changing page'),
-    unpin: draft('Unpin: the window will close when changing page'),
+    pin: draft('Keep this window open when changing page'),
+    unpin: draft('Let this window close when changing page'),
     fold: draft('Fold the window'),
     unfold: draft('Unfold the window'),
     close: draft('Close the window'),
@@ -30,31 +24,31 @@ export const EN: Catalog = {
 
   projects: {
     proofLevels: {
-      public: draft('Open it yourself'),
-      indirect: draft('Checkable, private code'),
-      none: draft('On account only'),
+      public: draft('Public link'),
+      indirect: draft('Private code'),
+      none: draft('No public link'),
     },
     defaultChapterTitles: [
-      draft('Why?'),
-      draft('What did I do?'),
-      draft('Which trade-off?'),
-      draft('What holds?'),
+      draft('The need'),
+      draft('What I did'),
+      draft('A technical choice'),
+      draft('Today'),
     ],
     index: {
-      heading: draft('Projects · the index'),
-      label: draft('Window: index of the projects'),
-      title: draft((count: string) => `Projects — the index of ${count} works`),
-      count: draft((count: string) => `${count} sheets`),
+      heading: draft('Projects'),
+      label: draft('Project list'),
+      title: draft((count: string) => `The ${count} projects`),
+      count: draft((count: string) => `${count} projects`),
       families: {
-        label: draft('Project families'),
-        all: { label: draft('All'), aria: draft('See every project') },
+        label: draft('Filter the projects'),
+        all: { label: draft('All'), aria: draft('Show every project') },
         professional: {
           label: draft('At work'),
-          aria: draft('See only the work done in a company'),
+          aria: draft('Show the projects done at work'),
         },
         personal: {
           label: draft('Personal'),
-          aria: draft('See only the personal projects'),
+          aria: draft('Show the personal projects'),
         },
       },
       summary: draft(
@@ -62,41 +56,41 @@ export const EN: Catalog = {
           `${professional} at work · ${personal} personal`,
       ),
       columns: [
-        draft('Ref'),
+        draft('No.'),
         draft('Project'),
-        draft('What you can check'),
-        draft('Role held'),
+        draft('Status'),
+        draft('My role'),
       ],
-      read: draft('read'),
-      openSheet: draft('Open the sheet →'),
+      read: draft('viewed'),
+      openSheet: draft('See the project →'),
     },
     preview: {
-      label: draft('Window: project preview'),
-      bodies: draft('Bodies in orbit'),
+      label: draft('Project preview'),
+      bodies: draft('Featured projects'),
       body: draft(
-        (number: string, title: string) => `Preview ${number} — ${title}`,
+        (number: string, title: string) => `Project ${number}: ${title}`,
       ),
       terms: {
-        proof: draft('Proof'),
+        proof: draft('Status'),
         role: draft('Role'),
         stack: draft('Stack'),
       },
-      openSheet: draft('Open the sheet →'),
+      openSheet: draft('See the project →'),
     },
     sheet: {
-      label: draft('Window: project sheet'),
-      approaches: draft('Approaches of the sheet'),
+      label: draft('Project details'),
+      approaches: draft('Sections'),
       approach: draft(
-        (number: string, title: string) => `Approach ${number} — ${title}`,
+        (number: string, title: string) => `Section ${number}: ${title}`,
       ),
       terms: {
-        access: draft('Access'),
+        access: draft('Status'),
         role: draft('Role'),
-        stack: draft('Technique'),
+        stack: draft('Stack'),
         context: draft('Context'),
       },
       nextApproach: draft((title: string) => `Next: ${title} →`),
-      nextProject: draft((short: string) => `Following: ${short} →`),
+      nextProject: draft((short: string) => `Next project: ${short} →`),
     },
     rule: {
       heading: draft('Projects in orbit'),
@@ -106,177 +100,61 @@ export const EN: Catalog = {
 
   desktop: {
     animation: {
-      pause: draft('Pause the animation of the object'),
-      resume: draft('Resume the animation of the object'),
+      pause: draft('Pause the animation'),
+      resume: draft('Resume the animation'),
     },
     object: {
       select: draft(
-        (number: string, title: string) =>
-          `Select ${number} — ${title} in the index`,
+        (_number: string, title: string) => `Show ${title} in the list`,
       ),
-      preview: draft((title: string) => `Preview of the project ${title}`),
+      preview: draft((title: string) => `Preview of ${title}`),
       parts: [
         draft('Profile'),
         draft('Skills'),
-        draft('Method'),
+        draft('What next'),
         draft('Path'),
       ],
     },
     home: {
-      void: draft('Close and go back to the overview'),
+      void: draft('Close the windows'),
       name: 'Pierre-Marie Marchio',
-      trade: draft('Application designer and developer'),
+      trade: draft('.NET and Angular developer'),
       brand: 'Portfolio',
     },
     notFound: {
-      heading: draft('Unknown address'),
-      label: draft('Window: unknown address'),
-      title: draft('This work does not exist.'),
+      heading: draft('Page not found'),
+      label: draft('Page not found'),
+      title: draft('Nothing in orbit at this address.'),
       sentence: draft(
-        (count: string) =>
-          `The address asked for matches none of the ${count} sheets of the index.`,
+        (count: string) => `None of the ${count} projects matches this link.`,
       ),
       back: draft('All the projects →'),
     },
   },
 
-  profile: {
-    about: {
-      heading: draft('About'),
-      label: draft('Window: about'),
-      parts: draft('Parts of the profile'),
-      title: draft((part: string) => `About — ${part}`),
-      goTo: draft((part: string) => `Go to: ${part}`),
-      next: draft((part: string) => `Next: ${part} →`),
-      back: draft('All the projects →'),
-      profile: {
-        label: draft('Profile'),
-        title: draft('Profile'),
-        lead: draft(
-          'I come from archaeology. I kept one habit from it: asserting nothing without proof.',
-        ),
-        facts: [
-          {
-            term: draft('Position'),
-            value: draft('Application designer and developer, Skyted'),
-            tone: 'text',
-          },
-          {
-            term: draft('Stack'),
-            value: '.NET · MAUI · Angular · Swift · Kotlin · PostgreSQL',
-            tone: 'data',
-          },
-          {
-            term: draft('Place'),
-            value: draft('Lorem ipsum — city and mobility to be filled in'),
-            tone: 'quiet',
-          },
-          {
-            term: draft('Open to'),
-            value: draft(
-              'Lorem ipsum — permanent, contract, freelance: to be specified',
-            ),
-            tone: 'quiet',
-          },
-        ],
-        prose: [
-          draft(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Two applications published on the stores, two open-source foundations written alone: what you read here can be checked in three clicks.',
-          ),
-          'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam quis nostrud exercitation ullamco laboris.',
-        ],
-      },
-      skills: {
-        label: draft('Skills'),
-        title: draft('Skills · what I have delivered on'),
-        heading: draft('What I have delivered on'),
-        domains: [
-          { label: 'Web', value: draft('.NET APIs, Angular front ends') },
-          {
-            label: 'Mobile',
-            value: draft('published applications, tied to a device'),
-          },
-          {
-            label: draft('Hardware'),
-            value: draft('Bluetooth Low Energy integration'),
-          },
-          { label: 'Desktop', value: draft('Java Swing applications') },
-          {
-            label: draft('Business'),
-            value: draft('banking flows, European clearing'),
-          },
-        ],
-        prose: draft(
-          'Lorem ipsum dolor sit amet: each line leads to a project of the index, not to a list of keywords.',
-        ),
-      },
-      method: {
-        label: draft('Method'),
-        title: draft('Way of working'),
-        heading: draft('How I work'),
-        steps: [
-          draft(
-            'Carry a project through to production: the only way to see its real cost.',
-          ),
-          draft(
-            'Lorem ipsum dolor sit amet — decisions that are explained, code that can be read again.',
-          ),
-          draft(
-            'Consectetur adipiscing elit — results you can go and check yourself.',
-          ),
-        ],
-      },
-      path: {
-        label: draft('Path'),
-        title: draft('Path'),
-        heading: draft('Steps'),
-        missing: draft('years to be filled in'),
-        milestones: [
-          {
-            year: '— — — —',
-            fact: draft('Archaeology: excavation, survey, description'),
-          },
-          { year: '— — — —', fact: draft('Retraining into development') },
-          {
-            year: '— — — —',
-            fact: draft('Training — title and school to be filled in'),
-          },
-          {
-            year: '— — — —',
-            fact: draft(
-              'Numerilis — internship, rework of the Bk-ONE back end',
-            ),
-          },
-          {
-            year: '— — — —',
-            fact: draft('Skyted — application designer and developer'),
-          },
-        ],
-      },
-    },
-    contact: {
-      email: draft('Write to me at pierremariemarchio.pro@gmail.com'),
-      linkedin: draft('LinkedIn profile of Pierre-Marie Marchio'),
-      github: draft('GitHub repositories of Pierre-Marie Marchio'),
-    },
-  },
+  profile: EN_PROFILE,
+
   pages: {
     heads: {
       home: {
         title: draft('Home'),
         description: draft(
-          'Portfolio of Pierre-Marie Marchio, application designer and developer.',
+          'Pierre-Marie Marchio, .NET and Angular developer in Toulouse, looking for a work-study position. His web, desktop and mobile projects.',
         ),
       },
       index: {
         title: draft('Projects'),
-        description: draft('The projects of Pierre-Marie Marchio.'),
+        description: draft(
+          'The projects of Pierre-Marie Marchio, at work and personal, and what he did on each.',
+        ),
       },
       about: {
         title: draft('About'),
-        description: draft('Who Pierre-Marie Marchio is.'),
+        description: draft(
+          'Path, skills and work-study search of Pierre-Marie Marchio, developer in Toulouse.',
+        ),
       },
-      notFound: { title: draft('Unknown address') },
+      notFound: { title: draft('Page not found') },
       sheet: { title: draft('Project') },
     },
     skipLink: draft('Skip to the content'),
@@ -285,7 +163,6 @@ export const EN: Catalog = {
       index: draft('Projects'),
       about: draft('About'),
     },
-    // Each language named in itself: the same in both catalogues.
     languages: { fr: 'Français', en: 'English' },
   },
 };

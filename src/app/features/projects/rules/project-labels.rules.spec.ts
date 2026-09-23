@@ -45,14 +45,10 @@ describe('project labels', () => {
   });
 
   it('says a proof level in words', () => {
-    expect(proofLevelLabel('public', texts.proofLevels)).toBe(
-      'Ouvrable par vous',
-    );
-    expect(proofLevelLabel('indirect', texts.proofLevels)).toBe(
-      'Vérifiable, code privé',
-    );
+    expect(proofLevelLabel('public', texts.proofLevels)).toBe('Lien public');
+    expect(proofLevelLabel('indirect', texts.proofLevels)).toBe('Code privé');
     expect(proofLevelLabel('none', texts.proofLevels)).toBe(
-      'Sur récit seulement',
+      'Pas de lien public',
     );
   });
 
@@ -68,7 +64,7 @@ describe('project labels', () => {
     );
     const defaults = texts.defaultChapterTitles;
 
-    expect(chapterTitle(detail, 0, defaults)).toBe('Pourquoi ?');
+    expect(chapterTitle(detail, 0, defaults)).toBe('Le besoin');
     expect(chapterTitle(detail, 1, defaults)).toBe('Qu’est-ce qui tient ?');
     expect(chapterTitle(detail, 2, defaults)).toBe('');
     expect(chapterTitle(null, 0, defaults)).toBe('');

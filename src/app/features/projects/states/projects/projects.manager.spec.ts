@@ -159,7 +159,7 @@ describe('ProjectsManager', () => {
     );
     expect(
       proofLevelLabel('indirect', TestBed.inject(PROJECTS_TEXTS)().proofLevels),
-    ).toBe('Vérifiable, code privé');
+    ).toBe('Code privé');
     expect(manager.find('skyted-voice')?.facts.context).toBe('Skyted');
     expect(state.isLoading()).toBe(false);
   });

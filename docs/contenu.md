@@ -7,7 +7,7 @@ quel fichier ouvrir, quoi y écrire, et ce que `npm run check` vérifie ensuite.
 
 Un projet s'écrit **dans un seul fichier**, puis se range **à une seule ligne**.
 
-1. Créez `src/app/features/projects/data/projects/<slug>.project.ts`, en
+1. Créez `src/app/features/projects/data/projects/<slug>.data.ts`, en
    partant d'un projet voisin. Le `slug` est l'adresse de la fiche
    (`/projet/<slug>`) : des minuscules, des chiffres et des tirets.
 
@@ -32,10 +32,10 @@ Un projet s'écrit **dans un seul fichier**, puis se range **à une seule ligne*
        stack: 'Angular · TypeScript',
        context: 'Personnel',
      },
-     sheet: {
+     detail: {
        lede: 'Le chapô de la fiche.',
        links: [{ label: 'dépôt', href: 'https://…' }],
-       chapters: [{ paragraphs: ['Pourquoi ce projet…'] }, { paragraphs: ['Ce que j’ai fait…'] }],
+       chapters: [{ paragraphs: ['Le besoin…'] }, { paragraphs: ['Ce que j’ai fait…'] }],
      },
    };
    ```
@@ -45,7 +45,7 @@ Un projet s'écrit **dans un seul fichier**, puis se range **à une seule ligne*
    au centre de l'objet et l'ordre de lecture partout ailleurs.
 
 C'est tout. La page `/projet/<slug>` est prérendue d'elle-même, le relevé,
-les compteurs, la règle, l'objet et la phrase « aucune des NN fiches » suivent.
+les compteurs, la règle, l'objet et la phrase « Aucun des NN projets » suivent.
 
 **Ce qui est refusé.** Le type `ProjectEntry` exige l'identité, les faits et
 la fiche : un projet sans faits ou sans fiche ne compile pas, et
@@ -54,8 +54,8 @@ la fiche : un projet sans faits ou sans fiche ne compile pas, et
 `check-prerender`.
 
 **Les chapitres.** Un chapitre sans `title` prend le titre par défaut de sa
-place (« Pourquoi ? », « Qu’ai-je fait ? », « Quel arbitrage ? »,
-« Qu’est-ce qui tient ? »). Un chapitre peut porter une liste (`bullets`, des
+place (« Le besoin », « Ce que j’ai fait », « Un choix technique »,
+« Aujourd’hui »). Un chapitre peut porter une liste (`bullets`, des
 paires terme / texte) et une figure :
 
 - `{ kind: 'flow', steps: ['a', 'b'], loop: '…', caption: '…' }` : des étapes
@@ -86,10 +86,11 @@ Le site existe en français (à la racine) et en anglais (sous `/en`).
   `{ fr: '…', en: '…' }`. Un texte identique dans les deux langues (un nom, une
   pile technique) s'écrit une seule fois, en simple chaîne.
 - **Tout autre texte de l'interface**, `aria-label` et `title` compris, est dans
-  `src/app/i18n/fr.ts` pour le français et `src/app/i18n/en.ts` pour l'anglais.
-  Les deux fichiers ont la même forme : une clé ajoutée à l'un et oubliée dans
+  `src/app/i18n/data/fr.data.ts` pour le français et `en.data.ts` pour
+  l'anglais, sauf ceux de la page À propos, dans `fr-profile.data.ts` et
+  `en-profile.data.ts`. Les deux langues ont la même forme : une clé ajoutée à l'un et oubliée dans
   l'autre ne compile pas. Un texte qui porte une valeur (un nombre, un titre)
-  est une petite fonction : ``(count) => `${count} fiches` ``.
+  est une petite fonction : ``(count) => `${count} projets` ``.
 
 Aucun gabarit n'est à ouvrir pour changer un texte.
 
@@ -99,5 +100,5 @@ texte), puis mettez à jour le nombre attendu dans
 `src/integration/drafts.spec.ts`, qui compte ceux qui restent.
 
 **Les adresses** des vues, dans les deux langues, sont dans
-`src/app/i18n/paths.ts` : les routes, les liens, le sélecteur de langue et
+`src/app/i18n/data/paths.data.ts` : les routes, les liens, le sélecteur de langue et
 l'en-tête (`canonical`, `hreflang`) en sont tirés.

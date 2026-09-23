@@ -82,17 +82,13 @@ describe('ProjectIndexComponent', () => {
     const { host } = await mount();
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe(
-      'Fenêtre : relevé des projets',
-    );
-    expect(window?.querySelector('h2')?.textContent?.trim()).toBe(
-      'Projets · le relevé',
-    );
+    expect(window?.getAttribute('aria-label')).toBe('Liste des projets');
+    expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Projets');
   });
 
   it('shows the total count in the meta, unfiltered', async () => {
     const { host } = await mount({ family: 'all' });
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('05 fiches');
+    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('05 projets');
   });
 
   it('shows a family / total fraction in the meta, once filtered', async () => {
@@ -102,18 +98,18 @@ describe('ProjectIndexComponent', () => {
 
   it('lists the three family choices with their counts, in order', async () => {
     const { host } = await mount({ family: 'personal' });
-    const toolbar = host.querySelector('[aria-label="Familles de projets"]');
+    const toolbar = host.querySelector('[aria-label="Filtrer les projets"]');
     const buttons = [...(toolbar?.querySelectorAll('button') ?? [])];
 
     expect(
       buttons.map((button) =>
         button.textContent?.replaceAll(/\s+/g, '').trim(),
       ),
-    ).toEqual(['Tout05', 'Enentreprise02', 'Personnels03']);
+    ).toEqual(['Tous05', 'Enentreprise02', 'Personnels03']);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Voir tous les projets',
-      'Ne voir que les réalisations faites en entreprise',
-      'Ne voir que les projets personnels',
+      'Afficher tous les projets',
+      'Afficher les projets faits en entreprise',
+      'Afficher les projets personnels',
     ]);
     // 'personal' is the input: only that button is pressed.
     expect(
@@ -128,7 +124,7 @@ describe('ProjectIndexComponent', () => {
       emitted.push(value),
     );
 
-    const toolbar = host.querySelector('[aria-label="Familles de projets"]');
+    const toolbar = host.querySelector('[aria-label="Filtrer les projets"]');
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -138,21 +134,19 @@ describe('ProjectIndexComponent', () => {
     expect(emitted).toEqual(['professional']);
     // The component does not decide its own filter: the input still says 'all'.
     const toolbarAfter = host.querySelector(
-      '[aria-label="Familles de projets"]',
+      '[aria-label="Filtrer les projets"]',
     );
     expect(
       toolbarAfter?.querySelectorAll('button')[0]?.getAttribute('aria-pressed'),
     ).toBe('true');
   });
 
-  it('titles the heading with the total realisations', async () => {
+  it('titles the heading with the total project count', async () => {
     const { host } = await mount();
     const heading = host.querySelector('h1');
 
     expect(heading?.getAttribute('tabindex')).toBe('-1');
-    expect(heading?.textContent?.trim()).toBe(
-      'Projets — le relevé des 05 réalisations',
-    );
+    expect(heading?.textContent?.trim()).toBe('Les 05 projets');
   });
 
   it('lists one row per project, in the manager order, numbered from the full list', async () => {
@@ -219,11 +213,13 @@ describe('ProjectIndexComponent', () => {
     expect(row?.querySelector('.role')?.textContent).toContain('Role proj-a');
   });
 
-  it('marks a visited row read, and only that one', async () => {
+  it('marks a visited row consulted, and only that one', async () => {
     const { host } = await mount({ visited: ['proj-b'] });
     const titles = rows(host).map((row) => row.querySelector('.title'));
 
-    expect(titles[1]?.querySelector('.read')?.textContent?.trim()).toBe('lu');
+    expect(titles[1]?.querySelector('.read')?.textContent?.trim()).toBe(
+      'consulté',
+    );
     expect(titles[0]?.querySelector('.read')).toBeNull();
   });
 
@@ -256,7 +252,7 @@ describe('ProjectIndexComponent', () => {
     expect(opened?.textContent).toContain('Sample subject.');
     const link = opened?.querySelector('a:not([target="_blank"])');
     expect(link?.getAttribute('href')).toBe('/projet/proj-b');
-    expect(link?.textContent?.trim()).toBe('Ouvrir la fiche →');
+    expect(link?.textContent?.trim()).toBe('Voir le projet →');
   });
 
   it('has no opened block when nothing is selected', async () => {

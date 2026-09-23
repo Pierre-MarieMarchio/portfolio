@@ -1,40 +1,36 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Speakey: identity, facts and detail, in one place. */
 export const SPEAKEY: ProjectEntry = {
   project: {
     slug: 'speakey',
     title: 'Speakey',
     short: 'Speakey',
-    tag: 'prototype',
-    family: 'personal',
+    tag: { fr: 'arrêté', en: draft('stopped') },
+    family: 'professional',
     subject: {
-      fr: 'Prototype mobile personnel, écrit pour apprendre et resté à l’état de prototype.',
+      fr: 'Le site et l’API d’un outil de dictée vocale hébergé en Europe, chez Skyted.',
       en: draft(
-        'A personal mobile prototype, written to learn and left at the prototype stage.',
+        'The website and API of a voice dictation tool hosted in Europe, at Skyted.',
       ),
     },
-    summary: { fr: 'prototype personnel', en: draft('personal prototype') },
+    summary: { fr: 'dictée vocale, web', en: draft('voice dictation, web') },
   },
   facts: {
-    proof: {
-      fr: 'Prototype · non déployé',
-      en: draft('Prototype · not deployed'),
-    },
+    proof: { fr: 'Pas de lien public', en: draft('No public link') },
     proofLevel: 'none',
     role: {
-      fr: 'Conception et développement',
-      en: draft('Design and development'),
+      fr: 'Tout, sauf le moteur de reconnaissance',
+      en: draft('Everything but the recognition engine'),
     },
-    stack: { fr: 'Prototype mobile', en: draft('Mobile prototype') },
-    context: { fr: 'Personnel', en: draft('Personal') },
+    stack: 'Angular · .NET 10 · OVHcloud',
+    context: 'Skyted',
   },
   detail: {
     lede: {
-      fr: 'Un prototype personnel, resté prototype : écrit pour apprendre, pas pour être mis en service.',
+      fr: 'Tout le logiciel autour du moteur de reconnaissance de la parole, jusqu’à la mise en production.',
       en: draft(
-        'A personal prototype, left a prototype: written to learn, not to be put into service.',
+        'All the software around the speech recognition engine, up to production.',
       ),
     },
     links: [],
@@ -42,35 +38,29 @@ export const SPEAKEY: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'J’apprends en écrivant quelque chose qui fonctionne. Avant de savoir si une idée tient, je la construis assez loin pour en mesurer le coût : c’est ce qu’a été ce prototype, mené seul, en dehors de tout cadre professionnel.',
+            fr: 'Skyted voulait un outil de dictée vocale dont les données restent en Europe. Le moteur de reconnaissance devait venir ensuite.',
             en: draft(
-              'I learn by writing something that works. Before knowing whether an idea holds, I build it far enough to measure its cost: that is what this prototype was, carried out alone, outside any professional setting.',
-            ),
-          },
-          {
-            fr: 'Il n’a pas été déployé, et je ne le présente pas pour autre chose que ce qu’il m’a appris.',
-            en: draft(
-              'It was not deployed, and I present it for nothing more than what it taught me.',
+              'Skyted wanted a voice dictation tool whose data stays in Europe. The recognition engine was to come later.',
             ),
           },
         ],
       },
       {
-        title: { fr: 'Qu’est-ce qui tient ?', en: draft('What holds?') },
         paragraphs: [
           {
-            fr: 'Ce qui existe : un prototype, sans mise en production ni utilisateurs.',
+            fr: 'Le front en Angular (signals, prérendu, i18n, design system en SCSS), l’API REST en .NET 10, et la mise en production sur un VPS OVHcloud en HTTPS, avec une CI/CD GitHub Actions.',
             en: draft(
-              'What exists: a prototype, with no production release and no users.',
+              'The Angular front end (signals, prerendering, i18n, an SCSS design system), the .NET 10 REST API, and the production deployment on an OVHcloud VPS over HTTPS, with GitHub Actions CI/CD.',
             ),
           },
-          // Flagged in the handoff (§8): said twice, here and in "Méthode".
-          // Kept as written until it is rewritten or cut.
+        ],
+      },
+      {
+        title: { fr: 'Aujourd’hui', en: draft('Today') },
+        paragraphs: [
           {
-            fr: 'Ce qu’il m’a laissé : l’habitude de tenir un projet de bout en bout — la seule manière que je connaisse d’en voir le coût réel, et celle que je reprends aujourd’hui dans les projets que je publie.',
-            en: draft(
-              'What it left me: the habit of carrying a project end to end — the only way I know to see its real cost, and the one I take up today in the projects I publish.',
-            ),
+            fr: 'Le projet s’est arrêté avant l’arrivée du moteur.',
+            en: draft('The project stopped before the engine arrived.'),
           },
         ],
       },

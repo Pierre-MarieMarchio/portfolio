@@ -564,3 +564,19 @@ s'érode ; avec un script, c'est un garde-fou.
 
 **Écarté.** Garder les raisons dans ce journal : elles portent sur une ligne
 de code, pas sur une décision, et il en compte plus de deux cents.
+
+## 2026-09-24 — Un catalogue de langue se découpe par tranche (D22)
+
+**Décision.** Quand un catalogue de langue dépasse la limite de lignes du lint,
+on en sort une tranche entière, celle d'une couche, dans son propre fichier à
+côté : `fr-profile.data.ts` et `en-profile.data.ts` portent la tranche
+`profile`, et `fr.data.ts` / `en.data.ts` l'importent. Le type `Catalog` ne
+change pas.
+
+**Raison.** La réécriture du texte (docs/wording/) a fait passer `en.data.ts`
+au-delà de 300 lignes, surtout à cause des `draft(…)` sur plusieurs lignes.
+Couper par tranche suit les ports : chaque fichier correspond à une couche qui
+lit ses propres textes.
+
+**Écarté.** Raccourcir des phrases pour tenir dans la limite : le texte ne se
+règle pas sur un outil. Une exception au lint : proscrite (D9).

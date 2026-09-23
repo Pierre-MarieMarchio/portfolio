@@ -1,7 +1,6 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Template Clean Architecture .NET: identity, facts and detail, in one place. */
 export const TEMPLATE_DOTNET: ProjectEntry = {
   project: {
     slug: 'template-dotnet',
@@ -10,28 +9,28 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
     tag: 'open source',
     family: 'personal',
     subject: {
-      fr: 'Un point de départ pour une API HTTP .NET 10 : découpage Clean Architecture, PostgreSQL via EF Core, authentification ASP.NET Identity avec JWT et jetons de rafraîchissement rotatifs, refus par défaut en autorisation, erreurs RFC 7807.',
+      fr: 'Un point de départ pour une API .NET 10 : Clean Architecture, PostgreSQL, authentification JWT complète, erreurs au format RFC 7807.',
       en: draft(
-        'A starting point for a .NET 10 HTTP API: Clean Architecture layering, PostgreSQL through EF Core, ASP.NET Identity authentication with JWT and rotating refresh tokens, deny-by-default authorisation, RFC 7807 errors.',
+        'A starting point for a .NET 10 API: Clean Architecture, PostgreSQL, full JWT authentication, RFC 7807 errors.',
       ),
     },
     summary: { fr: 'socle d’API .NET 10', en: draft('.NET 10 API foundation') },
   },
   facts: {
     proof: {
-      fr: 'Dépôt public · dotnet new',
-      en: draft('Public repository · dotnet new'),
+      fr: 'Code public sur GitHub',
+      en: draft('Public code on GitHub'),
     },
     proofLevel: 'public',
-    role: { fr: 'Seul, de bout en bout', en: draft('Alone, end to end') },
+    role: { fr: 'Seul', en: draft('Alone') },
     stack: '.NET 10 · EF Core · PostgreSQL',
     context: { fr: 'Personnel', en: draft('Personal') },
   },
   detail: {
     lede: {
-      fr: 'Un dépôt de départ pour une API HTTP .NET 10, pour ne pas réécrire chaque fois l’authentification, le découpage en couches et la chaîne de vérification.',
+      fr: 'De quoi démarrer une API .NET avec l’authentification, les couches et la CI déjà en place.',
       en: draft(
-        'A starter repository for a .NET 10 HTTP API, so as not to rewrite authentication, layering and the verification chain every time.',
+        'What you need to start a .NET API with authentication, layers and CI already in place.',
       ),
     },
     links: [
@@ -45,15 +44,9 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'Démarrer une API sérieuse demande à chaque fois les mêmes semaines de mise en place : couches, persistance, authentification, format d’erreurs, intégration continue. Ce travail est refait projet après projet, rarement de la même manière.',
+            fr: 'Toute nouvelle API demande la même mise en place : les couches, la base, l’authentification, le format des erreurs, la CI. Ce dépôt la fournit déjà faite.',
             en: draft(
-              'Starting a serious API takes the same weeks of set-up every time: layers, persistence, authentication, error format, continuous integration. That work is redone project after project, rarely the same way.',
-            ),
-          },
-          {
-            fr: 'Le dépôt est ma réponse : un point de départ déjà gréé, que l’on peut cloner ou dont on peut générer un projet nommé à son tour.',
-            en: draft(
-              'The repository is my answer: a starting point already rigged, which can be cloned or used to generate a project under a name of one’s own.',
+              'Every new API needs the same setup: layers, database, authentication, error format, CI. This repository ships it ready-made.',
             ),
           },
         ],
@@ -61,36 +54,35 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'Projet personnel. J’ai défini le découpage, écrit le code, les trois fonctionnalités d’exemple et la documentation, et je le maintiens seul.',
+            fr: 'Le code, trois fonctionnalités d’exemple et une documentation par sujet. On peut le cloner tel quel, ou générer un projet à son nom avec dotnet new.',
             en: draft(
-              'Personal project. I defined the layering, wrote the code, the three example features and the documentation, and I maintain it alone.',
+              'The code, three example features and one document per subject. You can clone it as is, or generate a project under your own name with dotnet new.',
             ),
           },
         ],
         bullets: [
           {
-            term: { fr: 'refus par défaut', en: draft('deny by default') },
+            term: { fr: 'refus par défaut', en: draft('default deny') },
             text: {
-              fr: 'un endpoint est protégé tant qu’il ne demande pas explicitement le contraire',
-              en: draft(
-                'an endpoint is protected until it explicitly asks otherwise',
-              ),
+              fr: 'un endpoint est protégé sauf s’il dit le contraire',
+              en: draft('an endpoint is protected unless it opts out'),
             },
           },
           {
             term: 'RFC 7807',
             text: {
-              fr: 'la même forme d’erreur partout, avec un code stable et un traceId',
-              en: draft(
-                'the same error shape everywhere, with a stable code and a traceId',
-              ),
+              fr: 'la même forme d’erreur partout, avec un code stable',
+              en: draft('the same error shape everywhere, with a stable code'),
             },
           },
           {
-            term: { fr: 'options validées', en: draft('validated options') },
+            term: {
+              fr: 'configuration vérifiée au démarrage',
+              en: draft('configuration checked at startup'),
+            },
             text: {
-              fr: 'une configuration fautive arrête l’hôte au démarrage',
-              en: draft('a faulty configuration stops the host at start-up'),
+              fr: 'une erreur de réglage arrête l’API tout de suite',
+              en: draft('a wrong setting stops the API straight away'),
             },
           },
           {
@@ -99,8 +91,8 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
               en: draft('architecture tests'),
             },
             text: {
-              fr: 'un projet ajouté hors des règles fait échouer la construction',
-              en: draft('a project added outside the rules fails the build'),
+              fr: 'un projet mal placé fait échouer le build',
+              en: draft('a misplaced project fails the build'),
             },
           },
         ],
@@ -108,15 +100,9 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'EF Core ne mappe pas les entités du domaine : il mappe des modèles de persistance, et un convertisseur fait le passage. Cela coûte un objet et un mapper par entité — le compromis est assumé — mais le domaine ne subit plus les contraintes de l’ORM.',
+            fr: 'EF Core ne mappe pas les entités du domaine mais des modèles de persistance, et un mapper fait la conversion. Ça coûte une classe de plus par entité. En échange, le domaine ne dépend pas de l’ORM, et un test échoue dès qu’une propriété se perd dans la conversion.',
             en: draft(
-              'EF Core does not map the domain entities: it maps persistence models, and a converter does the crossing. That costs an object and a mapper per entity — the trade-off is accepted — but the domain no longer bears the ORM’s constraints.',
-            ),
-          },
-          {
-            fr: 'Pour que ce coût ne devienne pas une source de bogues silencieux, un test piloté par réflexion échoue dès qu’une propriété ne survit pas à l’aller-retour. La règle n’est pas tenue par la relecture, elle est tenue par la chaîne de vérification.',
-            en: draft(
-              'So that this cost does not become a source of silent bugs, a reflection-driven test fails as soon as a property does not survive the round trip. The rule is not held by review, it is held by the verification chain.',
+              'EF Core does not map the domain entities but persistence models, and a mapper converts between them. It costs one more class per entity. In exchange, the domain does not depend on the ORM, and a test fails as soon as a property gets lost in the conversion.',
             ),
           },
         ],
@@ -151,9 +137,9 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
             },
           ],
           caption: {
-            fr: 'Arborescence réelle du dépôt : les tests d’architecture échouent si un projet est ajouté sans que sa place soit décrite.',
+            fr: 'L’arborescence du dépôt. Les tests d’architecture échouent si un projet est ajouté sans que sa place soit décrite.',
             en: draft(
-              'The repository’s real tree: the architecture tests fail if a project is added without its place being described.',
+              'The repository’s tree. The architecture tests fail if a project is added without its place being described.',
             ),
           },
         },
@@ -161,15 +147,9 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'Ce qui existe : un dépôt public qui se lance en une commande Docker, une documentation par sujet et une chaîne de vérification exécutable depuis un simple clone.',
+            fr: 'Le dépôt est public et se lance avec Docker Compose.',
             en: draft(
-              'What exists: a public repository that starts with one Docker command, documentation by subject and a verification chain that runs from a plain clone.',
-            ),
-          },
-          {
-            fr: 'Ce qui n’est pas démontré : aucune mesure de charge, aucun déploiement en production à montrer. Son document de sécurité consacre plus de place à ce qu’un déploiement doit encore faire qu’à ce que le socle fournit.',
-            en: draft(
-              'What is not shown: no load measurement, no production deployment to show. Its security document gives more room to what a deployment still has to do than to what the foundation provides.',
+              'The repository is public and starts with Docker Compose.',
             ),
           },
         ],

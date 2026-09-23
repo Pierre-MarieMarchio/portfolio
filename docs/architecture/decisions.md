@@ -106,3 +106,18 @@ change pas le rendu se vérifie en comparant le HTML prérendu avant et après.
 **Écarté.** Les fonctionnalités d'abord (le bilingue sur des composants de 450
 lignes, à reprendre ensuite) ; des règles d'emblée en erreur (un `check` rouge
 pendant tout le nettoyage, ou des exceptions partout).
+
+## 2026-09-23 — Le focus va au titre de la vue après une navigation, pas au premier chargement
+
+**Décision (D6).** Quand le lecteur arrive sur une vue par une navigation, le
+focus va à son `h1` (`appLandingHeading`, `LandingFocus`), dans le conteneur
+de la vue : la fenêtre de son emplacement, ou le titre de l'accueil. Au premier
+chargement, rien ne bouge : le focus reste en haut du document.
+
+**Raison.** Après une navigation sans rechargement, un lecteur d'écran ne sait
+pas que la page a changé si rien ne le lui dit : le titre annonce la vue. Au
+premier chargement, le navigateur l'annonce déjà, et le lecteur au clavier
+attend de partir du début du document, là où est le lien d'évitement.
+
+**Écarté.** Le focus à chaque arrivée, premier chargement compris (il sautait
+le lien d'évitement) ; aucun focus du tout (une navigation muette).

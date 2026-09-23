@@ -59,9 +59,5 @@ export default {
       },
       { message: 'Use the design token (src/assets/styles/_tokens.scss)' },
     ],
-
-    // The empty stylesheets belong to the route markers, which step 5
-    // folds into one component with none.
-    'no-empty-source': [true, { severity: 'warning' }],
   },
 };

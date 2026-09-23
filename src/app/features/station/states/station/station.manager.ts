@@ -7,18 +7,19 @@ import {
   stationEscaped,
   stationFiltered,
   stationHovered,
-  stationNavigated,
+  stationRouteSynced,
   stationPartChosen,
   stationPauseToggled,
   stationPinToggled,
   stationPreviewClosed,
   stationPreviewOpened,
   stationSelected,
-  stationVoidClicked,
+  stationSteppedBack,
   stationWindowClosed,
 } from './station.action';
 import { StationState } from './station.state';
 import { stationUpdater } from './station.updater';
+import { stepBack } from './step-back';
 
 /** The only API the composition sees of the station. */
 @Injectable({ providedIn: 'root' })
@@ -53,8 +54,22 @@ export class StationManager {
       (this.view() === 'home' || this.pins().preview),
   );
 
-  public navigated(view: StationView, slug: string | null = null): void {
-    this.statewise.dispatch(stationNavigated({ view, slug }));
+  /**
+   * Whether a click in the void has something to close: the void button is
+   * drawn only then. The effect reads the same rule to decide what it does.
+   */
+  public readonly canStepBack = computed(
+    () =>
+      stepBack('void', {
+        view: this.view(),
+        selection: this.selection(),
+        preview: this.preview(),
+      }) !== null,
+  );
+
+  /** The router says where the reader is; only a route marker calls this. */
+  public syncRoute(view: StationView, slug: string | null = null): void {
+    this.statewise.dispatch(stationRouteSynced({ view, slug }));
   }
 
   public togglePin(window: StationWindow): void {
@@ -69,8 +84,9 @@ export class StationManager {
     return this.statewise.dispatchAsync(stationEscaped());
   }
 
-  public clickVoid(): Promise<void> {
-    return this.statewise.dispatchAsync(stationVoidClicked());
+  /** One notch back, over what the void covers (see `canStepBack`). */
+  public stepBack(): Promise<void> {
+    return this.statewise.dispatchAsync(stationSteppedBack());
   }
 
   public select(slug: string | null): void {
@@ -85,7 +101,7 @@ export class StationManager {
     this.statewise.dispatch(stationChapterChosen(chapter));
   }
 
-  public choosePart(part: string): void {
+  public choosePart(part: number): void {
     this.statewise.dispatch(stationPartChosen(part));
   }
 
@@ -99,7 +115,7 @@ export class StationManager {
   }
 
   /** From the preview's own selector: change body in place, never close. */
-  public showPreview(slug: string): void {
+  public openPreview(slug: string): void {
     this.statewise.dispatch(stationPreviewOpened(slug));
   }
 

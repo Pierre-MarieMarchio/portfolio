@@ -18,7 +18,8 @@
     "lint:fix": "eslint . --fix && stylelint \"src/**/*.scss\" --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run typecheck:tools && npm run lint && npm run test && npm run build",
+    "check": "npm run format:check && npm run typecheck:tools && npm run lint && npm run test && npm run build && npm run check:prerender",
+    "check:prerender": "node scripts/check-prerender.mjs",
     "prepare": "husky",
     "typecheck:tools": "tsc -p tsconfig.tools.json"
   },

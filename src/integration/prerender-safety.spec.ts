@@ -186,4 +186,65 @@ describe('prerender safety', () => {
 
     document.documentElement.style.removeProperty('--ink');
   });
+
+  /** The choreography's timing is read from the CSS, never from the server. */
+  it('reads no duration and waits for no gesture on the server', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    document.documentElement.style.setProperty('--arrival-at', '8700ms');
+    on('server');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const called = vi.fn();
+
+    expect(environment.rootDuration('--arrival-at')).toBeNull();
+    environment.firstGesture(10, called);
+    vi.advanceTimersByTime(100);
+    window.dispatchEvent(new Event('keydown'));
+
+    expect(called).not.toHaveBeenCalled();
+    document.documentElement.style.removeProperty('--arrival-at');
+    vi.useRealTimers();
+  });
+
+  it('reads a duration token in ms or s, and nothing else, in the browser', () => {
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const read = (value: string): number | null => {
+      document.documentElement.style.setProperty('--probe', value);
+      return environment.rootDuration('--probe');
+    };
+
+    expect(read('8700ms')).toBe(8700);
+    expect(read('5.6s')).toBe(5600);
+    expect(read('auto')).toBeNull();
+    document.documentElement.style.removeProperty('--probe');
+    expect(environment.rootDuration('--probe')).toBeNull();
+  });
+
+  it('calls back once, at the first gesture or the timeout, in the browser', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const byGesture = vi.fn();
+    const byTime = vi.fn();
+    const cancelled = vi.fn();
+
+    environment.firstGesture(1000, byGesture);
+    window.dispatchEvent(new Event('wheel'));
+    window.dispatchEvent(new Event('keydown'));
+    vi.advanceTimersByTime(1000);
+    expect(byGesture).toHaveBeenCalledTimes(1);
+
+    environment.firstGesture(1000, byTime);
+    vi.advanceTimersByTime(999);
+    expect(byTime).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    window.dispatchEvent(new Event('pointerdown'));
+    expect(byTime).toHaveBeenCalledTimes(1);
+
+    environment.firstGesture(1000, cancelled)();
+    vi.advanceTimersByTime(1000);
+    window.dispatchEvent(new Event('touchstart'));
+    expect(cancelled).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });

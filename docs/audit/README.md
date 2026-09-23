@@ -136,7 +136,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
     des `querySelectorAll` ;
   - harmoniser les noms : sorties `xxxChange`, `data-*` en anglais, ids en
     constantes.
-- [ ] **5. `refactor(station)`** (rapports 02 et 03) :
+- [x] **5. `refactor(station)`** (rapports 02 et 03) :
   - découper `StationComponent` en `ArrivalController`, `Curtain`, directive
     `windowStack` (ordre dans un signal), directive `landingHeading`,
     directive `headBottom`, `StationProjectsBinding` et `HomeTitleComponent` ;

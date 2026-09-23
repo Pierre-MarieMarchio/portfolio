@@ -2,8 +2,8 @@ import { defineSingleAction, emptyPayload, payload } from 'ngx-statewise';
 import { StationView, StationWindow } from '../../models';
 
 /** The address changed: the only writer of the view and its slug. */
-export const stationNavigated = defineSingleAction(
-  'STATION_NAVIGATED',
+export const stationRouteSynced = defineSingleAction(
+  'STATION_ROUTE_SYNCED',
   payload<{ view: StationView; slug: string | null }>(),
 );
 
@@ -18,15 +18,18 @@ export const stationWindowClosed = defineSingleAction(
   payload<StationWindow>(),
 );
 
-/** Escape steps back one notch, from every view. */
+/**
+ * Escape steps back one notch, from every view. Kept apart from
+ * `stationSteppedBack` on purpose: it reaches further (see `stepBack`).
+ */
 export const stationEscaped = defineSingleAction(
   'STATION_ESCAPED',
   emptyPayload,
 );
 
-/** A click in the void steps back one notch, never more. */
-export const stationVoidClicked = defineSingleAction(
-  'STATION_VOID_CLICKED',
+/** A click in the void steps back one notch, over what it covers. */
+export const stationSteppedBack = defineSingleAction(
+  'STATION_STEPPED_BACK',
   emptyPayload,
 );
 
@@ -47,7 +50,7 @@ export const stationChapterChosen = defineSingleAction(
 
 export const stationPartChosen = defineSingleAction(
   'STATION_PART_CHOSEN',
-  payload<string>(),
+  payload<number>(),
 );
 
 export const stationPreviewOpened = defineSingleAction(

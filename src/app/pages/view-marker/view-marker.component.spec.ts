@@ -1,0 +1,36 @@
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
+import { provideStatewise } from 'ngx-statewise';
+import { StationManager } from '@app/features/station/states';
+import { ViewMarkerComponent, ViewMarkerData } from './view-marker.component';
+
+describe('ViewMarkerComponent', () => {
+  const mount = (data: ViewMarkerData) => {
+    TestBed.configureTestingModule({
+      imports: [ViewMarkerComponent],
+      providers: [
+        provideStatewise(),
+        { provide: ActivatedRoute, useValue: { snapshot: { data } } },
+      ],
+    });
+    const station = TestBed.inject(StationManager);
+    const fixture = TestBed.createComponent(ViewMarkerComponent);
+    return { station, fixture };
+  };
+
+  /** Before any render: the station's first check already sees the view. */
+  it.each(['home', 'index', 'about', 'not-found'] as const)(
+    'declares the %s view to the station as soon as it is created',
+    (view) => {
+      const { station } = mount({ view });
+
+      expect(station.view()).toBe(view);
+    },
+  );
+
+  it('draws nothing', () => {
+    const { fixture } = mount({ view: 'about' });
+
+    expect((fixture.nativeElement as HTMLElement).childNodes).toHaveLength(0);
+  });
+});

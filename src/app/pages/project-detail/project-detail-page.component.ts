@@ -11,14 +11,13 @@ import { StationManager } from '@app/features/station/states';
 
 /**
  * The address of a sheet. The sheet itself is rendered by the station; this
- * marker says which one. The tab is named by the route's resolver.
+ * marker says which one. The tab is named by the route's resolver. Like
+ * `ViewMarkerComponent`, it draws nothing.
  */
 @Component({
   selector: 'app-project-detail-page',
-  templateUrl: './project-detail-page.component.html',
-  styleUrl: './project-detail-page.component.scss',
+  template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'page' },
 })
 export class ProjectDetailPageComponent {
   /** Bound from `:slug` by `withComponentInputBinding()`. */
@@ -29,7 +28,7 @@ export class ProjectDetailPageComponent {
 
     // Declared at once, before the station's view is checked: inputs are not
     // bound yet, the snapshot already holds the slug.
-    station.navigated(
+    station.syncRoute(
       'sheet',
       inject(ActivatedRoute).snapshot.paramMap.get('slug'),
     );
@@ -40,7 +39,7 @@ export class ProjectDetailPageComponent {
       const slug = this.slug();
       untracked(() => {
         if (station.view() !== 'sheet' || station.slug() !== slug) {
-          station.navigated('sheet', slug);
+          station.syncRoute('sheet', slug);
         }
       });
     });

@@ -41,6 +41,9 @@ describe('StationComponent', () => {
     // jsdom has no 2D context: the object takes its no-canvas fallback, which
     // is what these specs need, without jsdom logging "not implemented".
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    // The global stylesheet is not loaded here: the crossing's length, which
+    // the arrival reads from the CSS, is set by hand as `_tokens.scss` does.
+    document.documentElement.style.setProperty('--arrival-at', '8700ms');
     TestBed.configureTestingModule({
       imports: [StationComponent],
       providers: [
@@ -65,6 +68,7 @@ describe('StationComponent', () => {
     // the fixture unless the component tears it down; nothing here relies on
     // that beyond one spec, but destroying the fixture keeps every spec
     // starting from a station with no listener left behind.
+    document.documentElement.style.removeProperty('--arrival-at');
     TestBed.resetTestingModule();
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -118,7 +122,7 @@ describe('StationComponent', () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, station, host } = await mount({ reducedMotion: false });
 
-      station.navigated('index');
+      station.syncRoute('index');
       await fixture.whenStable();
       expect(
         host.querySelector('app-page-bar')?.getAttribute('data-arrival'),
@@ -183,7 +187,7 @@ describe('StationComponent', () => {
       ['sheet', KNOWN_SLUG],
       ['not-found', null],
     ] as const) {
-      station.navigated(view, slug);
+      station.syncRoute(view, slug);
       await fixture.whenStable();
       const current = host.querySelectorAll('nav a[aria-current="page"]');
       expect(current).toHaveLength(1);
@@ -193,7 +197,7 @@ describe('StationComponent', () => {
 
   it('lights the about entry on the about view', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('about');
+    station.syncRoute('about');
     await fixture.whenStable();
 
     const current = host.querySelectorAll('nav a[aria-current="page"]');
@@ -208,7 +212,7 @@ describe('StationComponent', () => {
       'Concepteur développeur d’applications',
     );
 
-    station.navigated('about');
+    station.syncRoute('about');
     await fixture.whenStable();
     expect(host.querySelector('#home-title')).toBeNull();
   });
@@ -217,19 +221,19 @@ describe('StationComponent', () => {
     const { fixture, station, host } = await mount();
     expect(host.querySelector('app-project-index')).toBeNull();
 
-    station.navigated('index');
+    station.syncRoute('index');
     await fixture.whenStable();
     expect(host.querySelector('app-project-index')).not.toBeNull();
 
     station.togglePin('index');
-    station.navigated('home');
+    station.syncRoute('home');
     await fixture.whenStable();
     expect(host.querySelector('app-project-index')).not.toBeNull();
   });
 
   it('shows the sheet for a slug the catalog knows', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('sheet', KNOWN_SLUG);
+    station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
 
     expect(host.querySelector('app-project-sheet')).not.toBeNull();
@@ -238,7 +242,7 @@ describe('StationComponent', () => {
 
   it('shows the not-found window for an unknown slug, and no sheet', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('sheet', 'ghost-slug');
+    station.syncRoute('sheet', 'ghost-slug');
     await fixture.whenStable();
 
     expect(host.querySelector('app-project-sheet')).toBeNull();
@@ -254,7 +258,7 @@ describe('StationComponent', () => {
 
   it('shows the not-found window on the not-found view too', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('not-found');
+    station.syncRoute('not-found');
     await fixture.whenStable();
 
     expect(host.querySelector('app-not-found-window')).not.toBeNull();
@@ -280,7 +284,7 @@ describe('StationComponent', () => {
 
   it('shows the void button on the sheet view', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('sheet', KNOWN_SLUG);
+    station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
 
     const button = host.querySelector('button.void');
@@ -292,7 +296,7 @@ describe('StationComponent', () => {
 
   it('shows the void button on the home view once a preview is open', async () => {
     const { fixture, station, host } = await mount();
-    station.showPreview(KNOWN_SLUG);
+    station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
     expect(host.querySelector('button.void')).not.toBeNull();
@@ -300,7 +304,7 @@ describe('StationComponent', () => {
 
   it('shows the void button on the index view once a row is selected', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('index');
+    station.syncRoute('index');
     await fixture.whenStable();
     expect(host.querySelector('button.void')).toBeNull();
 
@@ -311,7 +315,7 @@ describe('StationComponent', () => {
 
   it('clears the index selection on Escape', async () => {
     const { fixture, station } = await mount();
-    station.navigated('index');
+    station.syncRoute('index');
     station.select(KNOWN_SLUG);
     await fixture.whenStable();
     expect(station.selection()).toBe(KNOWN_SLUG);
@@ -320,6 +324,33 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     expect(station.selection()).toBeNull();
+  });
+
+  /** D6: the first load leaves the focus where a reader expects to start. */
+  it('leaves the focus alone on the first load', async () => {
+    const { fixture, host } = await mount();
+    document.body.append(host);
+    await fixture.whenStable();
+
+    expect(document.activeElement).toBe(document.body);
+    host.remove();
+  });
+
+  it('moves the focus to the view heading after a navigation', async () => {
+    const { fixture, station, host } = await mount();
+    document.body.append(host);
+
+    station.syncRoute('about');
+    await fixture.whenStable();
+    expect(
+      document.activeElement?.closest('[data-slot]')?.getAttribute('data-slot'),
+    ).toBe('about');
+    expect(document.activeElement?.tagName).toBe('H1');
+
+    station.syncRoute('home');
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('home-title');
+    host.remove();
   });
 
   it('raises the slot a pointerdown starts on above the others', async () => {
@@ -336,17 +367,16 @@ describe('StationComponent', () => {
       throw new Error('expected at least two slots');
     }
 
+    const rank = (slot: HTMLElement): number =>
+      Number(slot.style.getPropertyValue('--stack'));
+
     first.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await fixture.whenStable();
-    expect(Number(first.style.zIndex)).toBeGreaterThan(
-      Number(second.style.zIndex),
-    );
+    expect(rank(first)).toBeGreaterThan(rank(second));
 
     second.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await fixture.whenStable();
-    expect(Number(second.style.zIndex)).toBeGreaterThan(
-      Number(first.style.zIndex),
-    );
+    expect(rank(second)).toBeGreaterThan(rank(first));
   });
   /** The object knows ranks, the station slugs: the composition translates. */
   it('hands the object the ranks of the sheet, the selection, the preview and the hovered body', async () => {
@@ -361,12 +391,12 @@ describe('StationComponent', () => {
       return found.componentInstance as ObjectComponent;
     };
 
-    station.navigated('sheet', KNOWN_SLUG);
+    station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
     expect(object().view()).toBe('sheet');
     expect(object().focus()).toBe(0);
 
-    station.navigated('index');
+    station.syncRoute('index');
     station.select(KNOWN_SLUG);
     station.hover(KNOWN_SLUG);
     await fixture.whenStable();
@@ -379,8 +409,8 @@ describe('StationComponent', () => {
     expect(object().selected()).toBe(-1);
     expect(object().hovered()).toBe(-1);
 
-    station.navigated('home');
-    station.showPreview(KNOWN_SLUG);
+    station.syncRoute('home');
+    station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
     expect(object().preview()).toBe(0);
   });
@@ -392,7 +422,7 @@ describe('StationComponent', () => {
 
   it('gives way to the preview once one is open, on the home view', async () => {
     const { fixture, station, host } = await mount();
-    station.showPreview(KNOWN_SLUG);
+    station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
     expect(host.querySelector('app-project-preview')).not.toBeNull();
@@ -401,8 +431,8 @@ describe('StationComponent', () => {
 
   it('shows the preview on the index view only once pinned', async () => {
     const { fixture, station, host } = await mount();
-    station.navigated('index');
-    station.showPreview(KNOWN_SLUG);
+    station.syncRoute('index');
+    station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
     expect(host.querySelector('app-project-preview')).toBeNull();
 
@@ -413,7 +443,7 @@ describe('StationComponent', () => {
 
   it('names the preview slot with the id the orbit rule points its markers to', async () => {
     const { fixture, station, host } = await mount();
-    station.showPreview(KNOWN_SLUG);
+    station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
     const slot = host.querySelector('#preview-panel');
@@ -423,7 +453,7 @@ describe('StationComponent', () => {
 
   it('keeps the last previewed slug as the reading fallback once the preview closes', async () => {
     const { fixture, station } = await mount();
-    station.showPreview(KNOWN_SLUG);
+    station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
     expect(station.reading()).toBe(KNOWN_SLUG);
 

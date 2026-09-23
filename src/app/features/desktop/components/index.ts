@@ -1,1 +1,1 @@
-export * from './space-scene';
+export { DesktopSceneComponent } from './desktop-scene/desktop-scene.component';

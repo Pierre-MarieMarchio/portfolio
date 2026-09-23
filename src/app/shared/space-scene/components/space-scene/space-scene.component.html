@@ -1,0 +1,14 @@
+<canvas #sky class="sky" aria-hidden="true"></canvas>
+<div class="stage" [appTurnGesture]="engine()">
+  <canvas #matter class="matter" aria-hidden="true"></canvas>
+  @if (failed()) {
+    <div class="fallback" aria-hidden="true"></div>
+  } @else {
+    <ng-content />
+    @if (labelled() && running()) {
+      @for (body of bodies(); track $index) {
+        <span #label class="label" aria-hidden="true">{{ body.label }}</span>
+      }
+    }
+  }
+</div>

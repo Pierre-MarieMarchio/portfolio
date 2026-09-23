@@ -8,7 +8,7 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { DesktopEffect } from '@app/features/desktop/states';
 import { DesktopManager } from '@app/features/desktop/states';
-import { SpaceSceneComponent } from '@app/features/desktop/components';
+import { DesktopSceneComponent } from '@app/features/desktop/components';
 import { DESKTOP_WINDOWS } from '@app/features/desktop/models/desktop.model';
 import { DesktopPageComponent } from './desktop-page.component';
 
@@ -21,8 +21,8 @@ const arrivals = (host: HTMLElement) =>
 const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
   (
     fixture.debugElement.query(
-      (node) => node.componentInstance instanceof SpaceSceneComponent,
-    ).componentInstance as SpaceSceneComponent
+      (node) => node.componentInstance instanceof DesktopSceneComponent,
+    ).componentInstance as DesktopSceneComponent
   ).revealed();
 
 describe('StationComponent', () => {
@@ -384,41 +384,45 @@ describe('StationComponent', () => {
     await fixture.whenStable();
     expect(rank(second)).toBeGreaterThan(rank(first));
   });
-  /** The object knows ranks, the station slugs: the composition translates. */
-  it('hands the object the ranks of the sheet, the selection, the preview and the hovered body', async () => {
+  /** The scene reads slugs: the page hands it the station's own. */
+  it('hands the scene the planets, and the slugs of the sheet, the selection, the preview and the hovered body', async () => {
     const { fixture, station } = await mount();
-    const object = (): SpaceSceneComponent => {
+    const object = (): DesktopSceneComponent => {
       const found = fixture.debugElement.query(
-        (node) => node.componentInstance instanceof SpaceSceneComponent,
+        (node) => node.componentInstance instanceof DesktopSceneComponent,
       );
       if (!found) {
         throw new Error('expected the object to be mounted');
       }
-      return found.componentInstance as SpaceSceneComponent;
+      return found.componentInstance as DesktopSceneComponent;
     };
+
+    expect(object().bodies()).toEqual([
+      { slug: KNOWN_SLUG, title: 'Known project', short: 'ngx-statewise' },
+    ]);
 
     station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
     expect(object().view()).toBe('sheet');
-    expect(object().focus()).toBe(0);
+    expect(object().sheet()).toBe(KNOWN_SLUG);
 
     station.syncRoute('index');
     station.select(KNOWN_SLUG);
     station.hover(KNOWN_SLUG);
     await fixture.whenStable();
-    expect(object().selected()).toBe(0);
-    expect(object().hovered()).toBe(0);
+    expect(object().selected()).toBe(KNOWN_SLUG);
+    expect(object().hovered()).toBe(KNOWN_SLUG);
 
     station.select(null);
-    station.hover('unknown');
+    station.hover(null);
     await fixture.whenStable();
-    expect(object().selected()).toBe(-1);
-    expect(object().hovered()).toBe(-1);
+    expect(object().selected()).toBeNull();
+    expect(object().hovered()).toBeNull();
 
     station.syncRoute('home');
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
-    expect(object().preview()).toBe(0);
+    expect(object().preview()).toBe(KNOWN_SLUG);
   });
 
   it('shows the orbit rule on the home view with no preview open', async () => {

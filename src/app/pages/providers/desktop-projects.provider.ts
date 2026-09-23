@@ -1,7 +1,7 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { FamilyFilter } from '@app/features/projects/components';
 import { ProjectsManager } from '@app/features/projects/states';
-import { SceneBody, SceneView } from '@app/features/desktop/components';
+import { DesktopView } from '@app/features/desktop/models';
 import { DesktopManager } from '@app/features/desktop/states';
 
 /**
@@ -49,41 +49,11 @@ export class DesktopProjectsBinding {
     () => this.projects.featured().length,
   );
 
-  public readonly bodies = computed<readonly SceneBody[]>(() =>
-    this.projects
-      .projects()
-      .map((project) => ({ title: project.title, short: project.short })),
-  );
-
-  public readonly objectView = computed<SceneView>(() =>
+  public readonly objectView = computed<DesktopView>(() =>
     this.isNotFound() ? 'not-found' : this.station.view(),
-  );
-
-  public readonly focusRank = computed(() => this.rankOf(this.sheetSlug()));
-  /**
-   * The preview belongs to the home page: pinned over another view it is a
-   * window, and the object neither slows nor frames for it there.
-   */
-  public readonly previewRank = computed(() =>
-    this.station.view() === 'home' ? this.rankOf(this.station.preview()) : -1,
-  );
-  public readonly selectedRank = computed(() =>
-    this.rankOf(this.station.selection()),
-  );
-  public readonly hoveredRank = computed(() =>
-    this.rankOf(this.station.hovered()),
   );
 
   public isFeatured(slug: string): boolean {
     return this.projects.isFeatured(slug);
-  }
-
-  public slugAt(rank: number): string | null {
-    return this.projects.projects()[rank]?.slug ?? null;
-  }
-
-  /** The rank from 0, -1 for none: the object's own reading. */
-  private rankOf(slug: string | null): number {
-    return slug === null ? -1 : (this.projects.find(slug)?.rank ?? -1);
   }
 }

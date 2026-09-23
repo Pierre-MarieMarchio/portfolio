@@ -1,46 +1,58 @@
 import {
-  EngineInputs,
   EngineOptions,
-  Layout,
   SpaceSceneEngine,
-} from '@app/features/desktop/engine/space-scene.engine';
+} from '@shared/space-scene/engine/space-scene.engine';
+import {
+  RESTING_DIRECTION,
+  SceneBody,
+  SceneDirection,
+  SceneInputs,
+} from '@shared/space-scene/models/scene.model';
+import { SceneLayout } from '@shared/space-scene/models/scene-layout.model';
 import { recordingContext } from '../doubles/recording-canvas.double';
 import { seededRandom } from '../doubles/seeded-random.double';
 
-export const SCENE_INPUTS: EngineInputs = {
-  count: 7,
-  featured: 4,
-  view: 'home',
-  focus: -1,
-  chapter: 0,
-  part: 0,
-  preview: -1,
-  hovered: -1,
-  selected: -1,
+const BRIGHT_BODIES = 4;
+
+export const bodyId = (rank: number): string => `body-${String(rank)}`;
+
+export const sceneBodies = (count: number): SceneBody[] =>
+  Array.from({ length: count }, (_, rank) => ({
+    id: bodyId(rank),
+    label: `Body ${String(rank + 1)}`,
+    faint: rank >= BRIGHT_BODIES,
+  }));
+
+export const SCENE_INPUTS: SceneInputs = {
+  bodies: sceneBodies(7),
+  direction: { ...RESTING_DIRECTION, presence: 'shown' },
+  figureNames: ['Profil', 'Compétences', 'Méthode', 'Parcours'],
   paused: false,
   reduced: false,
-  revealed: true,
-  partLabels: ['Profil', 'Compétences', 'Méthode', 'Parcours'],
 };
 
-export const DESKTOP_LAYOUT: Layout = {
+export type SceneChange = Partial<Omit<SceneInputs, 'direction'>> & {
+  readonly direction?: Partial<SceneDirection>;
+};
+
+export const WIDE_LAYOUT: SceneLayout = {
   canvas: { left: 0, top: 0 },
   viewport: { width: 1280, height: 800 },
   panels: [
     { left: 780, top: 70, right: 1240, bottom: 640, opacity: 1 },
     { left: 40, top: 640, right: 1240, bottom: 720, opacity: 1 },
   ],
-  headHeight: 44,
-  ruleHeight: 90,
-  sheetLeft: 780,
-  previewLeft: 880,
+  topBarHeight: 44,
+  bottomBarHeight: 90,
+  approachEdge: 780,
+  closeUpEdge: 880,
 };
 
 export interface SceneSetup {
-  readonly inputs: EngineInputs;
-  readonly layout: Layout;
+  readonly inputs: SceneInputs;
+  readonly layout: SceneLayout;
   readonly dpr: number;
-  readonly aboutBodies: EngineOptions['aboutBodies'];
+  readonly figures: EngineOptions['figures'];
   readonly withSky: boolean;
   readonly labelSize: {
     readonly width: number;
@@ -50,9 +62,9 @@ export interface SceneSetup {
 
 const DEFAULT_SETUP: SceneSetup = {
   inputs: SCENE_INPUTS,
-  layout: DESKTOP_LAYOUT,
+  layout: WIDE_LAYOUT,
   dpr: 1,
-  aboutBodies: 'constellations',
+  figures: 'constellations',
   withSky: true,
   labelSize: null,
 };
@@ -97,14 +109,14 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
     {
       rnd: seededRandom(7),
       density: 600,
-      aboutBodies: setup.aboutBodies,
+      figures: setup.figures,
       ink: '#e8ecf2',
       accent: '#7cc4f0',
     },
     width * height,
   );
-  const buttons = elements(setup.inputs.count);
-  const labels = elements(setup.inputs.count);
+  const buttons = elements(setup.inputs.bodies.length);
+  const labels = elements(setup.inputs.bodies.length);
   const lines = elements(RULE_LINES);
   const labelSize = setup.labelSize;
   if (labelSize) {
@@ -138,8 +150,12 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
     nodes.map((node) => decimalsRounded(node.style.cssText));
   const attributes = (): string[] =>
     nodes.map((node) => `${node.getAttribute('aria-hidden')}|${node.tabIndex}`);
-  const set = (inputs: Partial<EngineInputs>): void => {
-    engine.setInputs({ ...setup.inputs, ...inputs });
+  const set = ({ direction, ...inputs }: SceneChange): void => {
+    engine.setInputs({
+      ...setup.inputs,
+      ...inputs,
+      direction: { ...setup.inputs.direction, ...direction },
+    });
   };
   return {
     engine,

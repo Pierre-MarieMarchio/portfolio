@@ -50,7 +50,7 @@ main {
 .slot {
   position: absolute;
   right: var(--gutter);
-  top: max(clamp(78px, 10.5vh, 98px), calc(var(--head-bottom, 0px) + 14px));
+  top: max(var(--window-top), calc(var(--head-bottom, 0px) + 14px));
   z-index: calc(var(--z-window) + var(--stack, 0));
   width: min(58ch, max(52vw, 320px));
   display: flex;

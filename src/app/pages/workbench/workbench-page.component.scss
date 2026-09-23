@@ -7,7 +7,7 @@
 .slot {
   position: fixed;
   right: var(--gutter);
-  top: clamp(78px, 10.5vh, 98px);
+  top: var(--window-top);
   z-index: var(--z-window);
   width: min(78ch, max(56vw, 320px));
   display: flex;

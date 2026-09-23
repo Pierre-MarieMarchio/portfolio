@@ -9,6 +9,8 @@ docs/
   architecture/
     passation-showcase.md     la référence d'architecture : couches, loi de
                               dépendance, ngx-statewise, SSR, outillage
+  audit/                      l'audit du 23 septembre 2026 et le plan qui en
+                              découle (README.md), avec ses rapports
   maquette/                   le design du site (« la station »), à implémenter
     README.md                 à lire d'abord : contenu, ordre de lecture, exports
     Portfolio v5-A - la station.dc.html

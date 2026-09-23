@@ -8,8 +8,8 @@ import {
 } from '@testing/fake-managers';
 import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED, FEATURED_COUNT } from '@app/features/projects/states';
-import { ObjectComponent } from '@app/features/station/components';
-import { StationEffect, StationManager } from '@app/features/station/states';
+import { SpaceSceneComponent } from '@app/features/desktop/components';
+import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
 import { StationComponent } from '@app/pages/station/station.component';
 
 const entries = (count: number): ProjectEntry[] =>
@@ -34,7 +34,7 @@ const mount = async (featured: number, total: number) => {
     imports: [StationComponent],
     providers: [
       provideRouter([{ path: '**', children: [] }]),
-      provideProjects(entries(total), [StationEffect]),
+      provideProjects(entries(total), [DesktopEffect]),
       { provide: FEATURED, useValue: featured },
     ],
   });
@@ -43,13 +43,14 @@ const mount = async (featured: number, total: number) => {
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   const object = fixture.debugElement.query(
-    (node: DebugElement) => node.componentInstance instanceof ObjectComponent,
-  ).componentInstance as ObjectComponent;
+    (node: DebugElement) =>
+      node.componentInstance instanceof SpaceSceneComponent,
+  ).componentInstance as SpaceSceneComponent;
   return {
     fixture,
     host,
     object,
-    station: TestBed.inject(StationManager),
+    station: TestBed.inject(DesktopManager),
     markers: () => host.querySelectorAll('app-orbit-rule li').length,
     choices: () =>
       host.querySelectorAll('[aria-label="Corps en orbite"] button').length,

@@ -2,8 +2,8 @@ import {
   EngineInputs,
   EngineOptions,
   Layout,
-  ObjectEngine,
-} from '@app/features/station/components/object/engine/object-engine';
+  SpaceSceneEngine,
+} from '@app/features/desktop/engine/space-scene.engine';
 import { recordingContext } from '../doubles/recording-canvas.double';
 import { seededRandom } from '../doubles/seeded-random.double';
 
@@ -79,7 +79,7 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
   const log: string[] = [];
   let clock = 0;
   let pending: ((time: number) => void) | null = null;
-  const engine = new ObjectEngine(
+  const engine = new SpaceSceneEngine(
     {
       frame: (callback) => {
         pending = callback;

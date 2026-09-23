@@ -84,12 +84,22 @@ const ROLES_IN = {
     'models',
     'data',
   ],
+  'shared/windows': ['components', 'directives', 'services', 'models', 'ports'],
+  'shared/space-scene': [
+    'components',
+    'directives',
+    'services',
+    'engine',
+    'rules',
+    'models',
+    'ports',
+  ],
   'features/common': ['ports', 'models'],
   i18n: ['services', 'providers', 'guards', 'models', 'rules', 'data'],
   pages: ['resolvers', 'guards', 'providers'],
 };
 
-const ENGINE_FEATURES = new Set(['desktop']);
+const ENGINE_ZONES = new Set(['features/desktop', 'shared/space-scene']);
 
 const FILE =
   /^(?<name>[a-z0-9-]+)\.(?<suffix>[a-z]+)(?:\.golden)?(?<spec>\.spec)?\.(?<ext>ts|html|scss)$/;
@@ -123,8 +133,12 @@ const zoneOf = (inApp) => {
   if (first === 'core' || first === 'i18n' || first === 'pages') {
     return { zone: first, kind: first, rest: parts.slice(1) };
   }
-  if (first === 'shared' && second === 'ui') {
-    return { zone: 'shared/ui', kind: 'shared/ui', rest: parts.slice(2) };
+  if (first === 'shared' && second) {
+    return {
+      zone: `shared/${second}`,
+      kind: `shared/${second}`,
+      rest: parts.slice(2),
+    };
   }
   if (first === 'features' && second === 'common') {
     return {
@@ -189,8 +203,7 @@ const misplaced = ({ kind, zone, rest }, suffix, name) => {
     return [`belongs in ${role}/`];
   }
   const allowed = ROLES_IN[kind] ?? [];
-  const engineHere =
-    role === 'engine' && ENGINE_FEATURES.has(zone.replace('features/', ''));
+  const engineHere = role === 'engine' && ENGINE_ZONES.has(zone);
   const errors =
     allowed.includes(role) || engineHere
       ? []

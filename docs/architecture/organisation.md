@@ -36,7 +36,7 @@ raison de changer.
 | Question                                                                      | Couche                |
 | ----------------------------------------------------------------------------- | --------------------- |
 | Technique, sans un mot du portfolio (navigateur, `<head>`, langue, erreurs) ? | `core/`               |
-| Morceau d'interface qu'une autre application pourrait reprendre tel quel ?    | `shared/ui/`          |
+| Morceau qu'une autre application pourrait reprendre tel quel, une librairie ? | `shared/<lib>/`       |
 | Concept du portfolio ?                                                        | `features/<concept>/` |
 | Contrat que deux features partagent sans pouvoir se connaître ?               | `features/common/`    |
 | Textes de toutes les features, adresses de chaque vue par langue ?            | `i18n/`               |
@@ -44,7 +44,9 @@ raison de changer.
 | Démarre l'application : config, table des routes, réponses aux ports ?        | racine `app.*.ts`     |
 
 Sens des dépendances :
-`racine → pages → i18n → features → features/common → shared/ui → core`.
+`racine → pages → i18n → features → features/common → shared/<lib> → core`.
+Les librairies de `shared/` (`ui`, `windows`, `space-scene`) ne s'importent
+pas entre elles.
 Un import ne remonte jamais. La racine, qui compose tout, répond aux ports de
 `features/common` : c'est son rôle, pas un import vers le haut. Le lint tient
 chaque couche, `i18n` et la racine compris.
@@ -204,6 +206,8 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `core/`               | `services/` `ports/` `strategies/` `interceptors/` `models/` `rules/` `helpers/` `signals/`                                               |
 | `shared/ui/`          | `components/` `directives/` `pipes/` `services/` `validators/` `signals/` `ports/` `models/` `data/`                                      |
+| `shared/windows/`     | `components/` `directives/` `services/` `models/` `ports/`                                                                                |
+| `shared/space-scene/` | `components/` `directives/` `services/` `engine/` `rules/` `models/` `ports/`                                                             |
 | `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `desktop` |
 | `features/common/`    | `ports/` `models/` (types seuls)                                                                                                          |
 | `i18n/`               | `services/` `providers/` `guards/` `models/` `rules/` `data/`                                                                             |

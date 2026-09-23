@@ -67,7 +67,7 @@
 
     <div class="slot slot--index" appWindowSlot="index" appPanelAnchor>
       @if (station.showsIndex()) {
-        <app-project-index
+        <app-project-list
           [pinned]="station.pins().index"
           [selected]="station.selection()"
           [visited]="station.visited()"
@@ -88,7 +88,7 @@
           (closed)="station.close('sheet')"
         />
       } @else if (binding.sheetSlug(); as slug) {
-        <app-project-sheet
+        <app-project-detail
           [slug]="slug"
           [pinned]="station.pins().sheet"
           [chapter]="station.chapter()"
@@ -119,7 +119,7 @@
     </div>
 
     @if (showsRule()) {
-      <app-orbit-rule
+      <app-featured-bar
         appPanelAnchor="rule"
         [bodies]="binding.featured()"
         [controls]="ids.previewPanel"

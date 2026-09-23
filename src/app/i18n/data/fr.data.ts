@@ -1,4 +1,4 @@
-import { Catalog } from './catalog';
+import { Catalog } from '../models/catalog.model';
 
 /**
  * Every text of the interface, in French: the one file to open to change

@@ -1,11 +1,11 @@
 import { ProjectEntry } from '../models';
-import { SKYTED_VOICE } from './projects/skyted-voice.project';
-import { SKYTED_APP } from './projects/skyted-app.project';
-import { NGX_STATEWISE } from './projects/ngx-statewise.project';
-import { TEMPLATE_DOTNET } from './projects/template-dotnet.project';
-import { BKONE } from './projects/bkone.project';
-import { SKYTED_COMPANION } from './projects/skyted-companion.project';
-import { SPEAKEY } from './projects/speakey.project';
+import { SKYTED_VOICE } from './projects/skyted-voice.data';
+import { SKYTED_APP } from './projects/skyted-app.data';
+import { NGX_STATEWISE } from './projects/ngx-statewise.data';
+import { TEMPLATE_DOTNET } from './projects/template-dotnet.data';
+import { BKONE } from './projects/bkone.data';
+import { SKYTED_COMPANION } from './projects/skyted-companion.data';
+import { SPEAKEY } from './projects/speakey.data';
 
 /**
  * The projects, in rank order: the order is the distance from the centre in

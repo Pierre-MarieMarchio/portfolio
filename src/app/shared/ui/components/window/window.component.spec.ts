@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WindowComponent } from './window.component';
 import { WindowSize } from '../../models/window.model';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const PIN_OFF_LABEL =
   'Épingler : garder la fenêtre ouverte en changeant de page';

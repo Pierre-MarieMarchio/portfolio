@@ -1,1 +1,1 @@
-export { ProjectsRepository } from './projects-repository.service';
+export { ProjectsRepositoryService } from './projects-repository.service';

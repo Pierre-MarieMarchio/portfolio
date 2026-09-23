@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NotFoundWindowComponent } from './not-found-window.component';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const mount = async (total: number) => {
   TestBed.configureTestingModule({

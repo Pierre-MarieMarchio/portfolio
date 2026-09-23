@@ -1,5 +1,5 @@
 import { draft } from '@app/core/rules';
-import { Catalog } from './catalog';
+import { Catalog } from '../models/catalog.model';
 
 /**
  * Every text of the interface, in English: the one file to open to change

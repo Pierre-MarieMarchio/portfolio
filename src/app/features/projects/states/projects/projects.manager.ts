@@ -3,7 +3,7 @@ import { injectStatewise } from 'ngx-statewise';
 import { LocaleService } from '@app/core/services';
 import { localize } from '@app/core/rules';
 import { twoDigits } from '@app/core/helpers';
-import { PROJECTS_TEXTS } from '../../i18n';
+import { PROJECTS_TEXTS } from '../../ports';
 import {
   Project,
   ProjectFacts,

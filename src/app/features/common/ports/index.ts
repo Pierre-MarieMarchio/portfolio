@@ -1,2 +1,2 @@
+export { LINKS } from './links.port';
 export type { ILinks } from './links.port';
-export { LINKS } from './links.token';

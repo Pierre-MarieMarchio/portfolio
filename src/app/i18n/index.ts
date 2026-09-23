@@ -1,6 +1,8 @@
-export { PAGES_TEXTS } from './catalog';
-export type { Catalog, PagesTexts, ViewHead } from './catalog';
-export { Catalogs } from './catalogs.service';
-export { pathOf, PATHS, translatePath } from './paths';
-export type { AddressedView } from './paths';
-export { loadCatalog, provideI18n } from './provide-i18n';
+export { PAGES_TEXTS } from './models/catalog.model';
+export type { Catalog, PagesTexts, ViewHead } from './models/catalog.model';
+export { CatalogLoaderService } from './services/catalog-loader.service';
+export { PATHS } from './data/paths.data';
+export type { AddressedView } from './data/paths.data';
+export { pathOf, translatePath } from './rules/paths.rules';
+export { loadCatalog } from './guards/catalog.guard';
+export { provideI18n } from './providers/i18n.provider';

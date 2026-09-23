@@ -37,14 +37,14 @@ const pagesIn = (lang, at) => [
     path: `/${at.home}`,
     file: join(at.home, 'index.html'),
     lang,
-    holds: ['<app-home-title', '<app-orbit-rule'],
+    holds: ['<app-home-title', '<app-featured-bar'],
     lacks: ['<app-window'],
   },
   {
     path: `/${at.index}`,
     file: join(at.index, 'index.html'),
     lang,
-    holds: ['<app-project-index'],
+    holds: ['<app-project-list'],
     lacks: ['<app-home-title'],
   },
   {
@@ -58,7 +58,7 @@ const pagesIn = (lang, at) => [
     path: `/${at.sheet}/${slug}`,
     file: join(at.sheet, slug, 'index.html'),
     lang,
-    holds: ['<app-project-sheet'],
+    holds: ['<app-project-detail'],
     lacks: ['<app-home-title', '<app-not-found-window'],
   })),
 ];

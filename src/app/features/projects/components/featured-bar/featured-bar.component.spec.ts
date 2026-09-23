@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { provideRouter } from '@angular/router';
-import { sampleEntry, sampleRanked } from '@testing/fake-managers';
+import { sampleEntry, sampleRanked } from '@testing/fixtures/project.fixture';
 import { RankedProject } from '../../models';
-import { OrbitRuleComponent } from './orbit-rule.component';
-import { provideTexts } from '@testing/texts';
+import { FeaturedBarComponent } from './featured-bar.component';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('button'),
@@ -39,11 +39,11 @@ describe('OrbitRuleComponent', () => {
     reading?: string | null;
   }) => {
     TestBed.configureTestingModule({
-      imports: [OrbitRuleComponent],
+      imports: [FeaturedBarComponent],
       providers: [provideTexts(), provideRouter([])],
     });
 
-    const fixture = TestBed.createComponent(OrbitRuleComponent);
+    const fixture = TestBed.createComponent(FeaturedBarComponent);
     fixture.componentRef.setInput('bodies', inputs.bodies);
     fixture.componentRef.setInput('controls', 'preview-panel');
     fixture.componentRef.setInput('hovered', inputs.hovered ?? null);

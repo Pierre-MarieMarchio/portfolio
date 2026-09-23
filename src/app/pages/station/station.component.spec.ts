@@ -5,14 +5,14 @@ import {
   loadProjects,
   provideProjects,
   sampleEntry,
-} from '@testing/fake-managers';
+} from '@testing/fixtures/project.fixture';
 import { DesktopEffect } from '@app/features/desktop/states';
 import { DesktopManager } from '@app/features/desktop/states';
 import { SpaceSceneComponent } from '@app/features/desktop/components';
 import { StationComponent } from './station.component';
 
 const arrivals = (host: HTMLElement) =>
-  ['#home', 'app-page-bar', 'app-orbit-rule', 'app-social-links'].map(
+  ['#home', 'app-page-bar', 'app-featured-bar', 'app-social-links'].map(
     (selector) =>
       host.querySelector<HTMLElement>(selector)?.dataset['arrival'] ?? null,
   );
@@ -212,16 +212,16 @@ describe('StationComponent', () => {
 
   it('shows the project index on its own view, and once pinned elsewhere', async () => {
     const { fixture, station, host } = await mount();
-    expect(host.querySelector('app-project-index')).toBeNull();
+    expect(host.querySelector('app-project-list')).toBeNull();
 
     station.syncRoute('index');
     await fixture.whenStable();
-    expect(host.querySelector('app-project-index')).not.toBeNull();
+    expect(host.querySelector('app-project-list')).not.toBeNull();
 
     station.togglePin('index');
     station.syncRoute('home');
     await fixture.whenStable();
-    expect(host.querySelector('app-project-index')).not.toBeNull();
+    expect(host.querySelector('app-project-list')).not.toBeNull();
   });
 
   it('shows the sheet for a slug the catalog knows', async () => {
@@ -229,7 +229,7 @@ describe('StationComponent', () => {
     station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
 
-    expect(host.querySelector('app-project-sheet')).not.toBeNull();
+    expect(host.querySelector('app-project-detail')).not.toBeNull();
     expect(host.querySelector('app-not-found-window')).toBeNull();
   });
 
@@ -238,7 +238,7 @@ describe('StationComponent', () => {
     station.syncRoute('sheet', 'ghost-slug');
     await fixture.whenStable();
 
-    expect(host.querySelector('app-project-sheet')).toBeNull();
+    expect(host.querySelector('app-project-detail')).toBeNull();
     const notFound = host.querySelector('app-not-found-window');
     expect(notFound).not.toBeNull();
     expect(notFound?.querySelector('h1')?.textContent?.trim()).toBe(
@@ -255,7 +255,7 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     expect(host.querySelector('app-not-found-window')).not.toBeNull();
-    expect(host.querySelector('app-project-sheet')).toBeNull();
+    expect(host.querySelector('app-project-detail')).toBeNull();
   });
 
   /** D3: the switch is a link to the same page in the other language. */
@@ -412,7 +412,7 @@ describe('StationComponent', () => {
 
   it('shows the orbit rule on the home view with no preview open', async () => {
     const { host } = await mount();
-    expect(host.querySelector('app-orbit-rule')).not.toBeNull();
+    expect(host.querySelector('app-featured-bar')).not.toBeNull();
   });
 
   it('gives way to the preview once one is open, on the home view', async () => {
@@ -421,7 +421,7 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     expect(host.querySelector('app-project-preview')).not.toBeNull();
-    expect(host.querySelector('app-orbit-rule')).toBeNull();
+    expect(host.querySelector('app-featured-bar')).toBeNull();
   });
 
   it('shows the preview on the index view only once pinned', async () => {

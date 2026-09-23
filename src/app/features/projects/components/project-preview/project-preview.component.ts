@@ -12,8 +12,8 @@ import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/ui/components';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
-import { PROJECTS_TEXTS } from '../../i18n';
-import { positionOf } from '../project-labels';
+import { PROJECTS_TEXTS } from '../../ports';
+import { positionOf } from '../../rules/project-labels.rules';
 
 /**
  * The home preview: a small window anchored bottom right, over the object,

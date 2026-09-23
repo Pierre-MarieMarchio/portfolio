@@ -1,5 +1,5 @@
 import { Frame, measureHome } from '../rules/scene/camera/camera-frames.rules';
-import { clamp, finiteOr } from '../rules/scene/scene-math.rules';
+import { clamp, finiteOr } from '@app/core/helpers';
 import { Orbit, placeOrbits } from '../rules/scene/scene-bodies.rules';
 import { PlanePoint, TurntableMotion } from './motions/turntable.motion';
 import { SceneMotion } from './motions/scene.motion';

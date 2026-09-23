@@ -1,5 +1,5 @@
 import { Frame } from '../../rules/scene/camera/camera-frames.rules';
-import { easeOut } from '../../rules/scene/scene-math.rules';
+import { easeOut } from '@app/core/helpers';
 import type { EngineInputs } from '../space-scene.engine';
 import { TurntableMotion } from './turntable.motion';
 import { focusOn } from '../../rules/scene/planets/planet-focus.rules';

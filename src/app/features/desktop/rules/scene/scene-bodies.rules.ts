@@ -4,7 +4,6 @@ import {
   referenceRadius,
   verticalFactor,
 } from './camera/camera-frames.rules';
-import { orbitRank } from './scene-math.rules';
 import { ORBIT_RATE } from '../../models/scene-constants.model';
 
 /**
@@ -246,4 +245,42 @@ export const fitOrbits = (
     orbit.rb = rMin + orbit.k * (rMax - rMin);
     orbit.v = 0.075 * Math.pow(1.3 / orbit.rb, 1.5);
   }
+};
+
+/**
+ * The number of bodies the progression is drawn for: the mockup's seven.
+ * Up to it, the orbits are the export's; past it, the bodies it did not
+ * plan for share the outer band, and the first orbits never move.
+ */
+export const ORBIT_REFERENCE_COUNT = 7;
+
+/**
+ * Titius-Bode. Each orbit moves out by a factor of 1.42 plus an offset of
+ * its own: equidistant rings make a shooting target, a real system breathes.
+ * Answers the rank's place between the first orbit (0) and the last (1).
+ *
+ * Bounded: normalised over the whole count, twelve bodies pushed the four
+ * the home page features within 5% of the first orbit, stacked, with the
+ * home framing sized for an orbit it did not show. So the progression is
+ * drawn for `ORBIT_REFERENCE_COUNT` bodies at most, and the bodies beyond
+ * it are spaced evenly between the second-to-last orbit of the reference
+ * and the edge. Whatever the count, a featured body keeps its orbit.
+ */
+export const orbitRank = (index: number, count: number): number => {
+  const offsets = [0, 0.1, -0.06, 0.13, -0.04, 0.07];
+  const spread = (k: number): number =>
+    Math.pow(1.42, k) + (offsets[k % 6] ?? 0);
+  const drawn = Math.min(count, ORBIT_REFERENCE_COUNT);
+  const first = spread(0);
+  const last = spread(drawn - 1);
+  const rank = (k: number): number =>
+    last > first ? (spread(k) - first) / (last - first) : 0;
+  const settled = drawn - 1;
+  if (count <= ORBIT_REFERENCE_COUNT || index < settled) {
+    return rank(index);
+  }
+  // The outer band, from the last settled orbit to the edge, shared evenly.
+  const from = rank(settled - 1);
+  const extra = count - settled;
+  return from + ((1 - from) * (index - settled + 1)) / extra;
 };

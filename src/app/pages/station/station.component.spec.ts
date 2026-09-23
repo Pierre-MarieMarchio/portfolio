@@ -12,7 +12,7 @@ import { SpaceSceneComponent } from '@app/features/desktop/components';
 import { StationComponent } from './station.component';
 
 const arrivals = (host: HTMLElement) =>
-  ['#home', 'app-page-bar', 'app-orbit-rule', 'app-contact-rail'].map(
+  ['#home', 'app-page-bar', 'app-orbit-rule', 'app-social-links'].map(
     (selector) =>
       host.querySelector<HTMLElement>(selector)?.dataset['arrival'] ?? null,
   );

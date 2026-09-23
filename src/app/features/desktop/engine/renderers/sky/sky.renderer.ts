@@ -1,4 +1,4 @@
-import { finiteOr } from '../../../rules/scene/scene-math.rules';
+import { finiteOr } from '@app/core/helpers';
 import { CameraMotion } from '../../motions/camera.motion';
 import { StarSkyRenderer } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene/scene-frame.rules';

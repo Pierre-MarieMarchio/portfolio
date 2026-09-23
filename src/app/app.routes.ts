@@ -1,5 +1,5 @@
 import { Route, Routes } from '@angular/router';
-import { Lang, LANGS } from '@app/core/i18n';
+import { Lang, LANGS } from '@app/core/models';
 import { loadCatalog, PATHS } from '@app/i18n';
 import { ProjectDetailPageComponent } from './pages/project-detail/project-detail-page.component';
 import {

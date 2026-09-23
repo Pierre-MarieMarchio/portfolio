@@ -1,4 +1,4 @@
-import { clamp, nearestTurn } from '../../rules/scene/scene-math.rules';
+import { clamp, nearestTurn } from '@app/core/helpers';
 
 /*
  * The object turned by hand, like two turntables: the disk, and the orbits

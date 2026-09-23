@@ -1,4 +1,4 @@
-import { ObjectPanelRole } from '@shared/ui/object-marks';
+import { PanelRole } from '@shared/ui/services';
 import { Layout, PanelRect } from '../engine/space-scene.engine';
 
 export interface PanelAnchor {
@@ -7,7 +7,7 @@ export interface PanelAnchor {
     'left' | 'top' | 'right' | 'bottom' | 'width' | 'height'
   >;
   readonly opacity: string;
-  readonly role: ObjectPanelRole;
+  readonly role: PanelRole;
 }
 
 export function sceneLayout(
@@ -43,7 +43,7 @@ function panelOf({ rect, opacity }: PanelAnchor): PanelRect {
 
 function lastShown(
   anchors: readonly PanelAnchor[],
-  role: Exclude<ObjectPanelRole, ''>,
+  role: Exclude<PanelRole, ''>,
 ): PanelAnchor['rect'] | null {
   const shown = anchors.filter(
     (anchor) =>

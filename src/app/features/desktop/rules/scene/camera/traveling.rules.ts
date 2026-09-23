@@ -1,4 +1,4 @@
-import { progress, smoothstep } from '../scene-math.rules';
+import { progress, smoothstep } from '@app/core/helpers';
 
 /**
  * The opening crossing, 0 → 9.2 s, as offsets on the camera. Computed once

@@ -1,4 +1,4 @@
-import { draft } from '@app/core/i18n';
+import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
 /** Template Clean Architecture .NET: identity, facts and sheet, in one place. */

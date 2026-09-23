@@ -10,14 +10,15 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { twoDigits } from '@app/core/utils/format.utils';
-import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
-import { WindowComponent } from '@shared/ui/window';
+import { twoDigits } from '@app/core/helpers';
+import { SegmentedComponent } from '@shared/ui/components';
+import { SegmentedItem } from '@shared/ui/models';
+import { WindowComponent } from '@shared/ui/components';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../i18n';
 import { positionOf } from '../project-labels';
-import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+import { ViewHeadingDirective } from '@shared/ui/directives';
 import {
   ChapterOnShow,
   ProjectChapterComponent,
@@ -34,7 +35,7 @@ import {
 @Component({
   selector: 'app-project-sheet',
   imports: [
-    LandingHeadingDirective,
+    ViewHeadingDirective,
     ProjectChapterComponent,
     RouterLink,
     SegmentedComponent,

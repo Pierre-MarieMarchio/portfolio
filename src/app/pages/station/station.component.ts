@@ -11,8 +11,9 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { LANGS, Locale } from '@app/core/i18n';
-import { BrowserEnvironment } from '@app/core/services';
+import { LANGS } from '@app/core/models';
+import { LocaleService } from '@app/core/services';
+import { BrowserEnvironmentService } from '@app/core/services';
 import {
   OrbitRuleComponent,
   ProjectIndexComponent,
@@ -22,14 +23,12 @@ import {
 import { SpaceSceneComponent } from '@app/features/desktop/components';
 import { DesktopView } from '@app/features/desktop/models';
 import { DesktopManager } from '@app/features/desktop/states';
-import { ContactLink, ContactRailComponent } from '@shared/ui/contact-rail';
-import { LandingFocus } from '@shared/ui/landing-focus';
-import { ObjectPanelDirective } from '@shared/ui/object-marks';
-import {
-  LanguageItem,
-  NavigationItem,
-  PageBarComponent,
-} from '@shared/ui/page-bar';
+import { SocialLink } from '@shared/ui/models';
+import { SocialLinksComponent } from '@shared/ui/components';
+import { ViewFocusService } from '@shared/ui/services';
+import { PanelAnchorDirective } from '@shared/ui/directives';
+import { LanguageItem, NavigationItem } from '@shared/ui/models';
+import { PageBarComponent } from '@shared/ui/components';
 import { PAGES_TEXTS, pathOf, translatePath } from '@app/i18n';
 import { CONTACT_ADDRESSES } from '@app/features/profile/data';
 import { AboutWindowComponent } from './about-window/about-window.component';
@@ -58,13 +57,13 @@ import { WindowSlot, WindowStack } from './window-stack/window-stack';
   selector: 'app-station',
   imports: [
     AboutWindowComponent,
-    ContactRailComponent,
+    SocialLinksComponent,
     HeadBottomDirective,
     HomeTitleComponent,
     IntroCardComponent,
     NotFoundWindowComponent,
     SpaceSceneComponent,
-    ObjectPanelDirective,
+    PanelAnchorDirective,
     OrbitRuleComponent,
     PageBarComponent,
     ProjectIndexComponent,
@@ -78,15 +77,15 @@ import { WindowSlot, WindowStack } from './window-stack/window-stack';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StationComponent {
-  private readonly browser = inject(BrowserEnvironment);
-  private readonly landing = inject(LandingFocus);
+  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly landing = inject(ViewFocusService);
   private readonly stack = inject(WindowStack);
   private readonly curtain = inject(Curtain);
   private readonly arrivalController = inject(ArrivalController);
   protected readonly station = inject(DesktopManager);
   protected readonly binding = inject(StationProjectsBinding);
 
-  private readonly locale = inject(Locale);
+  private readonly locale = inject(LocaleService);
   protected readonly texts = inject(PAGES_TEXTS);
   protected readonly ids = STATION_IDS;
 
@@ -113,7 +112,7 @@ export class StationComponent {
     })),
   );
 
-  protected readonly contactLinks = computed<readonly ContactLink[]>(() =>
+  protected readonly contactLinks = computed<readonly SocialLink[]>(() =>
     CONTACT_ADDRESSES.map((address) => ({
       ...address,
       label: this.texts().contact[address.icon],

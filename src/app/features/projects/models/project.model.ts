@@ -1,4 +1,4 @@
-import { Resolved, Text } from '@app/core/i18n';
+import { Resolved, Text } from '@app/core/rules';
 import { SheetSource } from './project-sheet.model';
 
 /**

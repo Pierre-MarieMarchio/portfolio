@@ -1,5 +1,5 @@
 import { ProjectEntry, SheetSource } from '../models';
-import { resolve } from '@app/core/i18n';
+import { localize } from '@app/core/rules';
 import { PROJECTS } from './projects.data';
 
 /**
@@ -21,7 +21,7 @@ describe('shipped project content', () => {
 
   it('gives every sheet at least one chapter with prose, in both languages', () => {
     const chapters = PROJECTS.flatMap(({ sheet }) =>
-      (['fr', 'en'] as const).flatMap((lang) => resolve(sheet, lang).chapters),
+      (['fr', 'en'] as const).flatMap((lang) => localize(sheet, lang).chapters),
     );
     for (const { sheet } of PROJECTS) {
       expect(sheet.chapters.length).toBeGreaterThan(0);
@@ -35,8 +35,8 @@ describe('shipped project content', () => {
   /** D5: a text that differs is written in both, side by side. */
   it('writes every text of a project in both languages', () => {
     for (const entry of PROJECTS) {
-      const fr = JSON.stringify(resolve(entry, 'fr'));
-      const en = JSON.stringify(resolve(entry, 'en'));
+      const fr = JSON.stringify(localize(entry, 'fr'));
+      const en = JSON.stringify(localize(entry, 'en'));
       expect(fr).not.toBe(en);
       expect(en).not.toContain('undefined');
     }

@@ -85,50 +85,99 @@ s'égare fait échouer la CI.
    seul composant se sert est dans le dossier de ce composant. Elle ne monte
    qu'au second utilisateur.
 
-### 3.2 Les suffixes
+### 3.2 Les suffixes : comment on se sert du fichier
 
-| Suffixe                                    | Rôle                                                                            | Exemple                                         |
-| ------------------------------------------ | ------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `.component.ts` (+ `.html`, `.scss`)       | affiche et reçoit des gestes                                                    | `window.component.ts` / `WindowComponent`       |
-| `.directive.ts`                            | ajoute un comportement à l'élément qui la porte                                 | `draggable.directive.ts` / `DraggableDirective` |
-| `.service.ts`                              | classe injectable qui vit dans le temps : état, minuterie, registre, navigateur | `clock.service.ts` / `ClockService`             |
-| `.state/.action/.updater/.effect/.manager` | l'état d'un concept, selon ngx-statewise                                        | `desktop.manager.ts` / `DesktopManager`         |
-| `.rules.ts`                                | fonctions pures du domaine : décisions, calculs, libellés                       | `ranking.rules.ts` → `rank()`                   |
-| `.utils.ts`                                | fonctions pures sans domaine                                                    | `format.utils.ts` → `twoDigits()`               |
-| `.signal.ts`                               | fabrique un signal dans un contexte d'injection                                 | `element-size.signal.ts` → `elementSize()`      |
-| `.model.ts`                                | types, unions et leurs constantes                                               | `desktop.model.ts`                              |
-| `.data.ts`                                 | contenu écrit à la main                                                         | `contact.data.ts`, `fr.data.ts`                 |
-| `.texts.ts`                                | type et jeton de la tranche de textes d'une zone                                | `profile.texts.ts`                              |
-| `.port.ts` + `.token.ts`                   | contrat entre features ou fourni à `core`, et son jeton                         | `links.port.ts` / `ILinks`                      |
-| `.provider.ts`                             | une fonction `provideXxx()`                                                     | `i18n.provider.ts`                              |
-| `.resolver.ts` `.guard.ts` `.strategy.ts`  | étapes et stratégie du routeur                                                  | `page-head.resolver.ts`                         |
-| `.engine.ts`                               | la boucle d'animation de la scène                                               | `space-scene.engine.ts`                         |
-| `.renderer.ts`                             | dessine une couche de la scène                                                  | `planets.renderer.ts` / `PlanetsRenderer`       |
-| `.motion.ts`                               | ce qui évolue à chaque image : caméra, rotation à la main, grains               | `camera.motion.ts` / `CameraMotion`             |
-| `.spec.ts`                                 | les tests                                                                       |                                                 |
+Le rôle d'un fichier est la façon dont on s'en sert. Le suffixe le dit : en
+le lisant, on sait ce que fait le fichier, qui l'utilise et dans quel
+contexte. Il y a six façons de se servir d'un fichier.
 
-`.engine`, `.renderer` et `.motion` ne vivent que dans la scène. Un service
-n'est pas le choix par défaut : une décision est une fonction pure, un
-comportement d'élément est une directive, un état partagé passe par un
-manager.
+**1. On le place dans un gabarit.**
+
+| Suffixe      | Ce que c'est                                        | Comment on s'en sert | Ne fait jamais                            |
+| ------------ | --------------------------------------------------- | -------------------- | ----------------------------------------- |
+| `.component` | un élément d'interface : affiche, reçoit des gestes | `<app-window>`       | parler à un `*State`, toucher une globale |
+| `.directive` | un comportement ajouté à un élément existant        | `<div appDraggable>` | afficher son propre contenu               |
+
+Deux formes de nom de composant, sans suffixe de plus : `xxx-page.component`
+(l'écran qui compose les features) et `xxx-route.component` (la feuille de
+route, vide, qui dit au bureau quelle vue son adresse montre).
+
+**2. On l'injecte.**
+
+| Suffixe                                 | Ce que c'est                                                                                                     | Comment on s'en sert                                     | Ne fait jamais                      |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------- |
+| `.service`                              | une classe qui vit dans le temps : état, minuterie, registre, navigateur                                         | `inject(ClockService)`                                   | décider une règle métier (`.rules`) |
+| `.manager`                              | la seule porte vers l'état d'un concept                                                                          | `inject(DesktopManager)` depuis un composant             | écrire l'état lui-même              |
+| `.state` `.action` `.updater` `.effect` | l'état, ses événements, son seul écrivain, ses effets (ngx-statewise)                                            | jamais par un composant : `provideStatewise`, le manager | sortir de leur feature              |
+| `.port`                                 | un contrat que le consommateur déclare et que la composition fournit : l'interface et son jeton, dans un fichier | `inject(LINKS)`, `inject(PROJECTS_TEXTS)`                | avoir une valeur par défaut         |
+
+Une tranche de textes est un port : la feature l'injecte, la racine la
+fournit (`projects-texts.port.ts`).
+
+**3. On le déclare dans une configuration.**
+
+| Suffixe     | Ce que c'est                                                              | Comment on s'en sert                        | Ne fait jamais                            |
+| ----------- | ------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| `.provider` | une fonction `provideXxx()` qui branche des implémentations sur des ports | `providers: [...]`                          | contenir de la logique                    |
+| `.guard`    | décide si une navigation a lieu, et prépare ce qu'il lui faut             | `canActivate: [...]`                        | rendre une donnée                         |
+| `.resolver` | calcule une donnée que la route déclare (titre, description)              | `resolve: {...}`, `title:`                  | écrire un état                            |
+| `.strategy` | remplace un comportement du framework                                     | `{ provide: TitleStrategy, useClass: ... }` | sortir de ce que le framework lui délègue |
+
+**4. On l'appelle.**
+
+| Suffixe   | Ce que c'est                                                  | Comment on s'en sert                 | Ne fait jamais                               |
+| --------- | ------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
+| `.rules`  | les décisions et calculs du domaine, purs                     | `rank(projects, 4)`, `stepBack(...)` | injecter, toucher au DOM                     |
+| `.helper` | une petite fonction sans domaine, pure                        | `twoDigits(7)`                       | contenir un mot du portfolio, garder un état |
+| `.signal` | une fonction qui fabrique un signal branché sur le navigateur | `elementSize(el)`                    | être appelée hors contexte d'injection       |
+
+Un `.helper` vit à côté de son seul utilisateur, ou dans un dossier de
+`core` nommé par son sujet ; jamais dans un dossier `helpers/`.
+
+**5. On l'importe comme valeur ou type.**
+
+| Suffixe  | Ce que c'est                                                                | Ne fait jamais                     |
+| -------- | --------------------------------------------------------------------------- | ---------------------------------- |
+| `.model` | la forme d'un concept : types, unions, et leurs listes de constantes        | porter du contenu ou de la logique |
+| `.data`  | du contenu écrit à la main : projets, liens, catalogues, table des adresses | porter de la logique               |
+
+**6. On l'instancie avec `new`**, dans la scène canvas seulement, sans
+injection Angular : les dépendances arrivent par le constructeur.
+
+| Suffixe     | Ce que c'est                                            | Comment on s'en sert              |
+| ----------- | ------------------------------------------------------- | --------------------------------- |
+| `.engine`   | la boucle : faire avancer, puis dessiner                | créée par `SpaceSceneComponent`   |
+| `.motion`   | ce qui évolue à chaque image : caméra, rotation, grains | créée par l'engine, `update(dt)`  |
+| `.renderer` | dessine une couche                                      | créée par l'engine, `draw(frame)` |
+
+**Les tests**, dans `src/testing/` pour ce qui est partagé : `.spec` (un
+test ; `.golden.spec` pour l'empreinte de la scène), `.fixture` (des données
+d'exemple bâties avec les vraies règles), `.double` (une fausse
+implémentation d'un port ou d'un service).
+
+**`index.ts`** : la surface publique d'un dossier de concept. Un import qui
+vient d'une autre zone passe par lui.
+
+Ajouter un rôle (`.pipe`, `.interceptor`, `.validator`…) demande une
+décision au journal : aucun n'existe tant qu'aucun besoin ne l'a demandé.
 
 ### 3.3 Le contrat de chaque dossier
 
 **`core/`** : un dossier par sujet technique, sans un mot du portfolio.
 
-| Dossier     | Rôle                                    | Suffixes                                 |
-| ----------- | --------------------------------------- | ---------------------------------------- |
-| `browser/`  | accès au navigateur, inerte au prérendu | `.service`                               |
-| `presence/` | savoir quand le lecteur est là          | `.service`                               |
-| `head/`     | le `<head>` du document                 | `.service` `.strategy` `.token` `.model` |
-| `i18n/`     | la langue                               | `.service` `.model` `.rules`             |
-| `errors/`   | les erreurs non attrapées               | `.service`                               |
-| `format/`   | mise en forme générique                 | `.utils`                                 |
+| Dossier     | Rôle                                    | Suffixes                                |
+| ----------- | --------------------------------------- | --------------------------------------- |
+| `browser/`  | accès au navigateur, inerte au prérendu | `.service`                              |
+| `presence/` | savoir quand le lecteur est là          | `.service`                              |
+| `head/`     | le `<head>` du document                 | `.service` `.strategy` `.port` `.model` |
+| `i18n/`     | la langue                               | `.service` `.model` `.rules`            |
+| `errors/`   | les erreurs non attrapées               | `.service`                              |
+| `format/`   | mise en forme générique                 | `.helper`                               |
 
 **`shared/ui/`** : un dossier par élément d'interface, à son nom. Il contient
 le composant ou la directive, et son modèle, son service, sa fabrique de
 signal s'il en a besoin. Suffixes : `.component` `.directive` `.service`
-`.model` `.signal` `.utils` `.data` `.texts`.
+`.model` `.signal` `.helper` `.data` `.port`.
 
 **`features/<concept>/`** : des sous-dossiers fixes, nommés par rôle, les
 mêmes dans chaque feature. Une feature ne crée que ceux dont elle a besoin
@@ -142,10 +191,10 @@ et n'en invente aucun.
 | `models/`     | les types du concept                                                | `.model`                                                           | un fichier par sujet                                          |
 | `data/`       | le contenu                                                          | `.data`                                                            | au-delà de 8, un sous-dossier par ensemble (`data/projects/`) |
 | `services/`   | ce qui vit dans le temps : lecture des données, services d'un écran | `.service`                                                         | un fichier par service                                        |
-| `i18n/`       | la tranche de textes                                                | `.texts`                                                           | un fichier                                                    |
+| `i18n/`       | la tranche de textes                                                | `.port`                                                            | un fichier                                                    |
 
 **`features/common/<contrat>/`** : un dossier par contrat entre features.
-Suffixes : `.port` `.token` `.model` (types seuls).
+Suffixes : `.port` `.model` (types seuls).
 
 **`i18n/`** : `.model` `.service` `.provider` `.guard` `.data` `.rules`.
 
@@ -199,7 +248,7 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 - **`DocumentHeadService`** (ex-`PageHead`). But : écrire le titre, la
   description et les liens de langue d'une page. Contrat : `write(content)`.
   Le nom et l'adresse du site arrivent par le jeton `SITE`
-  (`site.token.ts`, interface `SiteIdentity`), que la racine fournit.
+  (`site.port.ts`, interface `SiteIdentity`), que la racine fournit.
 - **`RouteHeadStrategy`** (`route-head.strategy.ts`, ex-`PageTitleStrategy`).
   But : à chaque navigation, donner à `DocumentHeadService` ce que la route
   déclare. Son ancien nom ne disait que le titre.
@@ -222,7 +271,7 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 
 - **`ConsoleErrorHandlerService`** (ex-`AppErrorHandler`) : le nom dit ce
   qu'il fait.
-- **`format.utils.ts`** : `twoDigits`, seule numérotation à deux chiffres du
+- **`format.helper.ts`** : `twoDigits`, seule numérotation à deux chiffres du
   dépôt (quatre versions aujourd'hui).
 
 ### 4.2 `shared/ui/` : l'interface réutilisable
@@ -364,7 +413,7 @@ et plus aucun relais inutile.
   | Unité                                                  | But                                                                   |
   | ------------------------------------------------------ | --------------------------------------------------------------------- |
   | `space-scene.component.ts` `SpaceSceneComponent`       | démarrer et arrêter la scène, lui passer ce que l'écran montre        |
-  | `canvas-resolution.utils.ts`                           | la taille des canvas selon le budget de pixels et la densité          |
+  | `canvas-resolution.helper.ts`                          | la taille des canvas selon le budget de pixels et la densité          |
   | `scene-layout.rules.ts`                                | faire des ancres posées sur l'écran la mise en page de la scène       |
   | `turn-gesture.directive.ts` `TurnGestureDirective`     | tourner la scène en la faisant glisser, sans cliquer au lâcher        |
   | `planet-buttons.component.ts` `PlanetButtonsComponent` | un bouton accessible par planète, le double toucher sur écran tactile |
@@ -399,7 +448,7 @@ et plus aucun relais inutile.
 - `components/about-window/` : la fenêtre « à propos », section par section
   (« part » devient « section »).
 - `data/contact.data.ts` : les liens de contact (ex-`app.contact.ts`).
-- `i18n/profile.texts.ts` : sa tranche de textes (sortie de `PAGES_TEXTS`).
+- `i18n/profile-texts.port.ts` : sa tranche de textes (sortie de `PAGES_TEXTS`).
 
 ### 4.7 `i18n/`
 
@@ -424,13 +473,12 @@ français quand les resolvers tournent.
 
 ### 4.8 `pages/`
 
-| Unité                                  | But                                                                                                                                                       |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `desktop/desktop-page.component.*`     | composer l'écran : scène, navigation, fenêtres ; brancher les gestes sur les managers                                                                     |
-| `desktop/desktop-route.component.ts`   | l'adresse d'une vue : le composant vide qu'exige une route feuille ; un seul pour toutes les vues, fiche comprise (ex-`ViewMarker` + `ProjectDetailPage`) |
-| `desktop/desktop-view.resolver.ts`     | dire au bureau quelle vue l'adresse désigne, avant l'activation, de façon synchrone                                                                       |
-| `page-head.resolver.ts`                | titre, description et adresses alternatives de chaque vue (ex-`view-head` + `project-title.resolver`)                                                     |
-| `workbench/workbench-page.component.*` | l'atelier des composants partagés, en développement                                                                                                       |
+| Unité                                  | But                                                                                                                                                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `desktop/desktop-page.component.*`     | composer l'écran : scène, navigation, fenêtres ; brancher les gestes sur les managers                                                                                                       |
+| `desktop/desktop-route.component.ts`   | la feuille de route, vide : à son activation, dire au bureau quelle vue son adresse montre ; un seul composant pour toutes les vues, fiche comprise (ex-`ViewMarker` + `ProjectDetailPage`) |
+| `page-head.resolver.ts`                | titre, description et adresses alternatives de chaque vue (ex-`view-head` + `project-title.resolver`)                                                                                       |
+| `workbench/workbench-page.component.*` | l'atelier des composants partagés, en développement                                                                                                                                         |
 
 - `station-projects.binding.ts` disparaît. La scène traduit elle-même slug
   et rang, le filtre est typé, les relais tombent. Il reste deux
@@ -441,10 +489,8 @@ français quand les resolvers tournent.
   page** (`windowOf(view)`), puisque `WindowStackService` est générique ;
   l'effet de navigation ne garde que le focus (`ViewFocusService`).
 
-**Dette** : le resolver de vue a un effet de bord. Une navigation annulée
-après lui laisserait le bureau sur une vue que l'adresse ne montre pas. Le
-signal de réveil est ce bug ; la sortie serait de dériver la vue d'un signal
-du routeur.
+Un resolver ne fait que calculer une donnée : c'est le composant de route,
+dont c'est le rôle, qui déclare la vue au bureau.
 
 ### 4.9 La racine
 
@@ -472,10 +518,10 @@ src/app/
     browser/   browser-window · media-preferences · clock · page-visibility ·
                element-observer · document-styles · cursor · canvas-contexts   (.service.ts)
     presence/  user-presence.service.ts
-    head/      document-head.service.ts · route-head.strategy.ts · site.token.ts · site.model.ts
+    head/      document-head.service.ts · route-head.strategy.ts · site.port.ts
     i18n/      lang.model.ts · locale.service.ts · localize.rules.ts · draft.rules.ts
     errors/    console-error-handler.service.ts
-    format/    format.utils.ts
+    format/    format.helper.ts
 
   shared/ui/
     window/          window.component · window.model · draggable.directive ·
@@ -488,23 +534,23 @@ src/app/
     site-nav/        language-switch.component · main-nav.component · site-nav.model
     segmented/       segmented.component · segmented.model
     social-links/    social-links.component · social-link.model · social-icons.data
-    texts/           shared.texts
+    texts/           shared-texts.port
 
   features/
     common/
-      links/          links.port · links.token
+      links/          links.port
       scene-anchors/  scene-anchors.model
     projects/
       components/     featured-bar/ · project-list/ · project-preview/ · project-detail/
       data/           projects.data.ts · projects/<un fichier par projet>.data.ts
-      i18n/           projects.texts.ts
+      i18n/           projects-texts.port.ts
       models/         project.model · project-family.model · project-detail.model
       rules/          ranking.rules · project-labels.rules
       services/       projects-repository.service
       states/projects/
     desktop/
       components/     space-scene/ · intro-card/ · home-title/ · not-found-window/ · animation-toggle/
-      i18n/           desktop.texts.ts
+      i18n/           desktop-texts.port.ts
       models/         desktop.model.ts
       rules/          view.rules.ts
       services/       home-reveal.service · featured-tour.service
@@ -512,13 +558,13 @@ src/app/
     profile/
       components/     about-window/
       data/           contact.data.ts
-      i18n/           profile.texts.ts
+      i18n/           profile-texts.port.ts
 
   i18n/      catalog.model · catalog-loader.service · i18n.provider · catalog.guard ·
              paths.data · paths.rules · fr.data · en.data
 
   pages/
-    desktop/     desktop-page.component.* · desktop-route.component.ts · desktop-view.resolver.ts
+    desktop/     desktop-page.component.* · desktop-route.component.ts
     workbench/   workbench-page.component.*
     page-head.resolver.ts
 ```
@@ -532,7 +578,7 @@ features/desktop/components/space-scene/
   space-scene.model.ts           SceneBody et les entrées de la scène
   planet-buttons/                un bouton accessible par planète
   turn-gesture/                  tourner la scène au glisser
-  layout/                        scene-layout.rules · canvas-resolution.utils
+  layout/                        scene-layout.rules · canvas-resolution.helper
   engine/
     space-scene.engine.ts        la boucle : faire avancer, puis dessiner
     engine.model.ts              les types publics du moteur
@@ -543,7 +589,7 @@ features/desktop/components/space-scene/
     planets/   orbits.rules · labels.rules · planets.renderer · planet-dom.renderer
     sky/       stars.motion · sky.renderer · constellations.renderer · comets.renderer
     travel/    travel.rules
-    math/      vector.utils · easing.utils · random.utils
+    math/      vector.helper · easing.helper · random.helper
 ```
 
 ## 6. L'ordre de migration
@@ -565,7 +611,7 @@ Chaque étape est une PR, `npm run check` vert à chaque commit.
    `CLAUDE.md` et le message du lint sur les globales.
 4. **Découpages** : `core/browser`, la fenêtre, la pile, la scène (hors
    moteur), l'état du bureau, `ProjectsManager`, le binding.
-5. **Angular 22** : la langue dérivée, le resolver de vue, les têtes de page
+5. **Angular 22** : la langue dérivée, les têtes de page
    dans la langue visée (avec un spec `RouterTestingHarness` : changer de
    langue donne le titre dans la nouvelle langue).
 6. **Clean code** : commentaires, code mort, doublons, valeurs en dur.

@@ -345,21 +345,33 @@ une règle métier à se disperser en chaînes d'effets entre managers.
 
 **Écarté.** Un état par concept (`location`, `windows`, `selection`).
 
-## 2026-09-23 — La vue se déclare dans un resolver, la langue se dérive du routeur
+## 2026-09-23 — Le composant de route déclare la vue, la langue se dérive du routeur
 
-**Décision.** Un resolver synchrone de `pages/` déclare la vue du bureau avant
-l'activation ; un seul composant de route, vide, sert toutes les vues. La
-langue se dérive de `Router.lastSuccessfulNavigation` ; la garde ne fait que
-charger le catalogue ; les têtes de page lisent le catalogue de la langue
-visée. Amende D3 et l'entrée « Les fenêtres vivent à la station » (les
-marqueurs déclaraient la vue dans leur constructeur).
+**Décision.** Un seul composant de route, vide (`desktop-route.component`),
+sert toutes les vues, fiche comprise : à son activation, il dit au bureau
+quelle vue son adresse montre. La langue se dérive de
+`Router.lastSuccessfulNavigation` ; la garde ne fait que charger le
+catalogue ; les têtes de page lisent le catalogue de la langue visée. Amende
+D3.
 
-**Raison.** Un seul point d'écriture de la vue, avant tout rendu ; une seule
-source de la langue.
+**Raison.** Un seul point d'écriture de la vue, porté par l'unité dont c'est
+le rôle ; une seule source de la langue.
 
-**Écarté.** Garder deux composants marqueurs, dont un effet pour passer d'une
-fiche à l'autre ; dériver la langue de la navigation en cours (le catalogue
-serait lu avant d'être chargé).
+**Écarté.** Un resolver qui écrit la vue : un resolver calcule une donnée, il
+n'écrit pas un état, et son nom mentirait sur son rôle. Deux composants
+marqueurs (un par forme de route). Dériver la langue de la navigation en
+cours (le catalogue serait lu avant d'être chargé).
 
-**À revoir** si une navigation annulée laisse le bureau sur une vue que
-l'adresse ne montre pas.
+## 2026-09-23 — Les suffixes disent comment on se sert du fichier (D15)
+
+**Décision.** Le suffixe d'un fichier dit comment on s'en sert : placé dans
+un gabarit (`.component`, `.directive`), injecté (`.service`, `.manager` et
+les pièces d'ngx-statewise, `.port`), déclaré dans une configuration
+(`.provider`, `.guard`, `.resolver`, `.strategy`), appelé (`.rules`,
+`.helper`, `.signal`), importé (`.model`, `.data`), instancié dans la scène
+(`.engine`, `.motion`, `.renderer`). `.helper` remplace `.utils`, qui
+devient vite un fourre-tout. `.port` réunit un contrat et son jeton, tranches
+de textes comprises. Un nouveau rôle demande une entrée de ce journal.
+
+**Raison.** En créant ou en lisant un fichier, on sait tout de suite son rôle,
+qui s'en sert et dans quel contexte.

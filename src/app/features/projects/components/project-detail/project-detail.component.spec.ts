@@ -91,9 +91,7 @@ describe('ProjectSheetComponent', () => {
     const { host } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe(
-      'Fenêtre : fiche de projet',
-    );
+    expect(window?.getAttribute('aria-label')).toBe('Détail du projet');
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     // proj-b is the second of three in the manager's order.
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
@@ -101,7 +99,7 @@ describe('ProjectSheetComponent', () => {
 
   it('lists one toolbar button per chapter, labelled and pressed on the current one', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 1 });
-    const toolbar = host.querySelector('[aria-label="Approches de la fiche"]');
+    const toolbar = host.querySelector('[aria-label="Parties"]');
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -112,9 +110,9 @@ describe('ProjectSheetComponent', () => {
       '03',
     ]);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Approche 01 — Pourquoi',
-      'Approche 02 — Comment',
-      'Approche 03 — Et ensuite',
+      'Partie 01 : Pourquoi',
+      'Partie 02 : Comment',
+      'Partie 03 : Et ensuite',
     ]);
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
@@ -128,7 +126,7 @@ describe('ProjectSheetComponent', () => {
       emitted.push(value),
     );
 
-    const toolbar = host.querySelector('[aria-label="Approches de la fiche"]');
+    const toolbar = host.querySelector('[aria-label="Parties"]');
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -138,7 +136,7 @@ describe('ProjectSheetComponent', () => {
     expect(emitted).toEqual([2]);
     expect(
       host
-        .querySelector('[aria-label="Approches de la fiche"]')
+        .querySelector('[aria-label="Parties"]')
         ?.querySelectorAll('button')[0]
         ?.getAttribute('aria-pressed'),
     ).toBe('true');
@@ -156,7 +154,7 @@ describe('ProjectSheetComponent', () => {
     const values = [...host.querySelectorAll('dl.identity dd')].map((dd) =>
       dd.textContent?.trim(),
     );
-    expect(terms).toEqual(['Accès', 'Rôle', 'Technique', 'Contexte']);
+    expect(terms).toEqual(['Statut', 'Rôle', 'Stack', 'Contexte']);
     // The identity comes from the facts table, never from the sheet's own prose.
     expect(values).toEqual(['Proof B', 'Role B', 'Stack B', 'Context B']);
   });
@@ -182,7 +180,7 @@ describe('ProjectSheetComponent', () => {
 
     // Exclude the toolbar's own `<li>` items (one per chapter button).
     const bullet = [...host.querySelectorAll('li')].find(
-      (li) => !li.closest('[aria-label="Approches de la fiche"]'),
+      (li) => !li.closest('[aria-label="Parties"]'),
     );
     expect(bullet?.querySelector('.term')?.textContent?.trim()).toBe('Terme');
     expect(bullet?.textContent).toContain('Explication');
@@ -197,7 +195,7 @@ describe('ProjectSheetComponent', () => {
     ]);
 
     expect(host.querySelector('.chapter-title')?.textContent?.trim()).toBe(
-      '01 · Pourquoi ?',
+      '01 · Le besoin',
     );
   });
 

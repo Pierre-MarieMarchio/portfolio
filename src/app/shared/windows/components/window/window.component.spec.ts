@@ -5,9 +5,8 @@ import { WindowSize } from '../../models/window.model';
 import { ScrollMemoryService } from '../../services/scroll-memory.service';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
-const PIN_OFF_LABEL =
-  'Épingler : garder la fenêtre ouverte en changeant de page';
-const PIN_ON_LABEL = 'Détacher : la fenêtre se refermera en changeant de page';
+const PIN_OFF_LABEL = 'Garder cette fenêtre ouverte en changeant de page';
+const PIN_ON_LABEL = 'Laisser cette fenêtre se fermer en changeant de page';
 const COLLAPSE_OFF_LABEL = 'Replier la fenêtre';
 const COLLAPSE_ON_LABEL = 'Déplier la fenêtre';
 const CLOSE_LABEL = 'Fermer la fenêtre';

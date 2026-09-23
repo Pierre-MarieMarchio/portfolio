@@ -65,7 +65,7 @@ describe('IntroCardComponent', () => {
 
     const text = card?.textContent ?? '';
     const nameAt = text.indexOf('Pierre-Marie Marchio');
-    const roleAt = text.indexOf('Concepteur développeur d’applications');
+    const roleAt = text.indexOf('Développeur .NET et Angular');
     const brandAt = text.indexOf('Portfolio');
     expect(nameAt).toBeGreaterThanOrEqual(0);
     expect(roleAt).toBeGreaterThan(nameAt);

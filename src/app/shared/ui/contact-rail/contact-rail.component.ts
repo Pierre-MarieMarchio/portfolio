@@ -5,16 +5,15 @@ import {
   input,
   output,
 } from '@angular/core';
-import { Arrival } from '@shared/ui/page-bar';
+import { Arrival } from '@shared/ui/arrival';
+import { CONTACT_ICONS } from './contact-icons';
+import { ContactLink } from './contact-link.model';
 
 /**
- * The contact rail, fixed bottom right: e-mail, LinkedIn, GitHub, at 44px
- * each, and the object's pause when there is an object to pause.
- *
- * The icons are Material Design Icons (Pictogrammers, Apache 2.0), inlined:
- * the community set drawn on Material's grid, which has the brand marks that
- * Google's Material Symbols leave out. The three from the one set, so they
- * share a weight: `email-outline`, `linkedin`, `github`.
+ * The contact rail, fixed bottom right: one link per address, at 44px each,
+ * and the object's pause when there is an object to pause. The addresses are
+ * the caller's; the rail only draws them, with inlined icons (see
+ * `CONTACT_ICONS`) rather than an icon font.
  */
 @Component({
   selector: 'app-contact-rail',
@@ -24,12 +23,15 @@ import { Arrival } from '@shared/ui/page-bar';
   host: { '[attr.data-arrival]': 'arrival()' },
 })
 export class ContactRailComponent {
+  public readonly links = input.required<readonly ContactLink[]>();
   public readonly showPause = input(false);
   public readonly paused = input(false);
   /** Arrives with the home page's rest, at the end of the crossing. */
   public readonly arrival = input<Arrival>('timed');
 
   public readonly pauseToggled = output();
+
+  protected readonly icons = CONTACT_ICONS;
 
   protected readonly pauseLabel = computed(() =>
     this.paused()

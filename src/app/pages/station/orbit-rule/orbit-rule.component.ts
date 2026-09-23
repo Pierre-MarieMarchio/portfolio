@@ -8,7 +8,8 @@ import {
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/utils/format.utils';
 import { ProjectWithFacts } from '@app/features/projects/models';
-import { Arrival } from '@shared/ui/page-bar';
+import { Arrival } from '@shared/ui/arrival';
+import { ObjectLineDirective } from '@shared/ui/object-marks';
 
 /**
  * The rule of the projects in orbit, along the bottom of the home page: one
@@ -19,7 +20,7 @@ import { Arrival } from '@shared/ui/page-bar';
  */
 @Component({
   selector: 'app-orbit-rule',
-  imports: [RouterLink],
+  imports: [ObjectLineDirective, RouterLink],
   templateUrl: './orbit-rule.component.html',
   styleUrl: './orbit-rule.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +29,8 @@ import { Arrival } from '@shared/ui/page-bar';
 export class OrbitRuleComponent {
   /** The featured projects, in rank order. */
   public readonly bodies = input.required<readonly ProjectWithFacts[]>();
+  /** The id of the panel a marker opens, for `aria-controls`. */
+  public readonly controls = input.required<string>();
   public readonly hovered = input<string | null>(null);
   /** The body the preview last showed: read when nothing is hovered. */
   public readonly reading = input<string | null>(null);

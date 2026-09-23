@@ -108,6 +108,7 @@ export class AboutWindowComponent {
 
   protected readonly parts = computed<readonly SegmentedItem[]>(() =>
     PARTS.map((part) => ({
+      value: part.key,
       label: part.label,
       active: part.key === this.current()?.key,
       aria: `Aller à : ${part.title}`,
@@ -127,13 +128,6 @@ export class AboutWindowComponent {
       }
       untracked(() => this.window()?.scrollBodyTo(0));
     });
-  }
-
-  protected choose(item: SegmentedItem): void {
-    const part = PARTS.find((each) => each.label === item.label);
-    if (part) {
-      this.partChange.emit(part.key);
-    }
   }
 
   protected advance(): void {

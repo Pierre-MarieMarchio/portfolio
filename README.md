@@ -37,6 +37,7 @@ src/app/
   app.routes.ts          lazy partout, un title par route (+ data.description)
   app.routes.server.ts   prérendu, une page par projet via getPrerenderParams
   app.navigation.ts      les entrées du menu
+  app.contact.ts         les adresses du rail de contact
   app.component.*        compose le shell et le <router-outlet>
 
   core/                  infrastructure, aucun concept métier
@@ -45,12 +46,19 @@ src/app/
                          PageTitleStrategy
     utils/               fonctions pures (pas de barrel)
   shared/ui/             composants présentationnels (inputs/outputs seulement)
-    nav-shell/
+    arrival/             le modèle de l'arrivée du reste de l'accueil
+    contact-rail/        le rail de contact (ses liens en entrée)
+    object-marks/        panneaux et lignes que l'objet lit (directives + registre)
+    page-bar/ segmented/ window/
   features/
     common/              noyau partagé : des ports, rien d'autre (vide pour l'instant)
     projects/
       components/ data/ models/ services/ states/projects/
+    station/
+      components/object/ l'objet canvas et son moteur
+      models/ states/station/
   pages/                 composition : une page par route, peut tout importer
+    station/             la station et ses vues (un dossier par composant)
 src/testing/             doubles partagés (fake-managers.ts)
 src/integration/         suites qui testent un mécanisme, pas un composant
 ```
@@ -127,8 +135,18 @@ toujours écrite (vérifiée par le lint), sélecteurs préfixés `app-`. Une cl
 injectable porte le nom de ce qu'elle est (`PageHead`, `ProjectsRepository`,
 `BrowserEnvironment`), sans suffixe `Service` : le suffixe est dans le nom du
 fichier (`.service.ts`), avec `.strategy.ts` et `.resolver.ts` pour ce que le
-routeur appelle. Les
-commentaires, en anglais, disent le _pourquoi_ ; chaque affirmation est tenue
+routeur appelle.
+
+Chaque composant a son dossier, à son nom (`orbit-rule/orbit-rule.component.*`).
+Une entrée et la sortie qui la change forment une paire `x` / `xChange`
+(`selected` / `selectedChange`, `hovered` / `hoveredChange`) ; un événement sans
+état est un participe passé (`closed`, `chosen`, `pinToggled`, `spun`). Les
+états se lisent en `data-*` anglais (`data-active`, `data-selected`,
+`data-pinned`), et les ids adressés par le code sont des constantes
+(`STATION_IDS`). Un choix du segmenté porte sa `value`, et c'est elle que le
+clic rend.
+
+Les disent le _pourquoi_ ; chaque affirmation est tenue
 par un spec.
 
 Le lint borne aussi la taille et la forme du code : 300 lignes par fichier,

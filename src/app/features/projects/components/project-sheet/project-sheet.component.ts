@@ -73,15 +73,17 @@ export class ProjectSheetComponent {
       : null;
   });
 
-  protected readonly approaches = computed<readonly SegmentedItem[]>(() =>
-    (this.sheet()?.chapters ?? []).map((_, index) => {
-      const number = twoDigits(index + 1);
-      return {
-        label: number,
-        active: index === this.chapter(),
-        aria: `Approche ${number} — ${this.manager.chapterTitle(this.slug(), index)}`,
-      };
-    }),
+  protected readonly approaches = computed<readonly SegmentedItem<number>[]>(
+    () =>
+      (this.sheet()?.chapters ?? []).map((_, index) => {
+        const number = twoDigits(index + 1);
+        return {
+          value: index,
+          label: number,
+          active: index === this.chapter(),
+          aria: `Approche ${number} — ${this.manager.chapterTitle(this.slug(), index)}`,
+        };
+      }),
   );
 
   private readonly last = computed(
@@ -124,13 +126,6 @@ export class ProjectSheetComponent {
       }
       untracked(() => this.window()?.scrollBodyTo(0));
     });
-  }
-
-  protected choose(item: SegmentedItem): void {
-    const index = this.approaches().indexOf(item);
-    if (index >= 0) {
-      this.chapterChange.emit(index);
-    }
   }
 
   protected advance(): void {

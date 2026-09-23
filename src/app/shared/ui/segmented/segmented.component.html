@@ -1,5 +1,5 @@
 <ul role="group" [attr.aria-label]="label()">
-  @for (item of items(); track item.label) {
+  @for (item of items(); track item.value) {
     <li>
       <button
         type="button"
@@ -7,7 +7,7 @@
         [attr.data-active]="item.active"
         [attr.aria-label]="item.aria ?? item.label"
         [title]="item.aria ?? item.label"
-        (click)="selected.emit(item)"
+        (click)="chosen.emit(item.value)"
       >
         <span>{{ item.label }}</span>
         @if (item.count) {

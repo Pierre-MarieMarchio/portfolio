@@ -295,10 +295,10 @@ describe('ProjectIndexComponent', () => {
     expect(opened?.querySelector('a[target="_blank"]')).toBeNull();
   });
 
-  it('emits hovered on mouseenter/focus, and null on mouseleave/blur', async () => {
+  it('emits hoveredChange on mouseenter/focus, and null on mouseleave/blur', async () => {
     const { fixture, host } = await mount();
     const emitted: (string | null)[] = [];
-    fixture.componentInstance.hovered.subscribe((value: string | null) =>
+    fixture.componentInstance.hoveredChange.subscribe((value: string | null) =>
       emitted.push(value),
     );
 

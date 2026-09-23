@@ -20,14 +20,22 @@ import {
 } from '@app/features/projects/components';
 import { ProjectsManager } from '@app/features/projects/states';
 import { StationManager } from '@app/features/station/states';
-import { ObjectBody, ObjectComponent, ObjectView } from '@shared/ui/object';
-import { Arrival, NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
+import {
+  ObjectBody,
+  ObjectComponent,
+  ObjectView,
+} from '@app/features/station/components';
+import { Arrival } from '@shared/ui/arrival';
+import { ContactLink, ContactRailComponent } from '@shared/ui/contact-rail';
+import { ObjectPanelDirective } from '@shared/ui/object-marks';
+import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
+import { contactLinks } from '../../app.contact';
 import { navigationItems } from '../../app.navigation';
-import { AboutWindowComponent } from './about-window.component';
-import { ContactRailComponent } from './contact-rail.component';
-import { IntroCardComponent } from './intro-card.component';
-import { NotFoundWindowComponent } from './not-found-window.component';
-import { OrbitRuleComponent } from './orbit-rule.component';
+import { AboutWindowComponent } from './about-window/about-window.component';
+import { IntroCardComponent } from './intro-card/intro-card.component';
+import { NotFoundWindowComponent } from './not-found-window/not-found-window.component';
+import { OrbitRuleComponent } from './orbit-rule/orbit-rule.component';
+import { STATION_IDS } from './station.ids';
 
 type Slot = 'about' | 'index' | 'sheet' | 'preview';
 
@@ -69,6 +77,7 @@ const FOCUS_DEADLINE_MS = 2500;
     NotFoundWindowComponent,
     OrbitRuleComponent,
     ObjectComponent,
+    ObjectPanelDirective,
     PageBarComponent,
     ProjectIndexComponent,
     ProjectPreviewComponent,
@@ -85,6 +94,8 @@ export class StationComponent {
 
   protected readonly navigationItems: readonly NavigationItem[] =
     navigationItems;
+  protected readonly contactLinks: readonly ContactLink[] = contactLinks;
+  protected readonly ids = STATION_IDS;
 
   private readonly scene = viewChild.required<ElementRef<HTMLElement>>('scene');
 
@@ -407,7 +418,9 @@ export class StationComponent {
       return () => undefined;
     }
     const selector =
-      target === 'home' ? '#titre-accueil' : `[data-slot="${target}"] h1`;
+      target === 'home'
+        ? `#${STATION_IDS.homeTitle}`
+        : `[data-slot="${target}"] h1`;
     const started = Date.now();
     let cancel: () => void = () => undefined;
     const attempt = (): void => {

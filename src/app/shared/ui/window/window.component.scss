@@ -80,7 +80,7 @@ h2 {
   @include controls.icon-button(var(--target-compact), 32px, var(--t-duration));
 }
 
-.pin.is-pinned {
+.pin[data-pinned='true'] {
   color: var(--sig);
 }
 

@@ -3,7 +3,7 @@
     label="Fenêtre : aperçu du projet"
     size="m"
     anchor="bottom"
-    [title]="project.title"
+    [heading]="project.title"
     [margin]="88"
     [meta]="meta()"
     [pinned]="pinned()"
@@ -13,8 +13,8 @@
     <app-segmented
       toolbar
       label="Corps en orbite"
-      [items]="bodies()"
-      (selected)="choose($event)"
+      [items]="choices()"
+      (chosen)="chosen.emit($event)"
     />
     <div body>
       <p class="summary">{{ project.summary }}</p>

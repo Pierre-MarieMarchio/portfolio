@@ -70,7 +70,7 @@ export class ProjectIndexComponent {
   /** The slug to select, or `null` to close the open row. */
   public readonly selectedChange = output<string | null>();
   /** The row under the pointer or the focus, for the object to light up. */
-  public readonly hovered = output<string | null>();
+  public readonly hoveredChange = output<string | null>();
   public readonly familyChange = output<FamilyFilter>();
 
   private readonly total = computed(() => this.manager.projects().length);
@@ -86,14 +86,17 @@ export class ProjectIndexComponent {
       : `${twoDigits(this.manager.familyCounts()[family])} / ${twoDigits(this.total())}`;
   });
 
-  protected readonly state = computed(() => {
+  protected readonly familySummary = computed(() => {
     const counts = this.manager.familyCounts();
     return `${twoDigits(counts.professional)} en entreprise · ${twoDigits(counts.personal)} personnels`;
   });
 
-  protected readonly familyItems = computed<readonly SegmentedItem[]>(() => {
+  protected readonly familyItems = computed<
+    readonly SegmentedItem<FamilyFilter>[]
+  >(() => {
     const counts = this.manager.familyCounts();
     return FAMILIES.map((choice) => ({
+      value: choice.value,
       label: choice.label,
       aria: choice.aria,
       active: choice.value === this.family(),
@@ -130,13 +133,6 @@ export class ProjectIndexComponent {
       ];
     });
   });
-
-  protected chooseFamily(item: SegmentedItem): void {
-    const choice = FAMILIES.find((each) => each.label === item.label);
-    if (choice) {
-      this.familyChange.emit(choice.value);
-    }
-  }
 
   /** A second click on the open row closes it. */
   protected toggle(slug: string): void {

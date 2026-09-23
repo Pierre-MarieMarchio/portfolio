@@ -227,16 +227,6 @@ export class BrowserEnvironment {
   }
 
   /**
-   * Every element of the page that matches a selector, in document order;
-   * none on the server, where nothing is laid out to measure.
-   */
-  public queryAll<E extends Element = HTMLElement>(selector: string): E[] {
-    return this.isBrowser
-      ? Array.from(this.document.querySelectorAll<E>(selector))
-      : [];
-  }
-
-  /**
    * The cursor the whole page shows, whatever it hovers, as a drag needs;
    * an empty string gives each element its own back. Inert on the server.
    */

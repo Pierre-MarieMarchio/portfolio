@@ -16,6 +16,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
+import { ObjectRegistry } from '@shared/ui/object-marks';
 import {
   EngineInputs,
   Layout,
@@ -47,13 +48,13 @@ const PIXEL_BUDGET = 4_200_000;
  * positions are written into the DOM by `transform`. An output only leaves
  * on a gesture.
  *
- * The text comes before the matter: every `[data-panel]` element of the
- * document is a panel the object dims its matter behind and keeps its
- * labels off. Its value may name a role the framing reads: `head` (the top
- * bar: it bounds the free band), `rule`, `sheet` and `preview` (their left
- * edge bounds the approach). Every `[data-object-line]` element is a line
- * of the home rule, in rank order: it rises with its planet, on the same
- * clock. Panels are measured when something changed
+ * The text comes before the matter: every element declared `appObjectPanel`
+ * is a panel the object dims its matter behind and keeps its labels off.
+ * Its role, when it has one, is read by the framing: `head` (the top bar:
+ * it bounds the free band), `rule`, `sheet` and `preview` (their left edge
+ * bounds the approach). Every element declared `appObjectLine` is a line of
+ * the home rule, in rank order: it rises with its planet, on the same
+ * clock. Both sign in to `ObjectRegistry`. Panels are measured when something changed
  * (a render, a resize, the end of a gesture or an animation), never in the
  * loop.
  */
@@ -65,6 +66,7 @@ const PIXEL_BUDGET = 4_200_000;
 })
 export class ObjectComponent {
   private readonly browser = inject(BrowserEnvironment);
+  private readonly registry = inject(ObjectRegistry);
 
   /** The projects in rank order: the rank is the distance to the centre. */
   public readonly bodies = input<readonly ObjectBody[]>([]);
@@ -348,7 +350,7 @@ export class ObjectComponent {
     let ruleHeight: number | null = null;
     let sheetLeft: number | null = null;
     let previewLeft: number | null = null;
-    for (const element of this.browser.queryAll('[data-panel]')) {
+    for (const { element, role } of this.registry.panels()) {
       // A panel held out of sight (the home page's rest, during the
       // crossing) is not there yet: the mockup mounts it later. Measured,
       // the run was framed for a rule that did not show.
@@ -367,7 +369,7 @@ export class ObjectComponent {
         opacity: Number.isFinite(opacity) ? opacity : 1,
       });
       const shown = rect.width > 0 && rect.height > 0;
-      switch (shown ? element.dataset['panel'] : undefined) {
+      switch (shown ? role() : '') {
         case 'head':
           headHeight = Math.round(rect.height);
           break;
@@ -382,7 +384,7 @@ export class ObjectComponent {
           break;
       }
     }
-    engine.setLines(this.browser.queryAll('[data-object-line]'));
+    engine.setLines(this.registry.lines());
     engine.measureLabels();
     const viewport = this.browser.viewport() ?? { width: 1200, height: 800 };
     const layout: Layout = {

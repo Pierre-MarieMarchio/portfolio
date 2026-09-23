@@ -2,7 +2,7 @@
   <app-window
     label="Fenêtre : fiche de projet"
     size="l"
-    [title]="sheet.title"
+    [heading]="sheet.title"
     [margin]="76"
     [meta]="meta()"
     [scrollKey]="scrollKey()"
@@ -14,7 +14,7 @@
       toolbar
       label="Approches de la fiche"
       [items]="approaches()"
-      (selected)="choose($event)"
+      (chosen)="chapterChange.emit($event)"
     />
     <div body>
       <header>

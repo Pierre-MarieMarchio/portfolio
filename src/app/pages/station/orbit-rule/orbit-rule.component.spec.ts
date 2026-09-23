@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectRegistry } from '@shared/ui/object-marks';
 import { provideRouter } from '@angular/router';
 import { sampleFacts, sampleProject } from '@testing/fake-managers';
 import { ProjectWithFacts } from '@app/features/projects/models';
@@ -37,6 +38,7 @@ describe('OrbitRuleComponent', () => {
 
     const fixture = TestBed.createComponent(OrbitRuleComponent);
     fixture.componentRef.setInput('bodies', inputs.bodies);
+    fixture.componentRef.setInput('controls', 'preview-panel');
     fixture.componentRef.setInput('hovered', inputs.hovered ?? null);
     fixture.componentRef.setInput('reading', inputs.reading ?? null);
     await fixture.whenStable();
@@ -71,7 +73,7 @@ describe('OrbitRuleComponent', () => {
     ]);
     expect(
       buttons.every(
-        (button) => button.getAttribute('aria-controls') === 'panneau-apercu',
+        (button) => button.getAttribute('aria-controls') === 'preview-panel',
       ),
     ).toBe(true);
     expect(
@@ -88,11 +90,8 @@ describe('OrbitRuleComponent', () => {
 
   it('hands every marker to the object as a line, so each rises with its planet', async () => {
     const { host } = await mount({ bodies });
-    expect(
-      markerButtons(host).every((button) =>
-        button.hasAttribute('data-object-line'),
-      ),
-    ).toBe(true);
+
+    expect(TestBed.inject(ObjectRegistry).lines()).toEqual(markerButtons(host));
   });
 
   it('spreads the markers evenly along the belt, from 2% to 58%', async () => {

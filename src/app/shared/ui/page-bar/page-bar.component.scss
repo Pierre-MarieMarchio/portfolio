@@ -89,7 +89,7 @@ a {
   }
 
   /* Current: enough to find one's bearings, not enough to shout. */
-  &[data-actif='true'] {
+  &[data-active='true'] {
     background: var(--vitre-2);
     border-color: var(--line);
     color: var(--ink);

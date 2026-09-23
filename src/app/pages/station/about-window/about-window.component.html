@@ -1,5 +1,5 @@
 <app-window
-  title="À propos"
+  heading="À propos"
   label="Fenêtre : à propos"
   size="l"
   [margin]="76"
@@ -11,7 +11,7 @@
     toolbar
     label="Parties du profil"
     [items]="parts()"
-    (selected)="choose($event)"
+    (chosen)="partChange.emit($event)"
   />
   <div body>
     <h1 tabindex="-1" class="landing">{{ heading() }}</h1>

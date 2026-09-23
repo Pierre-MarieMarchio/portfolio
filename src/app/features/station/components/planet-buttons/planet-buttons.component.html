@@ -1,0 +1,18 @@
+@for (entry of entries(); track $index; let rank = $index) {
+  <button
+    #button
+    type="button"
+    class="body"
+    data-object-body
+    aria-hidden="true"
+    tabindex="-1"
+    [attr.aria-expanded]="entry.expanded"
+    (click)="onClick(rank)"
+    (mouseenter)="onEnter(rank)"
+    (mouseleave)="onLeave()"
+    (focus)="onEnter(rank)"
+    (blur)="onLeave()"
+  >
+    <span class="visually-hidden">{{ entry.name }}</span>
+  </button>
+}

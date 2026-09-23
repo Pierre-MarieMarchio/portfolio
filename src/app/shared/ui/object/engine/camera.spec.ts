@@ -107,12 +107,38 @@ describe('object camera', () => {
     it('animates the distance: a dot for seconds, then it unfolds', () => {
       expect(traveling(0, false).grow).toBeCloseTo(1 / 58, 6);
       expect(traveling(6.5, false).grow).toBeLessThan(0.5);
-      expect(traveling(8.8, false).grow).toBeCloseTo(1, 6);
+      expect(traveling(9.6, false).grow).toBeCloseTo(1, 6);
+    });
+
+    it('lands instead of braking: the growth dies over more than a second', () => {
+      const rate = (t: number): number =>
+        (traveling(t + 0.01, false).grow - traveling(t - 0.01, false).grow) /
+        0.02;
+      let peak = 0;
+      let peakAt = 0;
+      for (let t = 6; t <= 9.6; t += 0.01) {
+        if (rate(t) > peak) {
+          peak = rate(t);
+          peakAt = t;
+        }
+      }
+      let quiet = peakAt;
+      while (quiet < 9.6 && rate(quiet) > 0.1 * peak) {
+        quiet += 0.01;
+      }
+      // The cubic ease it replaces went from its peak to a tenth of it in
+      // half a second, at 8.2 to 8.7 s.
+      expect(quiet - peakAt).toBeGreaterThan(0.9);
+    });
+
+    it('keeps the old sizes until the landing', () => {
+      expect(traveling(7, false).grow).toBeCloseTo(0.089, 2);
+      expect(traveling(8, false).grow).toBeCloseTo(0.467, 2);
     });
 
     it('never shrinks the object on the way in', () => {
       let last = 0;
-      for (let t = 0; t <= 9.2; t += 0.05) {
+      for (let t = 0; t <= 9.7; t += 0.05) {
         const grow = traveling(t, false).grow;
         expect(grow).toBeGreaterThanOrEqual(last);
         last = grow;

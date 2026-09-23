@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, InjectionToken } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
+import { Lang } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
 import { localize } from '@app/core/rules';
 import {
@@ -65,6 +66,15 @@ export class ProjectsManager {
 
   public find(slug: string): RankedProject | null {
     return this.bySlug().get(slug) ?? null;
+  }
+
+  public findIn(slug: string, lang: Lang): RankedProject | null {
+    const found = this.find(slug);
+    const project = this.state.projects().find((each) => each.slug === slug);
+    const facts = this.state.facts()[slug];
+    return found && project && facts
+      ? { ...found, ...localize(project, lang), facts: localize(facts, lang) }
+      : null;
   }
 
   public detailOf(slug: string): ProjectDetail | null {

@@ -9,7 +9,8 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { SITE_NAME } from '@app/core/services';
-import { projectTitle } from './project-title.resolver';
+import { CatalogLoaderService } from '@app/i18n';
+import { sheetTitle } from './page-head.resolver';
 
 @Component({ template: '' })
 class Blank {}
@@ -19,12 +20,12 @@ const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
 const title = () => TestBed.inject(Title).getTitle();
 
 /** The route resolves the name; the strategy writes it, alone. */
-describe('projectTitle', () => {
+describe('sheetTitle', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([
-          { path: 'projet/:slug', component: Blank, title: projectTitle },
+          { path: 'projet/:slug', component: Blank, title: sheetTitle },
         ]),
         { provide: TitleStrategy, useClass: RouteHeadStrategy },
         provideProjects([
@@ -35,6 +36,7 @@ describe('projectTitle', () => {
         ]),
       ],
     });
+    await TestBed.inject(CatalogLoaderService).ensure('fr');
     await loadProjects();
   });
 

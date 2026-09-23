@@ -1,67 +1,49 @@
 import { Route, Routes } from '@angular/router';
 import { Lang, LANGS } from '@app/core/models';
 import { loadCatalog, PATHS } from '@app/i18n';
-import { ProjectDetailRouteComponent } from './pages/desktop/project-detail-route.component';
-import {
-  projectDescription,
-  projectTitle,
-} from './pages/resolvers/project-title.resolver';
 import {
   alternates,
-  headDescription,
-  headTitle,
-} from './pages/resolvers/view-head.resolver';
+  sheetDescription,
+  sheetTitle,
+  viewDescription,
+  viewTitle,
+} from './pages/resolvers/page-head.resolver';
 import {
   DesktopRouteComponent,
-  ViewMarkerData,
+  DesktopRouteData,
 } from './pages/desktop/desktop-route.component';
 
-/**
- * Each address names itself: the title strategy appends the site's name, and
- * `data.description` becomes the page's meta description, both read from the
- * catalogue of the address's language.
- *
- * The routed components are markers (`ViewMarkerComponent`, told its view
- * by `data.view`, and the sheet's own), loaded eagerly: they tell the station
- * where the reader is, and the station renders the windows, so a pinned one
- * outlives a navigation. Eager, because the first client render must see the
- * view the server rendered, or hydration rebuilds the window.
- *
- * Paths rather than fragments: a fragment never reaches the server, so a
- * `#/projets` address could not be prerendered or indexed. Every address
- * exists in each language (D4), generated here from the one table of paths.
- */
 function routesIn(lang: Lang): Route[] {
-  const marked = (view: 'home' | 'index' | 'about'): Route => ({
+  const viewRoute = (view: 'home' | 'index' | 'about'): Route => ({
     path: PATHS[view][lang],
     component: DesktopRouteComponent,
     canActivate: [loadCatalog],
-    title: headTitle(view),
-    data: { view } satisfies ViewMarkerData,
-    resolve: { description: headDescription(view), alternates },
+    title: viewTitle(view),
+    data: { view } satisfies DesktopRouteData,
+    resolve: { description: viewDescription(view), alternates },
   });
   return [
-    marked('home'),
-    marked('index'),
+    viewRoute('home'),
+    viewRoute('index'),
     {
       path: `${PATHS.sheet[lang]}/:slug`,
-      component: ProjectDetailRouteComponent,
+      component: DesktopRouteComponent,
       canActivate: [loadCatalog],
-      title: projectTitle,
-      resolve: { description: projectDescription, alternates },
+      title: sheetTitle,
+      data: { view: 'sheet' } satisfies DesktopRouteData,
+      resolve: { description: sheetDescription, alternates },
     },
-    marked('about'),
+    viewRoute('about'),
   ];
 }
 
-/** An address no view claims, in the language it was asked in. */
 function unknownIn(lang: Lang): Route {
   return {
     path: lang === 'en' ? 'en/**' : '**',
     component: DesktopRouteComponent,
     canActivate: [loadCatalog],
-    title: headTitle('notFound'),
-    data: { view: 'not-found' } satisfies ViewMarkerData,
+    title: viewTitle('notFound'),
+    data: { view: 'not-found' } satisfies DesktopRouteData,
     resolve: { alternates },
   };
 }

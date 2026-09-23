@@ -123,6 +123,21 @@ describe('ProjectsManager', () => {
     expect(manager.find('p')?.facts.role).toBe('Seul');
   });
 
+  it('finds a project in a language other than the reader one', () => {
+    state.projects.set([
+      sampleProject({
+        slug: 'p',
+        subject: { fr: 'Un module bancaire.', en: 'A banking module.' },
+      }),
+    ]);
+    state.facts.set({ p: sampleFacts({ role: { fr: 'Seul', en: 'Alone' } }) });
+
+    expect(manager.find('p')?.subject).toBe('Un module bancaire.');
+    expect(manager.findIn('p', 'en')?.subject).toBe('A banking module.');
+    expect(manager.findIn('p', 'en')?.facts.role).toBe('Alone');
+    expect(manager.findIn('missing', 'en')).toBeNull();
+  });
+
   /** Derived from the list, so a reload that renamed it shows through. */
   it('finds a project by its slug from the current list', () => {
     state.facts.set({ p: sampleFacts() });

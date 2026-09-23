@@ -14,6 +14,7 @@ import {
 import { StationEffect } from './station.effect';
 import { StationState } from './station.state';
 import { stationUpdater } from './station.updater';
+import { provideTexts } from '@testing/texts';
 
 describe('StationEffect', () => {
   let navigated: string[];
@@ -25,6 +26,7 @@ describe('StationEffect', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTexts(),
         provideStatewiseTesting({ effects: [StationEffect] }),
         {
           provide: Router,

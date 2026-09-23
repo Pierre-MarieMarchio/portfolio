@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ObjectRegistry } from '@shared/ui/object-marks';
 import { ObjectComponent } from './object.component';
 import { ObjectBody, ObjectView } from './object.model';
+import { provideTexts } from '@testing/texts';
 
 const BODIES: readonly ObjectBody[] = [
   { title: 'Skyted Voice', short: 'Skyted Voice' },
@@ -55,7 +56,10 @@ describe('ObjectComponent', () => {
       'matchMedia',
       quietMedia((query) => query === '(hover: none)' && !!options.touch),
     );
-    TestBed.configureTestingModule({ imports: [ObjectComponent] });
+    TestBed.configureTestingModule({
+      imports: [ObjectComponent],
+      providers: [provideTexts()],
+    });
     const registry = TestBed.inject(ObjectRegistry);
     const lines = Array.from({ length: options.lines ?? 0 }, () => {
       const line = document.createElement('button');
@@ -285,7 +289,10 @@ describe('ObjectComponent', () => {
       'matchMedia',
       quietMedia((query) => query === '(prefers-reduced-motion: reduce)'),
     );
-    TestBed.configureTestingModule({ imports: [ObjectComponent] });
+    TestBed.configureTestingModule({
+      imports: [ObjectComponent],
+      providers: [provideTexts()],
+    });
     const fixture = TestBed.createComponent(ObjectComponent);
     await fixture.whenStable();
     expect(fixture.componentInstance.animated()).toBe(false);

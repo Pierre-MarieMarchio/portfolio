@@ -162,7 +162,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - `orbitRank` est calculé sur les corps affichés ;
   - l'aperçu est réservé à l'accueil et aux projets mis en avant ;
   - tests à 3 et 5 projets mis en avant, et à 3 et 12 projets en tout.
-- [ ] **8. `feat(i18n)`** :
+- [x] **8. `feat(i18n)`** :
   - un service `Locale` dans `core` ;
   - des catalogues `fr` et `en` typés (une clé manquante ne compile pas),
     chargés comme chunks par l'initialiseur ;

@@ -16,7 +16,9 @@
  * Otherwise the port belongs to `features/<consumer>/ports/`, and the join is
  * written in `pages/<x>.provider.ts`.
  *
- * Empty for now: one feature has nobody to share with.
+ * `links/`: where each view is, in the reader's language. The projects link
+ * to a sheet and to the index, the station steps back to a view; the route
+ * table belongs to the composition, which answers `LINKS`.
  */
 
-export {};
+export * from './links';

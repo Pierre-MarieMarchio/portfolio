@@ -1,6 +1,6 @@
 import { defineUpdater, requestStatus } from 'ngx-statewise';
 import { getProjectsActions, projectsReset } from './projects.action';
-import { NO_PROOF_LEVEL_LABELS, ProjectsState } from './projects.state';
+import { ProjectsState } from './projects.state';
 
 /** The only place the projects' state is written. */
 export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
@@ -15,8 +15,6 @@ export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
       state.projects.set(catalog.projects);
       state.facts.set(catalog.facts);
       state.sheets.set(catalog.sheets);
-      state.proofLevelLabels.set(catalog.proofLevelLabels);
-      state.defaultChapterTitles.set(catalog.defaultChapterTitles);
     },
   });
 
@@ -24,8 +22,6 @@ export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
     state.projects.set([]);
     state.facts.set({});
     state.sheets.set({});
-    state.proofLevelLabels.set(NO_PROOF_LEVEL_LABELS);
-    state.defaultChapterTitles.set([]);
     state.isLoading.set(false);
     state.isError.set(false);
   });

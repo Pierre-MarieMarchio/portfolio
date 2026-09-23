@@ -143,3 +143,50 @@ côte, dans les deux langues, se relisent ensemble et ne divergent pas.
 garantit qu'elles couvrent les mêmes projets) ; les textes des projets dans
 le catalogue de langue (une fiche éclatée entre trois fichiers, et un slug à
 recopier dans chacun).
+
+## 2026-09-23 — Le bilingue : un catalogue à l'exécution, l'adresse fixe la langue
+
+**Décision (D3).** Chaque texte de l'interface est dans un catalogue typé,
+un par langue : `src/app/i18n/fr.ts` et `en.ts`, qui implémentent tous deux
+`Catalog` (une clé oubliée ne compile pas). Chaque couche déclare la tranche
+dont elle a besoin, derrière son propre jeton (`SHARED_TEXTS` dans
+`shared/ui`, `PROJECTS_TEXTS` et `STATION_TEXTS` dans leurs features,
+`PAGES_TEXTS` à la racine) ; la racine de composition (`provideI18n`) les
+sert depuis le catalogue de la langue courante. Chaque catalogue est un
+chunk : l'initialiseur charge celui de la première adresse, et chaque route
+charge le sien avant de s'activer (`loadCatalog`). La langue est lue dans
+l'adresse (`Locale`, dans `core`), jamais stockée ; elle écrit `lang` sur la
+racine du document, et `PageHead` écrit le `canonical`, les `hreflang` et
+`og:locale`. Changer de langue, c'est suivre un lien vers la même vue à son
+autre adresse : la station reste montée, et `syncRoute` ne remet rien à zéro
+quand la vue et la fiche ne changent pas. L'anglais rédigé sans relecture est
+marqué `draft(…)`, et `src/integration/drafts.spec.ts` compte ce qu'il reste.
+
+**Raison.** C'est la seule approche qui tienne à la fois « un fichier par
+langue, aucun texte dans les gabarits » et « changer de langue sans rien
+perdre ». Des jetons par couche gardent la loi de dépendance : `shared/ui` et
+les features ne connaissent ni la racine ni l'autre langue.
+
+**Écarté.** L'i18n native d'Angular (`$localize`) : le français resterait
+dans les gabarits, changer de langue rechargerait une autre application, et
+GitHub Pages ne sert qu'un `404.html` pour deux builds. ngx-translate et
+Transloco : une dépendance, du JSON non typé et un chargeur côté serveur pour
+ce que quelques dizaines de lignes font ici. Rapport 00, §5.
+
+## 2026-09-23 — Les adresses : le français à la racine, l'anglais sous /en
+
+**Décision (D4).** Le français garde ses adresses (`/`, `/projets`,
+`/projet/:slug`, `/a-propos`) ; l'anglais les a sous `/en` (`/en`,
+`/en/projects`, `/en/project/:slug`, `/en/about`). Une seule table,
+`src/app/i18n/paths.ts`, en tire les routes, les liens (le port `LINKS` de
+`features/common`), le sélecteur de langue et les alternatives de l'en-tête.
+Les deux langues sont prérendues ; une adresse inconnue reste inconnue dans
+l'autre langue.
+
+**Raison.** Les adresses françaises existantes ne cassent pas, chaque page
+est indexable dans sa langue, et une adresse partagée dit la langue qu'elle
+montre.
+
+**Écarté.** `/fr/…` pour le français (toutes les adresses existantes
+changeraient) ; la langue en paramètre ou en préférence stockée (une même
+adresse montrerait deux pages, que le prérendu ne peut pas servir).

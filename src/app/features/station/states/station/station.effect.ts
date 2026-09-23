@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { createEffect } from 'ngx-statewise';
+import { LINKS } from '@app/features/common';
 import { StationWindow } from '../../models';
 import {
   stationEscaped,
@@ -10,7 +11,7 @@ import {
   stationWindowClosed,
 } from './station.action';
 import { StationState } from './station.state';
-import { parentOf, stepBack, StepBackGesture } from './step-back';
+import { ParentView, parentOf, stepBack, StepBackGesture } from './step-back';
 
 /**
  * The station's way back, read off `stepBack`: every step is one notch,
@@ -23,6 +24,7 @@ import { parentOf, stepBack, StepBackGesture } from './step-back';
 export class StationEffect {
   private readonly router = inject(Router);
   private readonly state = inject(StationState);
+  private readonly links = inject(LINKS);
 
   /** Closing the window of the view on show leaves for the view's parent. */
   public readonly closeEffect = createEffect(stationWindowClosed, (window) => {
@@ -53,14 +55,17 @@ export class StationEffect {
       case 'close-preview':
         return stationPreviewClosed();
       case 'navigate':
-        return this.go(step.url);
+        return this.go(step.to);
       case undefined:
         return undefined;
     }
   }
 
-  private async go(url: string): Promise<undefined> {
-    await this.router.navigateByUrl(url);
+  /** To a view's address, in the reader's language. */
+  private async go(view: ParentView): Promise<undefined> {
+    await this.router.navigateByUrl(
+      view === 'home' ? this.links.home() : this.links.index(),
+    );
     return undefined;
   }
 }

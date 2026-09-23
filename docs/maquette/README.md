@@ -174,3 +174,8 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   nombre de la fenêtre « adresse inconnue » est compté sur le catalogue, et
   imprimé sur deux chiffres comme partout dans l’instrument (« 07 fiches ») :
   un projet ajouté change la phrase de lui-même.
+- **FR / EN change réellement de langue.** L’export affiche « textes anglais
+  à venir » quand on presse EN. Ici, l’anglais existe : EN est un lien vers la
+  même page sous `/en` (D3, D4), et la langue courante n’est pas un lien. La
+  station reste montée : épingles, sélection, chapitre et caméra sont gardés.
+  L’anglais, rédigé sans relecture de l’auteur, est marqué `draft(…)`.

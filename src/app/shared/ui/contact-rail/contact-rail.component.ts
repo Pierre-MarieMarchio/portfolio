@@ -2,9 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
+import { SHARED_TEXTS } from '@shared/ui/texts';
 import { Arrival } from '@shared/ui/arrival';
 import { CONTACT_ICONS } from './contact-icons';
 import { ContactLink } from './contact-link.model';
@@ -32,10 +34,11 @@ export class ContactRailComponent {
   public readonly pauseToggled = output();
 
   protected readonly icons = CONTACT_ICONS;
+  protected readonly texts = inject(SHARED_TEXTS);
 
   protected readonly pauseLabel = computed(() =>
     this.paused()
-      ? 'Reprendre l’animation de l’objet'
-      : 'Mettre l’animation de l’objet en pause',
+      ? this.texts().contactRail.resume
+      : this.texts().contactRail.pause,
   );
 }

@@ -17,7 +17,9 @@ class Slots {}
 
 describe('WindowStack', () => {
   const mount = async () => {
-    TestBed.configureTestingModule({ imports: [Slots] });
+    TestBed.configureTestingModule({
+      imports: [Slots],
+    });
     const fixture = TestBed.createComponent(Slots);
     await fixture.whenStable();
     const host = fixture.nativeElement as HTMLElement;

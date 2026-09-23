@@ -5,7 +5,7 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fake-managers';
-import { ProjectEntry } from '@app/features/projects/models';
+import { ProjectEntry, SheetSource } from '@app/features/projects/models';
 import { FEATURED_COUNT } from '@app/features/projects/states';
 import { ProjectIndexComponent } from './project-index.component';
 
@@ -22,7 +22,7 @@ describe('ProjectIndexComponent', () => {
 
   const entryAt = (
     index: number,
-    sheet: Partial<ProjectEntry['sheet']> = {},
+    sheet: Partial<SheetSource> = {},
   ): ProjectEntry => {
     const slug = `proj-${'abcde'.charAt(index)}`;
     return sampleEntry({

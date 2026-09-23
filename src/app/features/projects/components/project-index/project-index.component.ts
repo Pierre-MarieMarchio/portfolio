@@ -12,31 +12,16 @@ import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
+import { LINKS } from '@app/features/common';
+import { PROJECTS_TEXTS } from '../../i18n';
 import { positionOf, rowLabel } from '../project-labels';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
 /** Which family the index shows; `all` is no filter. */
 export type FamilyFilter = ProjectFamily | 'all';
 
-interface FamilyChoice {
-  readonly value: FamilyFilter;
-  readonly label: string;
-  readonly aria: string;
-}
-
-const FAMILIES: readonly FamilyChoice[] = [
-  { value: 'all', label: 'Tout', aria: 'Voir tous les projets' },
-  {
-    value: 'professional',
-    label: 'En entreprise',
-    aria: 'Ne voir que les réalisations faites en entreprise',
-  },
-  {
-    value: 'personal',
-    label: 'Personnels',
-    aria: 'Ne voir que les projets personnels',
-  },
-];
+/** The index's filters, in their order. */
+const FAMILIES: readonly FamilyFilter[] = ['all', 'professional', 'personal'];
 
 /**
  * The index: every project in a table whose most important column is
@@ -80,36 +65,41 @@ export class ProjectIndexComponent {
   public readonly hoveredChange = output<string | null>();
   public readonly familyChange = output<FamilyFilter>();
 
+  protected readonly texts = inject(PROJECTS_TEXTS);
+  protected readonly links = inject(LINKS);
+
   private readonly total = computed(() => this.manager.ranked().length);
 
-  protected readonly heading = computed(
-    () => `Projets — le relevé des ${twoDigits(this.total())} réalisations`,
+  protected readonly heading = computed(() =>
+    this.texts().index.title(twoDigits(this.total())),
   );
 
   protected readonly meta = computed(() => {
     const family = this.family();
     return family === 'all'
-      ? `${twoDigits(this.total())} fiches`
+      ? this.texts().index.count(twoDigits(this.total()))
       : positionOf(this.manager.familyCounts()[family], this.total());
   });
 
   protected readonly familySummary = computed(() => {
     const counts = this.manager.familyCounts();
-    return `${twoDigits(counts.professional)} en entreprise · ${twoDigits(counts.personal)} personnels`;
+    return this.texts().index.summary(
+      twoDigits(counts.professional),
+      twoDigits(counts.personal),
+    );
   });
 
   protected readonly familyItems = computed<
     readonly SegmentedItem<FamilyFilter>[]
   >(() => {
     const counts = this.manager.familyCounts();
-    return FAMILIES.map((choice) => ({
-      value: choice.value,
-      label: choice.label,
-      aria: choice.aria,
-      active: choice.value === this.family(),
-      count: twoDigits(
-        choice.value === 'all' ? this.total() : counts[choice.value],
-      ),
+    const families = this.texts().index.families;
+    return FAMILIES.map((family) => ({
+      value: family,
+      label: families[family].label,
+      aria: families[family].aria,
+      active: family === this.family(),
+      count: twoDigits(family === 'all' ? this.total() : counts[family]),
     }));
   });
 

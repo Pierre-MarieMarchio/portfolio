@@ -2,10 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
 import { twoDigits } from '@app/core/utils/format.utils';
+import { LINKS } from '@app/features/common';
+import { PAGES_TEXTS } from '@app/i18n';
 import { RouterLink } from '@angular/router';
 import { WindowComponent } from '@shared/ui/window';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
@@ -28,4 +31,6 @@ export class NotFoundWindowComponent {
   public readonly closed = output();
 
   protected readonly count = computed(() => twoDigits(this.total()));
+  protected readonly texts = inject(PAGES_TEXTS);
+  protected readonly links = inject(LINKS);
 }

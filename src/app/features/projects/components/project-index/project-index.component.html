@@ -1,6 +1,6 @@
 <app-window
-  heading="Projets · le relevé"
-  label="Fenêtre : relevé des projets"
+  [heading]="texts().index.heading"
+  [label]="texts().index.label"
   size="l"
   [margin]="76"
   scrollKey="index"
@@ -11,14 +11,15 @@
 >
   <app-segmented
     toolbar
-    label="Familles de projets"
+    [label]="texts().index.families.label"
     [items]="familyItems()"
     (chosen)="familyChange.emit($event)"
   />
   <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
   <div class="columns" aria-hidden="true">
-    <span>Réf</span><span>Projet</span><span>Ce qu’on peut vérifier</span
-    ><span>Rôle tenu</span>
+    @for (column of texts().index.columns; track $index) {
+      <span>{{ column }}</span>
+    }
   </div>
   <ul body class="rows">
     @for (row of rows(); track row.slug) {
@@ -45,7 +46,7 @@
             <span class="title"
               ><span>{{ row.title }}</span>
               @if (row.isVisited) {
-                <span class="read">lu</span>
+                <span class="read">{{ texts().index.read }}</span>
               }
             </span>
             <span class="stack">{{ row.facts.stack }}</span>
@@ -62,9 +63,9 @@
             <span class="opened-body">
               <span class="subject">{{ row.subject }}</span>
               <span class="links">
-                <a class="to-sheet" [routerLink]="['/projet', row.slug]"
-                  >Ouvrir la fiche →</a
-                >
+                <a class="to-sheet" [routerLink]="links.sheet(row.slug)">{{
+                  texts().index.openSheet
+                }}</a>
                 @if (row.link; as link) {
                   <a
                     class="outbound"

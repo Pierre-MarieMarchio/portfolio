@@ -34,6 +34,7 @@ const INPUTS: EngineInputs = {
   paused: false,
   reduced: false,
   revealed: true,
+  partLabels: ['Profil', 'Compétences', 'Méthode', 'Parcours'],
 };
 
 /** What the spec reads of the hand, behind the class's back. */

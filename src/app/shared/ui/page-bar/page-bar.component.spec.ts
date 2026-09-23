@@ -1,6 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTexts } from '@testing/texts';
 import { PageBarComponent } from './page-bar.component';
+
+const LANGUAGES = [
+  {
+    code: 'FR',
+    name: 'Français',
+    lang: 'fr',
+    route: '/projets',
+    current: true,
+  },
+  {
+    code: 'EN',
+    name: 'English',
+    lang: 'en',
+    route: '/en/projects',
+    current: false,
+  },
+];
 
 const ITEMS = [
   { label: 'Accueil', route: '/' },
@@ -11,12 +29,13 @@ describe('PageBarComponent', () => {
   const mount = async (current: string | null = null) => {
     TestBed.configureTestingModule({
       imports: [PageBarComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideTexts()],
     });
 
     const fixture = TestBed.createComponent(PageBarComponent);
     fixture.componentRef.setInput('items', ITEMS);
     fixture.componentRef.setInput('current', current);
+    fixture.componentRef.setInput('languages', LANGUAGES);
     await fixture.whenStable();
 
     return { fixture, host: fixture.nativeElement as HTMLElement };
@@ -45,19 +64,32 @@ describe('PageBarComponent', () => {
     expect(current[0]?.textContent?.trim()).toBe('Projets');
   });
 
-  it('asks for the English texts and says they are to come', async () => {
-    const { fixture, host } = await mount();
-    let asked = 0;
-    fixture.componentInstance.englishRequested.subscribe(() => (asked += 1));
+  /** D3: switching is a navigation, to the same page in the other language. */
+  it('offers the other language as a link to the same page', async () => {
+    const { host } = await mount();
+    const other = host.querySelector('.language a');
+    const attributes = ['href', 'hreflang', 'lang', 'aria-label'].map((name) =>
+      other?.getAttribute(name),
+    );
 
-    host.querySelector<HTMLButtonElement>('.language button')?.click();
-    expect(asked).toBe(1);
-    expect(host.querySelector('[role="status"]')).toBeNull();
+    expect(other?.textContent?.trim()).toBe('EN');
+    expect(attributes).toEqual(['/en/projects', 'en', 'en', 'English']);
+  });
 
-    fixture.componentRef.setInput('englishAsked', true);
-    await fixture.whenStable();
-    expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
-      'textes anglais à venir',
+  it('marks its own language, in a group named for it', async () => {
+    const { host } = await mount();
+    const group = host.querySelector('.language');
+    const own = group?.querySelector('[aria-current="true"]');
+
+    expect(group?.getAttribute('aria-label')).toBe('Langue du site');
+    expect(own?.textContent?.trim()).toBe('FR');
+  });
+
+  it('names its navigation in the reader language', async () => {
+    const { host } = await mount();
+
+    expect(host.querySelector('nav')?.getAttribute('aria-label')).toBe(
+      'Navigation principale',
     );
   });
 });

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { DEFAULT_CHAPTER_TITLES, PROJECTS, PROOF_LEVEL_LABELS } from '../data';
+import { PROJECTS } from '../data';
 import { ProjectCatalog, ProjectEntry } from '../models';
 
 /** One part of every entry, keyed by the entry's slug. */
@@ -26,8 +26,6 @@ export class ProjectsRepository {
       projects: PROJECTS.map((entry) => entry.project),
       facts: bySlug((entry) => entry.facts),
       sheets: bySlug((entry) => entry.sheet),
-      proofLevelLabels: PROOF_LEVEL_LABELS,
-      defaultChapterTitles: DEFAULT_CHAPTER_TITLES,
     });
   }
 }

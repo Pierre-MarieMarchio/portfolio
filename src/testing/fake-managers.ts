@@ -2,18 +2,16 @@ import { EnvironmentProviders, Provider, Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { Observable, of } from 'rxjs';
+import { resolve } from '@app/core/i18n';
 import {
-  DEFAULT_CHAPTER_TITLES,
-  PROOF_LEVEL_LABELS,
-} from '@app/features/projects/data';
-import {
-  Project,
+  FactsSource,
   ProjectCatalog,
   ProjectEntry,
-  ProjectFacts,
-  ProjectSheet,
+  ProjectSource,
   RankedProject,
+  SheetSource,
 } from '@app/features/projects/models';
+import { provideTexts } from './texts';
 import { ProjectsRepository } from '@app/features/projects/services';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 
@@ -32,7 +30,9 @@ import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
  * seam a remote source would plug into anyway (`provideProjects`).
  */
 
-export const sampleProject = (overrides: Partial<Project> = {}): Project => ({
+export const sampleProject = (
+  overrides: Partial<ProjectSource> = {},
+): ProjectSource => ({
   slug: 'ngx-statewise',
   title: 'ngx-statewise',
   short: 'ngx-statewise',
@@ -44,8 +44,8 @@ export const sampleProject = (overrides: Partial<Project> = {}): Project => ({
 });
 
 export const sampleFacts = (
-  overrides: Partial<ProjectFacts> = {},
-): ProjectFacts => ({
+  overrides: Partial<FactsSource> = {},
+): FactsSource => ({
   proof: 'Sample proof',
   proofLevel: 'public',
   role: 'Sample role',
@@ -55,8 +55,8 @@ export const sampleFacts = (
 });
 
 export const sampleSheet = (
-  overrides: Partial<ProjectSheet> = {},
-): ProjectSheet => ({
+  overrides: Partial<SheetSource> = {},
+): SheetSource => ({
   lede: 'Sample lede.',
   links: [],
   chapters: [{ paragraphs: ['Sample paragraph.'] }],
@@ -66,9 +66,9 @@ export const sampleSheet = (
 /** One project as its file writes it: identity, facts and sheet. */
 export const sampleEntry = (
   overrides: {
-    project?: Partial<Project>;
-    facts?: Partial<ProjectFacts>;
-    sheet?: Partial<ProjectSheet>;
+    project?: Partial<ProjectSource>;
+    facts?: Partial<FactsSource>;
+    sheet?: Partial<SheetSource>;
   } = {},
 ): ProjectEntry => ({
   project: sampleProject(overrides.project),
@@ -82,14 +82,14 @@ export const sampleRanked = (
   rank: number,
   featured = true,
 ): RankedProject => ({
-  ...entry.project,
-  facts: entry.facts,
+  ...resolve(entry.project, 'fr'),
+  facts: resolve(entry.facts, 'fr'),
   rank,
   number: String(rank + 1).padStart(2, '0'),
   featured,
 });
 
-/** The catalog the repository answers for these entries, with the real labels. */
+/** The catalog the repository answers for these entries. */
 export const catalogOf = (
   entries: readonly ProjectEntry[],
 ): ProjectCatalog => ({
@@ -100,8 +100,6 @@ export const catalogOf = (
   sheets: Object.fromEntries(
     entries.map((entry) => [entry.project.slug, entry.sheet]),
   ),
-  proofLevelLabels: PROOF_LEVEL_LABELS,
-  defaultChapterTitles: DEFAULT_CHAPTER_TITLES,
 });
 
 /** The repository's seam, answering whatever entries the spec sets. */
@@ -116,8 +114,8 @@ class RepositoryDouble implements Pick<ProjectsRepository, 'getCatalog'> {
 /**
  * The real `ProjectsManager` for a spec, over these entries: the
  * statewise engine with `ProjectsEffect` (and any other effects the spec
- * needs), and the repository answering the entries. Call `loadProjects()`
- * before mounting.
+ * needs), the repository answering the entries, and the French texts. Call
+ * `loadProjects()` before mounting.
  */
 export const provideProjects = (
   entries: readonly ProjectEntry[] = [sampleEntry()],
@@ -128,6 +126,7 @@ export const provideProjects = (
     provide: ProjectsRepository,
     useFactory: () => new RepositoryDouble(entries),
   },
+  provideTexts(),
 ];
 
 /**

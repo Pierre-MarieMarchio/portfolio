@@ -1,6 +1,12 @@
-import { Routes } from '@angular/router';
+import { Route, Routes } from '@angular/router';
+import { Lang, LANGS } from '@app/core/i18n';
+import { loadCatalog, PATHS } from '@app/i18n';
 import { ProjectDetailPageComponent } from './pages/project-detail/project-detail-page.component';
-import { projectTitle } from './pages/project-detail/project-title.resolver';
+import {
+  projectDescription,
+  projectTitle,
+} from './pages/project-detail/project-title.resolver';
+import { alternates, headDescription, headTitle } from './pages/view-head';
 import {
   ViewMarkerComponent,
   ViewMarkerData,
@@ -8,7 +14,8 @@ import {
 
 /**
  * Each address names itself: the title strategy appends the site's name, and
- * `data.description` becomes the page's meta description.
+ * `data.description` becomes the page's meta description, both read from the
+ * catalogue of the address's language.
  *
  * The routed components are markers (`ViewMarkerComponent`, told its view
  * by `data.view`, and the sheet's own), loaded eagerly: they tell the station
@@ -17,45 +24,46 @@ import {
  * view the server rendered, or hydration rebuilds the window.
  *
  * Paths rather than fragments: a fragment never reaches the server, so a
- * `#/projets` address could not be prerendered or indexed.
+ * `#/projets` address could not be prerendered or indexed. Every address
+ * exists in each language (D4), generated here from the one table of paths.
  */
-/** A marked route's data: its view, and the description the head carries. */
-type MarkedRoute = ViewMarkerData & { readonly description?: string };
+function routesIn(lang: Lang): Route[] {
+  const marked = (view: 'home' | 'index' | 'about'): Route => ({
+    path: PATHS[view][lang],
+    component: ViewMarkerComponent,
+    canActivate: [loadCatalog],
+    title: headTitle(view),
+    data: { view } satisfies ViewMarkerData,
+    resolve: { description: headDescription(view), alternates },
+  });
+  return [
+    marked('home'),
+    marked('index'),
+    {
+      path: `${PATHS.sheet[lang]}/:slug`,
+      component: ProjectDetailPageComponent,
+      canActivate: [loadCatalog],
+      title: projectTitle,
+      resolve: { description: projectDescription, alternates },
+    },
+    marked('about'),
+  ];
+}
+
+/** An address no view claims, in the language it was asked in. */
+function unknownIn(lang: Lang): Route {
+  return {
+    path: lang === 'en' ? 'en/**' : '**',
+    component: ViewMarkerComponent,
+    canActivate: [loadCatalog],
+    title: headTitle('notFound'),
+    data: { view: 'not-found' } satisfies ViewMarkerData,
+    resolve: { alternates },
+  };
+}
 
 export const routes: Routes = [
-  {
-    path: '',
-    component: ViewMarkerComponent,
-    title: 'Accueil',
-    data: {
-      view: 'home',
-      description:
-        'Portfolio de Pierre-Marie Marchio, concepteur développeur d’applications.',
-    } satisfies MarkedRoute,
-  },
-  {
-    path: 'projets',
-    component: ViewMarkerComponent,
-    title: 'Projets',
-    data: {
-      view: 'index',
-      description: 'Les projets de Pierre-Marie Marchio.',
-    } satisfies MarkedRoute,
-  },
-  {
-    path: 'projet/:slug',
-    component: ProjectDetailPageComponent,
-    title: projectTitle,
-  },
-  {
-    path: 'a-propos',
-    component: ViewMarkerComponent,
-    title: 'À propos',
-    data: {
-      view: 'about',
-      description: 'Qui est Pierre-Marie Marchio.',
-    } satisfies MarkedRoute,
-  },
+  ...LANGS.flatMap(routesIn),
   // The shared-component bench exists in development builds only. The
   // condition reads `ngDevMode` itself rather than `isDevMode()`: the
   // production build defines it as `false`, so the minifier drops the branch
@@ -72,10 +80,7 @@ export const routes: Routes = [
         },
       ]
     : []),
-  {
-    path: '**',
-    component: ViewMarkerComponent,
-    title: 'Adresse inconnue',
-    data: { view: 'not-found' } satisfies MarkedRoute,
-  },
+  // English first: `**` would catch `/en/…` as well.
+  unknownIn('en'),
+  unknownIn('fr'),
 ];

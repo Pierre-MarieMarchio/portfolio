@@ -11,6 +11,7 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
+import { LANGS, Locale } from '@app/core/i18n';
 import { BrowserEnvironment } from '@app/core/services';
 import {
   OrbitRuleComponent,
@@ -24,9 +25,13 @@ import { StationManager } from '@app/features/station/states';
 import { ContactLink, ContactRailComponent } from '@shared/ui/contact-rail';
 import { LandingFocus } from '@shared/ui/landing-focus';
 import { ObjectPanelDirective } from '@shared/ui/object-marks';
-import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
+import {
+  LanguageItem,
+  NavigationItem,
+  PageBarComponent,
+} from '@shared/ui/page-bar';
+import { PAGES_TEXTS, pathOf, translatePath } from '@app/i18n';
 import { contactLinks } from '../../app.contact';
-import { navigationItems } from '../../app.navigation';
 import { AboutWindowComponent } from './about-window/about-window.component';
 import { ArrivalController } from './arrival/arrival.controller';
 import { Curtain } from './arrival/curtain';
@@ -81,10 +86,36 @@ export class StationComponent {
   protected readonly station = inject(StationManager);
   protected readonly binding = inject(StationProjectsBinding);
 
-  protected readonly navigationItems: readonly NavigationItem[] =
-    navigationItems;
-  protected readonly contactLinks: readonly ContactLink[] = contactLinks;
+  private readonly locale = inject(Locale);
+  protected readonly texts = inject(PAGES_TEXTS);
   protected readonly ids = STATION_IDS;
+
+  protected readonly navigationItems = computed<readonly NavigationItem[]>(
+    () => {
+      const words = this.texts().navigation;
+      const lang = this.locale.lang();
+      return [
+        { label: words.home, route: pathOf('home', lang) },
+        { label: words.index, route: pathOf('index', lang) },
+        { label: words.about, route: pathOf('about', lang) },
+      ];
+    },
+  );
+
+  /** The same page in each language: switching is a navigation (D3). */
+  protected readonly languages = computed<readonly LanguageItem[]>(() =>
+    LANGS.map((lang) => ({
+      code: lang.toUpperCase(),
+      name: this.texts().languages[lang],
+      lang,
+      route: translatePath(this.locale.path(), lang),
+      current: lang === this.locale.lang(),
+    })),
+  );
+
+  protected readonly contactLinks = computed<readonly ContactLink[]>(() =>
+    contactLinks(this.texts().contact),
+  );
   protected readonly arrival = this.arrivalController.arrival;
 
   private readonly homeTitle = viewChild<
@@ -98,14 +129,11 @@ export class StationComponent {
 
   /** A sheet is a zoom of the index: "Projets" stays lit on it. */
   protected readonly currentRoute = computed(() => {
-    switch (this.station.view()) {
-      case 'home':
-        return '/';
-      case 'about':
-        return '/a-propos';
-      default:
-        return '/projets';
-    }
+    const view = this.station.view();
+    return pathOf(
+      view === 'home' || view === 'about' ? view : 'index',
+      this.locale.lang(),
+    );
   });
 
   /** The rule gives way to the preview: one reading at a time. */

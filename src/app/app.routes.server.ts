@@ -1,6 +1,8 @@
 import { inject } from '@angular/core';
 import { RenderMode, type ServerRoute } from '@angular/ssr';
 import { firstValueFrom } from 'rxjs';
+import { LANGS } from '@app/core/i18n';
+import { PATHS } from '@app/i18n';
 import { ProjectsRepository } from './features/projects/services';
 
 /**
@@ -10,11 +12,12 @@ import { ProjectsRepository } from './features/projects/services';
  * angular.json becomes `server`.
  */
 export const serverRoutes: ServerRoute[] = [
-  {
-    path: 'projet/:slug',
+  // One page per project and per language, read from the same repository
+  // the pages use, so a project added to the data is prerendered in both
+  // without touching this file.
+  ...LANGS.map((lang): ServerRoute => ({
+    path: `${PATHS.sheet[lang]}/:slug`,
     renderMode: RenderMode.Prerender,
-    // One page per project, read from the same repository the pages use, so
-    // a project added to the data is prerendered without touching this file.
     getPrerenderParams: async () => {
       const { projects } = await firstValueFrom(
         inject(ProjectsRepository).getCatalog(),
@@ -22,7 +25,7 @@ export const serverRoutes: ServerRoute[] = [
 
       return projects.map(({ slug }) => ({ slug }));
     },
-  },
+  })),
   {
     path: '**',
     renderMode: RenderMode.Prerender,

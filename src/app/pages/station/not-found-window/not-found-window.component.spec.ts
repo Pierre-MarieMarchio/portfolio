@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NotFoundWindowComponent } from './not-found-window.component';
+import { provideTexts } from '@testing/texts';
 
 describe('NotFoundWindowComponent', () => {
   const mount = async (total: number) => {
     TestBed.configureTestingModule({
       imports: [NotFoundWindowComponent],
-      providers: [provideRouter([])],
+      providers: [provideTexts(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(NotFoundWindowComponent);
     fixture.componentRef.setInput('total', total);

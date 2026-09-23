@@ -1,5 +1,5 @@
 <div class="rail">
-  <ul aria-label="Me contacter">
+  <ul [attr.aria-label]="texts().contactRail.label">
     @for (link of links(); track link.href) {
       <li>
         <a

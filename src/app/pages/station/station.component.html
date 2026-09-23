@@ -36,18 +36,17 @@
         type="button"
         class="void"
         tabindex="-1"
-        aria-label="Refermer et revenir à la vue d’ensemble"
+        [attr.aria-label]="texts().station.void"
         (click)="onVoid()"
       ></button>
     }
 
     <app-page-bar
       appObjectPanel="head"
-      [items]="navigationItems"
+      [items]="navigationItems()"
       [current]="currentRoute()"
-      [englishAsked]="station.englishAsked()"
+      [languages]="languages()"
       [arrival]="arrival()"
-      (englishRequested)="station.askEnglish()"
     />
 
     @if (station.view() === 'home') {
@@ -136,7 +135,7 @@
 
 <app-contact-rail
   appObjectPanel
-  [links]="contactLinks"
+  [links]="contactLinks()"
   [showPause]="object.animated()"
   [paused]="station.paused()"
   [arrival]="arrival()"

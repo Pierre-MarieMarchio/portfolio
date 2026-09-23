@@ -3,7 +3,6 @@ import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
 import {
   stationChapterChosen,
-  stationEnglishAsked,
   stationFiltered,
   stationHovered,
   stationRouteSynced,
@@ -48,11 +47,22 @@ describe('stationUpdater', () => {
     expect(state.chapter()).toBe(0);
     expect(state.part()).toBe(0);
     expect(state.hovered()).toBeNull();
-    expect(state.englishAsked()).toBe(false);
     expect(state.paused()).toBe(false);
   });
 
   describe('stationRouteSynced', () => {
+    /** The language switch lands on the same view: the reader has not moved. */
+    it('resets nothing when the view and its slug are the same', () => {
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationChapterChosen(2));
+      statewise.dispatch(stationHovered('b'));
+
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
+
+      expect(state.chapter()).toBe(2);
+      expect(state.hovered()).toBe('b');
+    });
+
     it('sets the view and keeps the slug only on a sheet', () => {
       statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'skyted' }));
 
@@ -232,16 +242,6 @@ describe('stationUpdater', () => {
     statewise.dispatch(stationHovered(null));
 
     expect(state.hovered()).toBeNull();
-  });
-
-  it('stationEnglishAsked sets the flag, staying true once asked', () => {
-    statewise.dispatch(stationEnglishAsked());
-
-    expect(state.englishAsked()).toBe(true);
-
-    statewise.dispatch(stationEnglishAsked());
-
-    expect(state.englishAsked()).toBe(true);
   });
 
   it('stationPauseToggled flips the paused flag', () => {

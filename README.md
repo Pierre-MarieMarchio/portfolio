@@ -38,9 +38,13 @@ src/app/
   app.routes.server.ts   prérendu, une page par projet via getPrerenderParams
   app.navigation.ts      les entrées du menu
   app.contact.ts         les adresses du rail de contact
+  i18n/                  les textes : fr.ts, en.ts (un Catalog chacun), la
+                         table des adresses (paths.ts), provideI18n
   app.component.*        compose le shell et le <router-outlet>
 
   core/                  infrastructure, aucun concept métier
+    i18n/                Lang, Locale (la langue lue dans l'adresse),
+                         Localized / Text / resolve, draft
     error-handling/      AppErrorHandler
     services/            BrowserEnvironment, PageHead (et SITE_NAME),
                          PageTitleStrategy

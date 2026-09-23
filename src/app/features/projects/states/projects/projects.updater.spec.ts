@@ -45,8 +45,6 @@ describe('projectsUpdater', () => {
     expect(state.projects()).toEqual(CATALOG.projects);
     expect(state.facts()).toEqual(CATALOG.facts);
     expect(state.sheets()).toEqual(CATALOG.sheets);
-    expect(state.proofLevelLabels()).toEqual(CATALOG.proofLevelLabels);
-    expect(state.defaultChapterTitles()).toEqual(CATALOG.defaultChapterTitles);
     expect(state.isLoading()).toBe(false);
   });
 

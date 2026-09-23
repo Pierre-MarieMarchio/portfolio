@@ -10,6 +10,8 @@ import { RouterLink } from '@angular/router';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectsManager } from '../../states';
+import { LINKS } from '@app/features/common';
+import { PROJECTS_TEXTS } from '../../i18n';
 import { positionOf } from '../project-labels';
 
 /**
@@ -27,6 +29,8 @@ import { positionOf } from '../project-labels';
 })
 export class ProjectPreviewComponent {
   private readonly manager = inject(ProjectsManager);
+  protected readonly texts = inject(PROJECTS_TEXTS);
+  protected readonly links = inject(LINKS);
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
@@ -55,7 +59,7 @@ export class ProjectPreviewComponent {
       value: project.slug,
       label: project.number,
       active: project.slug === this.slug(),
-      aria: `Aperçu ${project.number} — ${project.title}`,
+      aria: this.texts().preview.body(project.number, project.title),
     })),
   );
 }

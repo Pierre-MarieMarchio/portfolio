@@ -1,9 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  inject,
   input,
   output,
 } from '@angular/core';
+import { SHARED_TEXTS } from '@shared/ui/texts';
 import { SegmentedItem } from './segmented.model';
 
 /**
@@ -20,7 +23,13 @@ import { SegmentedItem } from './segmented.model';
 })
 export class SegmentedComponent<T> {
   public readonly items = input.required<readonly SegmentedItem<T>[]>();
-  public readonly label = input('Sélection');
+  /** The group's accessible name; a neutral one when the caller gives none. */
+  public readonly label = input<string | null>(null);
 
   public readonly chosen = output<T>();
+
+  private readonly texts = inject(SHARED_TEXTS);
+  protected readonly name = computed(
+    () => this.label() ?? this.texts().segmented.label,
+  );
 }

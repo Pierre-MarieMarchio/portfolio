@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   untracked,
@@ -10,65 +11,23 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/utils/format.utils';
+import { LINKS } from '@app/features/common';
+import { PAGES_TEXTS } from '@app/i18n';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
-/** What a part holds, named for the template's switch. */
-type PartKey = 'profile' | 'skills' | 'method' | 'path';
-
-interface Part {
-  readonly key: PartKey;
-  readonly label: string;
-  readonly title: string;
-}
-
 /**
  * Four parts, in the order of the questions a recruiter asks: who is it, can
- * he do it, how does he work, where does he come from. The labels name the
- * content, not a metaphor.
+ * he do it, how does he work, where does he come from. The words of each are
+ * in the catalogue (`pages.about`), keyed by these names.
  */
-const PARTS: readonly Part[] = [
-  { key: 'profile', label: 'Profil', title: 'Profil' },
-  {
-    key: 'skills',
-    label: 'Compétences',
-    title: 'Compétences · ce sur quoi j’ai livré',
-  },
-  { key: 'method', label: 'Méthode', title: 'Méthode de travail' },
-  { key: 'path', label: 'Parcours', title: 'Parcours' },
-];
-
-const DOMAINS: readonly { label: string; value: string }[] = [
-  { label: 'Web', value: 'API .NET, front Angular' },
-  { label: 'Mobile', value: 'applications publiées, liées à un matériel' },
-  { label: 'Matériel', value: 'intégration Bluetooth Low Energy' },
-  { label: 'Desktop', value: 'applications Java Swing' },
-  { label: 'Métier', value: 'flux bancaires, compensation européenne' },
-];
-
-/**
- * The facts are known, the dates are not: the place of each date is shown
- * rather than a date made up. To fill in (handoff §8), never guessed.
- */
-const MILESTONES: readonly { year: string; fact: string }[] = [
-  { year: '— — — —', fact: 'Archéologie : fouille, relevé, description' },
-  { year: '— — — —', fact: 'Reconversion vers le développement' },
-  {
-    year: '— — — —',
-    fact: 'Formation — intitulé et établissement à renseigner',
-  },
-  { year: '— — — —', fact: 'Numerilis — stage, refonte du back de Bk-ONE' },
-  { year: '— — — —', fact: 'Skyted — concepteur développeur d’applications' },
-];
+const PARTS = ['profile', 'skills', 'method', 'path'] as const;
 
 /**
  * "About", one part at a time, like the approaches of a sheet: the same
  * selector at the top, the same footer moving the reading on. The reader
  * learns the window once.
- *
- * The lorem ipsum and the "à renseigner" lines are the mockup's own
- * placeholders (handoff §8): kept as they are until the real text exists.
  */
 @Component({
   selector: 'app-about-window',
@@ -94,11 +53,16 @@ export class AboutWindowComponent {
   public readonly closed = output();
   public readonly partChange = output<number>();
 
-  protected readonly domains = DOMAINS.map((domain, index) => ({
-    ...domain,
-    number: twoDigits(index + 1),
-  }));
-  protected readonly milestones = MILESTONES;
+  protected readonly texts = inject(PAGES_TEXTS);
+  protected readonly links = inject(LINKS);
+
+  protected readonly about = computed(() => this.texts().about);
+  protected readonly domains = computed(() =>
+    this.about().skills.domains.map((domain, index) => ({
+      ...domain,
+      number: twoDigits(index + 1),
+    })),
+  );
 
   private readonly window = viewChild(WindowComponent);
 
@@ -108,29 +72,33 @@ export class AboutWindowComponent {
       ? part
       : 0;
   });
-  protected readonly current = computed(() => PARTS[this.index()] ?? PARTS[0]);
+  /** The part on show: its key, for the template's switch, and its words. */
+  protected readonly current = computed(() => {
+    const key = PARTS[this.index()] ?? 'profile';
+    return { key, ...this.about()[key] };
+  });
 
   /**
    * A heading mounted whatever the part: without it three views out of four
    * had no level one, and the arriving focus had no target.
    */
-  protected readonly heading = computed(
-    () => `À propos — ${this.current()?.title ?? ''}`,
+  protected readonly heading = computed(() =>
+    this.about().title(this.current().title),
   );
 
   protected readonly parts = computed<readonly SegmentedItem<number>[]>(() =>
-    PARTS.map((part, index) => ({
+    PARTS.map((key, index) => ({
       value: index,
-      label: part.label,
+      label: this.about()[key].label,
       active: index === this.index(),
-      aria: `Aller à : ${part.title}`,
+      aria: this.about().goTo(this.about()[key].title),
     })),
   );
 
   protected readonly next = computed(() => {
     const index = this.index() + 1;
-    const part = PARTS[index];
-    return part ? { index, title: part.title, label: part.label } : null;
+    const key = PARTS[index];
+    return key ? { index, label: this.about()[key].label } : null;
   });
 
   constructor() {

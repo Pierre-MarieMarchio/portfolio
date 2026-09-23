@@ -9,10 +9,10 @@ const from = (
 describe('stepBack', () => {
   it.each<[StationView, string | null]>([
     ['home', null],
-    ['index', '/'],
-    ['about', '/'],
-    ['sheet', '/projets'],
-    ['not-found', '/projets'],
+    ['index', 'home'],
+    ['about', 'home'],
+    ['sheet', 'index'],
+    ['not-found', 'index'],
   ])('gives %s the parent %s', (view, parent) => {
     expect(parentOf(view)).toBe(parent);
   });
@@ -25,12 +25,12 @@ describe('stepBack', () => {
     });
 
     it.each<[StationView, string]>([
-      ['index', '/'],
-      ['about', '/'],
-      ['sheet', '/projets'],
-      ['not-found', '/projets'],
-    ])('leaves %s for %s', (view, url) => {
-      expect(stepBack('escape', from(view))).toEqual({ kind: 'navigate', url });
+      ['index', 'home'],
+      ['about', 'home'],
+      ['sheet', 'index'],
+      ['not-found', 'index'],
+    ])('leaves %s for %s', (view, to) => {
+      expect(stepBack('escape', from(view))).toEqual({ kind: 'navigate', to });
     });
 
     it('closes the home preview, and does nothing on a bare home page', () => {
@@ -46,7 +46,7 @@ describe('stepBack', () => {
     it('leaves a sheet for the list', () => {
       expect(stepBack('void', from('sheet'))).toEqual({
         kind: 'navigate',
-        url: '/projets',
+        to: 'index',
       });
     });
 

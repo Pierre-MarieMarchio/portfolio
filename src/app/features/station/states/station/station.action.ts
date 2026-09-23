@@ -68,11 +68,6 @@ export const stationHovered = defineSingleAction(
   payload<string | null>(),
 );
 
-export const stationEnglishAsked = defineSingleAction(
-  'STATION_ENGLISH_ASKED',
-  emptyPayload,
-);
-
 export const stationPauseToggled = defineSingleAction(
   'STATION_PAUSE_TOGGLED',
   emptyPayload,

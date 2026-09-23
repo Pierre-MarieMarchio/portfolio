@@ -57,6 +57,11 @@ export interface EngineInputs {
   readonly reduced: boolean;
   /** The home page's rest has arrived: planets and orbits may rise. */
   readonly revealed: boolean;
+  /**
+   * The names the sky gives the parts of "about", in their order and in the
+   * reader's language: the engine draws words, it does not write them.
+   */
+  readonly partLabels: readonly string[];
 }
 
 /** The browser as the engine needs it, handed in so the engine owns none. */
@@ -203,6 +208,7 @@ export class ObjectEngine {
     focus: -1,
     chapter: 0,
     part: 0,
+    partLabels: [],
     preview: -1,
     hovered: -1,
     selected: -1,
@@ -1141,6 +1147,7 @@ export class ObjectEngine {
         entry: e,
         shown: about,
         part: clamp(inputs.part, 0, 3),
+        labels: inputs.partLabels,
         veil,
       });
     }
@@ -1674,6 +1681,7 @@ export class ObjectEngine {
         shown: finiteOr(this.about, 0),
         lit: this.lit,
         hole: this.hole,
+        labels: this.inputs.partLabels,
       });
     }
     ctx.globalAlpha = 1;

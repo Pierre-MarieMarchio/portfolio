@@ -18,13 +18,6 @@ const on = (platform: 'browser' | 'server') => {
   });
 };
 
-/**
- * The mechanism under test: the services that touch the browser are inert
- * while prerendering. The server platform is simulated by
- * `PLATFORM_ID`, while jsdom still provides `matchMedia`, a document and a
- * layout, so a method that forgot its guard would reach them and this suite
- * would see it.
- */
 describe('prerender safety', () => {
   it('answers the no-motion default without asking matchMedia on the server', () => {
     const matchMedia = vi.fn();
@@ -41,7 +34,6 @@ describe('prerender safety', () => {
     vi.unstubAllGlobals();
   });
 
-  /** A window that drags or measures itself must render on the server too. */
   it('answers no viewport, listens to nothing and waits for no frame on the server', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
     on('server');
@@ -58,11 +50,6 @@ describe('prerender safety', () => {
     addEventListener.mockRestore();
   });
 
-  /**
-   * The object's doors: every one answers its neutral value on the server
-   * and reaches for nothing. The spies catch the browser APIs a forgotten
-   * guard would call.
-   */
   it('gives the object no context, no observer, no clock and no fonts on the server', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
@@ -180,7 +167,6 @@ describe('prerender safety', () => {
     expect(heard).toEqual(['resize']);
   });
 
-  /** The object drags the cursor: never while prerendering. */
   it('leaves the cursor alone on the server', () => {
     on('server');
 
@@ -205,7 +191,6 @@ describe('prerender safety', () => {
     document.documentElement.style.removeProperty('--ink');
   });
 
-  /** The choreography's timing is read from the CSS, never from the server. */
   it('reads no duration and waits for no gesture on the server', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     document.documentElement.style.setProperty('--arrival-at', '8700ms');

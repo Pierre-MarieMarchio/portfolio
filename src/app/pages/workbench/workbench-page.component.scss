@@ -4,8 +4,6 @@
   display: block;
 }
 
-/* Laid out like the mockup's window slots, so the ceilings meet the same
-   room they will meet on the real pages. */
 .slot {
   position: fixed;
   right: var(--gutter);
@@ -19,7 +17,6 @@
   --window-reserve: 76px;
 }
 
-/* The bench's own controls sit where no window reaches, above them. */
 .controls {
   position: fixed;
   left: var(--gutter);

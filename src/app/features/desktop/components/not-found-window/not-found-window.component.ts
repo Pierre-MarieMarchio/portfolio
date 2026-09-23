@@ -6,10 +6,6 @@ import { RouterLink } from '@angular/router';
 import { WindowComponent } from '@shared/windows/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
-/**
- * An address that leads nowhere, in the smallest window: it says so and
- * leads back to the index. Never a dead end.
- */
 @Component({
   selector: 'app-not-found-window',
   imports: [ViewHeadingDirective, RouterLink, WindowComponent],
@@ -17,7 +13,6 @@ import { ViewHeadingDirective } from '@shared/ui/directives';
   styleUrl: './not-found-window.component.scss',
 })
 export class NotFoundWindowComponent {
-  /** How many sheets the index holds: the sentence counts them. */
   public readonly total = input.required<number>();
 
   public readonly closed = output();

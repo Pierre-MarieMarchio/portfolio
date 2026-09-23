@@ -160,7 +160,6 @@ describe('StationManager', () => {
     expect(manager.hovered()).toBe('skyted');
   });
 
-  /** The void button reads it; the effect reads the same rule. */
   describe('canStepBack', () => {
     it('is true on a sheet, an index with a row open, a home page with a preview', () => {
       manager.syncRoute('sheet', 'skyted');

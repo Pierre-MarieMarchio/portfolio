@@ -8,18 +8,8 @@ import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
-/**
- * Four parts, in the order of the questions a recruiter asks: who is it, can
- * he do it, how does he work, where does he come from. The words of each are
- * in the catalogue (`pages.about`), keyed by these names.
- */
 const PARTS = ['profile', 'skills', 'method', 'path'] as const;
 
-/**
- * "About", one part at a time, like the approaches of a sheet: the same
- * selector at the top, the same footer moving the reading on. The reader
- * learns the window once.
- */
 @Component({
   selector: 'app-about-window',
   imports: [
@@ -33,10 +23,6 @@ const PARTS = ['profile', 'skills', 'method', 'path'] as const;
 })
 export class AboutWindowComponent {
   public readonly pinned = input(false);
-  /**
-   * The part on show, from 0; the station holds it, the constellations read
-   * it. Out of range reads as the first.
-   */
   public readonly part = input(0);
 
   public readonly pinToggled = output();
@@ -60,16 +46,11 @@ export class AboutWindowComponent {
       ? part
       : 0;
   });
-  /** The part on show: its key, for the template's switch, and its words. */
   protected readonly current = computed(() => {
     const key = PARTS[this.index()] ?? 'profile';
     return { key, ...this.about()[key] };
   });
 
-  /**
-   * A heading mounted whatever the part: without it three views out of four
-   * had no level one, and the arriving focus had no target.
-   */
   protected readonly heading = computed(() =>
     this.about().title(this.current().title),
   );

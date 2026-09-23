@@ -41,7 +41,6 @@ describe('stepBack', () => {
     });
   });
 
-  /** The void only covers what it closes: it never climbs a level. */
   describe('with a click in the void', () => {
     it('leaves a sheet for the list', () => {
       expect(stepBack('void', from('sheet'))).toEqual({

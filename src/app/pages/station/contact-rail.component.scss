@@ -1,32 +1,34 @@
+@use 'mixins/arrival';
+@use 'mixins/controls';
+@use 'mixins/motion';
+
 :host {
+  @include arrival.on-its-own(1200ms, 800ms);
+
   position: fixed;
-  right: clamp(20px, 4vw, 44px);
+  right: var(--gutter);
   bottom: clamp(16px, 2.6vh, 28px);
   z-index: var(--z-chrome);
-  animation: rise 1200ms calc(var(--arrival-at) + 800ms) both;
 }
 
 /* Arrives with the home page's rest (see `Arrival`): on its own at the end
    of the crossing without a script, held until the reader is there with one,
    then rising from that moment. */
 :host([data-arrival='held']) {
-  animation: none;
-  opacity: 0;
-  visibility: hidden;
+  @include arrival.held;
 }
 
 :host([data-arrival='shown']) {
-  animation: rise 1200ms 800ms both;
+  @include arrival.shown(1200ms, 800ms);
 }
 
 .rail {
+  @include controls.glass;
+
   display: flex;
   align-items: center;
   gap: var(--s2);
   padding: 3px;
-  border: 1px solid var(--line);
-  background: var(--vitre);
-  backdrop-filter: blur(10px) saturate(1.1);
 }
 
 ul {
@@ -39,10 +41,10 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: var(--target);
+  height: var(--target);
   border: 1px solid transparent;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   color: var(--ink-2);
   text-decoration: none;
   transition:
@@ -63,50 +65,14 @@ svg {
 }
 
 .rule {
-  flex: 0 0 auto;
-  width: 1px;
-  height: 16px;
-  background: var(--line);
+  @include controls.divider;
 }
 
 button {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 34px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  color: var(--ink-2);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--m4);
-  line-height: 1;
-  transition:
-    color var(--t),
-    background var(--t);
-
-  &:hover {
-    color: var(--ink);
-    background: var(--vitre-2);
-  }
+  @include controls.icon-button(38px, var(--target-compact));
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   :host,
   :host([data-arrival]) {
     animation: none;

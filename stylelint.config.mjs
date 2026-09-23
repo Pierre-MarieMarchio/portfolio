@@ -5,15 +5,20 @@
  * design tokens are written in (`oklch(0.165 0.02 265)`), which say the same
  * colour either way.
  *
- * A rule the stylesheets break today starts as a warning. Step 3 of the plan
- * (docs/audit/README.md) migrates every `.scss` onto the tokens and the
- * shared partials, and turns those warnings into errors.
+ * A rule the stylesheets still break is a warning, until the step of the
+ * audit plan (docs/audit/README.md) that fixes it turns it into an error.
  *
  * @type {import('stylelint').Config}
  */
 export default {
   extends: ['stylelint-config-standard-scss'],
   ignoreFiles: ['dist/**', 'coverage/**', 'node_modules/**', '.angular/**'],
+  overrides: [
+    {
+      files: ['src/assets/styles/_tokens.scss'],
+      rules: { 'declaration-property-value-disallowed-list': null },
+    },
+  ],
   rules: {
     // Prettier's ground.
     'rule-empty-line-before': null,
@@ -43,12 +48,18 @@ export default {
       { ignoreProperties: ['/text-size-adjust/'] },
     ],
 
-    // Broken today, fixed by step 3.
-    'media-feature-range-notation': ['context', { severity: 'warning' }],
-    'declaration-property-value-keyword-no-deprecated': [
-      true,
-      { severity: 'warning' },
+    // The values a token holds are written once, in the tokens: a literal
+    // gutter, control radius or glass here is a token bypassed, and the
+    // copies drift apart.
+    'declaration-property-value-disallowed-list': [
+      {
+        '/.*/': ['/clamp\\(20px, 4vw, 44px\\)/'],
+        'border-radius': ['2px'],
+        'backdrop-filter': ['/blur\\(/'],
+      },
+      { message: 'Use the design token (src/assets/styles/_tokens.scss)' },
     ],
+
     // The empty stylesheets belong to the route markers, which step 5
     // folds into one component with none.
     'no-empty-source': [true, { severity: 'warning' }],

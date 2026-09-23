@@ -1,3 +1,6 @@
+@use 'mixins/motion';
+@use 'mixins/type';
+
 /* No z-index on the host: the sky (0) and the stage (1) stack in the
    scene's context, so the scene's void button slips between them. */
 :host {
@@ -66,22 +69,21 @@
 }
 
 .label {
+  @include type.mono;
+
   position: absolute;
   left: 0;
   top: 0;
   opacity: 0;
   transition: opacity 320ms ease;
   pointer-events: none;
-  font-family: var(--mono);
-  font-size: var(--m3);
-  letter-spacing: var(--ls-mono);
   color: var(--ink);
   white-space: nowrap;
   background: color-mix(in oklab, var(--paper) 92%, transparent);
   padding: 3px 6px;
 }
 
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   .label {
     transition: none;
   }

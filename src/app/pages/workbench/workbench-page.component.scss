@@ -1,3 +1,5 @@
+@use 'mixins/type';
+
 :host {
   display: block;
 }
@@ -6,7 +8,7 @@
    room they will meet on the real pages. */
 .slot {
   position: fixed;
-  right: clamp(20px, 4vw, 44px);
+  right: var(--gutter);
   top: clamp(78px, 10.5vh, 98px);
   z-index: var(--z-window);
   width: min(78ch, max(56vw, 320px));
@@ -19,7 +21,7 @@
 /* The bench's own controls sit where no window reaches, above them. */
 .controls {
   position: fixed;
-  left: clamp(20px, 4vw, 44px);
+  left: var(--gutter);
   bottom: 16px;
   z-index: var(--z-chrome);
   max-width: 34vw;
@@ -36,15 +38,13 @@
 }
 
 .columns {
+  @include type.title(var(--m1));
+
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: 3.4ch 1fr 1fr;
-  padding: 7px 12px 6px;
+  padding: 7px var(--s2) 6px;
   border-bottom: 1px solid var(--line);
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-title);
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 
@@ -58,9 +58,7 @@ li {
 }
 
 .state {
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
+  @include type.caps;
+
   color: var(--ink-2);
 }

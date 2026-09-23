@@ -1,3 +1,7 @@
+@use 'mixins/controls';
+@use 'mixins/motion';
+@use 'mixins/type';
+
 :host {
   display: contents;
 }
@@ -10,6 +14,7 @@
     opacity: 0;
     translate: 0 10px;
   }
+
   to {
     opacity: 1;
     translate: 0 0;
@@ -17,6 +22,8 @@
 }
 
 .window {
+  @include controls.glass(var(--glass-blur-window));
+
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -24,9 +31,6 @@
   overflow: hidden;
   pointer-events: auto;
   text-align: left;
-  border: 1px solid var(--line);
-  background: var(--vitre);
-  backdrop-filter: blur(11px) saturate(1.08);
   animation: window-rise 560ms both;
 }
 
@@ -35,7 +39,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 5px 5px 12px;
+  padding: 5px 5px 5px var(--s2);
   border-bottom: 1px solid var(--line);
   cursor: grab;
   touch-action: none;
@@ -43,17 +47,14 @@
 }
 
 .square {
+  @include controls.marker(7px);
+
   flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  background: var(--accent);
 }
 
 h2 {
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-title);
-  text-transform: uppercase;
+  @include type.title;
+
   font-weight: 500;
   color: var(--ink);
   white-space: nowrap;
@@ -67,10 +68,8 @@ h2 {
 }
 
 .meta {
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
+  @include type.caps;
+
   color: var(--sig);
   white-space: nowrap;
 }
@@ -78,29 +77,7 @@ h2 {
 /* 34×32, below the 44px target on purpose: secondary, and doubled by the
    keyboard. */
 .control {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 32px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  color: var(--ink-2);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--m4);
-  line-height: 1;
-  transition:
-    color 180ms,
-    background 180ms;
-
-  &:hover {
-    color: var(--ink);
-    background: var(--vitre-2);
-  }
+  @include controls.icon-button(var(--target-compact), 32px, var(--t-duration));
 }
 
 .pin.is-pinned {
@@ -117,7 +94,7 @@ h2 {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  padding: 7px 12px;
+  padding: 7px var(--s2);
   border-bottom: 1px solid var(--line);
 
   &:empty {
@@ -132,7 +109,7 @@ h2 {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--window-body-padding, var(--s3) var(--s2) var(--s3) 12px);
+  padding: var(--window-body-padding, var(--s3) var(--s2));
 }
 
 .footer {
@@ -142,14 +119,14 @@ h2 {
   gap: var(--s2) var(--s3);
   align-items: center;
   border-top: 1px solid var(--line);
-  padding: var(--s2) 12px;
+  padding: var(--s2);
 
   &:empty {
     display: none;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   .window {
     animation: none;
   }

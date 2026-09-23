@@ -1,3 +1,8 @@
+@use 'mixins/arrival';
+@use 'mixins/controls';
+@use 'mixins/motion';
+@use 'mixins/type';
+
 :host {
   display: block;
 }
@@ -26,41 +31,37 @@ main {
 }
 
 .home-title {
+  @include arrival.on-its-own(1500ms, 700ms);
+
   position: absolute;
-  left: clamp(20px, 4vw, 44px);
-  top: max(clamp(64px, 10vh, 96px), calc(var(--head-bottom, 0px) + 12px));
+  left: var(--gutter);
+  top: max(clamp(64px, 10vh, 96px), calc(var(--head-bottom, 0px) + var(--s2)));
   z-index: var(--z-scene-top);
   max-width: min(27ch, 44vw);
   pointer-events: none;
-  animation: rise 1500ms calc(var(--arrival-at) + 700ms) both;
 }
 
 /* The title arrives with the rest of the home page (see `Arrival`). Held by
    its opacity alone: it takes no pointer, and it keeps the landing focus. */
 .scene[data-arrival='held'] .home-title {
-  animation: none;
-  opacity: 0;
+  @include arrival.held($hide: false);
 }
 
 .scene[data-arrival='shown'] .home-title {
-  animation: rise 1500ms 700ms both;
+  @include arrival.shown(1500ms, 700ms);
 }
 
 .name {
+  @include type.title;
+
   display: flex;
   align-items: center;
   gap: 0.7em;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-title);
-  text-transform: uppercase;
   color: var(--ink-2);
   white-space: nowrap;
 
   span {
-    width: 6px;
-    height: 6px;
-    background: var(--accent);
+    @include controls.marker(6px);
   }
 }
 
@@ -79,7 +80,7 @@ h1 {
    it through to the object. Their stacking is written by the station. */
 .slot {
   position: absolute;
-  right: clamp(20px, 4vw, 44px);
+  right: var(--gutter);
   top: max(clamp(78px, 10.5vh, 98px), calc(var(--head-bottom, 0px) + 14px));
   z-index: var(--z-window);
   width: min(58ch, max(52vw, 320px));
@@ -102,22 +103,11 @@ h1 {
 }
 
 .slot--sheet {
-  top: max(clamp(96px, 13vh, 120px), calc(var(--head-bottom, 0px) + 32px));
+  top: max(clamp(96px, 13vh, 120px), calc(var(--head-bottom, 0px) + var(--s4)));
   z-index: calc(var(--z-window) + 1);
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   .home-title,
   .scene[data-arrival] .home-title {
     animation: none;

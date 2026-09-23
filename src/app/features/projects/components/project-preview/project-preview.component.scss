@@ -1,13 +1,15 @@
+@use 'mixins/controls';
+@use 'mixins/facts';
+@use 'mixins/type';
+
 :host {
   display: contents;
-  --window-body-padding: var(--s3) 12px var(--s2);
+  --window-body-padding: var(--s3) var(--s2) var(--s2);
 }
 
 .summary,
 .data {
-  font-family: var(--mono);
-  font-size: var(--m3);
-  letter-spacing: var(--ls-mono);
+  @include type.mono;
 }
 
 .summary,
@@ -22,30 +24,23 @@ dl {
   border-top: 1px solid var(--line);
 
   > div {
-    display: flex;
-    align-items: baseline;
-    gap: var(--s3);
-    border-bottom: 1px solid var(--line);
-    padding: 7px 0;
+    @include facts.row(7px);
   }
 }
 
 dt,
 .tag {
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
+  @include type.caps;
+
   color: var(--ink-2);
 }
 
 dt {
-  flex: 0 0 9ch;
+  @include facts.term(9ch);
 }
 
 dd {
-  flex: 1;
-  min-width: 0;
+  @include facts.value;
 }
 
 .text {
@@ -58,13 +53,7 @@ dd {
 }
 
 .to-sheet {
+  @include controls.next-link;
+
   flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-mono);
-  text-decoration: none;
-  border-bottom: 1px solid var(--accent);
 }

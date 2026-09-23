@@ -138,3 +138,12 @@ suivent `NAMES` (`eslint.config.js`). Stylelint (`stylelint.config.mjs`) vérifi
 les `.scss`, et laisse la mise en forme à Prettier. Une règle que le code
 enfreint encore est un avertissement : l'étape du plan d'audit qui la résout la
 passe en erreur.
+
+**Les styles.** Les jetons sont dans `src/assets/styles/_tokens.scss` : une
+valeur partagée (gouttière, cibles, rayons, flou, durée) s'y écrit une fois, et
+Stylelint refuse les littéraux qui la contourneraient. Les partiels globaux
+(`_base`, `_motion` pour l'entrée `rise`, `_utilities`) sont chargés par
+`styles.scss`. Ce que les composants partagent au-delà est un mixin de
+`src/assets/styles/mixins/` (`type`, `controls`, `facts`, `arrival`, `motion`),
+importé par `@use 'mixins/…'` grâce au chemin d'inclusion d'`angular.json`,
+plutôt qu'une classe globale qui gagnerait ou perdrait par sa spécificité.

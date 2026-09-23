@@ -18,6 +18,7 @@ import {
   easeOut,
   halfLifeStep,
   litAmount,
+  nearestTurn,
   onCurrentTurn,
   PLANET_GAP,
   repel,
@@ -28,6 +29,7 @@ import {
   buildScene,
   fitOrbits,
   Grain,
+  opening,
   Orbit,
   placeGrain,
   placeOrbits,
@@ -129,6 +131,42 @@ const written = (): Written => ({
   opacity: '',
 });
 
+/*
+ * The object turned by hand, like two turntables: the disk, and the orbits
+ * around it. The one grabbed follows the hand, angle for angle, and stops
+ * turning on its own; thrown, it keeps the hand's speed and loses it to
+ * friction; let go still, it stays put. The torque the mockup summed never
+ * matched the hand: the disk slipped under the finger, and a throw was
+ * capped rather than measured. And turned in one piece, disk and orbits
+ * together, the object did not turn: the camera seemed to go round it.
+ */
+/** Half-life of a thrown spin: a lively throw turns some three times. */
+const HAND_FRICTION = 1.4;
+/** The hand's speed is read over its last moments only. */
+const HAND_WINDOW_MS = 90;
+/** Still for this long before letting go: a release, not a throw. */
+const HAND_STILL_MS = 60;
+/** No throw faster than this, in radians per second. */
+const HAND_MAX_SPEED = 14;
+/**
+ * Under this radius, in the disk's plane, the angle under the finger is
+ * meaningless: near the centre a tiny move sweeps a whole turn.
+ */
+const HAND_MIN_RADIUS = 0.45;
+/**
+ * Where the hand takes the orbits rather than the disk, in object radii in
+ * the disk's plane: the disk fades out near 2.4, the orbits start at 4.1.
+ */
+const ORBITS_FROM = 3.3;
+/**
+ * The other turntable is dragged, never geared: it tends to this share of
+ * the driving one's speed, and gets there with this lag, in seconds.
+ */
+const DRAG_RATIO = 0.4;
+const DRAG_LAG = 0.55;
+
+type Rotor = 'disk' | 'orbits';
+
 /** The reserve holds 1.9 times what is shown at rest; zooming lights more. */
 const RESERVE = 1.9;
 
@@ -204,7 +242,30 @@ export class ObjectEngine {
   private marksTime = 0;
   private entry = 0;
   private openT = 0;
-  private spin = 0;
+  /**
+   * The turn the hand gave each turntable: a rigid angle over its own
+   * rotation, and its speed, in radians per second.
+   */
+  private readonly rotors: Record<Rotor, { angle: number; speed: number }> = {
+    disk: { angle: 0, speed: 0 },
+    orbits: { angle: 0, speed: 0 },
+  };
+  /** The turntable the hand last moved: it drags the other. */
+  private driver: Rotor = 'disk';
+  private handTrail: { t: number; a: number }[] = [];
+  /** The held turntable's angle at the last frame, for its speed. */
+  private heldAngle = 0;
+  /** The disk's own rotation, 0 while held, easing back once let go. */
+  private idle = 1;
+  /** How the disk lay on screen at the last frame: to read the hand's angle. */
+  private disk: {
+    cx: number;
+    cy: number;
+    R: number;
+    cr: number;
+    sr: number;
+    squash: number;
+  } | null = null;
   private settling = false;
   private needsDraw = true;
   private visible = true;
@@ -212,7 +273,13 @@ export class ObjectEngine {
 
   private hole: { cx: number; cy: number; R: number } | null = null;
   private pointer: { x: number; y: number } | null = null;
-  private grip: { x: number; y: number; d: number } | null = null;
+  private grip: {
+    x: number;
+    y: number;
+    d: number;
+    angle: number | null;
+    rotor: Rotor;
+  } | null = null;
 
   private cancelFrame: (() => void) | null = null;
   private last = 0;
@@ -360,49 +427,111 @@ export class ObjectEngine {
 
   /**
    * Turning the object by hand, home only. Nothing announces it: the
-   * reader grabs the void around the disk and pushes.
+   * reader grabs the void around the disk and pushes: near the hole, the
+   * disk; further out, the orbits. Grabbing a spinning turntable stops it,
+   * as a hand stops a turntable.
    */
   public grab(clientX: number, clientY: number): boolean {
     if (this.inputs.view !== 'home' || this.inputs.reduced) {
       return false;
     }
-    this.grip = { x: clientX, y: clientY, d: 0 };
+    const under = this.pointUnder(clientX, clientY);
+    const rotor: Rotor =
+      under && under.radius >= ORBITS_FROM ? 'orbits' : 'disk';
+    this.grip = {
+      x: clientX,
+      y: clientY,
+      d: 0,
+      angle: this.angleFrom(under),
+      rotor,
+    };
+    this.driver = rotor;
+    const held = this.rotors[rotor];
+    held.speed = 0;
+    this.heldAngle = held.angle;
+    this.handTrail = [{ t: this.host.now(), a: held.angle }];
+    this.request();
     return true;
   }
 
-  /**
-   * The TANGENTIAL part of the gesture, the cross product of the radius and
-   * the displacement, becomes a torque. Pushing along the rotation speeds it
-   * up, against it brakes then reverses.
-   */
+  /** The held turntable follows the hand, angle for angle. */
   public turn(clientX: number, clientY: number): void {
     const grip = this.grip;
-    const hole = this.hole;
-    const canvas = this.layout?.canvas;
-    if (!grip || !hole || !canvas) {
+    if (!grip) {
       return;
     }
-    const dpr = this.dpr;
-    const mx = (clientX - grip.x) * dpr;
-    const my = (clientY - grip.y) * dpr;
     grip.d += Math.abs(clientX - grip.x) + Math.abs(clientY - grip.y);
     grip.x = clientX;
     grip.y = clientY;
-    const rx = (clientX - canvas.left) * dpr - hole.cx;
-    const ry = (clientY - canvas.top) * dpr - hole.cy;
-    // Under one object radius the lever arm is too short: bounded, or a
-    // gesture near the centre sends the object spinning like a top.
-    const d = Math.max(hole.R * 0.9, Math.sqrt(rx * rx + ry * ry));
-    const torque = (rx * my - ry * mx) / (d * d);
-    this.spin = clamp(this.spin + torque * 11.5, -17, 17);
+    const angle = this.angleFrom(this.pointUnder(clientX, clientY));
+    const held = this.rotors[grip.rotor];
+    if (angle !== null && grip.angle !== null) {
+      held.angle += nearestTurn(angle, grip.angle) - grip.angle;
+    }
+    grip.angle = angle;
+    const now = this.host.now();
+    this.handTrail.push({ t: now, a: held.angle });
+    while (
+      this.handTrail.length > 2 &&
+      now - (this.handTrail[0]?.t ?? now) > HAND_WINDOW_MS
+    ) {
+      this.handTrail.shift();
+    }
     this.request();
   }
 
-  /** Answers whether the gesture was a drag (over 6 px), not a click. */
+  /**
+   * Lets go: the disk keeps the hand's speed over its last moments, or
+   * none if the hand had stopped. Answers whether the gesture was a drag
+   * (over 6 px), not a click.
+   */
   public release(): boolean {
     const grip = this.grip;
     this.grip = null;
-    return grip !== null && grip.d > 6;
+    if (!grip) {
+      return false;
+    }
+    const now = this.host.now();
+    const last = this.handTrail.at(-1);
+    const first = this.handTrail[0];
+    this.rotors[grip.rotor].speed =
+      last && first && now - last.t < HAND_STILL_MS && last.t - first.t > 8
+        ? clamp(
+            ((last.a - first.a) / (last.t - first.t)) * 1000,
+            -HAND_MAX_SPEED,
+            HAND_MAX_SPEED,
+          )
+        : 0;
+    this.handTrail = [];
+    this.request();
+    return grip.d > 6;
+  }
+
+  /**
+   * The point under the pointer in the disk's own plane, in object radii:
+   * the roll undone, the opening stretched back to a circle.
+   */
+  private pointUnder(
+    clientX: number,
+    clientY: number,
+  ): { angle: number; radius: number } | null {
+    const disk = this.disk;
+    const canvas = this.layout?.canvas;
+    if (!disk || !canvas || disk.R <= 0) {
+      return null;
+    }
+    const px = (clientX - canvas.left) * this.dpr - disk.cx;
+    const py = (clientY - canvas.top) * this.dpr - disk.cy;
+    const x = (px * disk.cr + py * disk.sr) / disk.R;
+    const y = (-px * disk.sr + py * disk.cr) / disk.R / disk.squash;
+    return { angle: Math.atan2(y, x), radius: Math.hypot(x, y) };
+  }
+
+  /** The angle to follow, or `null` too near the centre to mean anything. */
+  private angleFrom(
+    point: { angle: number; radius: number } | null,
+  ): number | null {
+    return point && point.radius >= HAND_MIN_RADIUS ? point.angle : null;
   }
 
   /** Draws once more, and runs the loop if it rested. */
@@ -538,24 +667,26 @@ export class ObjectEngine {
       // angle jumps several turns at once. While a preview is read, the
       // revolution nearly stops: the camera arrives and holds its frame.
       const brake = open ? 0.12 : 1;
-      this.phase += dt * (1 - 0.92 * flyover) * brake * this.traveling().spin;
+      this.phase +=
+        dt * (1 - 0.92 * flyover) * brake * this.idle * this.traveling().spin;
     }
-    // The push given by hand outlives the release, then dissipates: a
-    // half-life of 9 s, the matter really keeps its angular momentum.
-    if (this.spin) {
-      this.phase += this.spin * dt;
-      if (!this.grip) {
-        this.spin *= Math.pow(0.5, dt / 9);
-      }
-      if (Math.abs(this.spin) < 0.002) {
-        this.spin = 0;
-      }
+    // Held, the disk's own rotation stops at once, or it slips under the
+    // finger; let go, it comes back gently.
+    const idleBefore = this.idle;
+    this.idle +=
+      ((this.grip ? 0 : 1) - this.idle) *
+      (reduced ? 1 : halfLifeStep(dt, this.grip ? 0.05 : 0.6));
+    if (Math.abs(this.idle - 1) < 0.001) {
+      this.idle = 1;
     }
+    const turning = this.turnRotors(dt, reduced);
     const moves =
       animated ||
       camMoves ||
       openBefore !== this.openT ||
       entryBefore !== this.entry ||
+      idleBefore !== this.idle ||
+      turning ||
       this.needsDraw ||
       this.settling;
     if (moves && this.visible) {
@@ -572,11 +703,47 @@ export class ObjectEngine {
         this.openT !== openTarget ||
         this.entry < 1 ||
         this.settling ||
-        this.spin)
+        this.grip !== null ||
+        turning ||
+        this.idle !== 1)
     ) {
       this.cancelFrame = this.host.frame(this.tick);
     }
   };
+
+  /**
+   * The two turntables for one frame. The held one's speed is read from its
+   * angle; a free driver keeps its throw, taken by friction; the other is
+   * dragged towards a share of the driver's speed, with a lag. Answers
+   * whether either still turns.
+   */
+  private turnRotors(dt: number, reduced: boolean): boolean {
+    const held = this.grip ? this.rotors[this.grip.rotor] : null;
+    if (held && dt > 0) {
+      const measured = (held.angle - this.heldAngle) / dt;
+      held.speed += (measured - held.speed) * (1 - Math.pow(0.5, dt / 0.05));
+      this.heldAngle = held.angle;
+    }
+    const driver = this.rotors[this.driver];
+    const driven = this.rotors[this.driver === 'disk' ? 'orbits' : 'disk'];
+    const drag = reduced ? 1 : 1 - Math.exp(-dt / DRAG_LAG);
+    driven.speed += (driver.speed * DRAG_RATIO - driven.speed) * drag;
+    let turning = held !== null;
+    for (const rotor of [driver, driven]) {
+      if (rotor === held) {
+        continue;
+      }
+      rotor.angle += rotor.speed * dt;
+      if (rotor === driver) {
+        rotor.speed *= Math.pow(0.5, dt / HAND_FRICTION);
+      }
+      if (Math.abs(rotor.speed) < 0.01) {
+        rotor.speed = 0;
+      }
+      turning ||= rotor.speed !== 0;
+    }
+    return turning;
+  }
 
   private camSum(): number {
     return (
@@ -595,7 +762,8 @@ export class ObjectEngine {
   private target(): Frame {
     const { view, preview, focus, chapter } = this.inputs;
     const dims = this.dims();
-    const azim = finiteOr(this.azim, 0);
+    // The framings aim at planets: they turn with the orbits.
+    const azim = finiteOr(this.azim, 0) + this.rotors.orbits.angle;
     switch (view) {
       case 'about':
         return ABOUT_FRAME;
@@ -701,7 +869,9 @@ export class ObjectEngine {
       trv.grow;
     const time = this.time;
     const phase = this.phase;
-    const azim = finiteOr(this.azim, 0) + trv.dAz;
+    const azimBase = finiteOr(this.azim, 0) + trv.dAz;
+    const azim = azimBase + this.rotors.disk.angle;
+    const orbitAzim = azimBase + this.rotors.orbits.angle;
     const pointer = this.pointer;
     const reach = 70 * dpr;
     // The roll straightens on arrival: under the plane, then back up.
@@ -709,6 +879,7 @@ export class ObjectEngine {
     const cr = Math.cos(roll);
     const sr = Math.sin(roll);
     this.hole = { cx, cy, R };
+    this.disk = { cx, cy, R, cr, sr, squash: opening(elev) * flatten };
     const hot = '#ffe6c2';
     // Doppler ramps, from approach (blue) to recession (amber): five steps,
     // the inner edge's glow apart from the cold matter. The tint must be
@@ -771,7 +942,8 @@ export class ObjectEngine {
       const ry = pos.x * sr + py0 * cr;
       let sx = cx + rx * R;
       let sy = cy + ry * R;
-      if (pointer) {
+      // Held, the matter goes with the hand: no push aside.
+      if (pointer && !this.grip) {
         const ddx = sx - pointer.x;
         const ddy = sy - pointer.y;
         const d2 = ddx * ddx + ddy * ddy;
@@ -900,7 +1072,7 @@ export class ObjectEngine {
       cr,
       sr,
       elev,
-      azim,
+      azim: orbitAzim,
       flatten,
       phase,
       time,

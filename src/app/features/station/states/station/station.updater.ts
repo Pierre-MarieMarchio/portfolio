@@ -70,6 +70,7 @@ export const stationUpdater = defineUpdater(StationState, (on) => {
 
   on(stationPreviewOpened, (state, slug) => {
     state.preview.set(slug);
+    state.reading.set(slug);
     state.hovered.set(null);
   });
 

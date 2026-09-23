@@ -309,4 +309,52 @@ describe('StationComponent', () => {
     await fixture.whenStable();
     expect(object().preview()).toBe(0);
   });
+
+  it('shows the orbit rule on the home view with no preview open', async () => {
+    const { host } = await mount();
+    expect(host.querySelector('app-orbit-rule')).not.toBeNull();
+  });
+
+  it('gives way to the preview once one is open, on the home view', async () => {
+    const { fixture, station, host } = await mount();
+    station.showPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+
+    expect(host.querySelector('app-project-preview')).not.toBeNull();
+    expect(host.querySelector('app-orbit-rule')).toBeNull();
+  });
+
+  it('shows the preview on the index view only once pinned', async () => {
+    const { fixture, station, host } = await mount();
+    station.navigated('index');
+    station.showPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(host.querySelector('app-project-preview')).toBeNull();
+
+    station.togglePin('preview');
+    await fixture.whenStable();
+    expect(host.querySelector('app-project-preview')).not.toBeNull();
+  });
+
+  it('names the preview slot with the id the orbit rule points its markers to', async () => {
+    const { fixture, station, host } = await mount();
+    station.showPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+
+    const slot = host.querySelector('#panneau-apercu');
+    expect(slot).not.toBeNull();
+    expect(slot?.getAttribute('data-slot')).toBe('preview');
+  });
+
+  it('keeps the last previewed slug as the reading fallback once the preview closes', async () => {
+    const { fixture, station } = await mount();
+    station.showPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(station.reading()).toBe(KNOWN_SLUG);
+
+    await station.close('preview');
+    await fixture.whenStable();
+
+    expect(station.reading()).toBe(KNOWN_SLUG);
+  });
 });

@@ -1,5 +1,5 @@
 <canvas #sky class="sky" aria-hidden="true"></canvas>
-<div class="stage">
+<div class="stage" [appTurnGesture]="engine()" (spun)="spun.emit()">
   <canvas #matter class="matter" aria-hidden="true"></canvas>
   @if (failed()) {
     <div class="fallback" aria-hidden="true"></div>
@@ -9,29 +9,19 @@
       drawn yet is out of frame, and no invisible target stays clickable.
     -->
     @if (targets()) {
-      @for (entry of entries(); track $index; let rank = $index) {
-        <button
-          #node
-          type="button"
-          class="body"
-          data-object-body
-          aria-hidden="true"
-          tabindex="-1"
-          [attr.aria-expanded]="entry.expanded"
-          (click)="onClick(rank)"
-          (mouseenter)="onEnter(rank)"
-          (mouseleave)="onLeave()"
-          (focus)="onEnter(rank)"
-          (blur)="onLeave()"
-        >
-          <span class="visually-hidden">{{ entry.name }}</span>
-        </button>
-      }
+      <app-planet-buttons
+        [bodies]="bodies()"
+        [view]="view()"
+        [preview]="preview()"
+        [hovered]="hovered()"
+        (bodyClicked)="bodyClicked.emit($event)"
+        (bodyHovered)="bodyHovered.emit($event)"
+      />
     }
     <!-- Labels only exist once the engine can place them: not prerendered. -->
     @if (labelled() && running()) {
-      @for (entry of entries(); track $index) {
-        <span #label class="label" aria-hidden="true">{{ entry.label }}</span>
+      @for (label of labels(); track $index) {
+        <span #label class="label" aria-hidden="true">{{ label }}</span>
       }
     }
   }

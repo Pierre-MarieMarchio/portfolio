@@ -25,6 +25,24 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   );
 }
 
+const SHARED_LIBS = ['ui'];
+
+const libsOnDisk = readdirSync(`${APP}/shared`, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .sort((a, b) => a.localeCompare(b));
+
+if (
+  libsOnDisk.join() !==
+  [...SHARED_LIBS].sort((a, b) => a.localeCompare(b)).join()
+) {
+  throw new Error(
+    `eslint.config.js: SHARED_LIBS lists [${SHARED_LIBS.join(', ')}] but ` +
+      `${APP}/shared holds [${libsOnDisk.join(', ')}]. Each library needs its ` +
+      'row in the dependency law.',
+  );
+}
+
 const NAMES = [
   { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
   { selector: 'typeLike', format: ['PascalCase'] },
@@ -97,7 +115,10 @@ const UNICORN_RULES = [
 ];
 
 const FEATURE_WHY =
-  'a feature reaches down only, to core, shared/ui and features/common; what two features share descends into features/common, or is joined in pages/';
+  'a feature reaches down only, to core, the shared libraries and features/common; what two features share descends into features/common, or is joined in pages/';
+
+const LIBRARY_WHY =
+  'a shared library, extractable as it stands: it may use core, and neither the portfolio nor another library';
 
 /**
  * @typedef {object} Zone
@@ -115,12 +136,20 @@ const ZONES = [
     why: 'infrastructure: it must not know a business concept exists',
     denies: ['features', 'shared', 'i18n', 'pages', 'root'],
   },
-  {
-    files: [`${APP}/shared/ui/**/*.ts`],
-    name: 'shared/ui/',
-    why: 'reusable UI, almost extractable: it may use core and nothing above',
-    denies: ['features', 'i18n', 'pages', 'root'],
-  },
+  ...SHARED_LIBS.map((lib) => ({
+    files: [`${APP}/shared/${lib}/**/*.ts`],
+    name: `shared/${lib}/`,
+    why: LIBRARY_WHY,
+    denies: [
+      ...SHARED_LIBS.filter((other) => other !== lib).map(
+        (other) => `library:${other}`,
+      ),
+      'features',
+      'i18n',
+      'pages',
+      'root',
+    ],
+  })),
   {
     files: [`${APP}/features/common/**/*.ts`],
     name: 'features/common/',
@@ -175,6 +204,20 @@ const GROUPS = {
         `**/features/${feature}/**`,
         `**/${feature}`,
         `**/${feature}/**`,
+      ],
+    ]),
+  ),
+  ...Object.fromEntries(
+    SHARED_LIBS.map((lib) => [
+      `library:${lib}`,
+      [
+        `@shared/${lib}`,
+        `@shared/${lib}/**`,
+        `@app/shared/${lib}`,
+        `@app/shared/${lib}/**`,
+        `**/shared/${lib}/**`,
+        `**/${lib}`,
+        `**/${lib}/**`,
       ],
     ]),
   ),

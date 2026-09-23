@@ -197,6 +197,12 @@ nomme l'unité qu'elle concerne.
 - Seul le corps défile, et arriver en bas ne fait jamais défiler la page
   derrière. Sa marge intérieure diffère selon la vue : l'appelant la pose
   (`--window-body-padding`).
+- L'entrée s'appelle `heading`, pas `title` : `title` posait sur l'hôte
+  l'attribut natif, donc une infobulle.
+- Le glyphe de l'épingle ne suit que l'entrée `pinned` : un clic seul ne le
+  bascule pas.
+- Dans le spec, `innerWidth` et `innerHeight` sont des accesseurs en lecture
+  seule : on les redéfinit, puis on les restaure.
 
 ## `src/styles.scss`
 

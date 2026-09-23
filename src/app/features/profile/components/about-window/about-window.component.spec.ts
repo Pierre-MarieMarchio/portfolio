@@ -7,7 +7,6 @@ type Part = 0 | 1 | 2 | 3;
 
 const TOOLBAR = '[aria-label="Rubriques"]';
 
-/** The full title shown in the h1 and the footer, per part. */
 const TITLES: Record<Part, string> = {
   0: 'Profil',
   1: 'Compétences',
@@ -95,7 +94,6 @@ describe('AboutWindowComponent', () => {
     await fixture.whenStable();
 
     expect(emitted).toEqual([2]);
-    // The part input alone decides pressed state: a click does not flip it by itself.
     expect(
       host
         .querySelector(TOOLBAR)

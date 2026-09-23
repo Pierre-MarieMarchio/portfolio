@@ -1,1 +1,6 @@
-export type { DesktopPins, DesktopView, DesktopWindow } from './desktop.model';
+export type {
+  DesktopPins,
+  DesktopView,
+  DesktopWindow,
+  Planet,
+} from './desktop.model';

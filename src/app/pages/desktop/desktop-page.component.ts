@@ -19,8 +19,9 @@ import {
   ProjectPreviewComponent,
   ProjectDetailComponent,
 } from '@app/features/projects/components';
-import { SpaceSceneComponent } from '@app/features/desktop/components';
-import { DesktopWindow } from '@app/features/desktop/models';
+import { ProjectsManager } from '@app/features/projects/states';
+import { DesktopSceneComponent } from '@app/features/desktop/components';
+import { DesktopWindow, Planet } from '@app/features/desktop/models';
 import { DesktopManager } from '@app/features/desktop/states';
 import { windowOf } from '../../features/desktop/rules/view.rules';
 import { SocialLink } from '@shared/ui/models';
@@ -64,7 +65,7 @@ import { WindowStackService } from '@shared/windows/services';
     HomeTitleComponent,
     IntroCardComponent,
     NotFoundWindowComponent,
-    SpaceSceneComponent,
+    DesktopSceneComponent,
     PanelAnchorDirective,
     FeaturedBarComponent,
     PageBarComponent,
@@ -91,6 +92,7 @@ export class DesktopPageComponent {
   private readonly arrivalController = inject(HomeRevealService);
   protected readonly station = inject(DesktopManager);
   protected readonly binding = inject(DesktopProjectsBinding);
+  private readonly projects = inject(ProjectsManager);
 
   private readonly locale = inject(LocaleService);
   protected readonly texts = inject(PAGES_TEXTS);
@@ -129,6 +131,12 @@ export class DesktopPageComponent {
   );
   protected readonly arrival = this.arrivalController.arrival;
 
+  protected readonly planets = computed<readonly Planet[]>(() =>
+    this.projects
+      .projects()
+      .map(({ slug, title, short }) => ({ slug, title, short })),
+  );
+
   private readonly homeTitle = viewChild<
     HomeTitleComponent,
     ElementRef<HTMLElement>
@@ -157,13 +165,6 @@ export class DesktopPageComponent {
   );
 
   /**
-   * Set when a spin of the object just ended: the click that follows on the
-   * void is the end of a drag, not a request to step back. Cleared at the
-   * next pointerdown, so a stale spin never swallows a real click.
-   */
-  private swallowVoid = false;
-
-  /**
    * Set at the first render in a browser: until then the view may still
    * change as the first address settles, and that is not a navigation.
    * Never set on the server, where there is no focus to move.
@@ -171,25 +172,12 @@ export class DesktopPageComponent {
   private landed = false;
 
   constructor() {
-    const stops = [
-      this.browser.listen('keydown', (event) => {
-        if (event.key === 'Escape') {
-          void this.station.escape();
-        }
-      }),
-      this.browser.listen(
-        'pointerdown',
-        () => {
-          this.swallowVoid = false;
-        },
-        { capture: true },
-      ),
-    ];
-    inject(DestroyRef).onDestroy(() => {
-      for (const stop of stops) {
-        stop();
+    const stopEscape = this.browser.listen('keydown', (event) => {
+      if (event.key === 'Escape') {
+        void this.station.escape();
       }
     });
+    inject(DestroyRef).onDestroy(stopEscape);
 
     // Browser only: on the server there is no one to arrive, and the
     // prerendered page keeps its CSS timing. From then on the reader has
@@ -238,11 +226,7 @@ export class DesktopPageComponent {
    * the home page a featured planet opens or closes the preview, the only
    * ones the home page shows.
    */
-  protected onBodyClicked(rank: number): void {
-    const slug = this.binding.slugAt(rank);
-    if (!slug) {
-      return;
-    }
+  protected onBodyClicked(slug: string): void {
     const view = this.station.view();
     if (view === 'index') {
       this.station.select(this.station.selection() === slug ? null : slug);
@@ -251,9 +235,9 @@ export class DesktopPageComponent {
     }
   }
 
-  protected onBodyHovered(rank: number): void {
+  protected onBodyHovered(slug: string | null): void {
     this.curtain.takeOver();
-    this.station.hover(this.binding.slugAt(rank));
+    this.station.hover(slug);
   }
 
   protected onRuleHovered(slug: string | null): void {
@@ -261,15 +245,7 @@ export class DesktopPageComponent {
     this.station.hover(slug);
   }
 
-  protected onSpun(): void {
-    this.swallowVoid = true;
-  }
-
   protected onVoid(): void {
-    if (this.swallowVoid) {
-      this.swallowVoid = false;
-      return;
-    }
     void this.station.stepBack();
   }
 

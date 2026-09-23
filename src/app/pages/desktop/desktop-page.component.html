@@ -13,22 +13,21 @@
       First, behind everything: its sky sits under the void, its planets
       above it. Every appPanelAnchor below is text the matter gives way to.
     -->
-    <app-space-scene
+    <app-desktop-scene
       #object
-      [bodies]="binding.bodies()"
+      [bodies]="planets()"
       [featured]="binding.featuredCount()"
       [view]="binding.objectView()"
-      [focus]="binding.focusRank()"
+      [sheet]="binding.sheetSlug()"
       [chapter]="station.chapter()"
       [part]="station.part()"
-      [preview]="binding.previewRank()"
-      [hovered]="binding.hoveredRank()"
-      [selected]="binding.selectedRank()"
+      [preview]="station.preview()"
+      [hovered]="station.hovered()"
+      [selected]="station.selection()"
       [paused]="station.paused()"
       [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
       (bodyHovered)="onBodyHovered($event)"
-      (spun)="onSpun()"
     />
 
     @if (station.canStepBack()) {

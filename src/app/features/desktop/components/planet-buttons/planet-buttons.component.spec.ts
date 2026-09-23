@@ -1,12 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
-import { SceneBody, SceneView } from '../../models/scene.model';
+import { SceneTargetsService } from '@shared/space-scene/services';
+import { DesktopView, Planet } from '../../models';
 import { PlanetButtonsComponent } from './planet-buttons.component';
 
-const BODIES: readonly SceneBody[] = [
-  { title: 'Skyted Voice', short: 'Skyted Voice' },
-  { title: 'Skyted App', short: 'Skyted App' },
-  { title: 'Template Clean Architecture .NET', short: 'Template .NET' },
+const BODIES: readonly Planet[] = [
+  { slug: 'voice', title: 'Skyted Voice', short: 'Skyted Voice' },
+  { slug: 'app', title: 'Skyted App', short: 'Skyted App' },
+  {
+    slug: 'template',
+    title: 'Template Clean Architecture .NET',
+    short: 'Template .NET',
+  },
 ];
 
 const stubHover = (canHover: boolean): void => {
@@ -19,26 +24,26 @@ const stubHover = (canHover: boolean): void => {
 
 const mount = async (
   options: {
-    view?: SceneView;
-    preview?: number;
-    hovered?: number;
+    view?: DesktopView;
+    preview?: string;
+    hovered?: string;
     canHover?: boolean;
   } = {},
 ) => {
   stubHover(options.canHover ?? true);
   TestBed.configureTestingModule({
     imports: [PlanetButtonsComponent],
-    providers: [provideTexts()],
+    providers: [provideTexts(), SceneTargetsService],
   });
   const fixture = TestBed.createComponent(PlanetButtonsComponent);
   fixture.componentRef.setInput('bodies', BODIES);
   fixture.componentRef.setInput('view', options.view ?? 'home');
-  fixture.componentRef.setInput('preview', options.preview ?? -1);
-  fixture.componentRef.setInput('hovered', options.hovered ?? -1);
-  const clicked: number[] = [];
-  const hovered: number[] = [];
-  fixture.componentInstance.bodyClicked.subscribe((rank) => clicked.push(rank));
-  fixture.componentInstance.bodyHovered.subscribe((rank) => hovered.push(rank));
+  fixture.componentRef.setInput('preview', options.preview ?? null);
+  fixture.componentRef.setInput('hovered', options.hovered ?? null);
+  const clicked: string[] = [];
+  const hovered: (string | null)[] = [];
+  fixture.componentInstance.bodyClicked.subscribe((slug) => clicked.push(slug));
+  fixture.componentInstance.bodyHovered.subscribe((slug) => hovered.push(slug));
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   return {
@@ -46,7 +51,7 @@ const mount = async (
     clicked,
     hovered,
     buttons: () => [
-      ...host.querySelectorAll<HTMLButtonElement>('button[data-object-body]'),
+      ...host.querySelectorAll<HTMLButtonElement>('button[data-scene-target]'),
     ],
   };
 };
@@ -77,7 +82,7 @@ describe('PlanetButtonsComponent', () => {
   });
 
   it('says which body the preview shows', async () => {
-    const { buttons } = await mount({ preview: 1 });
+    const { buttons } = await mount({ preview: 'app' });
 
     expect(
       buttons().map((button) => button.getAttribute('aria-expanded')),
@@ -94,14 +99,12 @@ describe('PlanetButtonsComponent', () => {
   });
 
   it('hands the scene its buttons, in rank order', async () => {
-    const { fixture, buttons } = await mount();
+    const { buttons } = await mount();
 
-    expect(
-      fixture.componentInstance.buttons().map((ref) => ref.nativeElement),
-    ).toEqual(buttons());
+    expect(TestBed.inject(SceneTargetsService).list()).toEqual(buttons());
   });
 
-  it('emits the rank on a click, and on hover and focus, -1 on leaving', async () => {
+  it('emits the slug on a click, and on hover and focus, null on leaving', async () => {
     const { buttons, clicked, hovered } = await mount();
     const second = buttons()[1];
     if (!second) {
@@ -114,28 +117,31 @@ describe('PlanetButtonsComponent', () => {
     second.dispatchEvent(new FocusEvent('focus'));
     second.dispatchEvent(new FocusEvent('blur'));
 
-    expect(clicked).toEqual([1]);
-    expect(hovered).toEqual([1, -1, 1, -1]);
+    expect(clicked).toEqual(['app']);
+    expect(hovered).toEqual(['app', null, 'app', null]);
   });
 
   it('takes two touches without hover: the first reveals, the second opens', async () => {
     const first = await mount({ canHover: false });
     first.buttons()[1]?.click();
     expect(first.clicked).toEqual([]);
-    expect(first.hovered).toEqual([1]);
+    expect(first.hovered).toEqual(['app']);
     TestBed.resetTestingModule();
 
-    const second = await mount({ canHover: false, hovered: 1 });
+    const second = await mount({ canHover: false, hovered: 'app' });
     second.buttons()[1]?.click();
-    expect(second.clicked).toEqual([1]);
+    expect(second.clicked).toEqual(['app']);
   });
 
   it('opens at the first touch the body already in the preview', async () => {
-    const { buttons, clicked } = await mount({ canHover: false, preview: 2 });
+    const { buttons, clicked } = await mount({
+      canHover: false,
+      preview: 'template',
+    });
 
     buttons()[2]?.click();
 
-    expect(clicked).toEqual([2]);
+    expect(clicked).toEqual(['template']);
   });
 
   it('selects at the first touch on the index', async () => {
@@ -146,6 +152,6 @@ describe('PlanetButtonsComponent', () => {
 
     buttons()[0]?.click();
 
-    expect(clicked).toEqual([0]);
+    expect(clicked).toEqual(['voice']);
   });
 });

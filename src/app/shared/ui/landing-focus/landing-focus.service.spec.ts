@@ -20,23 +20,23 @@ class Views {
   public readonly second = signal(false);
 }
 
-describe('LandingFocus', () => {
-  const mount = async () => {
-    TestBed.configureTestingModule({
-      imports: [Views],
-    });
-    const fixture = TestBed.createComponent(Views);
-    document.body.append(fixture.nativeElement as HTMLElement);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
-    return {
-      fixture,
-      focus: TestBed.inject(LandingFocus),
-      section: (id: string) => host.querySelector(`#${id}`) as Element,
-      focused: () => document.activeElement?.textContent,
-    };
+const mount = async () => {
+  TestBed.configureTestingModule({
+    imports: [Views],
+  });
+  const fixture = TestBed.createComponent(Views);
+  document.body.append(fixture.nativeElement as HTMLElement);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  return {
+    fixture,
+    focus: TestBed.inject(LandingFocus),
+    section: (id: string) => host.querySelector(`#${id}`) as Element,
+    focused: () => document.activeElement?.textContent,
   };
+};
 
+describe('LandingFocus', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     document.body.replaceChildren();

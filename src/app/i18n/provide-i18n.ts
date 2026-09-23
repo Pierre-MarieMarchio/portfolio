@@ -31,16 +31,17 @@ export const loadCatalog: CanActivateFn = async (_route, state) => {
   return true;
 };
 
+const slice = <T>(read: (catalogs: Catalogs) => T) => {
+  const catalogs = inject(Catalogs);
+  return computed(() => read(catalogs));
+};
+
 /**
  * The bilingual site, wired (D3): each layer's slice of the catalogue
  * answered from the reader's language, the links in it, and the catalogue
  * of the first address loaded before the first render.
  */
 export function provideI18n(): (Provider | EnvironmentProviders)[] {
-  const slice = <T>(read: (catalogs: Catalogs) => T) => {
-    const catalogs = inject(Catalogs);
-    return computed(() => read(catalogs));
-  };
   return [
     {
       provide: SHARED_TEXTS,

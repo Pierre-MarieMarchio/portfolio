@@ -11,6 +11,19 @@ import { StationManager } from '@app/features/station/states';
 import { ObjectComponent } from '@app/features/station/components';
 import { StationComponent } from './station.component';
 
+const arrivals = (host: HTMLElement) =>
+  ['#home', 'app-page-bar', 'app-orbit-rule', 'app-contact-rail'].map(
+    (selector) =>
+      host.querySelector<HTMLElement>(selector)?.dataset['arrival'] ?? null,
+  );
+
+const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
+  (
+    fixture.debugElement.query(
+      (node) => node.componentInstance instanceof ObjectComponent,
+    ).componentInstance as ObjectComponent
+  ).revealed();
+
 describe('StationComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
@@ -27,8 +40,8 @@ describe('StationComponent', () => {
         query === '(prefers-reduced-motion: reduce)'
           ? (options.reducedMotion ?? true)
           : false,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
+      addEventListener: () => {},
+      removeEventListener: () => {},
     }));
     // jsdom has no 2D context: the object takes its no-canvas fallback, which
     // is what these specs need, without jsdom logging "not implemented".
@@ -68,25 +81,13 @@ describe('StationComponent', () => {
   });
 
   describe('the arrival of the home page', () => {
-    const arrivals = (host: HTMLElement) =>
-      ['#home', 'app-page-bar', 'app-orbit-rule', 'app-contact-rail'].map(
-        (selector) =>
-          host.querySelector(selector)?.getAttribute('data-arrival') ?? null,
-      );
-    const revealed = (fixture: { debugElement: DebugElement }): boolean =>
-      (
-        fixture.debugElement.query(
-          (node) => node.componentInstance instanceof ObjectComponent,
-        ).componentInstance as ObjectComponent
-      ).revealed();
-
     it('holds the rest during the crossing, and lets it in at 8700 ms', async () => {
       // setTimeout only: the zoneless scheduler runs on microtasks.
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mount({ reducedMotion: false });
 
       expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
-      expect(revealed(fixture)).toBe(false);
+      expect(isRevealed(fixture)).toBe(false);
 
       vi.advanceTimersByTime(8699);
       await fixture.whenStable();
@@ -95,7 +96,7 @@ describe('StationComponent', () => {
       vi.advanceTimersByTime(1);
       await fixture.whenStable();
       expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
-      expect(revealed(fixture)).toBe(true);
+      expect(isRevealed(fixture)).toBe(true);
     });
 
     it.each(['pointerdown', 'keydown', 'wheel', 'touchstart'])(
@@ -117,7 +118,7 @@ describe('StationComponent', () => {
       station.syncRoute('index');
       await fixture.whenStable();
       expect(
-        host.querySelector('app-page-bar')?.getAttribute('data-arrival'),
+        host.querySelector<HTMLElement>('app-page-bar')?.dataset['arrival'],
       ).toBe('shown');
     });
 
@@ -125,13 +126,13 @@ describe('StationComponent', () => {
       const { fixture, host } = await mount({ reducedMotion: true });
 
       expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
-      expect(revealed(fixture)).toBe(true);
+      expect(isRevealed(fixture)).toBe(true);
     });
   });
 
   it('renders the page bar and the contact rail, with no pause button for now', async () => {
     const { host } = await mount();
-    const links = Array.from(host.querySelectorAll('nav a'));
+    const links = [...host.querySelectorAll('nav a')];
 
     expect(links.map((link) => link.textContent?.trim())).toEqual([
       'Accueil',
@@ -335,7 +336,9 @@ describe('StationComponent', () => {
     station.syncRoute('about');
     await fixture.whenStable();
     expect(
-      document.activeElement?.closest('[data-slot]')?.getAttribute('data-slot'),
+      document.activeElement?.closest<HTMLElement>('[data-slot]')?.dataset[
+        'slot'
+      ],
     ).toBe('about');
     expect(document.activeElement?.tagName).toBe('H1');
 
@@ -351,7 +354,7 @@ describe('StationComponent', () => {
     station.togglePin('about');
     await fixture.whenStable();
 
-    const slots = Array.from(host.querySelectorAll<HTMLElement>('[data-slot]'));
+    const slots = [...host.querySelectorAll<HTMLElement>('[data-slot]')];
     expect(slots.length).toBeGreaterThanOrEqual(2);
     const first = slots[0];
     const second = slots[1];
@@ -438,9 +441,9 @@ describe('StationComponent', () => {
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
-    const slot = host.querySelector('#preview-panel');
+    const slot = host.querySelector<HTMLElement>('#preview-panel');
     expect(slot).not.toBeNull();
-    expect(slot?.getAttribute('data-slot')).toBe('preview');
+    expect(slot?.dataset['slot']).toBe('preview');
   });
 
   it('keeps the last previewed slug as the reading fallback once the preview closes', async () => {

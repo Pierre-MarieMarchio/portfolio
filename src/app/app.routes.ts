@@ -63,7 +63,7 @@ function unknownIn(lang: Lang): Route {
 }
 
 export const routes: Routes = [
-  ...LANGS.flatMap(routesIn),
+  ...LANGS.flatMap((lang) => routesIn(lang)),
   // The shared-component bench exists in development builds only. The
   // condition reads `ngDevMode` itself rather than `isDevMode()`: the
   // production build defines it as `false`, so the minifier drops the branch

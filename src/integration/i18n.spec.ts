@@ -22,45 +22,48 @@ import { routes } from '../app/app.routes';
 })
 class Shell {}
 
+const mount = async () => {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: true,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  document.documentElement.style.setProperty('--arrival-at', '8700ms');
+  TestBed.configureTestingModule({
+    imports: [Shell],
+    providers: [
+      provideRouter(routes, withComponentInputBinding()),
+      { provide: TitleStrategy, useClass: PageTitleStrategy },
+      provideStatewise({ effects: [ProjectsEffect, StationEffect] }),
+      provideI18n(),
+    ],
+  });
+  await TestBed.inject(Catalogs).ensure('fr');
+  await TestBed.inject(ProjectsManager).load();
+  const fixture = TestBed.createComponent(Shell);
+  const router = TestBed.inject(Router);
+  const go = async (url: string) => {
+    await router.navigateByUrl(url);
+    await fixture.whenStable();
+  };
+  return {
+    fixture,
+    go,
+    host: fixture.nativeElement as HTMLElement,
+    station: TestBed.inject(StationManager),
+  };
+};
+
+const href = (selector: string) =>
+  document.head.querySelector(selector)?.getAttribute('href');
+
 /**
  * The mechanism under test: the address says the language (D3, D4), and
  * switching is a navigation to the same view at its other address. The real
  * routes, the real catalogues loaded as chunks, the real station.
  */
 describe('i18n', () => {
-  const mount = async () => {
-    vi.stubGlobal('matchMedia', () => ({
-      matches: true,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-    }));
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    document.documentElement.style.setProperty('--arrival-at', '8700ms');
-    TestBed.configureTestingModule({
-      imports: [Shell],
-      providers: [
-        provideRouter(routes, withComponentInputBinding()),
-        { provide: TitleStrategy, useClass: PageTitleStrategy },
-        provideStatewise({ effects: [ProjectsEffect, StationEffect] }),
-        provideI18n(),
-      ],
-    });
-    await TestBed.inject(Catalogs).ensure('fr');
-    await TestBed.inject(ProjectsManager).load();
-    const fixture = TestBed.createComponent(Shell);
-    const router = TestBed.inject(Router);
-    const go = async (url: string) => {
-      await router.navigateByUrl(url);
-      await fixture.whenStable();
-    };
-    return {
-      fixture,
-      go,
-      host: fixture.nativeElement as HTMLElement,
-      station: TestBed.inject(StationManager),
-    };
-  };
-
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
     document.documentElement.setAttribute('lang', 'fr');
@@ -126,8 +129,6 @@ describe('i18n', () => {
     await go('/en/about');
 
     expect(document.title).toBe('About · Pierre-Marie Marchio');
-    const href = (selector: string) =>
-      document.head.querySelector(selector)?.getAttribute('href');
     expect(href('link[rel="canonical"]')).toMatch(/\/en\/about$/);
     expect(href('link[hreflang="fr"]')).toMatch(/\/a-propos$/);
     expect(href('link[hreflang="x-default"]')).toMatch(/\/a-propos$/);
@@ -152,16 +153,19 @@ describe('i18n', () => {
     const french = /[àâçéèêëîïôûùœ]/i;
     const words = [
       host.textContent ?? '',
-      ...Array.from(host.querySelectorAll('[aria-label], [title]'))
-        .filter((element) => element.getAttribute('lang') !== 'fr')
-        .flatMap((element) => [
-          element.getAttribute('aria-label') ?? '',
-          element.getAttribute('title') ?? '',
-        ]),
+      ...[...host.querySelectorAll('[aria-label], [title]')].flatMap(
+        (element) =>
+          element.getAttribute('lang') === 'fr'
+            ? []
+            : [
+                element.getAttribute('aria-label') ?? '',
+                element.getAttribute('title') ?? '',
+              ],
+      ),
     ]
       .join(' ')
       .replace('Français', '');
-    expect(words.match(french)).toBeNull();
+    expect(french.exec(words)).toBeNull();
   });
 });
 

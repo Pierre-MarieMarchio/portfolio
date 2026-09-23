@@ -15,21 +15,21 @@ const TITLES: Record<Part, string> = {
   3: 'Parcours',
 };
 
+const mount = async (inputs: { pinned?: boolean; part?: Part } = {}) => {
+  TestBed.configureTestingModule({
+    imports: [AboutWindowComponent],
+    providers: [provideTexts(), provideRouter([])],
+  });
+
+  const fixture = TestBed.createComponent(AboutWindowComponent);
+  fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
+  fixture.componentRef.setInput('part', inputs.part ?? 0);
+  await fixture.whenStable();
+
+  return { fixture, host: fixture.nativeElement as HTMLElement };
+};
+
 describe('AboutWindowComponent', () => {
-  const mount = async (inputs: { pinned?: boolean; part?: Part } = {}) => {
-    TestBed.configureTestingModule({
-      imports: [AboutWindowComponent],
-      providers: [provideTexts(), provideRouter([])],
-    });
-
-    const fixture = TestBed.createComponent(AboutWindowComponent);
-    fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
-    fixture.componentRef.setInput('part', inputs.part ?? 0);
-    await fixture.whenStable();
-
-    return { fixture, host: fixture.nativeElement as HTMLElement };
-  };
-
   it('defaults to the first part and unpinned, with no input set', async () => {
     TestBed.configureTestingModule({
       imports: [AboutWindowComponent],
@@ -59,9 +59,9 @@ describe('AboutWindowComponent', () => {
   it('lists the toolbar segmented buttons, in order, pressed on the current part', async () => {
     const { host } = await mount({ part: 2 });
     const toolbar = host.querySelector(TOOLBAR);
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
 
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       'Profil',
@@ -88,9 +88,9 @@ describe('AboutWindowComponent', () => {
     );
 
     const toolbar = host.querySelector(TOOLBAR);
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
     buttons[2]?.click();
     await fixture.whenStable();
 
@@ -158,7 +158,7 @@ describe('AboutWindowComponent', () => {
     expect(text).toContain(
       'Je viens de l’archéologie. J’en ai gardé une habitude : ne rien affirmer sans preuve.',
     );
-    const terms = Array.from(host.querySelectorAll('dt')).map((dt) =>
+    const terms = [...host.querySelectorAll('dt')].map((dt) =>
       dt.textContent?.trim(),
     );
     expect(terms).toEqual(['Poste', 'Pile', 'Lieu', 'Écoute']);
@@ -257,9 +257,9 @@ describe('AboutWindowComponent', () => {
     const footer = host.querySelector('.footer');
     expect(footer?.textContent).toContain(TITLES[0]);
 
-    const next = Array.from(
-      footer?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    ).find((button) => button.textContent?.trim().startsWith('Suite'));
+    const next = [
+      ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ].find((button) => button.textContent?.trim().startsWith('Suite'));
     expect(next?.textContent?.trim()).toBe('Suite : Compétences →');
 
     next?.click();
@@ -277,9 +277,9 @@ describe('AboutWindowComponent', () => {
     const footer = host.querySelector('.footer');
     expect(footer?.textContent).toContain(TITLES[1]);
 
-    const next = Array.from(
-      footer?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    ).find((button) => button.textContent?.trim().startsWith('Suite'));
+    const next = [
+      ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ].find((button) => button.textContent?.trim().startsWith('Suite'));
     expect(next?.textContent?.trim()).toBe('Suite : Méthode →');
 
     next?.click();
@@ -297,9 +297,9 @@ describe('AboutWindowComponent', () => {
     const footer = host.querySelector('.footer');
     expect(footer?.textContent).toContain(TITLES[2]);
 
-    const next = Array.from(
-      footer?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    ).find((button) => button.textContent?.trim().startsWith('Suite'));
+    const next = [
+      ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ].find((button) => button.textContent?.trim().startsWith('Suite'));
     expect(next?.textContent?.trim()).toBe('Suite : Parcours →');
 
     next?.click();
@@ -312,7 +312,7 @@ describe('AboutWindowComponent', () => {
     const footer = host.querySelector('.footer');
 
     expect(footer?.textContent).toContain(TITLES[3]);
-    const next = Array.from(footer?.querySelectorAll('button') ?? []).find(
+    const next = [...(footer?.querySelectorAll('button') ?? [])].find(
       (button) => button.textContent?.trim().startsWith('Suite'),
     );
     expect(next).toBeUndefined();

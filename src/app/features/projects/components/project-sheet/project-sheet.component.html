@@ -23,76 +23,28 @@
           <p class="lede">{{ sheet.lede }}</p>
         }
       </header>
-      @if (chapter() === 0) {
-        @if (facts(); as facts) {
-          <dl class="identity">
-            <div>
-              <dt>{{ texts().sheet.terms.access }}</dt>
-              <dd class="data">{{ facts.proof }}</dd>
-            </div>
-            <div>
-              <dt>{{ texts().sheet.terms.role }}</dt>
-              <dd class="text">{{ facts.role }}</dd>
-            </div>
-            <div>
-              <dt>{{ texts().sheet.terms.stack }}</dt>
-              <dd class="data quiet">{{ facts.stack }}</dd>
-            </div>
-            <div>
-              <dt>{{ texts().sheet.terms.context }}</dt>
-              <dd class="text quiet">{{ facts.context }}</dd>
-            </div>
-          </dl>
-        }
+      @if (identity(); as facts) {
+        <dl class="identity">
+          <div>
+            <dt>{{ texts().sheet.terms.access }}</dt>
+            <dd class="data">{{ facts.proof }}</dd>
+          </div>
+          <div>
+            <dt>{{ texts().sheet.terms.role }}</dt>
+            <dd class="text">{{ facts.role }}</dd>
+          </div>
+          <div>
+            <dt>{{ texts().sheet.terms.stack }}</dt>
+            <dd class="data quiet">{{ facts.stack }}</dd>
+          </div>
+          <div>
+            <dt>{{ texts().sheet.terms.context }}</dt>
+            <dd class="text quiet">{{ facts.context }}</dd>
+          </div>
+        </dl>
       }
       @if (current(); as chapter) {
-        <section class="chapter">
-          <p class="chapter-title">
-            {{ chapter.number }} · {{ chapter.heading }}
-          </p>
-          @for (paragraph of chapter.paragraphs; track $index) {
-            <p>{{ paragraph }}</p>
-          }
-          @if (chapter.bullets; as bullets) {
-            <ul class="bullets">
-              @for (bullet of bullets; track bullet.term) {
-                <li>
-                  <span class="term">{{ bullet.term }}</span
-                  ><span class="quiet"> — {{ bullet.text }}</span>
-                </li>
-              }
-            </ul>
-          }
-          @if (chapter.figure; as figure) {
-            <figure>
-              @switch (figure.kind) {
-                @case ('flow') {
-                  <div class="flow">
-                    @for (step of figure.steps; track $index) {
-                      @if (!$first) {
-                        <span class="arrow" aria-hidden="true">→</span>
-                      }
-                      <span class="box">{{ step }}</span>
-                    }
-                    <span class="arrow" aria-hidden="true">↻</span>
-                    <span class="quiet data">{{ figure.loop }}</span>
-                  </div>
-                }
-                @case ('layers') {
-                  <div class="layers">
-                    @for (layer of figure.layers; track layer.name) {
-                      <div class="layer">
-                        <span class="layer-name">{{ layer.name }}</span>
-                        <span class="layer-projects">{{ layer.projects }}</span>
-                      </div>
-                    }
-                  </div>
-                }
-              }
-              <figcaption>{{ figure.caption }}</figcaption>
-            </figure>
-          }
-        </section>
+        <app-project-chapter [chapter]="chapter" />
       }
       @if (sheet.links.length > 0) {
         <p class="links">
@@ -110,8 +62,7 @@
         <button type="button" class="next" (click)="advance()">
           {{ label }}
         </button>
-      }
-      @if (nextProject(); as next) {
+      } @else if (nextProject(); as next) {
         <a class="next" [routerLink]="links.sheet(next.slug)">{{
           next.label
         }}</a>

@@ -9,6 +9,10 @@ import { ProjectEntry, SheetSource } from '@app/features/projects/models';
 import { FEATURED_COUNT } from '@app/features/projects/states';
 import { ProjectIndexComponent } from './project-index.component';
 
+const rows = (host: HTMLElement) => [
+  ...host.querySelectorAll<HTMLButtonElement>('button.row'),
+];
+
 describe('ProjectIndexComponent', () => {
   // Two professional, three personal, each with distinct facts so a row can
   // be told from another by its own text.
@@ -68,9 +72,6 @@ describe('ProjectIndexComponent', () => {
     return { fixture, manager, host: fixture.nativeElement as HTMLElement };
   };
 
-  const rows = (host: HTMLElement) =>
-    Array.from(host.querySelectorAll<HTMLButtonElement>('button.row'));
-
   it('opens a window titled and labelled for the index', async () => {
     const { host } = await mount();
     const window = host.querySelector('.window');
@@ -96,10 +97,12 @@ describe('ProjectIndexComponent', () => {
   it('lists the three family choices with their counts, in order', async () => {
     const { host } = await mount({ family: 'personal' });
     const toolbar = host.querySelector('[aria-label="Familles de projets"]');
-    const buttons = Array.from(toolbar?.querySelectorAll('button') ?? []);
+    const buttons = [...(toolbar?.querySelectorAll('button') ?? [])];
 
     expect(
-      buttons.map((button) => button.textContent?.replace(/\s+/g, '').trim()),
+      buttons.map((button) =>
+        button.textContent?.replaceAll(/\s+/g, '').trim(),
+      ),
     ).toEqual(['Tout05', 'Enentreprise02', 'Personnels03']);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
       'Voir tous les projets',
@@ -120,9 +123,9 @@ describe('ProjectIndexComponent', () => {
     );
 
     const toolbar = host.querySelector('[aria-label="Familles de projets"]');
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
     buttons[1]?.click();
     await fixture.whenStable();
 

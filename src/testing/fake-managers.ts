@@ -80,13 +80,13 @@ export const sampleEntry = (
 export const sampleRanked = (
   entry: ProjectEntry,
   rank: number,
-  featured = true,
+  isFeatured = true,
 ): RankedProject => ({
   ...resolve(entry.project, 'fr'),
   facts: resolve(entry.facts, 'fr'),
   rank,
   number: String(rank + 1).padStart(2, '0'),
-  featured,
+  featured: isFeatured,
 });
 
 /** The catalog the repository answers for these entries. */

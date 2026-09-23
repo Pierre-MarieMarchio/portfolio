@@ -50,14 +50,18 @@ export class StationEffect {
       preview: this.state.preview(),
     });
     switch (step?.kind) {
-      case 'deselect':
+      case 'deselect': {
         return stationSelected(null);
-      case 'close-preview':
+      }
+      case 'close-preview': {
         return stationPreviewClosed();
-      case 'navigate':
+      }
+      case 'navigate': {
         return this.go(step.to);
-      case undefined:
-        return undefined;
+      }
+      case undefined: {
+        return;
+      }
     }
   }
 
@@ -75,11 +79,14 @@ function windowOf(view: string): StationWindow | null {
   switch (view) {
     case 'index':
     case 'about':
-    case 'sheet':
+    case 'sheet': {
       return view;
-    case 'not-found':
+    }
+    case 'not-found': {
       return 'sheet';
-    default:
+    }
+    default: {
       return null;
+    }
   }
 }

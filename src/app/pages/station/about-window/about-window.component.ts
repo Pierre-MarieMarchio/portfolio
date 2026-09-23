@@ -103,11 +103,11 @@ export class AboutWindowComponent {
 
   constructor() {
     // A new part starts at its top; the first run is the arrival.
-    let first = true;
+    let isFirst = true;
     effect(() => {
       this.part();
-      if (first) {
-        first = false;
+      if (isFirst) {
+        isFirst = false;
         return;
       }
       untracked(() => this.window()?.scrollBodyTo(0));

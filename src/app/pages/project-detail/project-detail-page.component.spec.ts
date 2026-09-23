@@ -4,28 +4,28 @@ import { provideStatewise } from 'ngx-statewise';
 import { StationManager } from '@app/features/station/states';
 import { ProjectDetailPageComponent } from './project-detail-page.component';
 
+const mount = async (slug: string) => {
+  TestBed.configureTestingModule({
+    imports: [ProjectDetailPageComponent],
+    providers: [
+      provideStatewise(),
+      {
+        provide: ActivatedRoute,
+        useValue: { snapshot: { paramMap: convertToParamMap({ slug }) } },
+      },
+    ],
+  });
+
+  const fixture = TestBed.createComponent(ProjectDetailPageComponent);
+  const station = TestBed.inject(StationManager);
+  const declared = { view: station.view(), slug: station.slug() };
+  fixture.componentRef.setInput('slug', slug);
+  await fixture.whenStable();
+
+  return { fixture, station, declared };
+};
+
 describe('ProjectDetailPageComponent', () => {
-  const mount = async (slug: string) => {
-    TestBed.configureTestingModule({
-      imports: [ProjectDetailPageComponent],
-      providers: [
-        provideStatewise(),
-        {
-          provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: convertToParamMap({ slug }) } },
-        },
-      ],
-    });
-
-    const fixture = TestBed.createComponent(ProjectDetailPageComponent);
-    const station = TestBed.inject(StationManager);
-    const declared = { view: station.view(), slug: station.slug() };
-    fixture.componentRef.setInput('slug', slug);
-    await fixture.whenStable();
-
-    return { fixture, station, declared };
-  };
-
   /** Before any render: the station's first check already sees the sheet. */
   it('declares the sheet to the station as soon as it is created', async () => {
     const { declared } = await mount('ngx-statewise');

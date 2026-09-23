@@ -15,8 +15,8 @@ import { Arrival } from '@shared/ui/arrival';
 export class ArrivalController {
   private readonly browser = inject(BrowserEnvironment);
   private readonly state = signal<Arrival>('timed');
-  private cancel: () => void = () => undefined;
-  private onArrived: () => void = () => undefined;
+  private cancel: () => void = () => {};
+  private onArrived: () => void = () => {};
 
   /** `timed` in the prerender, where the CSS alone brings the rest in. */
   public readonly arrival = this.state.asReadonly();
@@ -33,9 +33,9 @@ export class ArrivalController {
    * only the landing crossing is waited for, as in the mockup. `onArrived`
    * runs when a held rest is let in, never when it was shown at once.
    */
-  public start(onHome: boolean, onArrived: () => void): void {
+  public start(isOnHome: boolean, onArrived: () => void): void {
     const crossing = this.browser.rootDuration('--arrival-at');
-    if (!onHome || this.browser.prefersReducedMotion() || crossing === null) {
+    if (!isOnHome || this.browser.prefersReducedMotion() || crossing === null) {
       this.state.set('shown');
       return;
     }
@@ -52,7 +52,7 @@ export class ArrivalController {
       return;
     }
     this.cancel();
-    this.cancel = () => undefined;
+    this.cancel = () => {};
     this.state.set('shown');
     this.onArrived();
   }

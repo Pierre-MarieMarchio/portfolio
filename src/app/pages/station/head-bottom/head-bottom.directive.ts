@@ -28,7 +28,7 @@ export class HeadBottomDirective {
   constructor() {
     const browser = inject(BrowserEnvironment);
     const scene = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
-    let stop: () => void = () => undefined;
+    let stop: (() => void) | undefined;
     afterNextRender(() => {
       const head = this.bar().nativeElement;
       const measure = (): void => {
@@ -44,7 +44,7 @@ export class HeadBottomDirective {
       stop = browser.observeResize(head, measure);
     });
     inject(DestroyRef).onDestroy(() => {
-      stop();
+      stop?.();
     });
   }
 }

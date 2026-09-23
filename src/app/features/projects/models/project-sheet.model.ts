@@ -1,4 +1,4 @@
-import { Resolved, Text } from '@app/core/i18n';
+import { Resolved, Text } from '@app/core/rules';
 
 /*
  * A sheet as its project's file writes it (`…Source`, every text a `Text`,

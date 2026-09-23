@@ -1,4 +1,4 @@
-import { clamp } from '../scene-math.rules';
+import { clamp } from '@app/core/helpers';
 
 /*
  * Where the planets' names go, in CSS pixels of the stage. Pure: the engine

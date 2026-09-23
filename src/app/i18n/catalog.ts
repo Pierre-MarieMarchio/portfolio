@@ -1,7 +1,7 @@
 import { InjectionToken, Signal } from '@angular/core';
 import { ProjectsTexts } from '@app/features/projects/i18n';
 import { DesktopTexts } from '@app/features/desktop/ports';
-import { SharedTexts } from '@shared/ui/texts';
+import { SharedTexts } from '@shared/ui/ports';
 
 /** What a view says about itself in the head: its title and description. */
 export interface ViewHead {

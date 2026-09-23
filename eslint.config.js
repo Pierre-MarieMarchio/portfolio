@@ -338,7 +338,7 @@ export default defineConfig(
     files: [`${APP}/**/*.ts`],
     ignores: [
       `${APP}/**/*.spec.ts`,
-      `${APP}/core/services/browser-environment.service.ts`,
+      `${APP}/core/services/browser/browser-environment.service.ts`,
     ],
     rules: {
       'no-restricted-globals': [

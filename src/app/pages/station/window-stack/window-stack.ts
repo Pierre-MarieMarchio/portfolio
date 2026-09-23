@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
+import { BrowserEnvironmentService } from '@app/core/services';
 
 /** The four places a window is shown in. */
 export type WindowSlot = 'about' | 'index' | 'sheet' | 'preview';
@@ -29,7 +29,7 @@ export class WindowStack {
   private readonly order = signal<readonly WindowSlot[] | null>(null);
 
   constructor() {
-    const stop = inject(BrowserEnvironment).listen(
+    const stop = inject(BrowserEnvironmentService).listen(
       'pointerdown',
       (event) => {
         const slot =

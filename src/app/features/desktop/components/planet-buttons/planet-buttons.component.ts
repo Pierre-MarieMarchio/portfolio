@@ -8,8 +8,8 @@ import {
   output,
   viewChildren,
 } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
-import { twoDigits } from '@app/core/utils/format.utils';
+import { BrowserEnvironmentService } from '@app/core/services';
+import { twoDigits } from '@app/core/helpers';
 import { DESKTOP_TEXTS } from '../../ports';
 import { SceneBody, SceneView } from '../../models/scene.model';
 
@@ -20,7 +20,7 @@ import { SceneBody, SceneView } from '../../models/scene.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlanetButtonsComponent {
-  private readonly browser = inject(BrowserEnvironment);
+  private readonly browser = inject(BrowserEnvironmentService);
   private readonly texts = inject(DESKTOP_TEXTS);
 
   public readonly bodies = input<readonly SceneBody[]>([]);

@@ -1,4 +1,5 @@
-import { Lang, langOfUrl, Localized } from '@app/core/i18n';
+import { Lang, langOfUrl } from '@app/core/models';
+import { Localized } from '@app/core/rules';
 
 /** The views that have an address of their own. */
 export type AddressedView = 'home' | 'index' | 'about' | 'sheet';

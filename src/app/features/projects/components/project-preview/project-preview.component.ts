@@ -7,8 +7,9 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
-import { WindowComponent } from '@shared/ui/window';
+import { SegmentedComponent } from '@shared/ui/components';
+import { SegmentedItem } from '@shared/ui/models';
+import { WindowComponent } from '@shared/ui/components';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../i18n';

@@ -1,4 +1,4 @@
-import { clamp } from '../scene-math.rules';
+import { clamp } from '@app/core/helpers';
 import type { EngineInputs } from '../../../engine/space-scene.engine';
 
 export interface PlanetFocus {

@@ -7,15 +7,16 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { twoDigits } from '@app/core/utils/format.utils';
-import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
-import { WindowComponent } from '@shared/ui/window';
+import { twoDigits } from '@app/core/helpers';
+import { SegmentedComponent } from '@shared/ui/components';
+import { SegmentedItem } from '@shared/ui/models';
+import { WindowComponent } from '@shared/ui/components';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../i18n';
 import { positionOf, rowLabel } from '../project-labels';
-import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+import { ViewHeadingDirective } from '@shared/ui/directives';
 
 /** Which family the index shows; `all` is no filter. */
 export type FamilyFilter = ProjectFamily | 'all';
@@ -34,7 +35,7 @@ const FAMILIES: readonly FamilyFilter[] = ['all', 'professional', 'personal'];
 @Component({
   selector: 'app-project-index',
   imports: [
-    LandingHeadingDirective,
+    ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,
     WindowComponent,

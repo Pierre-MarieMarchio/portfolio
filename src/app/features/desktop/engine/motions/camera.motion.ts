@@ -12,7 +12,7 @@ import {
   finiteOr,
   halfLifeStep,
   onCurrentTurn,
-} from '../../rules/scene/scene-math.rules';
+} from '@app/core/helpers';
 import type { EngineInputs } from '../space-scene.engine';
 import {
   flattening,

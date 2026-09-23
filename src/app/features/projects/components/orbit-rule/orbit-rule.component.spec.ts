@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectRegistry } from '@shared/ui/object-marks';
+import { LayoutAnchorsService } from '@shared/ui/services';
 import { provideRouter } from '@angular/router';
 import { sampleEntry, sampleRanked } from '@testing/fake-managers';
 import { RankedProject } from '../../models';
@@ -95,7 +95,9 @@ describe('OrbitRuleComponent', () => {
   it('hands every marker to the object as a line, so each rises with its planet', async () => {
     const { host } = await mount({ bodies });
 
-    expect(TestBed.inject(ObjectRegistry).lines()).toEqual(markerButtons(host));
+    expect(TestBed.inject(LayoutAnchorsService).lines()).toEqual(
+      markerButtons(host),
+    );
   });
 
   it('spreads the markers evenly along the belt, from 2% to 58%', async () => {

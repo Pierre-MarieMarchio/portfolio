@@ -1,4 +1,4 @@
-import { twoDigits } from '@app/core/utils/format.utils';
+import { twoDigits } from '@app/core/helpers';
 import { RankedProject } from '../models';
 
 /**

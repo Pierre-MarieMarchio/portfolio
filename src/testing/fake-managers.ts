@@ -2,7 +2,7 @@ import { EnvironmentProviders, Provider, Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { Observable, of } from 'rxjs';
-import { resolve } from '@app/core/i18n';
+import { localize } from '@app/core/rules';
 import {
   FactsSource,
   ProjectCatalog,
@@ -82,8 +82,8 @@ export const sampleRanked = (
   rank: number,
   isFeatured = true,
 ): RankedProject => ({
-  ...resolve(entry.project, 'fr'),
-  facts: resolve(entry.facts, 'fr'),
+  ...localize(entry.project, 'fr'),
+  facts: localize(entry.facts, 'fr'),
   rank,
   number: String(rank + 1).padStart(2, '0'),
   featured: isFeatured,

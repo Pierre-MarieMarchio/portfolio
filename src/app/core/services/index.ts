@@ -1,4 +1,9 @@
-export { BrowserEnvironment } from './browser-environment.service';
-export { PageHead, SITE_NAME, SITE_URL } from './page-head.service';
-export type { PageHeadContent } from './page-head.service';
-export { PageTitleStrategy } from './page-title.strategy';
+export { BrowserEnvironmentService } from './browser/browser-environment.service';
+export { ConsoleErrorHandlerService } from './errors/console-error-handler.service';
+export {
+  DocumentHeadService,
+  SITE_NAME,
+  SITE_URL,
+} from './head/document-head.service';
+export type { HeadContent } from './head/document-head.service';
+export { LocaleService } from './i18n/locale.service';

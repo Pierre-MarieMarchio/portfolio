@@ -1,4 +1,4 @@
-import { draftsLeft } from '@app/core/i18n';
+import { draftsLeft } from '@app/core/rules';
 import { PROJECTS } from '@app/features/projects/data';
 import { EN } from '@app/i18n/en';
 

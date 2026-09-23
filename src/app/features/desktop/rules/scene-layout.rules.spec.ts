@@ -1,8 +1,8 @@
-import { ObjectPanelRole } from '@shared/ui/object-marks';
+import { PanelRole } from '@shared/ui/services';
 import { PanelAnchor, sceneLayout } from './scene-layout.rules';
 
 const anchor = (
-  role: ObjectPanelRole,
+  role: PanelRole,
   rect: { left: number; top: number; width: number; height: number },
   opacity = '1',
 ): PanelAnchor => ({

@@ -10,7 +10,7 @@ import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED, FEATURED_COUNT } from '@app/features/projects/states';
 import { SpaceSceneComponent } from '@app/features/desktop/components';
 import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
-import { StationComponent } from '@app/pages/station/station.component';
+import { DesktopPageComponent } from '@app/pages/desktop/desktop-page.component';
 
 const entries = (count: number): ProjectEntry[] =>
   Array.from({ length: count }, (_, index) =>
@@ -31,7 +31,7 @@ const mount = async (featured: number, total: number) => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   document.documentElement.style.setProperty('--arrival-at', '8700ms');
   TestBed.configureTestingModule({
-    imports: [StationComponent],
+    imports: [DesktopPageComponent],
     providers: [
       provideRouter([{ path: '**', children: [] }]),
       provideProjects(entries(total), [DesktopEffect]),
@@ -39,7 +39,7 @@ const mount = async (featured: number, total: number) => {
     ],
   });
   await loadProjects();
-  const fixture = TestBed.createComponent(StationComponent);
+  const fixture = TestBed.createComponent(DesktopPageComponent);
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   const object = fixture.debugElement.query(

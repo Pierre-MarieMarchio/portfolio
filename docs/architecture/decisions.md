@@ -486,3 +486,33 @@ unités qui le portent maintenant :
   le place par `transform`.
 
 **Raison.** D10 : le pourquoi quitte le code, pas le dépôt.
+
+## 2026-09-23 — L'arborescence est en place, avec quatre unités de passage (D19)
+
+**Décision.** À la fin de l'étape 3, chaque fichier a son suffixe et son
+dossier de rôle, et `check-structure.mjs` tourne en `--strict` dans
+`npm run check`. Les textes suivent les composants qui les lisent :
+`DesktopTexts` reçoit `home` et `notFound`, une tranche `ProfileTexts`
+(`features/profile/ports`) reçoit `about` et `contact`, et le catalogue a les
+clés `desktop` et `profile`. Quatre unités restent telles quelles jusqu'à
+l'étape qui les découpe :
+
+- `pages/providers/desktop-projects.provider.ts` (`DesktopProjectsBinding`)
+  joint le bureau et les projets. Elle devient des `computed` de la page à
+  l'étape 4.
+- `pages/desktop/project-detail-route.component.ts` et
+  `desktop-route.component.ts` sont les deux feuilles de route. Elles
+  fusionnent à l'étape 5.
+- `features/desktop/services/window-stack.service.ts` et
+  `directives/window-slot.directive.ts` connaissent encore les fenêtres du
+  bureau. Elles passent dans `shared/ui`, génériques, à l'étape 4.
+- `BrowserEnvironmentService` est rangé dans `core/services/browser/`, mais
+  son découpage est celui de l'étape 4.
+
+`check-prerender.mjs` refuse aussi une absence qu'aucun composant ne
+pourrait produire : chaque élément qu'une page ne doit pas contenir doit être
+le sélecteur d'un composant du dépôt. Sans cela, un sélecteur renommé rend le
+contrôle vide sans qu'il échoue.
+
+**Raison.** L'étape 3 déplace et renomme sans changer de comportement ; ce
+qui demande un nouveau contrat attend l'étape dont c'est l'objet.

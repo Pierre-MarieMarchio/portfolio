@@ -1,6 +1,7 @@
 import { InjectionToken, Signal } from '@angular/core';
 import { ProjectsTexts } from '@app/features/projects/ports';
 import { DesktopTexts } from '@app/features/desktop/ports';
+import { ProfileTexts } from '@app/features/profile/ports';
 import { SharedTexts } from '@shared/ui/ports';
 
 /** What a view says about itself in the head: its title and description. */
@@ -31,71 +32,6 @@ export interface PagesTexts {
   };
   /** The languages, each named in itself, as the page bar offers them. */
   readonly languages: Readonly<Record<'fr' | 'en', string>>;
-  readonly contact: {
-    readonly email: string;
-    readonly linkedin: string;
-    readonly github: string;
-  };
-  readonly station: {
-    readonly void: string;
-    readonly name: string;
-    readonly trade: string;
-    readonly brand: string;
-  };
-  readonly notFound: {
-    readonly heading: string;
-    readonly label: string;
-    readonly title: string;
-    readonly sentence: (count: string) => string;
-    readonly back: string;
-  };
-  readonly about: {
-    readonly heading: string;
-    readonly label: string;
-    readonly parts: string;
-    /** The h1, which names the part on show. */
-    readonly title: (part: string) => string;
-    readonly goTo: (part: string) => string;
-    readonly next: (part: string) => string;
-    readonly back: string;
-    readonly profile: {
-      readonly label: string;
-      readonly title: string;
-      readonly lead: string;
-      readonly facts: readonly {
-        readonly term: string;
-        readonly value: string;
-        readonly tone: 'text' | 'data' | 'quiet';
-      }[];
-      readonly prose: readonly string[];
-    };
-    readonly skills: {
-      readonly label: string;
-      readonly title: string;
-      readonly heading: string;
-      readonly domains: readonly {
-        readonly label: string;
-        readonly value: string;
-      }[];
-      readonly prose: string;
-    };
-    readonly method: {
-      readonly label: string;
-      readonly title: string;
-      readonly heading: string;
-      readonly steps: readonly string[];
-    };
-    readonly path: {
-      readonly label: string;
-      readonly title: string;
-      readonly heading: string;
-      readonly missing: string;
-      readonly milestones: readonly {
-        readonly year: string;
-        readonly fact: string;
-      }[];
-    };
-  };
 }
 
 /**
@@ -106,7 +42,8 @@ export interface PagesTexts {
 export interface Catalog {
   readonly shared: SharedTexts;
   readonly projects: ProjectsTexts;
-  readonly station: DesktopTexts;
+  readonly desktop: DesktopTexts;
+  readonly profile: ProfileTexts;
   readonly pages: PagesTexts;
 }
 

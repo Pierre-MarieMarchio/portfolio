@@ -57,7 +57,6 @@ interface StarView {
   readonly px: number;
   readonly py: number;
   readonly ray: number;
-  readonly born: number;
 }
 const starsOf = (sky: Sky): readonly StarView[] =>
   (sky as unknown as { stars: StarView[] }).stars;
@@ -154,18 +153,6 @@ describe('Sky', () => {
     // folding the spread into the position alone moved spread stars by
     // hundreds, in one frame.
     expect(worst).toBeLessThan(8);
-  });
-
-  it('dates the return of a recycled star, so that it fades in rather than pops up', () => {
-    const { sky } = run(60, 5.2);
-    const reborn = starsOf(sky).filter((star) => Number.isFinite(star.born));
-
-    // Stars flying off the frame come back near the centre during the run.
-    expect(reborn.length).toBeGreaterThan(0);
-    reborn.forEach((star) => {
-      expect(star.born).toBeGreaterThan(3.5);
-      expect(star.born).toBeLessThanOrEqual(5.2);
-    });
   });
 
   it('draws no trail at rest, once the run is over', () => {

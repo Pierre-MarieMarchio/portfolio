@@ -2,10 +2,11 @@ import { EngineInputs, ObjectEngine } from './object-engine';
 import { Turntable } from './turntable';
 import { opening } from './scene';
 
+const callable = (): undefined => undefined;
+
 /** A 2D context that accepts every call: the drawing is not under test. */
 const fakeContext = (): CanvasRenderingContext2D => {
-  const target = (): undefined => undefined;
-  const proxy: unknown = new Proxy(target, {
+  const proxy: unknown = new Proxy(callable, {
     get: () => proxy,
     set: () => true,
     apply: () => proxy,
@@ -17,8 +18,8 @@ const fakeContext = (): CanvasRenderingContext2D => {
 const seeded = (seed: number): (() => number) => {
   let state = seed;
   return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
+    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return state / 4_294_967_296;
   };
 };
 
@@ -45,7 +46,7 @@ interface HandView {
   readonly disk: {
     cx: number;
     cy: number;
-    R: number;
+    radius: number;
     cr: number;
     sr: number;
     squash: number;
@@ -70,8 +71,7 @@ const mount = () => {
       now: () => clock,
       hidden: () => false,
     },
-    fakeContext(),
-    null,
+    { matter: fakeContext(), sky: null },
     {
       rnd: seeded(9),
       density: 200,
@@ -113,8 +113,8 @@ const mount = () => {
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius * disk.squash;
     return {
-      x: disk.cx + (x * disk.cr - y * disk.sr) * disk.R,
-      y: disk.cy + (x * disk.sr + y * disk.cr) * disk.R,
+      x: disk.cx + (x * disk.cr - y * disk.sr) * disk.radius,
+      y: disk.cy + (x * disk.sr + y * disk.cr) * disk.radius,
     };
   };
   /** Drags along the disk from one angle to another, in `ms`. */
@@ -269,8 +269,8 @@ describe('ObjectEngine, turned by hand', () => {
     // Kepler: the closer in, the more it turned.
     const byRadius = [...orbits].sort((a, b) => a.rb - b.rb);
     const shares = byRadius.map((orbit) => turns[orbit.i] ?? 0);
-    shares.slice(1).forEach((share, k) => {
+    for (const [k, share] of shares.slice(1).entries()) {
       expect(share).toBeLessThan(shares[k] ?? 0);
-    });
+    }
   });
 });

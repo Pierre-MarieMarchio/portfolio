@@ -1,0 +1,43 @@
+@if (project(); as project) {
+  <app-window
+    label="Fenêtre : aperçu du projet"
+    size="m"
+    anchor="bottom"
+    [title]="project.title"
+    [margin]="88"
+    [meta]="meta()"
+    [pinned]="pinned()"
+    (pinToggled)="pinToggled.emit()"
+    (closed)="closed.emit()"
+  >
+    <app-segmented
+      toolbar
+      label="Corps en orbite"
+      [items]="bodies()"
+      (selected)="choose($event)"
+    />
+    <div body>
+      <p class="summary">{{ project.summary }}</p>
+      <dl>
+        <div>
+          <dt>Preuve</dt>
+          <dd class="data">{{ project.facts.proof }}</dd>
+        </div>
+        <div>
+          <dt>Rôle</dt>
+          <dd class="text">{{ project.facts.role }}</dd>
+        </div>
+        <div>
+          <dt>Pile</dt>
+          <dd class="data quiet">{{ project.facts.stack }}</dd>
+        </div>
+      </dl>
+    </div>
+    <ng-container footer>
+      <p class="tag">{{ project.tag }}</p>
+      <a class="to-sheet" [routerLink]="['/projet', project.slug]"
+        >Ouvrir la fiche →</a
+      >
+    </ng-container>
+  </app-window>
+}

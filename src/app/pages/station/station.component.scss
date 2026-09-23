@@ -82,6 +82,14 @@ h1 {
   width: min(78ch, max(56vw, 320px));
 }
 
+.slot--preview {
+  top: auto;
+  bottom: clamp(76px, 10vh, 88px);
+  z-index: calc(var(--z-window) + 2);
+  width: min(46ch, 80vw);
+  justify-content: flex-end;
+}
+
 .slot--sheet {
   top: clamp(96px, 13vh, 120px);
   z-index: calc(var(--z-window) + 1);

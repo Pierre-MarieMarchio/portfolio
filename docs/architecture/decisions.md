@@ -547,3 +547,20 @@ des deux lisible sans l'autre. La fenêtre est un système complet, qui n'a rien
 
 **Écarté.** Sortir aussi la mécanique i18n : elle est soudée au type
 `Catalog` de l'application, et aucun second utilisateur ne la demande.
+
+## 2026-09-24 — Les raisons du code ont leur dossier, et un garde-fou tient D10 (D21)
+
+**Décision.** Le pourquoi qu'un commentaire portait va dans
+`docs/architecture/raisons/`, un fichier par groupe de zones
+(`space-scene.md`, `core-et-interface.md`, `bureau-et-pages.md`,
+`projets-et-textes.md`), avec une section par unité. Une paraphrase
+disparaît au profit d'un nom. `scripts/check-comments.mjs` refuse tout
+commentaire dans `src/`, sauf le `@ts-expect-error` d'un spec avec sa raison
+(D17). Il lit chaque fichier TypeScript avec le parseur du compilateur : un
+`//` dans une chaîne ou une regex n'est pas un commentaire.
+
+**Raison.** D10 se vérifie par un script. Une règle écrite sans script
+s'érode ; avec un script, c'est un garde-fou.
+
+**Écarté.** Garder les raisons dans ce journal : elles portent sur une ligne
+de code, pas sur une décision, et il en compte plus de deux cents.

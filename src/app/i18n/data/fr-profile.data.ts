@@ -131,5 +131,6 @@ export const FR_PROFILE: ProfileTexts = {
     email: 'M’écrire à pierremariemarchio.pro@gmail.com',
     linkedin: 'Profil LinkedIn de Pierre-Marie Marchio',
     github: 'Dépôts GitHub de Pierre-Marie Marchio',
+    cv: 'Ouvrir mon CV en PDF',
   },
 };

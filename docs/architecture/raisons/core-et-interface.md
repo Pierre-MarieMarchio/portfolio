@@ -139,8 +139,9 @@ nomme l'unité qu'elle concerne.
 
 - Material Design Icons (Pictogrammers, Apache 2.0), sur leur grille de 24 :
   le jeu communautaire dessiné sur la grille de Material, qui a les marques
-  que les Material Symbols de Google omettent. Les trois viennent du même jeu
-  pour partager une graisse : `email-outline`, `linkedin`, `github`.
+  que les Material Symbols de Google omettent. Les quatre viennent du même jeu
+  pour partager une graisse : `email-outline`, `linkedin`, `github`,
+  `file-document-outline` (le CV).
 
 ## `src/app/shared/ui/models/entrance.model.ts`
 

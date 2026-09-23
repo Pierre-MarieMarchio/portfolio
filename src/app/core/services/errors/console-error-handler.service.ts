@@ -1,4 +1,4 @@
-import { ErrorHandler, Injectable } from '@angular/core';
+import { ErrorHandler, Service } from '@angular/core';
 
 /**
  * The one channel every failure reaches: Angular's own, and ngx-statewise's
@@ -11,7 +11,7 @@ import { ErrorHandler, Injectable } from '@angular/core';
  * because no view ever rendered it. The day one does, the state comes back
  * behind this class, and nothing that reports has to change.
  */
-@Injectable()
+@Service({ autoProvided: false })
 export class ConsoleErrorHandlerService implements ErrorHandler {
   public handleError(error: unknown): void {
     console.error(error);

@@ -1,4 +1,4 @@
-import { ErrorHandler, Injectable, signal } from '@angular/core';
+import { ErrorHandler, Service, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
   createEffect,
@@ -12,7 +12,7 @@ import { ConsoleErrorHandlerService } from './console-error-handler.service';
 
 const promised = defineSingleAction('PROMISED', emptyPayload);
 
-@Injectable({ providedIn: 'root' })
+@Service()
 class PromisedState {
   public readonly count = signal(0);
 }
@@ -26,7 +26,7 @@ const promisedUpdater = defineUpdater(PromisedState, (on) => {
 const giveNoAnswer = (): void => {};
 
 /** An effect that promised an answer and gives none. */
-@Injectable({ providedIn: 'root' })
+@Service()
 class SilentEffect {
   public readonly promisedEffect = createEffect(promised, giveNoAnswer, {
     mustAnswer: true,

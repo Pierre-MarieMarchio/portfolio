@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, inject, Service, signal } from '@angular/core';
 import { DocumentStylesService, UserPresenceService } from '@app/core/services';
 import { Entrance } from '@shared/ui/models';
 
@@ -11,7 +11,7 @@ import { Entrance } from '@shared/ui/models';
  *
  * Provided by the station: one per station, gone with it.
  */
-@Injectable()
+@Service({ autoProvided: false })
 export class HomeRevealService {
   private readonly styles = inject(DocumentStylesService);
   private readonly presence = inject(UserPresenceService);

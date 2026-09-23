@@ -317,7 +317,6 @@ export default defineConfig(
       'max-params': ['error', 4],
       '@typescript-eslint/prefer-readonly': 'error',
       '@typescript-eslint/naming-convention': ['error', ...NAMES],
-      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@angular-eslint/prefer-output-readonly': 'error',
       '@angular-eslint/prefer-signals': 'error',
       ...Object.fromEntries(

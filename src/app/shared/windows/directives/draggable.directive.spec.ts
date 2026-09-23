@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DraggableDirective } from './draggable.directive';
 
@@ -64,7 +64,6 @@ const pointer = (
       <p>{{ renders() }}</p>
     </section>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class Host {
   public readonly useOther = signal(false);

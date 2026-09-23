@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { Router } from '@angular/router';
 import { createEffect } from 'ngx-statewise';
 import { LINKS } from '@app/features/common';
@@ -18,7 +18,7 @@ import {
   windowOf,
 } from '../../rules/view.rules';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DesktopEffect {
   private readonly router = inject(Router);
   private readonly state = inject(DesktopState);

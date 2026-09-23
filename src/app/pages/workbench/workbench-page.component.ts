@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  signal,
-} from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
@@ -35,7 +30,6 @@ const SIZES: Readonly<Record<Scenario, WindowSize>> = {
   imports: [WindowComponent, SegmentedComponent],
   templateUrl: './workbench-page.component.html',
   styleUrl: './workbench-page.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'page' },
 })
 export class WorkbenchPageComponent {

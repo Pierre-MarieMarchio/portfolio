@@ -1,6 +1,5 @@
 import {
   afterNextRender,
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   inject,
@@ -20,7 +19,6 @@ import { DESKTOP_TEXTS } from '../../ports/desktop-texts.port';
   selector: 'app-intro-card',
   templateUrl: './intro-card.component.html',
   styleUrl: './intro-card.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IntroCardComponent {
   protected readonly gone = signal(false);

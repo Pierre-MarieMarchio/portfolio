@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 import { DetailSource, FactsSource, ProjectSource } from '../../models';
 
 /**
@@ -7,7 +7,7 @@ import { DetailSource, FactsSource, ProjectSource } from '../../models';
  * ones, a project, its facts or its detail by slug, the counts per family are
  * all computed by the manager from these.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ProjectsState {
   public readonly projects = signal<readonly ProjectSource[]>([]);
   public readonly facts = signal<Readonly<Record<string, FactsSource>>>({});

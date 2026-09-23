@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -22,7 +21,6 @@ import { WINDOW_TEXTS } from '../../ports/window-texts.port';
   imports: [DraggableDirective, FitHeightDirective, RememberScrollDirective],
   templateUrl: './window.component.html',
   styleUrl: './window.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WindowComponent {
   protected readonly texts = inject(WINDOW_TEXTS);

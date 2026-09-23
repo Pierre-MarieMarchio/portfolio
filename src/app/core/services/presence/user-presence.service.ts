@@ -1,12 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { inject, PLATFORM_ID, Service } from '@angular/core';
 import { BrowserWindowService } from '../browser/browser-window.service';
 import { ClockService } from '../browser/clock.service';
 import { MediaPreferencesService } from '../browser/media-preferences.service';
 
 const GESTURES = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class UserPresenceService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly browserWindow = inject(BrowserWindowService);

@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, InjectionToken } from '@angular/core';
+import { computed, inject, InjectionToken, Service } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
 import { Lang } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
@@ -19,7 +19,7 @@ export const FEATURED = new InjectionToken<number>('FEATURED', {
   factory: () => 4,
 });
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ProjectsManager {
   private readonly state = inject(ProjectsState);
   private readonly statewise = injectStatewise(projectsUpdater);

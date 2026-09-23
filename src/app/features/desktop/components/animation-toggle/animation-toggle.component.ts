@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-} from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { DESKTOP_TEXTS } from '../../ports/desktop-texts.port';
 import { AnimationManager } from '../../states';
 
@@ -11,7 +6,6 @@ import { AnimationManager } from '../../states';
   selector: 'app-animation-toggle',
   templateUrl: './animation-toggle.component.html',
   styleUrl: './animation-toggle.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnimationToggleComponent {
   protected readonly animation = inject(AnimationManager);

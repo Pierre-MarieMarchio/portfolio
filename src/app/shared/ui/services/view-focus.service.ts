@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { ClockService } from '@app/core/services';
 
 /** A claim gives up after this: a heading that never came is not waited for. */
@@ -13,7 +13,7 @@ const DEADLINE_MS = 2500;
  *
  * Plain sets, not state: nothing here is rendered.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ViewFocusService {
   private readonly clock = inject(ClockService);
   private readonly headings = new Set<HTMLElement>();

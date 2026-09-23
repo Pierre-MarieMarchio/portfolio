@@ -1,4 +1,4 @@
-import { DOCUMENT, inject, Injectable } from '@angular/core';
+import { DOCUMENT, inject, Service } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { DEFAULT_LANG, Lang, LANGS } from '../../models';
 
@@ -47,7 +47,7 @@ export interface HeadContent {
  * the links, which all work on the server's document as well, so each
  * prerendered page carries its own.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DocumentHeadService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);

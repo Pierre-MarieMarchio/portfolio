@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { SceneAnchorKind } from '@app/features/common';
 import { ScenePanelRole } from '@shared/space-scene/models';
 import { ScenePanel, SceneSurroundings } from '@shared/space-scene/ports';
@@ -16,7 +16,7 @@ const SCENE_ROLE_OF: Readonly<
 
 const LINE: SceneAnchorKind = 'line';
 
-@Injectable()
+@Service({ autoProvided: false })
 export class SceneSurroundingsService implements SceneSurroundings {
   private readonly anchors = inject(LayoutAnchorsService);
 

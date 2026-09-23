@@ -168,6 +168,15 @@ button {
   color: var(--accent);
 }
 
+/* Narrow: four titles of ~130px cannot sit on one line of 320px without
+   overlapping. The numbers stay; the planets carry the names, and each
+   marker keeps its full accessible name. */
+@media (max-width: 620px) {
+  .short {
+    display: none;
+  }
+}
+
 /* A low window keeps the markers and titles and gives back the rest: the
    page bar already leads to the seven projects. */
 @media (max-height: 640px) {

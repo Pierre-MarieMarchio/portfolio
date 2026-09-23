@@ -121,3 +121,9 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
 - **Le filtre du relevé lit `family`**, comme le code de l'export. Le texte de la
   passation parle du champ « contexte » : les deux partitions coïncident
   (contexte `Personnel` ⇔ famille personnelle).
+- **Sur téléphone, la barre de pages passe sur deux lignes et la règle ne garde
+  que les numéros.** L'export n'a pas de règle pour les écrans étroits : à
+  360 px, la barre sortait du cadre par la gauche et les quatre titres de la
+  règle se chevauchaient. Sous 620 px (le seuil « étroit » de l'export), les
+  noms restent portés par les planètes et par le nom accessible de chaque
+  repère.

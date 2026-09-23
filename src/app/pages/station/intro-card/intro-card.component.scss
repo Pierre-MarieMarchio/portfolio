@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   gap: clamp(16px, 3vh, 32px);
-  animation: card 5600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: card var(--intro-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .word {

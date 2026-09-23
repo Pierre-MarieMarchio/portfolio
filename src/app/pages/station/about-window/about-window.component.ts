@@ -12,9 +12,13 @@ import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/utils/format.utils';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
+import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+
+/** What a part holds, named for the template's switch. */
+type PartKey = 'profile' | 'skills' | 'method' | 'path';
 
 interface Part {
-  readonly key: string;
+  readonly key: PartKey;
   readonly label: string;
   readonly title: string;
 }
@@ -25,14 +29,14 @@ interface Part {
  * content, not a metaphor.
  */
 const PARTS: readonly Part[] = [
-  { key: '00', label: 'Profil', title: 'Profil' },
+  { key: 'profile', label: 'Profil', title: 'Profil' },
   {
-    key: '01',
+    key: 'skills',
     label: 'Compétences',
     title: 'Compétences · ce sur quoi j’ai livré',
   },
-  { key: '02', label: 'Méthode', title: 'Méthode de travail' },
-  { key: '03', label: 'Parcours', title: 'Parcours' },
+  { key: 'method', label: 'Méthode', title: 'Méthode de travail' },
+  { key: 'path', label: 'Parcours', title: 'Parcours' },
 ];
 
 const DOMAINS: readonly { label: string; value: string }[] = [
@@ -68,19 +72,27 @@ const MILESTONES: readonly { year: string; fact: string }[] = [
  */
 @Component({
   selector: 'app-about-window',
-  imports: [RouterLink, SegmentedComponent, WindowComponent],
+  imports: [
+    LandingHeadingDirective,
+    RouterLink,
+    SegmentedComponent,
+    WindowComponent,
+  ],
   templateUrl: './about-window.component.html',
   styleUrl: './about-window.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutWindowComponent {
   public readonly pinned = input(false);
-  /** The part on show; the station holds it, the constellations read it. */
-  public readonly part = input('00');
+  /**
+   * The part on show, from 0; the station holds it, the constellations read
+   * it. Out of range reads as the first.
+   */
+  public readonly part = input(0);
 
   public readonly pinToggled = output();
   public readonly closed = output();
-  public readonly partChange = output<string>();
+  public readonly partChange = output<number>();
 
   protected readonly domains = DOMAINS.map((domain, index) => ({
     ...domain,
@@ -90,12 +102,12 @@ export class AboutWindowComponent {
 
   private readonly window = viewChild(WindowComponent);
 
-  private readonly index = computed(() =>
-    Math.max(
-      0,
-      PARTS.findIndex((part) => part.key === this.part()),
-    ),
-  );
+  private readonly index = computed(() => {
+    const part = this.part();
+    return Number.isInteger(part) && part >= 0 && part < PARTS.length
+      ? part
+      : 0;
+  });
   protected readonly current = computed(() => PARTS[this.index()] ?? PARTS[0]);
 
   /**
@@ -106,16 +118,20 @@ export class AboutWindowComponent {
     () => `À propos — ${this.current()?.title ?? ''}`,
   );
 
-  protected readonly parts = computed<readonly SegmentedItem[]>(() =>
-    PARTS.map((part) => ({
-      value: part.key,
+  protected readonly parts = computed<readonly SegmentedItem<number>[]>(() =>
+    PARTS.map((part, index) => ({
+      value: index,
       label: part.label,
-      active: part.key === this.current()?.key,
+      active: index === this.index(),
       aria: `Aller à : ${part.title}`,
     })),
   );
 
-  protected readonly next = computed(() => PARTS[this.index() + 1] ?? null);
+  protected readonly next = computed(() => {
+    const index = this.index() + 1;
+    const part = PARTS[index];
+    return part ? { index, title: part.title, label: part.label } : null;
+  });
 
   constructor() {
     // A new part starts at its top; the first run is the arrival.
@@ -133,7 +149,7 @@ export class AboutWindowComponent {
   protected advance(): void {
     const next = this.next();
     if (next) {
-      this.partChange.emit(next.key);
+      this.partChange.emit(next.index);
     }
   }
 }

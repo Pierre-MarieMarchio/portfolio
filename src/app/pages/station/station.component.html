@@ -3,8 +3,8 @@
 
 <main tabindex="-1" [id]="ids.main">
   <section
-    #scene
     class="scene"
+    appHeadBottom
     [id]="ids.home"
     [attr.aria-labelledby]="ids.homeTitle"
     [attr.data-arrival]="arrival()"
@@ -15,15 +15,15 @@
     -->
     <app-object
       #object
-      [bodies]="bodies()"
-      [featured]="projects.featured().length"
-      [view]="objectView()"
-      [focus]="focusRank()"
+      [bodies]="binding.bodies()"
+      [featured]="binding.featuredCount()"
+      [view]="binding.objectView()"
+      [focus]="binding.focusRank()"
       [chapter]="station.chapter()"
-      [part]="partIndex()"
-      [preview]="previewRank()"
-      [hovered]="hoveredRank()"
-      [selected]="selectedRank()"
+      [part]="station.part()"
+      [preview]="binding.previewRank()"
+      [hovered]="binding.hoveredRank()"
+      [selected]="binding.selectedRank()"
       [paused]="station.paused()"
       [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
@@ -31,7 +31,7 @@
       (spun)="onSpun()"
     />
 
-    @if (voidCloses()) {
+    @if (station.canStepBack()) {
       <button
         type="button"
         class="void"
@@ -51,15 +51,10 @@
     />
 
     @if (station.view() === 'home') {
-      <div class="home-title" appObjectPanel>
-        <p class="name"><span aria-hidden="true"></span>Pierre-Marie Marchio</p>
-        <h1 tabindex="-1" [id]="ids.homeTitle">
-          Concepteur développeur d’applications
-        </h1>
-      </div>
+      <app-home-title appObjectPanel [arrival]="arrival()" />
     }
 
-    <div class="slot slot--about" data-slot="about" appObjectPanel>
+    <div class="slot slot--about" appWindowSlot="about" appObjectPanel>
       @if (station.showsAbout()) {
         <app-about-window
           [pinned]="station.pins().about"
@@ -71,14 +66,14 @@
       }
     </div>
 
-    <div class="slot slot--index" data-slot="index" appObjectPanel>
+    <div class="slot slot--index" appWindowSlot="index" appObjectPanel>
       @if (station.showsIndex()) {
         <app-project-index
           [pinned]="station.pins().index"
           [selected]="station.selection()"
           [visited]="station.visited()"
-          [family]="family()"
-          (familyChange)="onFamily($event)"
+          [family]="binding.family()"
+          (familyChange)="station.filter($event)"
           (selectedChange)="station.select($event)"
           (hoveredChange)="station.hover($event)"
           (pinToggled)="station.togglePin('index')"
@@ -87,10 +82,10 @@
       }
     </div>
 
-    <div class="slot slot--sheet" data-slot="sheet" appObjectPanel="sheet">
-      @if (isNotFound()) {
+    <div class="slot slot--sheet" appWindowSlot="sheet" appObjectPanel="sheet">
+      @if (binding.isNotFound()) {
         <app-not-found-window (closed)="station.close('sheet')" />
-      } @else if (sheetSlug(); as slug) {
+      } @else if (binding.sheetSlug(); as slug) {
         <app-project-sheet
           [slug]="slug"
           [pinned]="station.pins().sheet"
@@ -104,7 +99,7 @@
 
     <div
       class="slot slot--preview"
-      data-slot="preview"
+      appWindowSlot="preview"
       appObjectPanel="preview"
       [id]="ids.previewPanel"
     >
@@ -113,7 +108,7 @@
           <app-project-preview
             [slug]="slug"
             [pinned]="station.pins().preview"
-            (chosen)="station.showPreview($event)"
+            (chosen)="station.openPreview($event)"
             (pinToggled)="station.togglePin('preview')"
             (closed)="station.close('preview')"
           />
@@ -124,12 +119,12 @@
     @if (showsRule()) {
       <app-orbit-rule
         appObjectPanel="rule"
-        [bodies]="featuredRows()"
+        [bodies]="binding.featuredRows()"
         [controls]="ids.previewPanel"
         [hovered]="station.hovered()"
         [reading]="station.reading()"
         [arrival]="arrival()"
-        (chosen)="station.showPreview($event)"
+        (chosen)="station.openPreview($event)"
         (hoveredChange)="onRuleHovered($event)"
       />
     }

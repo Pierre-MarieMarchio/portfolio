@@ -80,6 +80,8 @@
   /* The end of the opening crossing: the home page's rest arrives then, on
      its own, when no gesture brought it sooner (see `Arrival`). */
   --arrival-at: 8700ms;
+  /* The opening card's length: it fades out on its own by then. */
+  --intro-duration: 5600ms;
 
   /* Depth tiers, with gaps so that no two layers can tie: at equal z-index
      the DOM order decides, which is chance. Windows take 5 to 8, the last

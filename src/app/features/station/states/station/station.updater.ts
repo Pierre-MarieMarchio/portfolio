@@ -4,7 +4,7 @@ import {
   stationEnglishAsked,
   stationFiltered,
   stationHovered,
-  stationNavigated,
+  stationRouteSynced,
   stationPartChosen,
   stationPauseToggled,
   stationPinToggled,
@@ -17,7 +17,7 @@ import { StationState } from './station.state';
 
 /** The only place the station's state is written. */
 export const stationUpdater = defineUpdater(StationState, (on) => {
-  on(stationNavigated, (state, { view, slug }) => {
+  on(stationRouteSynced, (state, { view, slug }) => {
     const previous = state.slug();
     state.view.set(view);
     state.slug.set(view === 'sheet' ? slug : null);
@@ -65,7 +65,7 @@ export const stationUpdater = defineUpdater(StationState, (on) => {
   });
 
   on(stationPartChosen, (state, part) => {
-    state.part.set(part);
+    state.part.set(Math.max(0, part));
   });
 
   on(stationPreviewOpened, (state, slug) => {

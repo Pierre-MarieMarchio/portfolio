@@ -19,6 +19,7 @@
   "include": [
     "eslint.config.js",
     "commitlint.config.js",
-    "stylelint.config.mjs"
+    "stylelint.config.mjs",
+    "scripts/**/*.mjs"
   ]
 }

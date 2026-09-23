@@ -29,6 +29,9 @@ describe('IntroCardComponent', () => {
           !!options.reducedMotion,
       ),
     );
+    // The global stylesheet is not loaded here: the token the card reads
+    // its length from is set by hand, as `_tokens.scss` sets it.
+    document.documentElement.style.setProperty('--intro-duration', '5600ms');
     TestBed.configureTestingModule({
       imports: [IntroCardComponent],
       providers: [
@@ -41,6 +44,7 @@ describe('IntroCardComponent', () => {
   };
 
   afterEach(() => {
+    document.documentElement.style.removeProperty('--intro-duration');
     TestBed.resetTestingModule();
     vi.useRealTimers();
     vi.restoreAllMocks();

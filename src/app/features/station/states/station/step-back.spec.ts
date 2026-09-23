@@ -1,0 +1,76 @@
+import { StationView } from '../../models';
+import { parentOf, stepBack, StepBackFrom } from './step-back';
+
+const from = (
+  view: StationView,
+  overrides: Partial<StepBackFrom> = {},
+): StepBackFrom => ({ view, selection: null, preview: null, ...overrides });
+
+describe('stepBack', () => {
+  it.each<[StationView, string | null]>([
+    ['home', null],
+    ['index', '/'],
+    ['about', '/'],
+    ['sheet', '/projets'],
+    ['not-found', '/projets'],
+  ])('gives %s the parent %s', (view, parent) => {
+    expect(parentOf(view)).toBe(parent);
+  });
+
+  describe('with Escape', () => {
+    it('lets the index row go before leaving the index', () => {
+      expect(stepBack('escape', from('index', { selection: 'a' }))).toEqual({
+        kind: 'deselect',
+      });
+    });
+
+    it.each<[StationView, string]>([
+      ['index', '/'],
+      ['about', '/'],
+      ['sheet', '/projets'],
+      ['not-found', '/projets'],
+    ])('leaves %s for %s', (view, url) => {
+      expect(stepBack('escape', from(view))).toEqual({ kind: 'navigate', url });
+    });
+
+    it('closes the home preview, and does nothing on a bare home page', () => {
+      expect(stepBack('escape', from('home', { preview: 'a' }))).toEqual({
+        kind: 'close-preview',
+      });
+      expect(stepBack('escape', from('home'))).toBeNull();
+    });
+  });
+
+  /** The void only covers what it closes: it never climbs a level. */
+  describe('with a click in the void', () => {
+    it('leaves a sheet for the list', () => {
+      expect(stepBack('void', from('sheet'))).toEqual({
+        kind: 'navigate',
+        url: '/projets',
+      });
+    });
+
+    it('lets the index row go', () => {
+      expect(stepBack('void', from('index', { selection: 'a' }))).toEqual({
+        kind: 'deselect',
+      });
+    });
+
+    it('closes the home preview', () => {
+      expect(stepBack('void', from('home', { preview: 'a' }))).toEqual({
+        kind: 'close-preview',
+      });
+    });
+
+    it.each<StationView>(['home', 'index', 'about', 'not-found'])(
+      'has nothing to close on a bare %s view',
+      (view) => {
+        expect(stepBack('void', from(view))).toBeNull();
+      },
+    );
+
+    it('leaves a pinned preview alone away from the home page', () => {
+      expect(stepBack('void', from('about', { preview: 'a' }))).toBeNull();
+    });
+  });
+});

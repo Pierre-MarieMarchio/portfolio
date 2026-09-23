@@ -2,16 +2,16 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AboutWindowComponent } from './about-window.component';
 
-type Part = '00' | '01' | '02' | '03';
+type Part = 0 | 1 | 2 | 3;
 
 const TOOLBAR = '[aria-label="Parties du profil"]';
 
 /** The full title shown in the h1 and the footer, per part. */
 const TITLES: Record<Part, string> = {
-  '00': 'Profil',
-  '01': 'Compétences · ce sur quoi j’ai livré',
-  '02': 'Méthode de travail',
-  '03': 'Parcours',
+  0: 'Profil',
+  1: 'Compétences · ce sur quoi j’ai livré',
+  2: 'Méthode de travail',
+  3: 'Parcours',
 };
 
 describe('AboutWindowComponent', () => {
@@ -23,13 +23,13 @@ describe('AboutWindowComponent', () => {
 
     const fixture = TestBed.createComponent(AboutWindowComponent);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
-    fixture.componentRef.setInput('part', inputs.part ?? '00');
+    fixture.componentRef.setInput('part', inputs.part ?? 0);
     await fixture.whenStable();
 
     return { fixture, host: fixture.nativeElement as HTMLElement };
   };
 
-  it("defaults to part '00' and unpinned, with no input set", async () => {
+  it('defaults to the first part and unpinned, with no input set', async () => {
     TestBed.configureTestingModule({
       imports: [AboutWindowComponent],
       providers: [provideRouter([])],
@@ -56,7 +56,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('lists the toolbar segmented buttons, in order, pressed on the current part', async () => {
-    const { host } = await mount({ part: '02' });
+    const { host } = await mount({ part: 2 });
     const toolbar = host.querySelector(TOOLBAR);
     const buttons = Array.from(
       toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
@@ -80,9 +80,9 @@ describe('AboutWindowComponent', () => {
   });
 
   it('emits partChange on a toolbar click, without changing the part by itself', async () => {
-    const { fixture, host } = await mount({ part: '00' });
-    const emitted: string[] = [];
-    fixture.componentInstance.partChange.subscribe((value: string) =>
+    const { fixture, host } = await mount({ part: 0 });
+    const emitted: number[] = [];
+    fixture.componentInstance.partChange.subscribe((value: number) =>
       emitted.push(value),
     );
 
@@ -93,7 +93,7 @@ describe('AboutWindowComponent', () => {
     buttons[2]?.click();
     await fixture.whenStable();
 
-    expect(emitted).toEqual(['02']);
+    expect(emitted).toEqual([2]);
     // The part input alone decides pressed state: a click does not flip it by itself.
     expect(
       host
@@ -104,7 +104,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('titles the h1 "Profil" on part 00, with a tabindex of -1', async () => {
-    const { host } = await mount({ part: '00' });
+    const { host } = await mount({ part: 0 });
     const h1 = host.querySelector('h1');
 
     expect(h1?.getAttribute('tabindex')).toBe('-1');
@@ -112,7 +112,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('titles the h1 after the skills part', async () => {
-    const { host } = await mount({ part: '01' });
+    const { host } = await mount({ part: 1 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
       'À propos — Compétences · ce sur quoi j’ai livré',
@@ -120,7 +120,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('titles the h1 after the method part', async () => {
-    const { host } = await mount({ part: '02' });
+    const { host } = await mount({ part: 2 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
       'À propos — Méthode de travail',
@@ -128,20 +128,20 @@ describe('AboutWindowComponent', () => {
   });
 
   it('titles the h1 after the path part', async () => {
-    const { host } = await mount({ part: '03' });
+    const { host } = await mount({ part: 3 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
       'À propos — Parcours',
     );
   });
 
-  it("treats an unknown part value as '00'", async () => {
+  it('treats a part out of range as the first', async () => {
     TestBed.configureTestingModule({
       imports: [AboutWindowComponent],
       providers: [provideRouter([])],
     });
     const fixture = TestBed.createComponent(AboutWindowComponent);
-    fixture.componentRef.setInput('part', 'zz');
+    fixture.componentRef.setInput('part', 9);
     await fixture.whenStable();
     const host = fixture.nativeElement as HTMLElement;
 
@@ -151,7 +151,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('shows part 00: the archaeology sentence and the identity list, placeholders included', async () => {
-    const { host } = await mount({ part: '00' });
+    const { host } = await mount({ part: 0 });
     const text = host.textContent ?? '';
 
     expect(text).toContain(
@@ -168,7 +168,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('shows part 01: the caps and five numbered rows, in order', async () => {
-    const { host } = await mount({ part: '01' });
+    const { host } = await mount({ part: 1 });
     const text = host.textContent ?? '';
 
     expect(text).toContain('Ce sur quoi j’ai livré');
@@ -191,7 +191,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('shows part 02: the caps and three numbered items, the first about seeing a project through', async () => {
-    const { host } = await mount({ part: '02' });
+    const { host } = await mount({ part: 2 });
     const text = host.textContent ?? '';
 
     expect(text).toContain('Comment je travaille');
@@ -208,7 +208,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('shows part 03: Étapes, five milestones with no invented date, and ordered facts', async () => {
-    const { host } = await mount({ part: '03' });
+    const { host } = await mount({ part: 3 });
     const text = host.textContent ?? '';
 
     expect(text).toContain('Étapes');
@@ -234,12 +234,12 @@ describe('AboutWindowComponent', () => {
   });
 
   it('keeps only the current part’s content in the DOM when switching parts', async () => {
-    const { fixture, host } = await mount({ part: '00' });
+    const { fixture, host } = await mount({ part: 0 });
 
     expect(host.textContent).toContain('Je viens de l’archéologie.');
     expect(host.textContent).not.toContain('Ce sur quoi j’ai livré');
 
-    fixture.componentRef.setInput('part', '01');
+    fixture.componentRef.setInput('part', 1);
     await fixture.whenStable();
 
     expect(host.textContent).not.toContain('Je viens de l’archéologie.');
@@ -247,14 +247,14 @@ describe('AboutWindowComponent', () => {
   });
 
   it('shows the current title in the footer and a next-part button, on part 00', async () => {
-    const { fixture, host } = await mount({ part: '00' });
-    const emitted: string[] = [];
-    fixture.componentInstance.partChange.subscribe((value: string) =>
+    const { fixture, host } = await mount({ part: 0 });
+    const emitted: number[] = [];
+    fixture.componentInstance.partChange.subscribe((value: number) =>
       emitted.push(value),
     );
 
     const footer = host.querySelector('.footer');
-    expect(footer?.textContent).toContain(TITLES['00']);
+    expect(footer?.textContent).toContain(TITLES[0]);
 
     const next = Array.from(
       footer?.querySelectorAll<HTMLButtonElement>('button') ?? [],
@@ -263,18 +263,18 @@ describe('AboutWindowComponent', () => {
 
     next?.click();
     await fixture.whenStable();
-    expect(emitted).toEqual(['01']);
+    expect(emitted).toEqual([1]);
   });
 
   it('shows the current title in the footer and a next-part button, on part 01', async () => {
-    const { fixture, host } = await mount({ part: '01' });
-    const emitted: string[] = [];
-    fixture.componentInstance.partChange.subscribe((value: string) =>
+    const { fixture, host } = await mount({ part: 1 });
+    const emitted: number[] = [];
+    fixture.componentInstance.partChange.subscribe((value: number) =>
       emitted.push(value),
     );
 
     const footer = host.querySelector('.footer');
-    expect(footer?.textContent).toContain(TITLES['01']);
+    expect(footer?.textContent).toContain(TITLES[1]);
 
     const next = Array.from(
       footer?.querySelectorAll<HTMLButtonElement>('button') ?? [],
@@ -283,18 +283,18 @@ describe('AboutWindowComponent', () => {
 
     next?.click();
     await fixture.whenStable();
-    expect(emitted).toEqual(['02']);
+    expect(emitted).toEqual([2]);
   });
 
   it('shows the current title in the footer and a next-part button, on part 02', async () => {
-    const { fixture, host } = await mount({ part: '02' });
-    const emitted: string[] = [];
-    fixture.componentInstance.partChange.subscribe((value: string) =>
+    const { fixture, host } = await mount({ part: 2 });
+    const emitted: number[] = [];
+    fixture.componentInstance.partChange.subscribe((value: number) =>
       emitted.push(value),
     );
 
     const footer = host.querySelector('.footer');
-    expect(footer?.textContent).toContain(TITLES['02']);
+    expect(footer?.textContent).toContain(TITLES[2]);
 
     const next = Array.from(
       footer?.querySelectorAll<HTMLButtonElement>('button') ?? [],
@@ -303,14 +303,14 @@ describe('AboutWindowComponent', () => {
 
     next?.click();
     await fixture.whenStable();
-    expect(emitted).toEqual(['03']);
+    expect(emitted).toEqual([3]);
   });
 
   it('links to every project instead of a next button, on the last part', async () => {
-    const { host } = await mount({ part: '03' });
+    const { host } = await mount({ part: 3 });
     const footer = host.querySelector('.footer');
 
-    expect(footer?.textContent).toContain(TITLES['03']);
+    expect(footer?.textContent).toContain(TITLES[3]);
     const next = Array.from(footer?.querySelectorAll('button') ?? []).find(
       (button) => button.textContent?.trim().startsWith('Suite'),
     );
@@ -322,7 +322,7 @@ describe('AboutWindowComponent', () => {
   });
 
   it('re-emits the window pin and close as its own outputs', async () => {
-    const { fixture, host } = await mount({ part: '00' });
+    const { fixture, host } = await mount({ part: 0 });
     let pinToggled = 0;
     let closed = 0;
     fixture.componentInstance.pinToggled.subscribe(() => (pinToggled += 1));

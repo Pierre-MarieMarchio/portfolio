@@ -15,7 +15,7 @@
     [items]="familyItems()"
     (chosen)="familyChange.emit($event)"
   />
-  <h1 tabindex="-1" class="landing">{{ heading() }}</h1>
+  <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
   <div class="columns" aria-hidden="true">
     <span>Réf</span><span>Projet</span><span>Ce qu’on peut vérifier</span
     ><span>Rôle tenu</span>

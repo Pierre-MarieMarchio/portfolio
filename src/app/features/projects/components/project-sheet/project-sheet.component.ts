@@ -14,6 +14,7 @@ import { twoDigits } from '@app/core/utils/format.utils';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectsManager } from '../../states';
+import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
 /**
  * A project's sheet: four approaches, one at a time, chosen in the toolbar;
@@ -25,7 +26,12 @@ import { ProjectsManager } from '../../states';
  */
 @Component({
   selector: 'app-project-sheet',
-  imports: [RouterLink, SegmentedComponent, WindowComponent],
+  imports: [
+    LandingHeadingDirective,
+    RouterLink,
+    SegmentedComponent,
+    WindowComponent,
+  ],
   templateUrl: './project-sheet.component.html',
   styleUrl: './project-sheet.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

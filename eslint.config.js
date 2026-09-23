@@ -235,12 +235,38 @@ export default defineConfig(
   },
 
   {
-    // Size, shape and names. Part of this block starts as a warning: the
-    // audit of September 23 (docs/audit/README.md) plans the refactors that
-    // bring the code under each ceiling, and each step turns its rules into
-    // errors once nothing trips them any more. A rule the code already obeys
-    // is an error from the start, so the ground won cannot be lost.
+    // Size, shape and names, as errors: the code obeys them, and the ground
+    // won cannot be lost. The files the audit of September 23
+    // (docs/audit/README.md) has not reached yet keep them as warnings, in
+    // the block right after, each with the step that takes it on.
     files: ['src/**/*.ts'],
+    rules: {
+      'max-lines': [
+        'error',
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+      'max-lines-per-function': [
+        'error',
+        { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      complexity: ['error', 10],
+      'max-depth': ['error', 3],
+      'max-params': ['error', 4],
+      '@typescript-eslint/prefer-readonly': 'error',
+      '@typescript-eslint/naming-convention': ['error', ...NAMES],
+      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
+      '@angular-eslint/prefer-output-readonly': 'error',
+      '@angular-eslint/prefer-signals': 'error',
+    },
+  },
+
+  {
+    // Not reached yet: the sheets' data (step 6 splits it per project) and
+    // the object with its engine (step 9, within the limits of D2).
+    files: [
+      `${APP}/features/projects/data/sheets.data.ts`,
+      `${APP}/features/station/components/object/**/*.ts`,
+    ],
     rules: {
       'max-lines': [
         'warn',
@@ -253,20 +279,13 @@ export default defineConfig(
       complexity: ['warn', 10],
       'max-depth': ['warn', 3],
       'max-params': ['warn', 4],
-      '@typescript-eslint/prefer-readonly': 'warn',
-      '@typescript-eslint/naming-convention': ['error', ...NAMES],
-      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
-      '@angular-eslint/prefer-output-readonly': 'error',
-      '@angular-eslint/prefer-signals': 'error',
     },
   },
 
   {
     // The canvas engine writes its physics as the formulas do: `R` a radius,
     // `Q` a quaternion, `M0` a mean anomaly at the epoch. Spelled out, they
-    // would read worse next to the equations they come from. The engine is
-    // also where the size and complexity warnings live; step 9 of the plan
-    // takes them on, within the limits decided there (D2).
+    // would read worse next to the equations they come from.
     files: [`${APP}/features/station/components/object/engine/**/*.ts`],
     rules: {
       '@typescript-eslint/naming-convention': [

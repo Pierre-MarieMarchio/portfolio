@@ -1,16 +1,17 @@
 import { Routes } from '@angular/router';
-import { AboutPageComponent } from './pages/about/about-page.component';
-import { HomePageComponent } from './pages/home/home-page.component';
-import { NotFoundPageComponent } from './pages/not-found/not-found-page.component';
 import { ProjectDetailPageComponent } from './pages/project-detail/project-detail-page.component';
 import { projectTitle } from './pages/project-detail/project-title.resolver';
-import { ProjectsPageComponent } from './pages/projects/projects-page.component';
+import {
+  ViewMarkerComponent,
+  ViewMarkerData,
+} from './pages/view-marker/view-marker.component';
 
 /**
  * Each address names itself: the title strategy appends the site's name, and
  * `data.description` becomes the page's meta description.
  *
- * The routed components are markers, loaded eagerly: they tell the station
+ * The routed components are markers (`ViewMarkerComponent`, told its view
+ * by `data.view`, and the sheet's own), loaded eagerly: they tell the station
  * where the reader is, and the station renders the windows, so a pinned one
  * outlives a navigation. Eager, because the first client render must see the
  * view the server rendered, or hydration rebuilds the window.
@@ -18,21 +19,28 @@ import { ProjectsPageComponent } from './pages/projects/projects-page.component'
  * Paths rather than fragments: a fragment never reaches the server, so a
  * `#/projets` address could not be prerendered or indexed.
  */
+/** A marked route's data: its view, and the description the head carries. */
+type MarkedRoute = ViewMarkerData & { readonly description?: string };
+
 export const routes: Routes = [
   {
     path: '',
-    component: HomePageComponent,
+    component: ViewMarkerComponent,
     title: 'Accueil',
     data: {
+      view: 'home',
       description:
         'Portfolio de Pierre-Marie Marchio, concepteur développeur d’applications.',
-    },
+    } satisfies MarkedRoute,
   },
   {
     path: 'projets',
-    component: ProjectsPageComponent,
+    component: ViewMarkerComponent,
     title: 'Projets',
-    data: { description: 'Les projets de Pierre-Marie Marchio.' },
+    data: {
+      view: 'index',
+      description: 'Les projets de Pierre-Marie Marchio.',
+    } satisfies MarkedRoute,
   },
   {
     path: 'projet/:slug',
@@ -41,9 +49,12 @@ export const routes: Routes = [
   },
   {
     path: 'a-propos',
-    component: AboutPageComponent,
+    component: ViewMarkerComponent,
     title: 'À propos',
-    data: { description: 'Qui est Pierre-Marie Marchio.' },
+    data: {
+      view: 'about',
+      description: 'Qui est Pierre-Marie Marchio.',
+    } satisfies MarkedRoute,
   },
   // The shared-component bench exists in development builds only. The
   // condition reads `ngDevMode` itself rather than `isDevMode()`: the
@@ -63,7 +74,8 @@ export const routes: Routes = [
     : []),
   {
     path: '**',
-    component: NotFoundPageComponent,
+    component: ViewMarkerComponent,
     title: 'Adresse inconnue',
+    data: { view: 'not-found' } satisfies MarkedRoute,
   },
 ];

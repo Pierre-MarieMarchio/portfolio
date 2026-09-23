@@ -12,6 +12,7 @@ import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
+import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
 /** Which family the index shows; `all` is no filter. */
 export type FamilyFilter = ProjectFamily | 'all';
@@ -46,7 +47,12 @@ const FAMILIES: readonly FamilyChoice[] = [
  */
 @Component({
   selector: 'app-project-index',
-  imports: [RouterLink, SegmentedComponent, WindowComponent],
+  imports: [
+    LandingHeadingDirective,
+    RouterLink,
+    SegmentedComponent,
+    WindowComponent,
+  ],
   templateUrl: './project-index.component.html',
   styleUrl: './project-index.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

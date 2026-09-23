@@ -49,6 +49,7 @@ src/app/
     arrival/             le modèle de l'arrivée du reste de l'accueil
     contact-rail/        le rail de contact (ses liens en entrée)
     object-marks/        panneaux et lignes que l'objet lit (directives + registre)
+    landing-focus/       le titre où le focus arrive après une navigation
     page-bar/ segmented/ window/
   features/
     common/              noyau partagé : des ports, rien d'autre (vide pour l'instant)
@@ -58,7 +59,12 @@ src/app/
       components/object/ l'objet canvas et son moteur
       models/ states/station/
   pages/                 composition : une page par route, peut tout importer
-    station/             la station et ses vues (un dossier par composant)
+    view-marker/         le marqueur de route de chaque vue (data.view)
+    project-detail/      le marqueur d'une fiche et le resolver de son titre
+    station/             la station, composition seule ; ses vues (un dossier
+                         par composant), l'arrivée et le rideau (arrival/), la
+                         pile des fenêtres (window-stack/), la mesure de la
+                         barre (head-bottom/), la jonction avec les projets
 src/testing/             doubles partagés (fake-managers.ts)
 src/integration/         suites qui testent un mécanisme, pas un composant
 ```

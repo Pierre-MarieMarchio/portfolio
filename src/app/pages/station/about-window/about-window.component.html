@@ -14,9 +14,9 @@
     (chosen)="partChange.emit($event)"
   />
   <div body>
-    <h1 tabindex="-1" class="landing">{{ heading() }}</h1>
+    <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
     @switch (current()?.key) {
-      @case ('00') {
+      @case ('profile') {
         <p class="lead">
           Je viens de l’archéologie. J’en ai gardé une habitude : ne rien
           affirmer sans preuve.
@@ -53,7 +53,7 @@
           enim ad minim veniam quis nostrud exercitation ullamco laboris.
         </p>
       }
-      @case ('01') {
+      @case ('skills') {
         <section>
           <p class="caps">Ce sur quoi j’ai livré</p>
           <dl class="domains">
@@ -71,7 +71,7 @@
           </p>
         </section>
       }
-      @case ('02') {
+      @case ('method') {
         <section>
           <p class="caps">Comment je travaille</p>
           <ul class="method">
@@ -99,7 +99,7 @@
           </ul>
         </section>
       }
-      @case ('03') {
+      @case ('path') {
         <section>
           <div class="steps-head">
             <p class="caps">Étapes</p>

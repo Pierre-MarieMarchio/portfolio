@@ -6,7 +6,7 @@ import {
   stationEnglishAsked,
   stationFiltered,
   stationHovered,
-  stationNavigated,
+  stationRouteSynced,
   stationPartChosen,
   stationPauseToggled,
   stationPinToggled,
@@ -46,22 +46,22 @@ describe('stationUpdater', () => {
     expect(state.visited()).toEqual([]);
     expect(state.family()).toBe('all');
     expect(state.chapter()).toBe(0);
-    expect(state.part()).toBe('00');
+    expect(state.part()).toBe(0);
     expect(state.hovered()).toBeNull();
     expect(state.englishAsked()).toBe(false);
     expect(state.paused()).toBe(false);
   });
 
-  describe('stationNavigated', () => {
+  describe('stationRouteSynced', () => {
     it('sets the view and keeps the slug only on a sheet', () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'skyted' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'skyted' }));
 
       expect(state.view()).toBe('sheet');
       expect(state.slug()).toBe('skyted');
     });
 
     it('drops a slug handed to a view other than sheet', () => {
-      statewise.dispatch(stationNavigated({ view: 'index', slug: 'skyted' }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: 'skyted' }));
 
       expect(state.view()).toBe('index');
       expect(state.slug()).toBeNull();
@@ -71,7 +71,7 @@ describe('stationUpdater', () => {
       statewise.dispatch(stationChapterChosen(3));
       statewise.dispatch(stationHovered('skyted'));
 
-      statewise.dispatch(stationNavigated({ view: 'about', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'about', slug: null }));
 
       expect(state.chapter()).toBe(0);
       expect(state.hovered()).toBeNull();
@@ -80,7 +80,7 @@ describe('stationUpdater', () => {
     it('closes the home preview on navigation when it is not pinned', () => {
       statewise.dispatch(stationPreviewOpened('skyted'));
 
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
 
       expect(state.preview()).toBeNull();
     });
@@ -89,23 +89,23 @@ describe('stationUpdater', () => {
       statewise.dispatch(stationPreviewOpened('skyted'));
       statewise.dispatch(stationPinToggled('preview'));
 
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
 
       expect(state.preview()).toBe('skyted');
     });
 
     it('appends a sheet slug to the visited list once, in first-visit order', () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'b' }));
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'b' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
 
       expect(state.visited()).toEqual(['a', 'b']);
     });
 
     it('selects the row of the sheet just left when arriving back on the index', () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
 
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
 
       expect(state.selection()).toBe('a');
     });
@@ -113,20 +113,20 @@ describe('stationUpdater', () => {
     it('leaves the selection untouched arriving on the index from a slug-less view', () => {
       statewise.dispatch(stationSelected('kept'));
 
-      statewise.dispatch(stationNavigated({ view: 'home', slug: null }));
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'home', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
 
       expect(state.selection()).toBe('kept');
     });
 
     it('never resets the family or the part filters', () => {
       statewise.dispatch(stationFiltered('personal'));
-      statewise.dispatch(stationPartChosen('02'));
+      statewise.dispatch(stationPartChosen(2));
 
-      statewise.dispatch(stationNavigated({ view: 'about', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'about', slug: null }));
 
       expect(state.family()).toBe('personal');
-      expect(state.part()).toBe('02');
+      expect(state.part()).toBe(2);
     });
   });
 
@@ -202,9 +202,9 @@ describe('stationUpdater', () => {
   });
 
   it('stationPartChosen sets the part', () => {
-    statewise.dispatch(stationPartChosen('03'));
+    statewise.dispatch(stationPartChosen(3));
 
-    expect(state.part()).toBe('03');
+    expect(state.part()).toBe(3);
   });
 
   it('stationPreviewOpened sets the preview and clears the hovered project', () => {

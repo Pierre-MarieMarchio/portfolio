@@ -18,8 +18,6 @@ interface Star {
   /** Smoothed velocity, in device pixels per second, for the trail. */
   sdx: number;
   sdy: number;
-  /** When the star was last recycled near the centre; it fades in from there. */
-  born: number;
 }
 
 /**
@@ -30,8 +28,6 @@ interface Star {
 const TRAIL_SECONDS = 9 / 60;
 /** Around this speed a star starts to trail: 0.45 px a frame at 60 Hz. */
 const TRAIL_FROM = 0.45 * 60;
-/** A recycled star fades in over this, rather than popping up. */
-const REBORN_SECONDS = 0.4;
 
 /** What the sky needs of the camera, read once per frame. */
 export interface SkyCamera {
@@ -125,8 +121,8 @@ export class Sky {
     const speed = 6 * u * (1 - u) * (1 - u);
     // The trails come and go with the run instead of switching on and off:
     // cut at its end, a trail still long from the camera's motion vanished
-    // in one frame.
-    const voyage = clamp(u / 0.04, 0, 1) * clamp((1 - u) / 0.12, 0, 1);
+    // in one frame. The last 4% only: earlier, it dimmed the run's end.
+    const voyage = clamp(u / 0.04, 0, 1) * clamp((1 - u) / 0.04, 0, 1);
     const dtc = clamp(time - this.previousTime, 0, 0.08);
     this.previousTime = time;
     // Velocity smoothing as a rate: the same lag whatever the frame rate.
@@ -197,7 +193,6 @@ export class Sky {
           star.py = Number.NaN;
           star.sdx = 0;
           star.sdy = 0;
-          star.born = time;
           continue;
         }
       } else {
@@ -244,15 +239,15 @@ export class Sky {
       }
       star.px = x;
       star.py = y;
-      const reborn = clamp((time - star.born) / REBORN_SECONDS, 0, 1);
-      near *= reborn;
       const velocity = Math.sqrt(star.sdx * star.sdx + star.sdy * star.sdy);
       // A star near the threshold no longer flips between a dot and a
-      // trail from one frame to the next: the two cross-fade around it,
-      // from 0.6 to 1.4 times the threshold.
+      // trail from one frame to the next: the two cross-fade just UNDER it,
+      // from 0.7 to 1 times the threshold. Above, a trail is at full light,
+      // as in the mockup: centred on the threshold, the fade dimmed half the
+      // field and the run looked washed out.
       const trailing =
         voyage *
-        smoothstep(clamp((velocity / (TRAIL_FROM * dpr) - 0.6) / 0.8, 0, 1));
+        smoothstep(clamp((velocity / (TRAIL_FROM * dpr) - 0.7) / 0.3, 0, 1));
       const color = star.accent ? cam.accent : cam.ink;
       if (trailing > 0.004) {
         const qx = x - star.sdx * TRAIL_SECONDS;
@@ -404,7 +399,6 @@ export class Sky {
         py: Number.NaN,
         sdx: 0,
         sdy: 0,
-        born: Number.NEGATIVE_INFINITY,
       });
     }
     this.stars = stars;

@@ -1,24 +1,21 @@
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   ElementRef,
   inject,
   input,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
-import { ElementObserverService } from '@app/core/services';
 import { RouterLink } from '@angular/router';
-import { LINKS } from '@app/features/common';
+import { LINKS, SceneAnchorKind } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
 import { RankedProject } from '../../models';
 import { rowLabel } from '../../rules/project-labels.rules';
 import { Entrance } from '@shared/ui/models';
-import { LineAnchorDirective } from '@shared/ui/directives';
+import { LayoutAnchorDirective } from '@shared/ui/directives';
+import { elementSize } from '@shared/ui/signals';
 
 /** Where the belt of markers starts, in % of the track. */
 const BELT_START = 2;
@@ -46,7 +43,7 @@ const LABEL_PX = 130;
  */
 @Component({
   selector: 'app-featured-bar',
-  imports: [LineAnchorDirective, RouterLink],
+  imports: [LayoutAnchorDirective, RouterLink],
   templateUrl: './featured-bar.component.html',
   styleUrl: './featured-bar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -71,13 +68,10 @@ export class FeaturedBarComponent {
 
   protected readonly texts = inject(PROJECTS_TEXTS);
   protected readonly links = inject(LINKS);
+  protected readonly lineAnchor: SceneAnchorKind = 'line';
 
   private readonly track = viewChild.required<ElementRef<HTMLElement>>('track');
-  /**
-   * Measured in a browser; `null` in the prerender, where nothing is, and a
-   * width of 0 is a track not laid out yet, not a narrow one.
-   */
-  private readonly trackWidth = signal<number | null>(null);
+  private readonly trackSize = elementSize(() => this.track().nativeElement);
 
   /** How much of the track the belt takes, for as many markers as there are. */
   private readonly span = computed(() => {
@@ -87,7 +81,7 @@ export class FeaturedBarComponent {
 
   /** Too many markers for the width: the names give way to the numbers. */
   protected readonly crowded = computed(() => {
-    const width = this.trackWidth();
+    const width = this.trackSize()?.width ?? null;
     const gaps = this.bodies().length - 1;
     return (
       width !== null &&
@@ -108,22 +102,6 @@ export class FeaturedBarComponent {
       lit: body.slug === this.hovered(),
     }));
   });
-
-  constructor() {
-    const observer = inject(ElementObserverService);
-    let stop: (() => void) | undefined;
-    afterNextRender(() => {
-      const track = this.track().nativeElement;
-      const measure = (): void => {
-        this.trackWidth.set(track.getBoundingClientRect().width);
-      };
-      measure();
-      stop = observer.onResize(track, measure);
-    });
-    inject(DestroyRef).onDestroy(() => {
-      stop?.();
-    });
-  }
 
   /** The line under the rule: the hovered body, else the last one read. */
   protected readonly line = computed(() => {

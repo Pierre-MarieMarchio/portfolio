@@ -1,0 +1,14 @@
+<nav [attr.aria-label]="texts().pageBar.navigation">
+  <ul>
+    @for (item of items(); track item.route) {
+      <li>
+        <a
+          [routerLink]="item.route"
+          [attr.aria-current]="item.route === current() ? 'page' : null"
+          [attr.data-active]="item.route === current()"
+          >{{ item.label }}</a
+        >
+      </li>
+    }
+  </ul>
+</nav>

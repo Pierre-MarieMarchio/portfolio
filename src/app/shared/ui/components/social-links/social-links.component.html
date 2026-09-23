@@ -14,15 +14,5 @@
       </li>
     }
   </ul>
-  @if (showPause()) {
-    <span aria-hidden="true" class="rule"></span>
-    <button
-      type="button"
-      [attr.aria-label]="pauseLabel()"
-      [title]="pauseLabel()"
-      (click)="pauseToggled.emit()"
-    >
-      {{ paused() ? '▶' : '❚❚' }}
-    </button>
-  }
+  <ng-content />
 </div>

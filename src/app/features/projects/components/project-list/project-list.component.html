@@ -12,7 +12,7 @@
     toolbar
     [label]="texts().index.families.label"
     [items]="familyItems()"
-    (chosen)="familyChange.emit($event)"
+    (valueChange)="familyChange.emit($event)"
   />
   <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
   <div class="columns" aria-hidden="true">

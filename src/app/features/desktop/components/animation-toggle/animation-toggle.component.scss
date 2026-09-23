@@ -1,0 +1,13 @@
+@use 'mixins/controls';
+
+:host {
+  display: contents;
+}
+
+.rule {
+  @include controls.divider;
+}
+
+button {
+  @include controls.icon-button(38px, var(--target-compact));
+}

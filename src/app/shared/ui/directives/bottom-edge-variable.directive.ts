@@ -1,47 +1,37 @@
 import {
   afterNextRender,
-  contentChild,
   DestroyRef,
   Directive,
   ElementRef,
   inject,
+  input,
 } from '@angular/core';
 import { ElementObserverService } from '@app/core/services';
-import { PageBarComponent } from '@shared/ui/components';
 
-/**
- * Writes on the scene how far down the page bar reaches, as
- * `--head-bottom`. The name and the pages can take two lines (a phone,
- * enlarged text): the windows start under the bar's real height, never
- * under a guessed one, or a window covers its buttons.
- *
- * A CSS variable, so measuring schedules no render; browser only, where
- * there is a layout to measure, and again whenever the bar changes size.
- */
-@Directive({ selector: '[appHeadBottom]' })
+@Directive({ selector: '[appBottomEdgeVariable]' })
 export class BottomEdgeVariableDirective {
-  private readonly bar = contentChild.required<
-    PageBarComponent,
-    ElementRef<HTMLElement>
-  >(PageBarComponent, { read: ElementRef });
+  public readonly appBottomEdgeVariable = input.required<string>();
 
   constructor() {
     const observer = inject(ElementObserverService);
-    const scene = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    const el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     let stop: (() => void) | undefined;
     afterNextRender(() => {
-      const head = this.bar().nativeElement;
+      const container = el.parentElement;
+      if (!container) {
+        return;
+      }
       const measure = (): void => {
         const bottom =
-          head.getBoundingClientRect().bottom -
-          scene.getBoundingClientRect().top;
-        scene.style.setProperty(
-          '--head-bottom',
+          el.getBoundingClientRect().bottom -
+          container.getBoundingClientRect().top;
+        container.style.setProperty(
+          this.appBottomEdgeVariable(),
           `${String(Math.round(bottom))}px`,
         );
       };
       measure();
-      stop = observer.onResize(head, measure);
+      stop = observer.onResize(el, measure);
     });
     inject(DestroyRef).onDestroy(() => {
       stop?.();

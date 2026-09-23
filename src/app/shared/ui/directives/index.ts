@@ -1,3 +1,3 @@
-export { LineAnchorDirective } from './line-anchor.directive';
-export { PanelAnchorDirective } from './panel-anchor.directive';
+export { BottomEdgeVariableDirective } from './bottom-edge-variable.directive';
+export { LayoutAnchorDirective } from './layout-anchor.directive';
 export { ViewHeadingDirective } from './view-heading.directive';

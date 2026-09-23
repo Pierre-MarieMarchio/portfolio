@@ -78,14 +78,14 @@ describe('i18n', () => {
     await go('/projets');
     expect(document.documentElement.getAttribute('lang')).toBe('fr');
     expect(
-      host.querySelector('app-page-bar nav')?.getAttribute('aria-label'),
+      host.querySelector('app-main-nav nav')?.getAttribute('aria-label'),
     ).toBe('Navigation principale');
 
     await go('/en/projects');
     expect(document.documentElement.getAttribute('lang')).toBe('en');
     expect(TestBed.inject(LocaleService).lang()).toBe('en');
     expect(
-      host.querySelector('app-page-bar nav')?.getAttribute('aria-label'),
+      host.querySelector('app-main-nav nav')?.getAttribute('aria-label'),
     ).toBe('Main navigation');
     expect(host.querySelector('.window h2')?.textContent?.trim()).toBe(
       'Projects · the index',
@@ -114,11 +114,11 @@ describe('i18n', () => {
     const { go, host } = await mount();
 
     await go('/projet/speakey');
-    const english = host.querySelector('app-page-bar .language a');
+    const english = host.querySelector('app-language-switch a');
     expect(english?.getAttribute('href')).toBe('/en/project/speakey');
 
     await go('/en/project/speakey');
-    const french = host.querySelector('app-page-bar .language a');
+    const french = host.querySelector('app-language-switch a');
     expect(french?.getAttribute('href')).toBe('/projet/speakey');
     expect(french?.textContent?.trim()).toBe('FR');
   });

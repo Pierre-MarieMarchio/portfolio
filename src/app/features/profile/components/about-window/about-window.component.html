@@ -11,7 +11,7 @@
     toolbar
     [label]="about().parts"
     [items]="parts()"
-    (chosen)="partChange.emit($event)"
+    (valueChange)="partChange.emit($event)"
   />
   <div body>
     <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>

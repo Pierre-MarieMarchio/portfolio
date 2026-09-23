@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SocialLinksComponent } from './social-links.component';
 import { SocialLink } from '../../models/social-link.model';
@@ -20,28 +21,37 @@ const LINKS: readonly SocialLink[] = [
   },
 ];
 
-const mount = async (
-  inputs: { showPause?: boolean; paused?: boolean } = {},
-) => {
+const mount = async () => {
   TestBed.configureTestingModule({
     imports: [SocialLinksComponent],
     providers: [provideTexts()],
   });
   const fixture = TestBed.createComponent(SocialLinksComponent);
   fixture.componentRef.setInput('links', LINKS);
-  fixture.componentRef.setInput('showPause', inputs.showPause ?? false);
-  fixture.componentRef.setInput('paused', inputs.paused ?? false);
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   return {
     fixture,
     host,
     links: () => [...host.querySelectorAll('a')],
-    pause: () => host.querySelector('button'),
   };
 };
 
+@Component({
+  imports: [SocialLinksComponent],
+  template: `<app-social-links [links]="links"
+    ><button type="button">Extra</button></app-social-links
+  >`,
+})
+class RailWithControl {
+  protected readonly links = LINKS;
+}
+
 describe('ContactRailComponent', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
+
   it('draws one named link per address, in order, with its icon', async () => {
     const { links } = await mount();
 
@@ -73,26 +83,25 @@ describe('ContactRailComponent', () => {
     expect(github?.getAttribute('rel')).toBe('noopener');
   });
 
-  it('shows the pause only when there is an object to pause', async () => {
-    expect((await mount()).pause()).toBeNull();
-    TestBed.resetTestingModule();
+  it('names its list of links', async () => {
+    const { host } = await mount();
 
-    const { pause, fixture } = await mount({ showPause: true });
-    let toggled = 0;
-    fixture.componentInstance.pauseToggled.subscribe(() => (toggled += 1));
-    pause()?.click();
-
-    expect(pause()?.getAttribute('aria-label')).toBe(
-      'Mettre l’animation de l’objet en pause',
+    expect(host.querySelector('ul')?.getAttribute('aria-label')).toBe(
+      'Me contacter',
     );
-    expect(toggled).toBe(1);
+    expect(host.querySelector('button')).toBeNull();
   });
 
-  it('names the pause after what it will do', async () => {
-    const { pause } = await mount({ showPause: true, paused: true });
+  it('places the control it is given after its links, inside the rail', async () => {
+    TestBed.configureTestingModule({
+      imports: [RailWithControl],
+      providers: [provideTexts()],
+    });
+    const fixture = TestBed.createComponent(RailWithControl);
+    await fixture.whenStable();
+    const rail = (fixture.nativeElement as HTMLElement).querySelector('.rail');
 
-    expect(pause()?.getAttribute('aria-label')).toBe(
-      'Reprendre l’animation de l’objet',
-    );
+    expect(rail?.lastElementChild?.textContent).toBe('Extra');
+    expect(rail?.firstElementChild?.tagName).toBe('UL');
   });
 });

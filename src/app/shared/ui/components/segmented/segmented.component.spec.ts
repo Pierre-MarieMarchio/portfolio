@@ -128,7 +128,7 @@ describe('SegmentedComponent', () => {
     const buttons = buttonsOf(host);
 
     const received: string[] = [];
-    fixture.componentInstance.chosen.subscribe((value: string) => {
+    fixture.componentInstance.valueChange.subscribe((value: string) => {
       received.push(value);
     });
 
@@ -150,7 +150,7 @@ describe('SegmentedComponent', () => {
       { value: 'b', label: 'Même', active: false },
     ]);
     const received: string[] = [];
-    fixture.componentInstance.chosen.subscribe((value: string) => {
+    fixture.componentInstance.valueChange.subscribe((value: string) => {
       received.push(value);
     });
 

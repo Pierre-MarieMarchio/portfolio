@@ -15,8 +15,6 @@ export const FR: Catalog = {
     },
     contactRail: {
       label: 'Me contacter',
-      pause: 'Mettre l’animation de l’objet en pause',
-      resume: 'Reprendre l’animation de l’objet',
     },
   },
 
@@ -90,6 +88,10 @@ export const FR: Catalog = {
   },
 
   desktop: {
+    animation: {
+      pause: 'Mettre l’animation de l’objet en pause',
+      resume: 'Reprendre l’animation de l’objet',
+    },
     object: {
       select: (number, title) =>
         `Sélectionner ${number} — ${title} dans le relevé`,

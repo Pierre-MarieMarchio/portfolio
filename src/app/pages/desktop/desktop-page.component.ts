@@ -28,12 +28,19 @@ import {
 } from '@app/features/desktop/models';
 import { AnimationManager, DesktopManager } from '@app/features/desktop/states';
 import { windowOf } from '../../features/desktop/rules/view.rules';
+import { SceneAnchorKind } from '@app/features/common';
 import { SocialLink } from '@shared/ui/models';
-import { SocialLinksComponent } from '@shared/ui/components';
+import {
+  LanguageSwitchComponent,
+  MainNavComponent,
+  SocialLinksComponent,
+} from '@shared/ui/components';
 import { ViewFocusService } from '@shared/ui/services';
-import { PanelAnchorDirective } from '@shared/ui/directives';
+import {
+  BottomEdgeVariableDirective,
+  LayoutAnchorDirective,
+} from '@shared/ui/directives';
 import { LanguageItem, NavigationItem } from '@shared/ui/models';
-import { PageBarComponent } from '@shared/ui/components';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PAGES_TEXTS, pathOf, translatePath } from '@app/i18n';
@@ -41,7 +48,7 @@ import { CONTACT_ADDRESSES } from '@app/features/profile/data';
 import { AboutWindowComponent } from '../../features/profile/components/about-window/about-window.component';
 import { HomeRevealService } from '../../features/desktop/services/home-reveal.service';
 import { FeaturedTourService } from '../../features/desktop/services/featured-tour.service';
-import { BottomEdgeVariableDirective } from '../../shared/ui/directives/bottom-edge-variable.directive';
+import { AnimationToggleComponent } from '../../features/desktop/components/animation-toggle/animation-toggle.component';
 import { HomeTitleComponent } from '../../features/desktop/components/home-title/home-title.component';
 import { IntroCardComponent } from '../../features/desktop/components/intro-card/intro-card.component';
 import { NotFoundWindowComponent } from '../../features/desktop/components/not-found-window/not-found-window.component';
@@ -59,15 +66,17 @@ import { WindowStackService } from '@shared/windows/services';
   selector: 'app-desktop-page',
   imports: [
     AboutWindowComponent,
+    AnimationToggleComponent,
     SocialLinksComponent,
     BottomEdgeVariableDirective,
     HomeTitleComponent,
     IntroCardComponent,
     NotFoundWindowComponent,
     DesktopSceneComponent,
-    PanelAnchorDirective,
+    LayoutAnchorDirective,
     FeaturedBarComponent,
-    PageBarComponent,
+    LanguageSwitchComponent,
+    MainNavComponent,
     ProjectListComponent,
     ProjectPreviewComponent,
     ProjectDetailComponent,
@@ -95,6 +104,15 @@ export class DesktopPageComponent {
   protected readonly desktopTexts = inject(DESKTOP_TEXTS);
   private readonly profileTexts = inject(PROFILE_TEXTS);
   protected readonly ids = DESKTOP_IDS;
+  protected readonly anchor: {
+    readonly [K in Exclude<SceneAnchorKind, 'line'>]: K;
+  } = {
+    panel: 'panel',
+    head: 'head',
+    rule: 'rule',
+    detail: 'detail',
+    preview: 'preview',
+  };
 
   protected readonly navigationItems = computed<readonly NavigationItem[]>(
     () => {

@@ -1,0 +1,9 @@
+<span aria-hidden="true" class="rule"></span>
+<button
+  type="button"
+  [attr.aria-label]="label()"
+  [title]="label()"
+  (click)="animation.togglePause()"
+>
+  {{ animation.paused() ? '▶' : '❚❚' }}
+</button>

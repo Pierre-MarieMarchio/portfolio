@@ -68,7 +68,7 @@ const mount = async (
   const lines = Array.from({ length: options.lines ?? 0 }, () => {
     const line = document.createElement('button');
     document.body.append(line);
-    registry.addLine(line);
+    registry.register(line, 'line');
     return line;
   });
   const fixture = TestBed.createComponent(DesktopSceneComponent);

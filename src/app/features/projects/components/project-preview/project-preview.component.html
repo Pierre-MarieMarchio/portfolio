@@ -13,7 +13,7 @@
       toolbar
       [label]="texts().preview.bodies"
       [items]="choices()"
-      (chosen)="chosen.emit($event)"
+      (valueChange)="chosen.emit($event)"
     />
     <div body>
       <p class="summary">{{ project.summary }}</p>

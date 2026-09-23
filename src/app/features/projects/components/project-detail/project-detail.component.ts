@@ -2,18 +2,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
   output,
-  untracked,
-  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
-import { WindowComponent } from '@shared/ui/components';
+import { WindowComponent } from '@shared/windows/components';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
@@ -61,8 +58,6 @@ export class ProjectDetailComponent {
   public readonly pinToggled = output();
   public readonly closed = output();
   public readonly chapterChange = output<number>();
-
-  private readonly window = viewChild(WindowComponent);
 
   /** Reading memory is per sheet: coming back to one finds its place. */
   protected readonly scrollKey = computed(() => `sheet:${this.slug()}`);
@@ -137,20 +132,6 @@ export class ProjectDetailComponent {
       ? { slug: next.slug, label: this.texts().sheet.nextProject(next.short) }
       : null;
   });
-
-  constructor() {
-    // A new approach starts at its top. The first run is skipped: arriving
-    // on a sheet restores its reading position instead.
-    let isFirst = true;
-    effect(() => {
-      this.chapter();
-      if (isFirst) {
-        isFirst = false;
-        return;
-      }
-      untracked(() => this.window()?.scrollBodyTo(0));
-    });
-  }
 
   protected advance(): void {
     this.chapterChange.emit(Math.min(this.chapter() + 1, this.last()));

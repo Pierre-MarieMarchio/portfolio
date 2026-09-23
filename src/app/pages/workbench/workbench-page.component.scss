@@ -16,6 +16,7 @@
   flex-direction: column;
   min-height: 0;
   pointer-events: none;
+  --window-reserve: 76px;
 }
 
 /* The bench's own controls sit where no window reaches, above them. */
@@ -35,6 +36,7 @@
   top: auto;
   bottom: clamp(76px, 10vh, 88px);
   justify-content: flex-end;
+  --window-reserve: 88px;
 }
 
 .columns {

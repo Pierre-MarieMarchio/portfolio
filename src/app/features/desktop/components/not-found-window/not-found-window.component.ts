@@ -10,7 +10,7 @@ import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '../../ports/desktop-texts.port';
 import { RouterLink } from '@angular/router';
-import { WindowComponent } from '@shared/ui/components';
+import { WindowComponent } from '@shared/windows/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
 /**

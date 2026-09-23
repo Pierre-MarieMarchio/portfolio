@@ -6,8 +6,8 @@ import {
 } from '@angular/core';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
-import { WindowComponent } from '@shared/ui/components';
-import { WindowSize } from '@shared/ui/models';
+import { WindowComponent } from '@shared/windows/components';
+import { WindowSize } from '@shared/windows/models';
 
 type Scenario = 'index' | 'preview' | 'short' | 'fixed';
 

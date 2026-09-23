@@ -11,6 +11,7 @@ import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ILinks, LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { SHARED_TEXTS } from '@shared/ui/ports';
+import { WINDOW_TEXTS } from '@shared/windows/ports';
 import { PAGES_TEXTS } from '../models/catalog.model';
 import { CatalogLoaderService } from '../services/catalog-loader.service';
 import { pathOf } from '../rules/paths.rules';
@@ -30,6 +31,10 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
     {
       provide: SHARED_TEXTS,
       useFactory: () => slice((catalogs) => catalogs.current().shared),
+    },
+    {
+      provide: WINDOW_TEXTS,
+      useFactory: () => slice((catalogs) => catalogs.current().windows),
     },
     {
       provide: PROJECTS_TEXTS,

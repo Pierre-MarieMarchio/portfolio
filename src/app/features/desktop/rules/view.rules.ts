@@ -1,4 +1,4 @@
-import { DesktopView } from '../models';
+import { DesktopView, DesktopWindow } from '../models';
 
 /** The views a step back can lead to; their address is the composition's. */
 export type ParentView = 'home' | 'index';
@@ -34,6 +34,22 @@ export function parentOf(view: DesktopView): ParentView | null {
     case 'index':
     case 'about': {
       return 'home';
+    }
+    case 'home': {
+      return null;
+    }
+  }
+}
+
+export function windowOf(view: DesktopView): DesktopWindow | null {
+  switch (view) {
+    case 'index':
+    case 'about':
+    case 'sheet': {
+      return view;
+    }
+    case 'not-found': {
+      return 'sheet';
     }
     case 'home': {
       return null;

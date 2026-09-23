@@ -16,8 +16,8 @@ export const serverRoutes: ServerRoute[] = [
     // One page per project, read from the same repository the pages use, so
     // a project added to the data is prerendered without touching this file.
     getPrerenderParams: async () => {
-      const projects = await firstValueFrom(
-        inject(ProjectsRepositoryService).getAll(),
+      const { projects } = await firstValueFrom(
+        inject(ProjectsRepositoryService).getCatalog(),
       );
 
       return projects.map(({ slug }) => ({ slug }));

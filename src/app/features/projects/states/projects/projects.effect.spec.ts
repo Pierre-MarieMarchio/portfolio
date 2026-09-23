@@ -3,18 +3,18 @@ import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
 import { NEVER, Observable, of, throwError } from 'rxjs';
-import { sampleProject } from '@testing/fake-managers';
-import { Project } from '../../models';
+import { sampleCatalog } from '@testing/fake-managers';
+import { ProjectCatalog } from '../../models';
 import { ProjectsRepositoryService } from '../../services';
 import { getProjectsActions, projectsReset } from './projects.action';
 import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';
 
-const PROJECTS = [sampleProject()];
+const CATALOG = sampleCatalog();
 
 describe('ProjectsEffect', () => {
-  let source: Observable<readonly Project[]>;
+  let source: Observable<ProjectCatalog>;
   let reported: unknown[];
   let statewise: Statewise;
   let state: ProjectsState;
@@ -27,7 +27,7 @@ describe('ProjectsEffect', () => {
         provideStatewiseTesting({ effects: [ProjectsEffect] }),
         {
           provide: ProjectsRepositoryService,
-          useValue: { getAll: () => source },
+          useValue: { getCatalog: () => source },
         },
         {
           provide: ErrorHandler,
@@ -43,11 +43,13 @@ describe('ProjectsEffect', () => {
   });
 
   it('fills the state from what the repository answers', async () => {
-    source = of(PROJECTS);
+    source = of(CATALOG);
 
     await statewise.dispatchAsync(getProjectsActions.request());
 
-    expect(state.projects()).toEqual(PROJECTS);
+    expect(state.projects()).toEqual(CATALOG.projects);
+    expect(state.facts()).toEqual(CATALOG.facts);
+    expect(state.sheets()).toEqual(CATALOG.sheets);
     expect(state.isLoading()).toBe(false);
     expect(reported).toEqual([]);
   });

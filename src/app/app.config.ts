@@ -19,6 +19,7 @@ import { routes } from './app.routes';
 import { AppErrorHandler } from './core/error-handling';
 import { PageTitleStrategy } from './core/services';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
+import { StationEffect } from './features/station/states';
 
 /**
  * The composition root: the only place the library is configured, ports are
@@ -57,7 +58,7 @@ export const appConfig: ApplicationConfig = {
     // it does, which was checked in a browser rather than assumed.
     provideClientHydration(),
     provideStatewise({
-      effects: [ProjectsEffect],
+      effects: [ProjectsEffect, StationEffect],
     }),
 
     // Awaited, so the prerendered HTML already holds the projects: the content

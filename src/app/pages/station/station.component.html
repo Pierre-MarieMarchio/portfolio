@@ -1,0 +1,77 @@
+<main id="contenu" tabindex="-1">
+  <section #scene id="accueil" class="scene" aria-labelledby="titre-accueil">
+    @if (voidCloses()) {
+      <button
+        type="button"
+        class="void"
+        tabindex="-1"
+        aria-label="Refermer et revenir à la vue d’ensemble"
+        (click)="station.clickVoid()"
+      ></button>
+    }
+
+    <app-page-bar
+      [items]="navigationItems"
+      [current]="currentRoute()"
+      [englishAsked]="station.englishAsked()"
+      (englishRequested)="station.askEnglish()"
+    />
+
+    @if (station.view() === 'home') {
+      <div class="home-title">
+        <p class="name"><span aria-hidden="true"></span>Pierre-Marie Marchio</p>
+        <h1 id="titre-accueil" tabindex="-1">
+          Concepteur développeur d’applications
+        </h1>
+      </div>
+    }
+
+    <div class="slot slot--about" data-slot="about">
+      @if (station.showsAbout()) {
+        <app-about-window
+          [pinned]="station.pins().about"
+          [part]="station.part()"
+          (partChange)="station.choosePart($event)"
+          (pinToggled)="station.togglePin('about')"
+          (closed)="station.close('about')"
+        />
+      }
+    </div>
+
+    <div class="slot slot--index" data-slot="index">
+      @if (station.showsIndex()) {
+        <app-project-index
+          [pinned]="station.pins().index"
+          [selected]="station.selection()"
+          [visited]="station.visited()"
+          [family]="family()"
+          (familyChange)="onFamily($event)"
+          (selectedChange)="station.select($event)"
+          (hovered)="station.hover($event)"
+          (pinToggled)="station.togglePin('index')"
+          (closed)="station.close('index')"
+        />
+      }
+    </div>
+
+    <div class="slot slot--sheet" data-slot="sheet">
+      @if (isNotFound()) {
+        <app-not-found-window (closed)="station.close('sheet')" />
+      } @else if (sheetSlug(); as slug) {
+        <app-project-sheet
+          [slug]="slug"
+          [pinned]="station.pins().sheet"
+          [chapter]="station.chapter()"
+          (chapterChange)="station.chooseChapter($event)"
+          (pinToggled)="station.togglePin('sheet')"
+          (closed)="station.close('sheet')"
+        />
+      }
+    </div>
+  </section>
+</main>
+
+<app-contact-rail
+  [paused]="station.paused()"
+  (pauseToggled)="station.togglePause()"
+/>

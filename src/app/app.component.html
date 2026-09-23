@@ -1,5 +1,7 @@
 <a class="skip-link visually-hidden" href="#contenu">Aller au contenu</a>
-<app-nav-shell [brand]="siteName" [items]="navigationItems" />
-<main id="contenu" tabindex="-1">
-  <router-outlet />
-</main>
+<!--
+  The outlet renders markers only, and comes first: a marker declares its
+  view when the outlet activates it, before the station below is checked.
+-->
+<router-outlet />
+<app-station />

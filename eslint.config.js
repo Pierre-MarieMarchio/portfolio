@@ -17,7 +17,7 @@ const APP = 'src/app';
  * is done. Without it, a new folder would lint with no law at all, and the
  * first cross-feature import would pass in silence.
  */
-const FEATURES = ['projects'];
+const FEATURES = ['projects', 'station'];
 
 const onDisk = readdirSync(`${APP}/features`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && entry.name !== 'common')
@@ -145,6 +145,9 @@ export default defineConfig(
       'node_modules/**',
       '.angular/**',
       'docs/maquette/**',
+      // Local tooling, ignored by git: an agent's worktree lives here while
+      // it works, and its unfinished code is not this checkout's.
+      '.claude/**',
     ],
   },
 

@@ -1,4 +1,4 @@
-import { NavigationItem } from '@shared/ui/nav-shell';
+import { NavigationItem } from '@shared/ui/page-bar';
 
 export const navigationItems: readonly NavigationItem[] = [
   { label: 'Accueil', route: '/' },

@@ -1,0 +1,27 @@
+<div class="bar">
+  <div class="language" role="group" aria-label="Langue du site">
+    <span aria-current="true" class="here">FR</span>
+    <span aria-hidden="true" class="slash">/</span>
+    <button type="button" class="other" (click)="englishRequested.emit()">
+      EN
+    </button>
+    @if (englishAsked()) {
+      <span role="status" class="status">textes anglais à venir</span>
+    }
+  </div>
+  <span aria-hidden="true" class="rule"></span>
+  <nav aria-label="Navigation principale">
+    <ul>
+      @for (item of items(); track item.route) {
+        <li>
+          <a
+            [routerLink]="item.route"
+            [attr.aria-current]="item.route === current() ? 'page' : null"
+            [attr.data-actif]="item.route === current()"
+            >{{ item.label }}</a
+          >
+        </li>
+      }
+    </ul>
+  </nav>
+</div>

@@ -147,7 +147,10 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   du trou, les orbites au-delà de 3,3 rayons) suit la main angle pour angle ;
   lancé, il garde la vitesse du geste et la perd par friction (demi-vie
   1,4 s) ; lâché immobile, il reste en place. L'autre est entraîné, jamais
-  engrené : il tend vers 40 % de sa vitesse, avec 0,55 s de retard.
+  engrené : il tend vers 40 % de sa vitesse, avec 0,55 s de retard. Le geste
+  vaut sur l'accueil, le relevé et l'à-propos, partout où l'objet se voit en
+  entier ; l'export le réservait à l'accueil. Pas sur une fiche, cadrée sur
+  une planète qu'un tour emporterait.
 - **Le rail de contact porte des icônes Material Symbols.** L'export y écrit
   « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG (contour,
   graisse 400) : `mail`, puis `work` pour LinkedIn et `code` pour GitHub,

@@ -39,6 +39,7 @@ main {
   flex-direction: column;
   min-height: 0;
   pointer-events: none;
+  --window-reserve: 76px;
 }
 
 .slot--index {
@@ -51,6 +52,7 @@ main {
   z-index: calc(var(--z-window) + var(--stack, 2));
   width: min(46ch, 80vw);
   justify-content: flex-end;
+  --window-reserve: 88px;
 }
 
 .slot--sheet {

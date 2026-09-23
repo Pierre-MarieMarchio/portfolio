@@ -1,23 +1,15 @@
-<!--
-  The opening slides the window 10px: measured during it, the room left is
-  10px short, so the ceiling is taken again once the window has landed.
--->
 <section
-  #root
   class="window"
   [attr.aria-label]="name()"
-  (animationend)="onLanded()"
+  [appDraggable]="bar"
+  [appFitHeight]="ceiling()"
+  [anchor]="anchor()"
 >
   <!--
     A pointer-only handle, so it takes no focus: folding has its own button,
     and moving has no keyboard equivalent in the mockup.
   -->
-  <div
-    #bar
-    class="titlebar"
-    (pointerdown)="onGrab($event)"
-    (dblclick)="onBarDoubleClick($event)"
-  >
+  <div #bar class="titlebar" (dblclick)="onBarDoubleClick($event)">
     <span class="square" aria-hidden="true"></span>
     <h2>{{ heading() }}</h2>
     <span class="spacer"></span>
@@ -29,7 +21,7 @@
       [attr.aria-pressed]="pinned()"
       [attr.aria-label]="pinLabel()"
       [title]="pinLabel()"
-      (click)="togglePin()"
+      (click)="pinToggled.emit()"
     >
       {{ pinned() ? '●' : '○' }}
     </button>
@@ -47,8 +39,8 @@
       <button
         type="button"
         class="control close"
-        [attr.aria-label]="texts().window.close"
-        [title]="texts().window.close"
+        [attr.aria-label]="texts().close"
+        [title]="texts().close"
         (click)="closed.emit()"
       >
         ✕
@@ -59,7 +51,13 @@
   @if (!collapsed()) {
     <div class="toolbar"><ng-content select="[toolbar]" /></div>
     <ng-content />
-    <div #body class="body"><ng-content select="[body]" /></div>
+    <div
+      class="body"
+      [appRememberScroll]="scrollKey()"
+      [resetOn]="scrollResetOn()"
+    >
+      <ng-content select="[body]" />
+    </div>
     <div class="footer"><ng-content select="[footer]" /></div>
   }
 </section>

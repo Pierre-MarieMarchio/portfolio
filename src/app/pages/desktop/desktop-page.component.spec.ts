@@ -9,6 +9,7 @@ import {
 import { DesktopEffect } from '@app/features/desktop/states';
 import { DesktopManager } from '@app/features/desktop/states';
 import { SpaceSceneComponent } from '@app/features/desktop/components';
+import { DESKTOP_WINDOWS } from '@app/features/desktop/models/desktop.model';
 import { DesktopPageComponent } from './desktop-page.component';
 
 const arrivals = (host: HTMLElement) =>
@@ -335,11 +336,9 @@ describe('StationComponent', () => {
 
     station.syncRoute('about');
     await fixture.whenStable();
-    expect(
-      document.activeElement?.closest<HTMLElement>('[data-slot]')?.dataset[
-        'slot'
-      ],
-    ).toBe('about');
+    expect(document.activeElement?.closest('.slot')).toBe(
+      host.querySelector('.slot--about'),
+    );
     expect(document.activeElement?.tagName).toBe('H1');
 
     station.syncRoute('home');
@@ -348,13 +347,25 @@ describe('StationComponent', () => {
     host.remove();
   });
 
+  it('lays out one slot per desktop window, in the order of the list', async () => {
+    const { host } = await mount();
+
+    const slots = [...host.querySelectorAll<HTMLElement>('.slot')].map((slot) =>
+      [...slot.classList]
+        .find((name) => name.startsWith('slot--'))
+        ?.slice('slot--'.length),
+    );
+
+    expect(slots).toEqual([...DESKTOP_WINDOWS]);
+  });
+
   it('raises the slot a pointerdown starts on above the others', async () => {
     const { fixture, station, host } = await mount();
     station.togglePin('index');
     station.togglePin('about');
     await fixture.whenStable();
 
-    const slots = [...host.querySelectorAll<HTMLElement>('[data-slot]')];
+    const slots = [...host.querySelectorAll<HTMLElement>('.slot')];
     expect(slots.length).toBeGreaterThanOrEqual(2);
     const first = slots[0];
     const second = slots[1];
@@ -443,7 +454,7 @@ describe('StationComponent', () => {
 
     const slot = host.querySelector<HTMLElement>('#preview-panel');
     expect(slot).not.toBeNull();
-    expect(slot?.dataset['slot']).toBe('preview');
+    expect(slot?.classList.contains('slot--preview')).toBe(true);
   });
 
   it('keeps the last previewed slug as the reading fallback once the preview closes', async () => {

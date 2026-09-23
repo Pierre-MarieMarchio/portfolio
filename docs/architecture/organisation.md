@@ -291,17 +291,17 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 Aucun mot du portfolio. Ce qui en contenait remonte dans une feature ou
 devient générique.
 
-#### La fenêtre : `components/window/` et ses directives
+#### La fenêtre : `shared/windows/` (D20)
 
 `WindowComponent` portait cinq responsabilités.
 
-| Unité                                                    | But                                                                              | Contrat                                                                           |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, épingler, replier, fermer, zones                      | `heading`, `meta`, `size`, `pinned`, `closable`, `label` ; `pinToggled`, `closed` |
-| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran                  | `appDraggable` (la poignée)                                                       |
-| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                   | réserve lue en CSS (`--window-reserve`)                                           |
-| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change | `appRememberScroll` (clé), `resetOn`                                              |
-| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                       | `save(key, top)`, `read(key)`                                                     |
+| Unité                                                    | But                                                                              | Contrat                                                                                                                   |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, épingler, replier, fermer, zones                      | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
+| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran                  | `appDraggable` (la poignée)                                                                                               |
+| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                   | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                             |
+| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change | `appRememberScroll` (clé), `resetOn`                                                                                      |
+| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                       | `save(key, top)`, `read(key)`                                                                                             |
 
 - `FitHeightDirective` calcule depuis la **position de mise en page**
   (`offsetTop`), que le glissement ne change pas, puisqu'il passe par un
@@ -311,7 +311,8 @@ devient générique.
 - `resetOn` remplace les deux effets « remonter en haut » écrits dans la
   fiche et dans « à propos ».
 - Les marges passées en dur (76, 88) deviennent `--window-reserve`, posée par
-  le bureau.
+  le bureau. La fenêtre relaie `anchor`, `scrollKey` et `scrollResetOn` à ses
+  directives, qu'un appelant ne peut pas poser sur le corps qui défile.
 
 #### L'ordre des fenêtres : `services/window-stack`, `directives/stacked-window`
 

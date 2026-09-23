@@ -10,13 +10,6 @@ import { Catalog } from '../models/catalog.model';
  */
 export const EN: Catalog = {
   shared: {
-    window: {
-      pin: draft('Pin: keep the window open when changing page'),
-      unpin: draft('Unpin: the window will close when changing page'),
-      fold: draft('Fold the window'),
-      unfold: draft('Unfold the window'),
-      close: draft('Close the window'),
-    },
     segmented: { label: draft('Selection') },
     pageBar: {
       languages: draft('Site language'),
@@ -27,6 +20,14 @@ export const EN: Catalog = {
       pause: draft('Pause the animation of the object'),
       resume: draft('Resume the animation of the object'),
     },
+  },
+
+  windows: {
+    pin: draft('Pin: keep the window open when changing page'),
+    unpin: draft('Unpin: the window will close when changing page'),
+    fold: draft('Fold the window'),
+    unfold: draft('Unfold the window'),
+    close: draft('Close the window'),
   },
 
   projects: {

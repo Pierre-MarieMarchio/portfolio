@@ -9,7 +9,6 @@ import {
   inject,
   untracked,
   viewChild,
-  viewChildren,
 } from '@angular/core';
 import { LANGS } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
@@ -21,8 +20,9 @@ import {
   ProjectDetailComponent,
 } from '@app/features/projects/components';
 import { SpaceSceneComponent } from '@app/features/desktop/components';
-import { DesktopView } from '@app/features/desktop/models';
+import { DesktopWindow } from '@app/features/desktop/models';
 import { DesktopManager } from '@app/features/desktop/states';
+import { windowOf } from '../../features/desktop/rules/view.rules';
 import { SocialLink } from '@shared/ui/models';
 import { SocialLinksComponent } from '@shared/ui/components';
 import { ViewFocusService } from '@shared/ui/services';
@@ -42,11 +42,8 @@ import { IntroCardComponent } from '../../features/desktop/components/intro-card
 import { NotFoundWindowComponent } from '../../features/desktop/components/not-found-window/not-found-window.component';
 import { DesktopProjectsBinding } from '../providers/desktop-projects.provider';
 import { DESKTOP_IDS } from '../../features/desktop/models/desktop-ids.model';
-import { WindowSlotDirective } from '../../features/desktop/directives/window-slot.directive';
-import {
-  WindowSlot,
-  WindowStackService,
-} from '../../features/desktop/services/window-stack.service';
+import { StackedWindowDirective } from '@shared/windows/directives';
+import { WindowStackService } from '@shared/windows/services';
 
 /**
  * The station: the one screen the reader never leaves. The object, the page
@@ -74,7 +71,7 @@ import {
     ProjectListComponent,
     ProjectPreviewComponent,
     ProjectDetailComponent,
-    WindowSlotDirective,
+    StackedWindowDirective,
   ],
   providers: [
     HomeRevealService,
@@ -136,10 +133,14 @@ export class DesktopPageComponent {
     HomeTitleComponent,
     ElementRef<HTMLElement>
   >(HomeTitleComponent, { read: ElementRef });
-  private readonly slots = viewChildren<
-    WindowSlotDirective,
-    ElementRef<HTMLElement>
-  >(WindowSlotDirective, { read: ElementRef });
+  private readonly aboutSlot =
+    viewChild.required<ElementRef<HTMLElement>>('aboutSlot');
+  private readonly indexSlot =
+    viewChild.required<ElementRef<HTMLElement>>('indexSlot');
+  private readonly sheetSlot =
+    viewChild.required<ElementRef<HTMLElement>>('sheetSlot');
+  private readonly previewSlot =
+    viewChild.required<ElementRef<HTMLElement>>('previewSlot');
 
   /** A sheet is a zoom of the index: "Projets" stays lit on it. */
   protected readonly currentRoute = computed(() => {
@@ -222,12 +223,12 @@ export class DesktopPageComponent {
         if (view !== 'home') {
           this.arrivalController.arrive();
         }
-        const slot = slotOf(view);
-        if (slot) {
-          this.stack.bringToFront(slot);
+        const shown = windowOf(view);
+        if (shown) {
+          this.stack.bringToFront(shown);
         }
         withdraw?.();
-        withdraw = this.landed ? this.claimFocus(view, slot) : undefined;
+        withdraw = this.landed ? this.claimFocus(shown) : undefined;
       });
     });
   }
@@ -273,32 +274,28 @@ export class DesktopPageComponent {
   }
 
   /** The view's container: the home title, or the slot of its window. */
-  private claimFocus(view: DesktopView, slot: WindowSlot | null): () => void {
+  private claimFocus(shown: DesktopWindow | null): () => void {
     return this.landing.claimWithin(() =>
-      view === 'home'
+      shown === null
         ? this.homeTitle()?.nativeElement
-        : this.slots()
-            .map((each) => each.nativeElement)
-            .find(
-              (element) => slot !== null && element.dataset['slot'] === slot,
-            ),
+        : this.slotOf(shown).nativeElement,
     );
   }
-}
 
-/** The slot a view shows its window in; the home page has none. */
-function slotOf(view: DesktopView): WindowSlot | null {
-  switch (view) {
-    case 'index':
-    case 'about':
-    case 'sheet': {
-      return view;
-    }
-    case 'not-found': {
-      return 'sheet';
-    }
-    case 'home': {
-      return null;
+  private slotOf(shown: DesktopWindow): ElementRef<HTMLElement> {
+    switch (shown) {
+      case 'about': {
+        return this.aboutSlot();
+      }
+      case 'index': {
+        return this.indexSlot();
+      }
+      case 'sheet': {
+        return this.sheetSlot();
+      }
+      case 'preview': {
+        return this.previewSlot();
+      }
     }
   }
 }

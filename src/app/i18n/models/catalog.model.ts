@@ -3,6 +3,7 @@ import { ProjectsTexts } from '@app/features/projects/ports';
 import { DesktopTexts } from '@app/features/desktop/ports';
 import { ProfileTexts } from '@app/features/profile/ports';
 import { SharedTexts } from '@shared/ui/ports';
+import { WindowTexts } from '@shared/windows/ports';
 
 /** What a view says about itself in the head: its title and description. */
 export interface ViewHead {
@@ -41,6 +42,7 @@ export interface PagesTexts {
  */
 export interface Catalog {
   readonly shared: SharedTexts;
+  readonly windows: WindowTexts;
   readonly projects: ProjectsTexts;
   readonly desktop: DesktopTexts;
   readonly profile: ProfileTexts;

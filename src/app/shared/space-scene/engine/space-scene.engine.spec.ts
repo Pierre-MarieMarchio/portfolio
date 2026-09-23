@@ -1,12 +1,9 @@
-import { EngineHost, SpaceSceneEngine } from './space-scene.engine';
-import {
-  RESTING_DIRECTION,
-  SceneDirection,
-  SceneInputs,
-} from '../models/scene.model';
+import { SpaceSceneEngine } from './space-scene.engine';
+import { SceneDirection, SceneInputs } from '../models/scene.model';
 import { SceneLayout } from '../models/scene-layout.model';
 import { TurntableMotion } from './motions/turntable.motion';
-import { opening, fitOrbits, placeOrbits } from '../rules/scene-bodies.rules';
+import { fitOrbits, placeOrbits } from '../rules/scene-bodies.rules';
+import { opening } from '../rules/camera/projection.rules';
 import {
   Frame,
   measureRest,
@@ -14,11 +11,16 @@ import {
   referenceRadius,
 } from '../rules/camera/camera-frames.rules';
 import { TRAVELING_END } from '../rules/camera/traveling.rules';
+import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
+import { seededRandom } from '@testing/doubles/seeded-random.double';
+import {
+  SCENE_INPUTS,
+  sceneBodies,
+} from '@testing/fixtures/engine-scene.fixture';
 
 const callable = (): undefined => undefined;
 
-/** A 2D context that accepts every call: the drawing is not under test. */
-const fakeContext = (): CanvasRenderingContext2D => {
+const silentContext = (): CanvasRenderingContext2D => {
   const proxy: unknown = new Proxy(callable, {
     get: () => proxy,
     set: () => true,
@@ -27,31 +29,14 @@ const fakeContext = (): CanvasRenderingContext2D => {
   return proxy as CanvasRenderingContext2D;
 };
 
-/** A seeded generator: the same scene on every run. */
-const seeded = (seed: number): (() => number) => {
-  let state = seed;
-  return () => {
-    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
-    return state / 4_294_967_296;
-  };
-};
+const SHOWN: SceneDirection = SCENE_INPUTS.direction;
 
-const bodies = (count: number): SceneInputs['bodies'] =>
-  Array.from({ length: count }, (_, rank) => ({
-    id: `body-${String(rank)}`,
-    label: `Body ${String(rank + 1)}`,
-    faint: rank >= 4,
-  }));
+const FRICTION_HALF_LIFE_MS = 1400;
+const STILL_BEFORE_LETTING_GO_MS = 120;
 
-const SHOWN: SceneDirection = { ...RESTING_DIRECTION, presence: 'shown' };
+const INPUTS: SceneInputs = { ...SCENE_INPUTS, bodies: sceneBodies(5) };
 
-const INPUTS: SceneInputs = {
-  bodies: bodies(5),
-  direction: SHOWN,
-  figureNames: ['Profil', 'Compétences', 'Méthode', 'Parcours'],
-  paused: false,
-  reduced: false,
-};
+const PAST_CROSSING_MS = 12_000;
 
 const layout = (bars: number | null): SceneLayout => ({
   canvas: { left: 0, top: 0 },
@@ -63,7 +48,6 @@ const layout = (bars: number | null): SceneLayout => ({
   closeUpEdge: null,
 });
 
-/** What the spec reads of the hand, behind the class's back. */
 interface HandView {
   readonly orbits: readonly { readonly rb: number }[];
   readonly turntable: TurntableMotion;
@@ -77,42 +61,13 @@ interface HandView {
   } | null;
 }
 
-const drivenHost = (): { host: EngineHost; step: (ms: number) => void } => {
-  let clock = 0;
-  let pending: ((time: number) => void) | null = null;
-  const host: EngineHost = {
-    frame: (callback) => {
-      pending = callback;
-      return () => {
-        pending = null;
-      };
-    },
-    now: () => clock,
-    hidden: () => false,
-  };
-  const step = (ms: number): void => {
-    const end = clock + ms;
-    while (clock < end) {
-      clock = Math.min(end, clock + 1000 / 60);
-      const callback = pending;
-      pending = null;
-      callback?.(clock);
-    }
-  };
-  return { host, step };
-};
-
-/**
- * An engine on a clock the spec drives: frames run when `step` says, and
- * `now` is the clock, so a gesture's speed is exact.
- */
 const mount = () => {
   const { host, step } = drivenHost();
   const engine = new SpaceSceneEngine(
     host,
-    { matter: fakeContext(), sky: null },
+    { matter: silentContext(), sky: null },
     {
-      rnd: seeded(9),
+      rnd: seededRandom(9),
       density: 200,
       figures: 'constellations',
       ink: '#000',
@@ -127,10 +82,8 @@ const mount = () => {
   });
   engine.resize(1200, 800, 1);
   const view = (): HandView => engine as unknown as HandView;
-  // Past the crossing: the disk at its place and its size.
-  step(12_000);
-  /** The screen point at `angle` in the disk's plane, `radius` out. */
-  const at = (angle: number, radius = 1.6): { x: number; y: number } => {
+  step(PAST_CROSSING_MS);
+  const onDisk = (angle: number, radius = 1.6): { x: number; y: number } => {
     const disk = view().disk;
     if (!disk) {
       throw new Error('expected the disk to be drawn');
@@ -142,20 +95,19 @@ const mount = () => {
       y: disk.cy + (x * disk.sr + y * disk.cr) * disk.radius,
     };
   };
-  /** Drags along the disk from one angle to another, in `ms`. */
   const drag = (from: number, to: number, ms: number, radius = 1.6): void => {
-    const steps = Math.max(1, Math.round(ms / (1000 / 60)));
+    const steps = Math.max(1, Math.round(ms / FRAME_MS));
     for (let k = 1; k <= steps; k++) {
-      const point = at(from + ((to - from) * k) / steps, radius);
+      const point = onDisk(from + ((to - from) * k) / steps, radius);
       step(ms / steps);
       engine.turn(point.x, point.y);
     }
   };
   const grab = (angle: number, radius = 1.6): void => {
-    const point = at(angle, radius);
+    const point = onDisk(angle, radius);
     expect(engine.grab(point.x, point.y)).toBe(true);
   };
-  return { engine, step, view, at, drag, grab };
+  return { engine, step, view, onDisk, drag, grab };
 };
 
 describe('SpaceSceneEngine, turned by hand', () => {
@@ -184,14 +136,12 @@ describe('SpaceSceneEngine, turned by hand', () => {
   it('keeps the hand’s speed when thrown, then loses it to friction', () => {
     const { engine, step, view, drag, grab } = mount();
     grab(0);
-    // A quarter turn in 150 ms: about 10.5 rad/s.
     drag(0, Math.PI / 2, 150);
     expect(engine.release()).toBe(true);
     expect(view().turntable.rotor('disk').speed).toBeGreaterThan(8);
     expect(view().turntable.rotor('disk').speed).toBeLessThan(13);
     const thrownAt = view().turntable.rotor('disk').angle;
-    step(1400);
-    // One half-life of friction.
+    step(FRICTION_HALF_LIFE_MS);
     expect(view().turntable.rotor('disk').speed).toBeLessThan(6.5);
     expect(view().turntable.rotor('disk').angle - thrownAt).toBeGreaterThan(5);
     step(15_000);
@@ -202,8 +152,7 @@ describe('SpaceSceneEngine, turned by hand', () => {
     const { engine, step, view, drag, grab } = mount();
     grab(0);
     drag(0, 1, 200);
-    // The hand stops, then lets go.
-    step(120);
+    step(STILL_BEFORE_LETTING_GO_MS);
     engine.release();
     expect(view().turntable.rotor('disk').speed).toBe(0);
     const letGo = view().turntable.rotor('disk').angle;
@@ -229,7 +178,6 @@ describe('SpaceSceneEngine, turned by hand', () => {
     drag(0, Math.PI / 2, 150);
     engine.release();
     const thrown = view().turntable.rotor('disk').speed;
-    // At once, the orbits have not caught up yet: a drag, not a gear.
     expect(Math.abs(view().turntable.rotor('orbits').speed)).toBeLessThan(
       0.4 * thrown,
     );
@@ -249,7 +197,6 @@ describe('SpaceSceneEngine, turned by hand', () => {
     expect(view().turntable.rotor('orbits').angle).toBeCloseTo(1, 2);
     engine.release();
     step(600);
-    // The disk is dragged by the orbits in turn, less than they turned.
     expect(view().turntable.rotor('disk').angle - disk).toBeGreaterThan(0);
     expect(view().turntable.rotor('disk').angle - disk).toBeLessThan(1);
   });
@@ -269,7 +216,7 @@ describe('SpaceSceneEngine, turned by hand', () => {
   );
 
   it('does not turn when the direction holds it still, framed on one planet', () => {
-    const { engine, step, at } = mount();
+    const { engine, step, onDisk } = mount();
     engine.setInputs({
       ...INPUTS,
       direction: {
@@ -279,7 +226,7 @@ describe('SpaceSceneEngine, turned by hand', () => {
       },
     });
     step(3000);
-    const point = at(0);
+    const point = onDisk(0);
     expect(engine.grab(point.x, point.y)).toBe(false);
   });
 
@@ -292,13 +239,10 @@ describe('SpaceSceneEngine, turned by hand', () => {
     }
     grab(0, held.rb);
     drag(0, 1, 300, held.rb);
-    // Read while held: the frame shares the turn out.
     step(16);
     const turns = [...view().turntable.turns()];
     engine.release();
-    // The planet under the finger follows it.
     expect(turns[held.i]).toBeCloseTo(1, 1);
-    // Kepler: the closer in, the more it turned.
     const byRadius = [...orbits].sort((a, b) => a.rb - b.rb);
     const shares = byRadius.map((orbit) => turns[orbit.i] ?? 0);
     for (const [k, share] of shares.slice(1).entries()) {
@@ -322,7 +266,6 @@ const fitted = (w: number, h: number): number[] => {
   return orbits.map((orbit) => orbit.rb);
 };
 
-/** The room the outer orbit has across, in object radii. */
 const room = (w: number, h: number): number => {
   const { frame } = restOf(w, h);
   const cx = w * frame.x;
@@ -337,9 +280,7 @@ describe('fitOrbits', () => {
     expect(outer).toBeLessThanOrEqual(6.9);
   });
 
-  /** The floor of 4.6 used to put the outer orbit off a phone's screen. */
   it('keeps the outer orbit in the frame on a phone', () => {
-    // The case the old floor got wrong: less room than 4.6 radii.
     expect(room(375, 667)).toBeLessThan(4.6);
     expect(Math.max(...fitted(375, 667))).toBeLessThanOrEqual(
       room(375, 667) + 1e-9,
@@ -361,8 +302,7 @@ describe('fitOrbits', () => {
 
 const ignored = (): void => {};
 
-/** A context that records what it is asked to write, and nothing else. */
-const writer = (texts: string[]): CanvasRenderingContext2D =>
+const textRecorder = (texts: string[]): CanvasRenderingContext2D =>
   new Proxy(
     {},
     {
@@ -381,11 +321,8 @@ const writer = (texts: string[]): CanvasRenderingContext2D =>
   ) as CanvasRenderingContext2D;
 
 const FIXES_INPUTS: SceneInputs = {
-  bodies: bodies(7),
-  direction: SHOWN,
+  ...SCENE_INPUTS,
   figureNames: ['A', 'B', 'C', 'D'],
-  paused: false,
-  reduced: false,
 };
 
 const mountAt = (
@@ -396,9 +333,9 @@ const mountAt = (
   const texts: string[] = [];
   const engine = new SpaceSceneEngine(
     host,
-    { matter: writer(texts), sky: writer(texts) },
+    { matter: textRecorder(texts), sky: textRecorder(texts) },
     {
-      rnd: seeded(3),
+      rnd: seededRandom(3),
       density: 100,
       figures,
       ink: '#fff',
@@ -417,7 +354,6 @@ const mountAt = (
 };
 
 describe('SpaceSceneEngine, fixed', () => {
-  /** Its clock stood still at 0 meanwhile, and the crossing started over. */
   it('does not replay the crossing when motion is switched back on', () => {
     const { engine, step } = mountAt({ reduced: true });
     step(1000);
@@ -439,10 +375,9 @@ describe('SpaceSceneEngine, fixed', () => {
     expect(time).toBeLessThan(TRAVELING_END);
   });
 
-  /** The camera's aim read last frame's radii, 1.6 at the first. */
   it('fits the orbits before the camera aims at them', () => {
     const { engine, step } = mountAt();
-    step(12_000);
+    step(PAST_CROSSING_MS);
     const view = engine as unknown as {
       orbits: readonly { rb: number }[];
       target: () => unknown;
@@ -456,9 +391,8 @@ describe('SpaceSceneEngine, fixed', () => {
     };
 
     engine.setLayout(layout(220));
-    step(1000 / 60);
+    step(FRAME_MS);
 
-    // The aim read radii fitted to the new room, not the last frame's.
     expect(seen[0]).not.toBe(before);
     expect(seen[0]).toBeCloseTo(view.orbits.at(-1)?.rb ?? NaN, 1);
   });

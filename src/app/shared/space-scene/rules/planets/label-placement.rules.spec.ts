@@ -36,7 +36,6 @@ describe('placeTag', () => {
     expect(at.y).toBe(2);
   });
 
-  /** On the table, the number goes; the body stays. */
   it('says so when it falls on a text panel', () => {
     const at = placeTag({ x: 600, y: 400, gap: 10 }, { w: 20, h: 16 }, STAGE, [
       { l: 580, r: 700, t: 350, b: 450 },

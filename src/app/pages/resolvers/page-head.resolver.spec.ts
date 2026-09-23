@@ -19,7 +19,6 @@ const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
 
 const title = () => TestBed.inject(Title).getTitle();
 
-/** The route resolves the name; the strategy writes it, alone. */
 describe('sheetTitle', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -49,7 +48,6 @@ describe('sheetTitle', () => {
     );
   });
 
-  /** The regression a second writer caused: the strategy wrote "Projet" back. */
   it('renames the tab from one sheet to the next', async () => {
     await go('/projet/ngx-statewise');
     await go('/projet/speakey');

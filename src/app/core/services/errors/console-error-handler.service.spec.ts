@@ -25,7 +25,6 @@ const promisedUpdater = defineUpdater(PromisedState, (on) => {
 
 const giveNoAnswer = (): void => {};
 
-/** An effect that promised an answer and gives none. */
 @Service()
 class SilentEffect {
   public readonly promisedEffect = createEffect(promised, giveNoAnswer, {
@@ -55,10 +54,6 @@ describe('AppErrorHandler', () => {
     expect(logged).toEqual([failure]);
   });
 
-  /**
-   * The library reports a fire-and-forget dispatch's failure to Angular's
-   * handler (an awaited one rejects instead), so it lands here.
-   */
   it('receives what ngx-statewise reports', async () => {
     TestBed.configureTestingModule({
       providers: [

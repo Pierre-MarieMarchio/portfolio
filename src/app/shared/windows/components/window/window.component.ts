@@ -6,6 +6,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { isOnControl } from '@app/core/helpers';
 import { DraggableDirective } from '../../directives/draggable.directive';
 import { FitHeightDirective } from '../../directives/fit-height.directive';
 import { RememberScrollDirective } from '../../directives/remember-scroll.directive';
@@ -55,10 +56,7 @@ export class WindowComponent {
   }
 
   protected onBarDoubleClick(event: MouseEvent): void {
-    const isOnControl =
-      event.target instanceof Element &&
-      event.target.closest('button, a') !== null;
-    if (!isOnControl) {
+    if (!isOnControl(event)) {
       this.toggleCollapse();
     }
   }

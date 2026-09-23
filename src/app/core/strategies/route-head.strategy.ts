@@ -3,16 +3,6 @@ import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { Lang, LANGS, langOfUrl } from '../models';
 import { DocumentHeadService } from '../services/head/document-head.service';
 
-/**
- * Every route names itself with `title`, and may describe itself with
- * `data.description` and give its other languages' addresses with
- * `data.alternates`. This turns both into the document's head, in one place,
- * so no page has to remember to call a service from its constructor.
- *
- * A title that depends on the content (a project's name) is a route
- * resolver's job: the router hands this strategy the resolved string like
- * any other, and `PageHead` stays the only writer of the head.
- */
 @Service({ autoProvided: false })
 export class RouteHeadStrategy extends TitleStrategy {
   private readonly head = inject(DocumentHeadService);
@@ -27,7 +17,6 @@ export class RouteHeadStrategy extends TitleStrategy {
   }
 }
 
-/** A value of the deepest route that declares one of the right shape. */
 function deepest<T>(
   snapshot: RouterStateSnapshot,
   key: string,
@@ -55,7 +44,6 @@ function deepest<T>(
 
 const isString = (value: unknown): value is string => typeof value === 'string';
 
-/** The page's address in each language, as `alternates` resolves it. */
 const isAlternates = (value: unknown): value is Record<Lang, string> =>
   typeof value === 'object' &&
   value !== null &&

@@ -3,18 +3,11 @@ import { Lang } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
 import { Catalog } from '../models/catalog.model';
 
-/** Each language's catalogue, as a chunk of its own: only the one read loads. */
 const LOADERS: Readonly<Record<Lang, () => Promise<Catalog>>> = {
   fr: () => import('../data/fr.data').then((module) => module.FR),
   en: () => import('../data/en.data').then((module) => module.EN),
 };
 
-/**
- * The catalogues loaded so far, and the one of the reader's language. The
- * app initializer loads the language of the first address before the first
- * render, and every route loads its own before it activates
- * (`loadCatalog`), so `current` is never asked for one that is not there.
- */
 @Service()
 export class CatalogLoaderService {
   private readonly locale = inject(LocaleService);

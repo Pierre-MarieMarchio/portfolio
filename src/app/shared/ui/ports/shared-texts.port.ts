@@ -1,14 +1,7 @@
 import { InjectionToken, Signal } from '@angular/core';
 
-/**
- * The words the shared components say themselves, whatever page uses them:
- * the language switch's group, the navigation's name. They know no language:
- * the composition root answers this token with the catalogue of the
- * reader's, and every text a caller passes stays the caller's.
- */
 export interface SharedTexts {
   readonly segmented: {
-    /** The group's name when the caller gives none. */
     readonly label: string;
   };
   readonly pageBar: {
@@ -20,7 +13,6 @@ export interface SharedTexts {
   };
 }
 
-/** No default: a composition that forgets it fails loudly, not in French. */
 export const SHARED_TEXTS = new InjectionToken<Signal<SharedTexts>>(
   'SHARED_TEXTS',
 );

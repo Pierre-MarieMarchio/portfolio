@@ -1,22 +1,4 @@
-/*
- * The few classes every view shares, written once. Everything else views
- * share is a mixin under mixins/, included where it is used: a class here is
- * global, and would win or lose against a component's own rules by
- * specificity rather than by intent.
- */
-
-/* Out of sight, still read: until it holds the focus, or is being clicked. */
-.visually-hidden:not(:focus-within, :active) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-/* The heading a view's focus lands on when it has no visible one: hidden,
-   even focused, unlike the skip link, which shows itself when reached. */
+.visually-hidden:not(:focus-within, :active),
 .landing {
   position: absolute;
   width: 1px;
@@ -24,12 +6,12 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+.landing {
   outline: none;
 }
 
-/* Reached by the keyboard, it shows over the page, as the export's
-   `.skip:focus` draws it, instead of falling into the flow and pushing the
-   scene down. */
 .skip-link:focus-within {
   position: absolute;
   left: var(--s2);

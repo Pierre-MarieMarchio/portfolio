@@ -3,8 +3,11 @@
 @use 'mixins/motion';
 @use 'mixins/type';
 
+$arrival-duration: 1500ms;
+$arrival-delay: 700ms;
+
 :host {
-  @include arrival.on-its-own(1500ms, 700ms);
+  @include arrival.on-its-own($arrival-duration, $arrival-delay);
 
   display: block;
   position: absolute;
@@ -15,14 +18,12 @@
   pointer-events: none;
 }
 
-/* Held by its opacity alone: it takes no pointer, and it keeps the landing
-   focus. */
 :host([data-arrival='held']) {
   @include arrival.held($hide: false);
 }
 
 :host([data-arrival='shown']) {
-  @include arrival.shown(1500ms, 700ms);
+  @include arrival.shown($arrival-duration, $arrival-delay);
 }
 
 .name {

@@ -1,7 +1,3 @@
-/**
- * Standard normal deviates by the polar Box-Muller method, drawn from `rnd`:
- * radial spreads follow a Gaussian so that no orbit reads as a line.
- */
 export const gaussian = (rnd: () => number): (() => number) => {
   let spare: number | null = null;
   return () => {

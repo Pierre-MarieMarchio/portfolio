@@ -72,7 +72,6 @@ describe('ContactRailComponent', () => {
     }
   });
 
-  /** A profile opens beside the site; a mail address opens the mail client. */
   it('opens only the external links in a new tab', async () => {
     const { links } = await mount();
     const [mail, github] = links();

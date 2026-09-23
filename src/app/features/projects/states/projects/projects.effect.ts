@@ -9,13 +9,6 @@ export class ProjectsEffect {
   private readonly repository = inject(ProjectsRepositoryService);
   private readonly errorHandler = inject(ErrorHandler);
 
-  /**
-   * Handed over as an Observable: the engine subscribes to it itself, so
-   * abandoning a run unsubscribes the read rather than ignoring its answer.
-   *
-   * The cause goes to the `ErrorHandler`, and the state only learns that the
-   * read failed: the reason is for whoever debugs, the flag is for the page.
-   */
   public readonly getProjectsRequestEffect = createEffect(
     getProjectsActions.request,
     () =>

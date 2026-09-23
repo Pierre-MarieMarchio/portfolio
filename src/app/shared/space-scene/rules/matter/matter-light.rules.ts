@@ -1,4 +1,5 @@
 import { Grain, Projected } from '../scene-bodies.rules';
+import { SHADOW_EDGE } from '../../models/scene-constants.model';
 
 export interface GrainSpot extends Projected {
   rx: number;
@@ -39,7 +40,7 @@ export const litMatter = (
   }
   if (grain.fam === 3 && grain.behind) {
     const dist = Math.hypot(spot.x, spot.y);
-    lit *= dist < 1.02 ? 0 : 0.94;
+    lit *= dist < SHADOW_EDGE ? 0 : 0.94;
   }
   return litByFamily(lit, grain, spot);
 };

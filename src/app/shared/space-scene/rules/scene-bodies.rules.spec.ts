@@ -26,7 +26,6 @@ describe('orbitRank (Titius-Bode)', () => {
     expect(orbitRank(0, 1)).toBe(0);
   });
 
-  /** The mockup's system, kept exactly: its seven orbits are the export's. */
   it('spreads three bodies from the first orbit to the last, as few as they are', () => {
     expect([0, 1, 2].map((i) => orbitRank(i, 3))).toEqual([
       0,
@@ -35,7 +34,6 @@ describe('orbitRank (Titius-Bode)', () => {
     ]);
   });
 
-  /** Twelve used to stack the first four within 5% of the first orbit. */
   it('keeps the first orbits where they are, however many bodies follow', () => {
     expect(firstFour(12)).toEqual(firstFour(ORBIT_REFERENCE_COUNT));
     expect(firstFour(20)).toEqual(firstFour(ORBIT_REFERENCE_COUNT));

@@ -14,6 +14,11 @@ export interface ScreenHole {
   readonly radius: number;
 }
 
+export const holeDistance = (x: number, y: number, hole: ScreenHole): number =>
+  Math.sqrt((x - hole.cx) * (x - hole.cx) + (y - hole.cy) * (y - hole.cy));
+
+export const opening = (elev: number): number => 0.05 + 0.62 * elev;
+
 export const flattening = (elev: number): number => 0.88 + 0.34 * elev;
 
 export const travelingElevation = (resting: number, dEv: number): number =>

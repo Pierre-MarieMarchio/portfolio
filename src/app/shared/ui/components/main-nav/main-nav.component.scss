@@ -21,15 +21,10 @@ nav a {
     border-color var(--t),
     background var(--t);
 
-  &:hover {
-    color: var(--ink);
-    background: var(--vitre-2);
-  }
-
   &[data-active='true'] {
-    background: var(--vitre-2);
+    @include controls.lit;
+
     border-color: var(--line);
-    color: var(--ink);
   }
 }
 

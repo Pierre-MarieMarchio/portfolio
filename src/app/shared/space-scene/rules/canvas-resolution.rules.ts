@@ -1,7 +1,7 @@
 const PIXEL_BUDGET = 4_200_000;
 const MAX_PIXEL_RATIO = 2;
 
-export interface CanvasResolution {
+interface CanvasResolution {
   readonly width: number;
   readonly height: number;
   readonly pixelRatio: number;

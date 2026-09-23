@@ -1,21 +1,12 @@
 import { DesktopView, DesktopWindow } from '../models';
 
-/** The views a step back can lead to; their address is the composition's. */
 export type ParentView = 'home' | 'index';
 
-/** What stepping back one notch does, when there is a notch to go. */
-export type StepBack =
+type StepBack =
   | { readonly kind: 'deselect' }
   | { readonly kind: 'close-preview' }
   | { readonly kind: 'navigate'; readonly to: ParentView };
 
-/**
- * The two gestures that step back. Escape reaches further than a click in
- * the void: from the index or "about" it goes home, and from an unknown
- * address back to the list, where a click in the void (which only shows
- * over something to close) closes that and nothing more. This is the
- * mockup's behaviour, kept on purpose.
- */
 export type StepBackGesture = 'escape' | 'void';
 
 export interface StepBackFrom {
@@ -24,7 +15,6 @@ export interface StepBackFrom {
   readonly preview: string | null;
 }
 
-/** The view a view steps back to, where it has one. */
 export function parentOf(view: DesktopView): ParentView | null {
   switch (view) {
     case 'sheet':
@@ -57,12 +47,6 @@ export function windowOf(view: DesktopView): DesktopWindow | null {
   }
 }
 
-/**
- * One notch back, never more: selection → overview, sheet → index, index
- * and "about" → home (Escape only), preview → closed. `null` when there is
- * nothing to step back from. The one rule the effects and the void button
- * both read.
- */
 export function stepBack(
   gesture: StepBackGesture,
   { view, selection, preview }: StepBackFrom,

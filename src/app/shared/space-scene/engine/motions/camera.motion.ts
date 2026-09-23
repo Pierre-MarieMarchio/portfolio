@@ -22,7 +22,7 @@ import { fitOrbits, Orbit } from '../../rules/scene-bodies.rules';
 import { Traveling } from '../../rules/camera/traveling.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 
-export interface CameraPose {
+interface CameraPose {
   readonly roll: number;
   readonly scale: number;
   readonly camX: number;

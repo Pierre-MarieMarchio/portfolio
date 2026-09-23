@@ -128,8 +128,6 @@ describe('scene camera', () => {
       while (quiet < 9.6 && growthRate(quiet) > 0.1 * peak) {
         quiet += 0.01;
       }
-      // The cubic ease it replaces went from its peak to a tenth of it in
-      // half a second, at 8.2 to 8.7 s.
       expect(quiet - peakAt).toBeGreaterThan(0.9);
     });
 

@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import type { ResolveFn } from '@angular/router';
-import { Lang, LANGS } from '@app/core/i18n';
+import { Lang, LANGS } from '@app/core/models';
 import { PAGES_TEXTS, PagesTexts, translatePath } from '@app/i18n';
 
 /** The views whose head the catalogue writes. */

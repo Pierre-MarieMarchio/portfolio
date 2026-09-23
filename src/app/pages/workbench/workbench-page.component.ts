@@ -4,8 +4,10 @@ import {
   computed,
   signal,
 } from '@angular/core';
-import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
-import { WindowComponent, WindowSize } from '@shared/ui/window';
+import { SegmentedComponent } from '@shared/ui/components';
+import { SegmentedItem } from '@shared/ui/models';
+import { WindowComponent } from '@shared/ui/components';
+import { WindowSize } from '@shared/ui/models';
 
 type Scenario = 'index' | 'preview' | 'short' | 'fixed';
 

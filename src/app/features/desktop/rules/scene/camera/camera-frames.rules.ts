@@ -1,4 +1,4 @@
-import { clamp, nearestTurn } from '../scene-math.rules';
+import { clamp, nearestTurn } from '@app/core/helpers';
 import { ORBIT_RATE } from '../../../models/scene-constants.model';
 
 /**

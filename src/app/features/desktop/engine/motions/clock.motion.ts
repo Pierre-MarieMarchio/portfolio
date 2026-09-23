@@ -1,8 +1,4 @@
-import {
-  clamp,
-  finiteOr,
-  halfLifeStep,
-} from '../../rules/scene/scene-math.rules';
+import { clamp, finiteOr, halfLifeStep } from '@app/core/helpers';
 import type { EngineInputs } from '../space-scene.engine';
 import {
   Traveling,

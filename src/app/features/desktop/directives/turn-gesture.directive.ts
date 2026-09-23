@@ -1,5 +1,5 @@
 import { DestroyRef, Directive, inject, input, output } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
+import { BrowserEnvironmentService } from '@app/core/services';
 import { SpaceSceneEngine } from '../engine/space-scene.engine';
 
 export type TurnableScene = Pick<SpaceSceneEngine, 'grab' | 'turn' | 'release'>;
@@ -9,7 +9,7 @@ const OWN_GESTURES =
 
 @Directive({ selector: '[appTurnGesture]' })
 export class TurnGestureDirective {
-  private readonly browser = inject(BrowserEnvironment);
+  private readonly browser = inject(BrowserEnvironmentService);
 
   public readonly appTurnGesture = input<TurnableScene | null>(null);
 

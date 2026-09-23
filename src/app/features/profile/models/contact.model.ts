@@ -1,3 +1,3 @@
-import { ContactLink } from '@shared/ui/contact-rail';
+import { SocialLink } from '@shared/ui/models';
 
-export type ContactAddress = Omit<ContactLink, 'label'>;
+export type ContactAddress = Omit<SocialLink, 'label'>;

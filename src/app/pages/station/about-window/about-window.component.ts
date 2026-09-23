@@ -10,12 +10,13 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { twoDigits } from '@app/core/utils/format.utils';
+import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
 import { PAGES_TEXTS } from '@app/i18n';
-import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
-import { WindowComponent } from '@shared/ui/window';
-import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+import { SegmentedComponent } from '@shared/ui/components';
+import { SegmentedItem } from '@shared/ui/models';
+import { WindowComponent } from '@shared/ui/components';
+import { ViewHeadingDirective } from '@shared/ui/directives';
 
 /**
  * Four parts, in the order of the questions a recruiter asks: who is it, can
@@ -32,7 +33,7 @@ const PARTS = ['profile', 'skills', 'method', 'path'] as const;
 @Component({
   selector: 'app-about-window',
   imports: [
-    LandingHeadingDirective,
+    ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,
     WindowComponent,

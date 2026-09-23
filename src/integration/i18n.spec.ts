@@ -8,8 +8,8 @@ import {
   withComponentInputBinding,
 } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
-import { Locale } from '@app/core/i18n';
-import { PageTitleStrategy } from '@app/core/services';
+import { LocaleService } from '@app/core/services';
+import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
 import { Catalogs, provideI18n, translatePath } from '@app/i18n';
@@ -34,7 +34,7 @@ const mount = async () => {
     imports: [Shell],
     providers: [
       provideRouter(routes, withComponentInputBinding()),
-      { provide: TitleStrategy, useClass: PageTitleStrategy },
+      { provide: TitleStrategy, useClass: RouteHeadStrategy },
       provideStatewise({ effects: [ProjectsEffect, DesktopEffect] }),
       provideI18n(),
     ],
@@ -83,7 +83,7 @@ describe('i18n', () => {
 
     await go('/en/projects');
     expect(document.documentElement.getAttribute('lang')).toBe('en');
-    expect(TestBed.inject(Locale).lang()).toBe('en');
+    expect(TestBed.inject(LocaleService).lang()).toBe('en');
     expect(
       host.querySelector('app-page-bar nav')?.getAttribute('aria-label'),
     ).toBe('Main navigation');

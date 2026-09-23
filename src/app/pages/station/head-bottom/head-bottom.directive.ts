@@ -6,8 +6,8 @@ import {
   ElementRef,
   inject,
 } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
-import { PageBarComponent } from '@shared/ui/page-bar';
+import { BrowserEnvironmentService } from '@app/core/services';
+import { PageBarComponent } from '@shared/ui/components';
 
 /**
  * Writes on the scene how far down the page bar reaches, as
@@ -26,7 +26,7 @@ export class HeadBottomDirective {
   >(PageBarComponent, { read: ElementRef });
 
   constructor() {
-    const browser = inject(BrowserEnvironment);
+    const browser = inject(BrowserEnvironmentService);
     const scene = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     let stop: (() => void) | undefined;
     afterNextRender(() => {

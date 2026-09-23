@@ -6,11 +6,12 @@ import {
   Provider,
 } from '@angular/core';
 import type { CanActivateFn } from '@angular/router';
-import { langOfUrl, Locale } from '@app/core/i18n';
+import { langOfUrl } from '@app/core/models';
+import { LocaleService } from '@app/core/services';
 import { PROJECTS_TEXTS } from '@app/features/projects/i18n';
 import { ILinks, LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
-import { SHARED_TEXTS } from '@shared/ui/texts';
+import { SHARED_TEXTS } from '@shared/ui/ports';
 import { PAGES_TEXTS } from './catalog';
 import { Catalogs } from './catalogs.service';
 import { pathOf } from './paths';
@@ -24,7 +25,7 @@ import { pathOf } from './paths';
 export const loadCatalog: CanActivateFn = async (_route, state) => {
   // Both taken before the wait: past an `await`, `inject` has no context.
   const catalogs = inject(Catalogs);
-  const locale = inject(Locale);
+  const locale = inject(LocaleService);
   const lang = langOfUrl(state.url);
   await catalogs.ensure(lang);
   locale.set(lang);
@@ -62,7 +63,7 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
     {
       provide: LINKS,
       useFactory: (): ILinks => {
-        const locale = inject(Locale);
+        const locale = inject(LocaleService);
         return {
           home: () => pathOf('home', locale.lang()),
           index: () => pathOf('index', locale.lang()),
@@ -71,6 +72,8 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
         };
       },
     },
-    provideAppInitializer(() => inject(Catalogs).ensure(inject(Locale).lang())),
+    provideAppInitializer(() =>
+      inject(Catalogs).ensure(inject(LocaleService).lang()),
+    ),
   ];
 }

@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { BrowserEnvironment } from '@app/core/services';
+import { BrowserEnvironmentService } from '@app/core/services';
 
 const on = (platform: 'browser' | 'server') => {
   TestBed.configureTestingModule({
@@ -20,7 +20,7 @@ describe('prerender safety', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
     on('server');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
 
     expect(environment.prefersReducedMotion()).toBe(true);
     expect(environment.watchMedia('(min-width: 1px)', () => {})).toEqual(
@@ -35,7 +35,7 @@ describe('prerender safety', () => {
   it('answers no viewport, listens to nothing and waits for no frame on the server', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
     on('server');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
 
     expect(environment.viewport()).toBeNull();
     environment.listen('resize', () => {})();
@@ -76,7 +76,7 @@ describe('prerender safety', () => {
     const computed = vi.spyOn(window, 'getComputedStyle');
     const now = vi.spyOn(performance, 'now');
     on('server');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
     const canvas = document.createElement('canvas');
     const onFonts = vi.fn();
 
@@ -122,7 +122,7 @@ describe('prerender safety', () => {
       },
     );
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
     const canvas = document.createElement('canvas');
     const heard: boolean[] = [];
 
@@ -148,7 +148,7 @@ describe('prerender safety', () => {
 
   it('reads the viewport and stops listening when asked, in the browser', () => {
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
     const heard: string[] = [];
 
     expect(environment.viewport()).toEqual({
@@ -168,7 +168,7 @@ describe('prerender safety', () => {
   it('leaves the cursor alone on the server', () => {
     on('server');
 
-    TestBed.inject(BrowserEnvironment).setCursor('grabbing');
+    TestBed.inject(BrowserEnvironmentService).setCursor('grabbing');
 
     expect(document.body.style.cursor).toBe('');
   });
@@ -176,7 +176,7 @@ describe('prerender safety', () => {
   it('sets the cursor and reads the root tokens in the browser', () => {
     document.documentElement.style.setProperty('--ink', ' #2b2f3a ');
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
 
     environment.setCursor('grabbing');
     expect(document.body.style.cursor).toBe('grabbing');
@@ -192,7 +192,7 @@ describe('prerender safety', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     document.documentElement.style.setProperty('--arrival-at', '8700ms');
     on('server');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
     const called = vi.fn();
 
     expect(environment.rootDuration('--arrival-at')).toBeNull();
@@ -207,7 +207,7 @@ describe('prerender safety', () => {
 
   it('reads a duration token in ms or s, and nothing else, in the browser', () => {
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
     const read = (value: string): number | null => {
       document.documentElement.style.setProperty('--probe', value);
       return environment.rootDuration('--probe');
@@ -223,7 +223,7 @@ describe('prerender safety', () => {
   it('calls back once, at the first gesture or the timeout, in the browser', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironment);
+    const environment = TestBed.inject(BrowserEnvironmentService);
     const byGesture = vi.fn();
     const byTime = vi.fn();
     const cancelled = vi.fn();

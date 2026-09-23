@@ -5,8 +5,8 @@ import {
   input,
 } from '@angular/core';
 import { PAGES_TEXTS } from '@app/i18n';
-import { Arrival } from '@shared/ui/arrival';
-import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+import { Entrance } from '@shared/ui/models';
+import { ViewHeadingDirective } from '@shared/ui/directives';
 import { STATION_IDS } from '../station.ids';
 
 /**
@@ -16,14 +16,14 @@ import { STATION_IDS } from '../station.ids';
  */
 @Component({
   selector: 'app-home-title',
-  imports: [LandingHeadingDirective],
+  imports: [ViewHeadingDirective],
   templateUrl: './home-title.component.html',
   styleUrl: './home-title.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[attr.data-arrival]': 'arrival()' },
 })
 export class HomeTitleComponent {
-  public readonly arrival = input<Arrival>('timed');
+  public readonly arrival = input<Entrance>('timed');
 
   protected readonly headingId = STATION_IDS.homeTitle;
   protected readonly texts = inject(PAGES_TEXTS);

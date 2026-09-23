@@ -11,7 +11,7 @@
   >
     <!--
       First, behind everything: its sky sits under the void, its planets
-      above it. Every appObjectPanel below is text the matter gives way to.
+      above it. Every appPanelAnchor below is text the matter gives way to.
     -->
     <app-space-scene
       #object
@@ -42,7 +42,7 @@
     }
 
     <app-page-bar
-      appObjectPanel="head"
+      appPanelAnchor="head"
       [items]="navigationItems()"
       [current]="currentRoute()"
       [languages]="languages()"
@@ -50,10 +50,10 @@
     />
 
     @if (station.view() === 'home') {
-      <app-home-title appObjectPanel [arrival]="arrival()" />
+      <app-home-title appPanelAnchor [arrival]="arrival()" />
     }
 
-    <div class="slot slot--about" appWindowSlot="about" appObjectPanel>
+    <div class="slot slot--about" appWindowSlot="about" appPanelAnchor>
       @if (station.showsAbout()) {
         <app-about-window
           [pinned]="station.pins().about"
@@ -65,7 +65,7 @@
       }
     </div>
 
-    <div class="slot slot--index" appWindowSlot="index" appObjectPanel>
+    <div class="slot slot--index" appWindowSlot="index" appPanelAnchor>
       @if (station.showsIndex()) {
         <app-project-index
           [pinned]="station.pins().index"
@@ -81,7 +81,7 @@
       }
     </div>
 
-    <div class="slot slot--sheet" appWindowSlot="sheet" appObjectPanel="sheet">
+    <div class="slot slot--sheet" appWindowSlot="sheet" appPanelAnchor="sheet">
       @if (binding.isNotFound()) {
         <app-not-found-window
           [total]="binding.projectCount()"
@@ -102,7 +102,7 @@
     <div
       class="slot slot--preview"
       appWindowSlot="preview"
-      appObjectPanel="preview"
+      appPanelAnchor="preview"
       [id]="ids.previewPanel"
     >
       @if (station.showsPreview()) {
@@ -120,7 +120,7 @@
 
     @if (showsRule()) {
       <app-orbit-rule
-        appObjectPanel="rule"
+        appPanelAnchor="rule"
         [bodies]="binding.featured()"
         [controls]="ids.previewPanel"
         [hovered]="station.hovered()"
@@ -133,8 +133,8 @@
   </section>
 </main>
 
-<app-contact-rail
-  appObjectPanel
+<app-social-links
+  appPanelAnchor
   [links]="contactLinks()"
   [showPause]="object.animated()"
   [paused]="station.paused()"

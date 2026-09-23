@@ -1,7 +1,7 @@
 import { COMETS } from '../../../rules/scene/sky/comets.rules';
-import { clamp } from '../../../rules/scene/scene-math.rules';
+import { clamp } from '@app/core/helpers';
 import type { SceneFrame } from '../../../rules/scene/scene-frame.rules';
-import { TAU } from '../../../rules/scene/scene-math.rules';
+import { TAU } from '@app/core/helpers';
 import {
   PlaneView,
   rollFlatten,

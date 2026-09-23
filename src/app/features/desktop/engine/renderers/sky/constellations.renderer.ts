@@ -1,6 +1,6 @@
 import type { SkyPan } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene/scene-frame.rules';
-import { TAU } from '../../../rules/scene/scene-math.rules';
+import { TAU } from '@app/core/helpers';
 import { ScreenHole } from '../../../rules/scene/camera/projection.rules';
 import {
   CONSTELLATIONS,

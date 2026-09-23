@@ -115,6 +115,103 @@ describe('prerender safety', () => {
     addEventListener.mockRestore();
   });
 
+  /**
+   * The object's doors: every one answers its neutral value on the server
+   * and reaches for nothing. The spies catch the browser APIs a forgotten
+   * guard would call.
+   */
+  it('gives the object no context, no observer, no clock and no fonts on the server', () => {
+    const matchMedia = vi.fn();
+    vi.stubGlobal('matchMedia', matchMedia);
+    const observed = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe = observed;
+        disconnect = vi.fn();
+      },
+    );
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        observe = observed;
+        disconnect = vi.fn();
+      },
+    );
+    const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext');
+    const listen = vi.spyOn(document, 'addEventListener');
+    const computed = vi.spyOn(window, 'getComputedStyle');
+    const now = vi.spyOn(performance, 'now');
+    on('server');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const canvas = document.createElement('canvas');
+    const onFonts = vi.fn();
+
+    expect(environment.cannotHover()).toBe(false);
+    expect(environment.devicePixelRatio()).toBe(1);
+    expect(environment.now()).toBe(0);
+    expect(environment.isHidden()).toBe(true);
+    environment.watchVisibility(() => undefined)();
+    environment.observeResize(canvas, () => undefined)();
+    environment.observeIntersection(canvas, 0.01, () => undefined)();
+    expect(environment.context2d(canvas)).toBeNull();
+    expect(environment.computedStyle(canvas, 'opacity')).toBe('');
+    environment.whenFontsReady(onFonts);
+
+    expect(matchMedia).not.toHaveBeenCalled();
+    expect(observed).not.toHaveBeenCalled();
+    expect(getContext).not.toHaveBeenCalled();
+    expect(listen).not.toHaveBeenCalled();
+    expect(computed).not.toHaveBeenCalled();
+    expect(now).not.toHaveBeenCalled();
+    expect(onFonts).not.toHaveBeenCalled();
+
+    getContext.mockRestore();
+    listen.mockRestore();
+    computed.mockRestore();
+    now.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('observes, times and reads styles in the browser', () => {
+    const observed: Element[] = [];
+    const disconnected: string[] = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe(element: Element) {
+          observed.push(element);
+        }
+        disconnect() {
+          disconnected.push('resize');
+        }
+      },
+    );
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const canvas = document.createElement('canvas');
+    const heard: boolean[] = [];
+
+    environment.observeResize(canvas, () => undefined)();
+    expect(observed).toEqual([canvas]);
+    expect(disconnected).toEqual(['resize']);
+
+    const stop = environment.watchVisibility((hidden) => heard.push(hidden));
+    document.dispatchEvent(new Event('visibilitychange'));
+    stop();
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(heard).toEqual([document.hidden]);
+
+    expect(environment.now()).toBeGreaterThan(0);
+    expect(environment.devicePixelRatio()).toBe(window.devicePixelRatio || 1);
+    canvas.style.opacity = '0.5';
+    document.body.append(canvas);
+    expect(environment.computedStyle(canvas, 'opacity')).toBe('0.5');
+    canvas.remove();
+
+    vi.unstubAllGlobals();
+  });
+
   it('reads the viewport and stops listening when asked, in the browser', () => {
     on('browser');
     const environment = TestBed.inject(BrowserEnvironment);

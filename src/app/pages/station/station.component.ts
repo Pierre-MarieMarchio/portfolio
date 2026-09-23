@@ -17,6 +17,7 @@ import {
 } from '@app/features/projects/components';
 import { ProjectsManager } from '@app/features/projects/states';
 import { StationManager } from '@app/features/station/states';
+import { ObjectBody, ObjectComponent, ObjectView } from '@shared/ui/object';
 import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
 import { navigationItems } from '../../app.navigation';
 import { AboutWindowComponent } from './about-window.component';
@@ -43,6 +44,7 @@ const FOCUS_DEADLINE_MS = 2500;
     AboutWindowComponent,
     ContactRailComponent,
     NotFoundWindowComponent,
+    ObjectComponent,
     PageBarComponent,
     ProjectIndexComponent,
     ProjectSheetComponent,
@@ -104,6 +106,44 @@ export class StationComponent {
   /** Last touched in front; written into the DOM, rendering needs no order. */
   private order: Slot[] = ['about', 'index', 'sheet', 'preview'];
 
+  /**
+   * The object speaks in ranks, the station in slugs: the rank is the
+   * catalog's order, so the two meet here.
+   */
+  protected readonly bodies = computed<readonly ObjectBody[]>(() =>
+    this.projects
+      .projects()
+      .map((project) => ({ title: project.title, short: project.short })),
+  );
+
+  protected readonly objectView = computed<ObjectView>(() =>
+    this.isNotFound() ? 'not-found' : this.station.view(),
+  );
+
+  protected readonly focusRank = computed(() => this.rankOf(this.sheetSlug()));
+  protected readonly previewRank = computed(() =>
+    this.rankOf(this.station.preview()),
+  );
+  protected readonly selectedRank = computed(() =>
+    this.rankOf(this.station.selection()),
+  );
+  protected readonly hoveredRank = computed(() =>
+    this.rankOf(this.station.hovered()),
+  );
+
+  /** The part is a two-digit key ("00"…"03"); the object counts from 0. */
+  protected readonly partIndex = computed(() => {
+    const part = Number.parseInt(this.station.part(), 10);
+    return Number.isFinite(part) ? part : 0;
+  });
+
+  /**
+   * Set when a spin of the object just ended: the click that follows on the
+   * void is the end of a drag, not a request to step back. Cleared at the
+   * next pointerdown, so a stale spin never swallows a real click.
+   */
+  private swallowVoid = false;
+
   constructor() {
     const stops = [
       this.browser.listen('keydown', (event) => {
@@ -115,6 +155,7 @@ export class StationComponent {
       this.browser.listen(
         'pointerdown',
         (event) => {
+          this.swallowVoid = false;
           const slot =
             event.target instanceof Element
               ? event.target.closest<HTMLElement>('[data-slot]')
@@ -153,6 +194,48 @@ export class StationComponent {
 
   protected onFamily(family: FamilyFilter): void {
     this.station.filter(family);
+  }
+
+  /**
+   * On the index a planet selects its row, a second click lets it go;
+   * anywhere else it opens or closes the preview.
+   */
+  protected onBodyClicked(rank: number): void {
+    const slug = this.slugAt(rank);
+    if (!slug) {
+      return;
+    }
+    if (this.station.view() === 'index') {
+      this.station.select(this.station.selection() === slug ? null : slug);
+    } else {
+      this.station.togglePreview(slug);
+    }
+  }
+
+  protected onBodyHovered(rank: number): void {
+    this.station.hover(this.slugAt(rank));
+  }
+
+  protected onSpun(): void {
+    this.swallowVoid = true;
+  }
+
+  protected onVoid(): void {
+    if (this.swallowVoid) {
+      this.swallowVoid = false;
+      return;
+    }
+    void this.station.clickVoid();
+  }
+
+  private slugAt(rank: number): string | null {
+    return this.projects.projects()[rank]?.slug ?? null;
+  }
+
+  private rankOf(slug: string | null): number {
+    return slug === null
+      ? -1
+      : this.projects.projects().findIndex((project) => project.slug === slug);
   }
 
   private bringToFront(slot: Slot): void {

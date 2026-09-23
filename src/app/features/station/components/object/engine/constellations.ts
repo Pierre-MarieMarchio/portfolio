@@ -130,14 +130,6 @@ export const CONSTELLATIONS: readonly Figure[] = [
   },
 ];
 
-/** The names of the four parts, drawn under their figure. */
-export const PART_LABELS: readonly string[] = [
-  'Profil',
-  'Compétences',
-  'Méthode',
-  'Parcours',
-];
-
 /**
  * The figure is pinned to the sky: the same drift and parallax as the fixed
  * stars, at the furthest depth, so it barely moves and never with the disk.
@@ -165,6 +157,8 @@ export const drawConstellations = (
       readonly cy: number;
       readonly R: number;
     } | null;
+    /** The name of each figure, in the parts' order. */
+    readonly labels: readonly string[];
   },
 ): void => {
   const { dpr, accent, entry, shown, hole, time } = args;
@@ -237,7 +231,7 @@ export const drawConstellations = (
     ctx.font = `500 ${String(Math.round(11 * dpr))}px "IBM Plex Mono", ui-monospace, monospace`;
     ctx.textBaseline = 'bottom';
     ctx.letterSpacing = '0.14em';
-    ctx.fillText((PART_LABELS[k] ?? '').toUpperCase(), left, top - 16 * dpr);
+    ctx.fillText((args.labels[k] ?? '').toUpperCase(), left, top - 16 * dpr);
     ctx.letterSpacing = '0px';
   });
 };

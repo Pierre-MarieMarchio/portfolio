@@ -1,4 +1,3 @@
-import { PART_LABELS } from './constellations';
 import { TAU } from './math';
 
 /*
@@ -98,6 +97,8 @@ export const drawComets = (
     readonly entry: number;
     readonly shown: number;
     readonly part: number;
+    /** The name of each part, drawn by its comet. */
+    readonly labels: readonly string[];
     readonly veil: (x: number, y: number) => number;
   },
 ): void => {
@@ -206,7 +207,7 @@ export const drawComets = (
     ctx.fill();
     // Named, as the planets are on the home page: otherwise one watches an
     // effect, not an object of the story.
-    const name = PART_LABELS[i] ?? '';
+    const name = args.labels[i] ?? '';
     if (
       name &&
       sx > 60 * dpr &&

@@ -47,8 +47,8 @@
       <button
         type="button"
         class="control close"
-        aria-label="Fermer la fenêtre"
-        title="Fermer la fenêtre"
+        [attr.aria-label]="texts().window.close"
+        [title]="texts().window.close"
         (click)="closed.emit()"
       >
         ✕

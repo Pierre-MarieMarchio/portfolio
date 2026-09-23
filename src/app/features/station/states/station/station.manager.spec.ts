@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { StationEffect } from './station.effect';
 import { StationManager } from './station.manager';
+import { provideTexts } from '@testing/texts';
 
 describe('StationManager', () => {
   let navigated: string[];
@@ -13,6 +14,7 @@ describe('StationManager', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTexts(),
         provideStatewise({ effects: [StationEffect] }),
         {
           provide: Router,
@@ -40,7 +42,6 @@ describe('StationManager', () => {
     expect('set' in manager.chapter).toBe(false);
     expect('set' in manager.part).toBe(false);
     expect('set' in manager.hovered).toBe(false);
-    expect('set' in manager.englishAsked).toBe(false);
     expect('set' in manager.paused).toBe(false);
   });
 
@@ -157,12 +158,6 @@ describe('StationManager', () => {
     manager.hover('skyted');
 
     expect(manager.hovered()).toBe('skyted');
-  });
-
-  it('askEnglish dispatches the flag', () => {
-    manager.askEnglish();
-
-    expect(manager.englishAsked()).toBe(true);
   });
 
   it('togglePause dispatches the pause flip', () => {

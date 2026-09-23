@@ -1,6 +1,8 @@
 import { computed, inject, Injectable, InjectionToken } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
+import { Locale, resolve } from '@app/core/i18n';
 import { twoDigits } from '@app/core/utils/format.utils';
+import { PROJECTS_TEXTS } from '../../i18n';
 import {
   Project,
   ProjectFacts,
@@ -37,8 +39,16 @@ export class ProjectsManager {
   private readonly state = inject(ProjectsState);
   private readonly statewise = injectStatewise(projectsUpdater);
   private readonly featuredCount = inject(FEATURED);
+  private readonly lang = inject(Locale).lang;
+  private readonly texts = inject(PROJECTS_TEXTS);
 
-  public readonly projects = this.state.projects.asReadonly();
+  /**
+   * The projects in the reader's language. The state holds both; reading
+   * them in one is a derivation, so a language switch reloads nothing.
+   */
+  public readonly projects = computed(() =>
+    resolve(this.state.projects(), this.lang()),
+  );
   public readonly isLoading = this.state.isLoading.asReadonly();
   public readonly isError = this.state.isError.asReadonly();
 
@@ -53,13 +63,14 @@ export class ProjectsManager {
    */
   public readonly ranked = computed<readonly RankedProject[]>(() => {
     const facts = this.state.facts();
+    const lang = this.lang();
     return this.projects().flatMap((project, rank) => {
       const found = facts[project.slug];
       return found
         ? [
             {
               ...project,
-              facts: found,
+              facts: resolve(found, lang),
               rank,
               number: twoDigits(rank + 1),
               featured: rank < this.featuredCount,
@@ -128,15 +139,20 @@ export class ProjectsManager {
 
   /** The facts of a project: the one table every view reads. */
   public factsOf(slug: string): ProjectFacts | null {
-    return this.state.facts()[slug] ?? null;
+    return this.find(slug)?.facts ?? null;
   }
 
+  /** Every sheet in the reader's language, read once per language. */
+  private readonly sheets = computed(() =>
+    resolve(this.state.sheets(), this.lang()),
+  );
+
   public sheetOf(slug: string): ProjectSheet | null {
-    return this.state.sheets()[slug] ?? null;
+    return this.sheets()[slug] ?? null;
   }
 
   public proofLevelLabel(level: ProofLevel): string {
-    return this.state.proofLevelLabels()[level];
+    return this.texts().proofLevels[level];
   }
 
   /**
@@ -148,7 +164,7 @@ export class ProjectsManager {
     if (!chapter) {
       return '';
     }
-    return chapter.title ?? this.state.defaultChapterTitles()[index] ?? '';
+    return chapter.title ?? this.texts().defaultChapterTitles[index] ?? '';
   }
 
   /** Resolves once the read and everything it cascaded into have settled. */

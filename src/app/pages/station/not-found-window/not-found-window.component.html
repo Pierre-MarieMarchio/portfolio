@@ -1,20 +1,17 @@
 <app-window
-  heading="Adresse inconnue"
-  label="Fenêtre : adresse inconnue"
   meta="404"
   size="s"
+  [heading]="texts().notFound.heading"
+  [label]="texts().notFound.label"
   [margin]="76"
   (closed)="closed.emit()"
 >
   <div body>
-    <h1 tabindex="-1" appLandingHeading>Cette réalisation n’existe pas.</h1>
-    <p>
-      L’adresse demandée ne correspond à aucune des {{ count() }} fiches du
-      relevé.
-    </p>
+    <h1 tabindex="-1" appLandingHeading>{{ texts().notFound.title }}</h1>
+    <p>{{ texts().notFound.sentence(count()) }}</p>
   </div>
   <ng-container footer>
     <span class="grow"></span>
-    <a routerLink="/projets">Tous les projets →</a>
+    <a [routerLink]="links.index()">{{ texts().notFound.back }}</a>
   </ng-container>
 </app-window>

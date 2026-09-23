@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SegmentedComponent } from './segmented.component';
 import { SegmentedItem } from './segmented.model';
+import { provideTexts } from '@testing/texts';
 
 const ITEMS: readonly SegmentedItem[] = [
   { value: 'all', label: 'Tout', active: true },
@@ -25,7 +26,10 @@ const at = <T>(items: readonly T[], index: number): T => {
 
 describe('SegmentedComponent', () => {
   const mount = async (items: readonly SegmentedItem[] = ITEMS) => {
-    TestBed.configureTestingModule({ imports: [SegmentedComponent] });
+    TestBed.configureTestingModule({
+      imports: [SegmentedComponent],
+      providers: [provideTexts()],
+    });
 
     const fixture = TestBed.createComponent(SegmentedComponent<string>);
     fixture.componentRef.setInput('items', items);

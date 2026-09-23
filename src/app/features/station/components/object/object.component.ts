@@ -17,6 +17,7 @@ import {
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
 import { ObjectRegistry } from '@shared/ui/object-marks';
+import { STATION_TEXTS } from '../../i18n';
 import {
   EngineInputs,
   Layout,
@@ -67,6 +68,7 @@ const PIXEL_BUDGET = 4_200_000;
 export class ObjectComponent {
   private readonly browser = inject(BrowserEnvironment);
   private readonly registry = inject(ObjectRegistry);
+  private readonly texts = inject(STATION_TEXTS);
 
   /** The projects in rank order: the rank is the distance to the centre. */
   public readonly bodies = input<readonly ObjectBody[]>([]);
@@ -128,8 +130,8 @@ export class ObjectComponent {
       return {
         label: index ? number : body.short,
         name: index
-          ? `Sélectionner ${number} — ${body.title} dans le relevé`
-          : `Aperçu du projet ${body.title}`,
+          ? this.texts().object.select(number, body.title)
+          : this.texts().object.preview(body.title),
         expanded: index ? null : preview === rank,
       };
     });
@@ -225,6 +227,7 @@ export class ObjectComponent {
       paused: this.paused(),
       reduced: this.reduced(),
       revealed: this.revealed() || this.reduced(),
+      partLabels: this.texts().object.parts,
     };
   }
 

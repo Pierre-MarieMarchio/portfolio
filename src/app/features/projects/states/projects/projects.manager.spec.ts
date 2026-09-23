@@ -5,6 +5,7 @@ import {
   sampleProject,
   sampleSheet,
 } from '@testing/fake-managers';
+import { provideTexts } from '@testing/texts';
 import { PROJECTS } from '../../data';
 import { FEATURED_COUNT, ProjectsManager } from './projects.manager';
 import { ProjectsEffect } from './projects.effect';
@@ -16,7 +17,10 @@ describe('ProjectsManager', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideStatewise({ effects: [ProjectsEffect] })],
+      providers: [
+        provideStatewise({ effects: [ProjectsEffect] }),
+        provideTexts(),
+      ],
     });
 
     state = TestBed.inject(ProjectsState);
@@ -96,6 +100,7 @@ describe('ProjectsManager', () => {
   });
 
   it('reads facts and sheets by slug, null when there is none', () => {
+    state.projects.set([sampleProject({ slug: 'p' })]);
     state.facts.set({ p: sampleFacts({ role: 'Seul' }) });
     state.sheets.set({ p: sampleSheet({ lede: 'Chapô' }) });
 
@@ -105,8 +110,18 @@ describe('ProjectsManager', () => {
     expect(manager.sheetOf('missing')).toBeNull();
   });
 
+  /** D5: both languages are in the state; the reader's is a derivation. */
+  it('reads a text pair in the reader language', () => {
+    state.projects.set([
+      sampleProject({ slug: 'p', tag: { fr: 'publié', en: 'published' } }),
+    ]);
+    state.facts.set({ p: sampleFacts({ role: { fr: 'Seul', en: 'Alone' } }) });
+
+    expect(manager.find('p')?.tag).toBe('publié');
+    expect(manager.factsOf('p')?.role).toBe('Seul');
+  });
+
   it('titles a chapter by its own title, else the default of its place', () => {
-    state.defaultChapterTitles.set(['Pourquoi ?', 'Qu’ai-je fait ?']);
     state.sheets.set({
       p: sampleSheet({
         chapters: [
@@ -119,6 +134,7 @@ describe('ProjectsManager', () => {
     expect(manager.chapterTitle('p', 0)).toBe('Pourquoi ?');
     expect(manager.chapterTitle('p', 1)).toBe('Qu’est-ce qui tient ?');
     expect(manager.chapterTitle('p', 2)).toBe('');
+    // Past the chapters of the sheet, the defaults do not stand in.
     expect(manager.chapterTitle('missing', 0)).toBe('');
   });
 
@@ -140,6 +156,7 @@ describe('ProjectsManager', () => {
     expect(manager.ranked()).toHaveLength(PROJECTS.length);
     expect(manager.sheetOf('skyted-voice')?.chapters.length).toBeGreaterThan(0);
     expect(manager.proofLevelLabel('indirect')).toBe('Vérifiable, code privé');
+    expect(manager.find('skyted-voice')?.facts.context).toBe('Skyted');
     expect(manager.isLoading()).toBe(false);
   });
 

@@ -22,7 +22,9 @@ class Views {
 
 describe('LandingFocus', () => {
   const mount = async () => {
-    TestBed.configureTestingModule({ imports: [Views] });
+    TestBed.configureTestingModule({
+      imports: [Views],
+    });
     const fixture = TestBed.createComponent(Views);
     document.body.append(fixture.nativeElement as HTMLElement);
     await fixture.whenStable();

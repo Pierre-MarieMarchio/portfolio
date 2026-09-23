@@ -57,12 +57,6 @@
   }
 }
 
-.status {
-  color: var(--ink-2);
-  text-transform: none;
-  letter-spacing: var(--ls-mono);
-}
-
 .rule {
   @include controls.divider;
 }
@@ -72,7 +66,7 @@ ul {
   gap: 2px;
 }
 
-a {
+nav a {
   @include controls.tab;
 
   display: inline-flex;
@@ -126,7 +120,7 @@ nav {
     animation: none;
   }
 
-  a {
+  nav a {
     transition: none;
   }
 }

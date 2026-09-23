@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
+import { SHARED_TEXTS } from '@shared/ui/texts';
 import { ScrollMemory } from './scroll-memory.service';
 import { WindowAnchor, WindowSize } from './window.model';
 
@@ -64,6 +65,7 @@ interface Grip {
 export class WindowComponent {
   private readonly browser = inject(BrowserEnvironment);
   private readonly memory = inject(ScrollMemory);
+  protected readonly texts = inject(SHARED_TEXTS);
 
   /**
    * The name in the title bar. Not `title`: that is an HTML attribute, and a
@@ -97,12 +99,10 @@ export class WindowComponent {
   protected readonly collapsed = signal(false);
   protected readonly name = computed(() => this.label() || this.heading());
   protected readonly pinLabel = computed(() =>
-    this.pinned()
-      ? 'Détacher : la fenêtre se refermera en changeant de page'
-      : 'Épingler : garder la fenêtre ouverte en changeant de page',
+    this.pinned() ? this.texts().window.unpin : this.texts().window.pin,
   );
   protected readonly collapseLabel = computed(() =>
-    this.collapsed() ? 'Déplier la fenêtre' : 'Replier la fenêtre',
+    this.collapsed() ? this.texts().window.unfold : this.texts().window.fold,
   );
 
   private readonly root = viewChild.required<ElementRef<HTMLElement>>('root');

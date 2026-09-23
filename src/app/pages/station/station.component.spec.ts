@@ -257,16 +257,16 @@ describe('StationComponent', () => {
     expect(host.querySelector('app-project-sheet')).toBeNull();
   });
 
-  it('shows the English-is-coming status once EN is clicked, through the station', async () => {
-    const { fixture, host } = await mount();
-    expect(host.querySelector('[role="status"]')).toBeNull();
+  /** D3: the switch is a link to the same page in the other language. */
+  it('offers the same view in English from the page bar', async () => {
+    const { fixture, station, host } = await mount();
 
-    host.querySelector<HTMLButtonElement>('.language button')?.click();
+    station.syncRoute('index');
     await fixture.whenStable();
 
-    expect(host.querySelector('[role="status"]')?.textContent?.trim()).toBe(
-      'textes anglais à venir',
-    );
+    const english = host.querySelector('app-page-bar .language a');
+    expect(english?.textContent?.trim()).toBe('EN');
+    expect(english?.getAttribute('hreflang')).toBe('en');
   });
 
   it('has no void button on the plain home view', async () => {

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ContactRailComponent } from './contact-rail.component';
 import { ContactLink } from './contact-link.model';
+import { provideTexts } from '@testing/texts';
 
 const LINKS: readonly ContactLink[] = [
   {
@@ -23,7 +24,10 @@ describe('ContactRailComponent', () => {
   const mount = async (
     inputs: { showPause?: boolean; paused?: boolean } = {},
   ) => {
-    TestBed.configureTestingModule({ imports: [ContactRailComponent] });
+    TestBed.configureTestingModule({
+      imports: [ContactRailComponent],
+      providers: [provideTexts()],
+    });
     const fixture = TestBed.createComponent(ContactRailComponent);
     fixture.componentRef.setInput('links', LINKS);
     fixture.componentRef.setInput('showPause', inputs.showPause ?? false);

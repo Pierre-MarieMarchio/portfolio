@@ -1,5 +1,5 @@
-import { ProjectEntry, ProjectSheet } from '../models';
-import { DEFAULT_CHAPTER_TITLES, PROOF_LEVEL_LABELS } from './labels.data';
+import { ProjectEntry, SheetSource } from '../models';
+import { resolve } from '@app/core/i18n';
 import { PROJECTS } from './projects.data';
 
 /**
@@ -19,12 +19,26 @@ describe('shipped project content', () => {
     }
   });
 
-  it('gives every sheet at least one chapter with prose', () => {
+  it('gives every sheet at least one chapter with prose, in both languages', () => {
+    const chapters = PROJECTS.flatMap(({ sheet }) =>
+      (['fr', 'en'] as const).flatMap((lang) => resolve(sheet, lang).chapters),
+    );
     for (const { sheet } of PROJECTS) {
       expect(sheet.chapters.length).toBeGreaterThan(0);
-      for (const chapter of sheet.chapters) {
-        expect(chapter.paragraphs.length).toBeGreaterThan(0);
-      }
+    }
+    for (const chapter of chapters) {
+      expect(chapter.paragraphs.length).toBeGreaterThan(0);
+      expect(chapter.paragraphs.every((each) => each.length > 0)).toBe(true);
+    }
+  });
+
+  /** D5: a text that differs is written in both, side by side. */
+  it('writes every text of a project in both languages', () => {
+    for (const entry of PROJECTS) {
+      const fr = JSON.stringify(resolve(entry, 'fr'));
+      const en = JSON.stringify(resolve(entry, 'en'));
+      expect(fr).not.toBe(en);
+      expect(en).not.toContain('undefined');
     }
   });
 
@@ -34,21 +48,12 @@ describe('shipped project content', () => {
         if (!figure) {
           continue;
         }
-        expect(figure.caption.length).toBeGreaterThan(0);
+        expect(figure.caption).toBeTruthy();
         expect(
           figure.kind === 'flow' ? figure.steps : figure.layers,
         ).not.toHaveLength(0);
       }
     }
-  });
-
-  it('says every proof level in words, and titles four chapters by default', () => {
-    expect(PROOF_LEVEL_LABELS).toEqual({
-      public: 'Ouvrable par vous',
-      indirect: 'Vérifiable, code privé',
-      none: 'Sur récit seulement',
-    });
-    expect(DEFAULT_CHAPTER_TITLES).toHaveLength(4);
   });
 
   /** The acceptance criterion: an entry without facts or sheet is refused. */
@@ -76,7 +81,7 @@ describe('shipped project content', () => {
    * sheet that would, so a second table cannot come back unnoticed.
    */
   it('keeps facts out of the sheets', () => {
-    const sheet: ProjectSheet = {
+    const sheet: SheetSource = {
       lede: 'l',
       links: [],
       chapters: [],

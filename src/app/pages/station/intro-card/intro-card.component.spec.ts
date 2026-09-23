@@ -1,6 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { IntroCardComponent } from './intro-card.component';
+import { provideTexts } from '@testing/texts';
 
 /**
  * A media query list that never changes: the reduced-motion truth is fixed
@@ -35,6 +36,7 @@ describe('IntroCardComponent', () => {
     TestBed.configureTestingModule({
       imports: [IntroCardComponent],
       providers: [
+        provideTexts(),
         { provide: PLATFORM_ID, useValue: options.platform ?? 'browser' },
       ],
     });

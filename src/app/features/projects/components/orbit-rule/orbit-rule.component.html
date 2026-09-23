@@ -1,6 +1,6 @@
 <div class="head">
   <span aria-hidden="true" class="square"></span>
-  <h2>Projets en orbite</h2>
+  <h2>{{ texts().rule.heading }}</h2>
 </div>
 <div class="row">
   <div #track class="track">
@@ -33,7 +33,7 @@
       }
     </ul>
   </div>
-  <a routerLink="/projets" class="all">Tous les projets →</a>
+  <a class="all" [routerLink]="links.index()">{{ texts().rule.all }}</a>
 </div>
 @if (line(); as line) {
   <div aria-live="polite" class="reading">

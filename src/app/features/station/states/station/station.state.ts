@@ -37,7 +37,5 @@ export class StationState {
   public readonly part = signal(0);
   /** The project under the pointer, for the object to light its planet. */
   public readonly hovered = signal<string | null>(null);
-  /** The English texts were asked for; they do not exist yet. */
-  public readonly englishAsked = signal(false);
   public readonly paused = signal(false);
 }

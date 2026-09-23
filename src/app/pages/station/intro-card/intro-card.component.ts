@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
+import { PAGES_TEXTS } from '@app/i18n';
 
 /**
  * The opening card, once per visit, over everything. Nothing waits for it:
@@ -23,6 +24,7 @@ import { BrowserEnvironment } from '@app/core/services';
 })
 export class IntroCardComponent {
   protected readonly gone = signal(false);
+  protected readonly texts = inject(PAGES_TEXTS);
 
   constructor() {
     const browser = inject(BrowserEnvironment);

@@ -113,7 +113,15 @@ const ZONES = [
  */
 /** @type {Record<string, string[]>} */
 const GROUPS = {
-  core: ['@app/core', '@app/core/**', '**/core', '**/core/**'],
+  // `**/core` would catch `@angular/core` too: a port's token needs it, even
+  // in the kernel that imports nothing of this repository.
+  core: [
+    '@app/core',
+    '@app/core/**',
+    '**/core',
+    '**/core/**',
+    '!@angular/core',
+  ],
   shared: ['@shared/**', '@app/shared/**', '**/shared/**'],
   features: ['@app/features/**', '**/features/**'],
   pages: ['@app/pages/**', '**/pages/**'],

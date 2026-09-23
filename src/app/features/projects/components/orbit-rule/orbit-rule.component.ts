@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
 import { RouterLink } from '@angular/router';
+import { LINKS } from '@app/features/common';
+import { PROJECTS_TEXTS } from '../../i18n';
 import { RankedProject } from '../../models';
 import { rowLabel } from '../project-labels';
 import { Arrival } from '@shared/ui/arrival';
@@ -66,6 +68,9 @@ export class OrbitRuleComponent {
 
   public readonly chosen = output<string>();
   public readonly hoveredChange = output<string | null>();
+
+  protected readonly texts = inject(PROJECTS_TEXTS);
+  protected readonly links = inject(LINKS);
 
   private readonly track = viewChild.required<ElementRef<HTMLElement>>('track');
   /**

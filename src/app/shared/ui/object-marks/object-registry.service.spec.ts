@@ -25,7 +25,9 @@ class Page {
 /** The object reads what the templates declared, and nothing else. */
 describe('ObjectRegistry', () => {
   const mount = async () => {
-    TestBed.configureTestingModule({ imports: [Page] });
+    TestBed.configureTestingModule({
+      imports: [Page],
+    });
     const fixture = TestBed.createComponent(Page);
     await fixture.whenStable();
     const registry = TestBed.inject(ObjectRegistry);

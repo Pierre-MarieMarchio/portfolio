@@ -3,7 +3,6 @@ import { injectStatewise } from 'ngx-statewise';
 import { StationView, StationWindow } from '../../models';
 import {
   stationChapterChosen,
-  stationEnglishAsked,
   stationEscaped,
   stationFiltered,
   stationHovered,
@@ -38,7 +37,6 @@ export class StationManager {
   public readonly chapter = this.state.chapter.asReadonly();
   public readonly part = this.state.part.asReadonly();
   public readonly hovered = this.state.hovered.asReadonly();
-  public readonly englishAsked = this.state.englishAsked.asReadonly();
   public readonly paused = this.state.paused.asReadonly();
 
   /** A window shows on its own address, or anywhere once pinned. */
@@ -121,10 +119,6 @@ export class StationManager {
 
   public hover(slug: string | null): void {
     this.statewise.dispatch(stationHovered(slug));
-  }
-
-  public askEnglish(): void {
-    this.statewise.dispatch(stationEnglishAsked());
   }
 
   public togglePause(): void {

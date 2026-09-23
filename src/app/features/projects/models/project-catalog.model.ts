@@ -1,18 +1,15 @@
-import { Project, ProjectFacts, ProofLevel } from './project.model';
-import { ProjectSheet } from './project-sheet.model';
+import { FactsSource, ProjectSource } from './project.model';
+import { SheetSource } from './project-sheet.model';
 
 /**
  * Everything the projects feature ships, read in one go by the repository:
  * one seam for a future remote source, one loading cycle, and the prerender
- * reads the same one.
+ * reads the same one. In both languages: the manager reads it in the
+ * reader's, so a language switch reloads nothing.
  */
 export interface ProjectCatalog {
   /** In rank order, which is the distance from the centre in the mockup. */
-  readonly projects: readonly Project[];
-  readonly facts: Readonly<Record<string, ProjectFacts>>;
-  readonly sheets: Readonly<Record<string, ProjectSheet>>;
-  /** The proof level said in words. */
-  readonly proofLevelLabels: Readonly<Record<ProofLevel, string>>;
-  /** The title of an untitled chapter, by position. */
-  readonly defaultChapterTitles: readonly string[];
+  readonly projects: readonly ProjectSource[];
+  readonly facts: Readonly<Record<string, FactsSource>>;
+  readonly sheets: Readonly<Record<string, SheetSource>>;
 }

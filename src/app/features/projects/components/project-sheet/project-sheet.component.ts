@@ -14,6 +14,8 @@ import { twoDigits } from '@app/core/utils/format.utils';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectsManager } from '../../states';
+import { LINKS } from '@app/features/common';
+import { PROJECTS_TEXTS } from '../../i18n';
 import { positionOf } from '../project-labels';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
@@ -39,6 +41,8 @@ import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 })
 export class ProjectSheetComponent {
   private readonly manager = inject(ProjectsManager);
+  protected readonly texts = inject(PROJECTS_TEXTS);
+  protected readonly links = inject(LINKS);
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
@@ -88,7 +92,10 @@ export class ProjectSheetComponent {
           value: index,
           label: number,
           active: index === this.chapter(),
-          aria: `Approche ${number} — ${this.manager.chapterTitle(this.slug(), index)}`,
+          aria: this.texts().sheet.approach(
+            number,
+            this.manager.chapterTitle(this.slug(), index),
+          ),
         };
       }),
   );
@@ -101,7 +108,9 @@ export class ProjectSheetComponent {
   protected readonly nextApproach = computed(() => {
     const index = this.chapter();
     return index < this.last()
-      ? `Suite : ${this.manager.chapterTitle(this.slug(), index + 1)} →`
+      ? this.texts().sheet.nextApproach(
+          this.manager.chapterTitle(this.slug(), index + 1),
+        )
       : null;
   });
 
@@ -115,7 +124,7 @@ export class ProjectSheetComponent {
     }
     const next = this.manager.nextOf(this.slug());
     return next
-      ? { slug: next.slug, label: `Suivant : ${next.short} →` }
+      ? { slug: next.slug, label: this.texts().sheet.nextProject(next.short) }
       : null;
   });
 

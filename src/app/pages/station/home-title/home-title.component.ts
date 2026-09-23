@@ -1,4 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+} from '@angular/core';
+import { PAGES_TEXTS } from '@app/i18n';
 import { Arrival } from '@shared/ui/arrival';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 import { STATION_IDS } from '../station.ids';
@@ -20,4 +26,5 @@ export class HomeTitleComponent {
   public readonly arrival = input<Arrival>('timed');
 
   protected readonly headingId = STATION_IDS.homeTitle;
+  protected readonly texts = inject(PAGES_TEXTS);
 }

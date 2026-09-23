@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import type { ResolveFn } from '@angular/router';
 import { ProjectsManager } from '@app/features/projects/states';
+import { PAGES_TEXTS } from '@app/i18n';
 
 /**
  * A sheet's tab is named after its project. The route can only say
@@ -13,4 +14,12 @@ import { ProjectsManager } from '@app/features/projects/states';
  */
 export const projectTitle: ResolveFn<string> = (route) =>
   inject(ProjectsManager).find(route.paramMap.get('slug') ?? '')?.title ??
-  'Projet';
+  inject(PAGES_TEXTS)().heads.sheet.title;
+
+/**
+ * A sheet's meta description: what the project is, in a sentence, in the
+ * reader's language. None for a slug that names no project.
+ */
+export const projectDescription: ResolveFn<string | null> = (route) =>
+  inject(ProjectsManager).find(route.paramMap.get('slug') ?? '')?.subject ??
+  null;

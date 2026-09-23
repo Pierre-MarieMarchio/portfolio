@@ -79,10 +79,25 @@ Pour changer _lesquels_ sont mis en avant, changez l'ordre de la liste de
 
 ## Changer un texte
 
-Les textes des projets sont dans le fichier de chaque projet. Les libellés
-des niveaux de preuve et les titres de chapitre par défaut sont dans
-`src/app/features/projects/data/labels.data.ts`.
+Le site existe en français (à la racine) et en anglais (sous `/en`).
 
-Les autres textes de l'interface (fenêtres, barre, rail, accueil) sont encore
-dans les gabarits. L'étape 8 du plan d'audit (`docs/audit/README.md`) les
-rassemble dans un catalogue par langue ; ce guide sera complété alors.
+- **Un texte d'un projet** (titre court, sujet, preuve, chapô, paragraphes,
+  légendes…) est dans le fichier de ce projet, les deux langues côte à côte :
+  `{ fr: '…', en: '…' }`. Un texte identique dans les deux langues (un nom, une
+  pile technique) s'écrit une seule fois, en simple chaîne.
+- **Tout autre texte de l'interface**, `aria-label` et `title` compris, est dans
+  `src/app/i18n/fr.ts` pour le français et `src/app/i18n/en.ts` pour l'anglais.
+  Les deux fichiers ont la même forme : une clé ajoutée à l'un et oubliée dans
+  l'autre ne compile pas. Un texte qui porte une valeur (un nombre, un titre)
+  est une petite fonction : ``(count) => `${count} fiches` ``.
+
+Aucun gabarit n'est à ouvrir pour changer un texte.
+
+**Relire l'anglais.** L'anglais a été rédigé sans relecture : chaque texte est
+marqué `draft('…')`. Pour en valider un, retirez l'appel à `draft(` (gardez le
+texte), puis mettez à jour le nombre attendu dans
+`src/integration/drafts.spec.ts`, qui compte ceux qui restent.
+
+**Les adresses** des vues, dans les deux langues, sont dans
+`src/app/i18n/paths.ts` : les routes, les liens, le sélecteur de langue et
+l'en-tête (`canonical`, `hreflang`) en sont tirés.

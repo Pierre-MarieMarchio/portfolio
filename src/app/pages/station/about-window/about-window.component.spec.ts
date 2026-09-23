@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AboutWindowComponent } from './about-window.component';
+import { provideTexts } from '@testing/texts';
 
 type Part = 0 | 1 | 2 | 3;
 
@@ -18,7 +19,7 @@ describe('AboutWindowComponent', () => {
   const mount = async (inputs: { pinned?: boolean; part?: Part } = {}) => {
     TestBed.configureTestingModule({
       imports: [AboutWindowComponent],
-      providers: [provideRouter([])],
+      providers: [provideTexts(), provideRouter([])],
     });
 
     const fixture = TestBed.createComponent(AboutWindowComponent);
@@ -32,7 +33,7 @@ describe('AboutWindowComponent', () => {
   it('defaults to the first part and unpinned, with no input set', async () => {
     TestBed.configureTestingModule({
       imports: [AboutWindowComponent],
-      providers: [provideRouter([])],
+      providers: [provideTexts(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(AboutWindowComponent);
     await fixture.whenStable();
@@ -138,7 +139,7 @@ describe('AboutWindowComponent', () => {
   it('treats a part out of range as the first', async () => {
     TestBed.configureTestingModule({
       imports: [AboutWindowComponent],
-      providers: [provideRouter([])],
+      providers: [provideTexts(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(AboutWindowComponent);
     fixture.componentRef.setInput('part', 9);

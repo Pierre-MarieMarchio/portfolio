@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { sampleEntry, sampleRanked } from '@testing/fake-managers';
 import { RankedProject } from '../../models';
 import { OrbitRuleComponent } from './orbit-rule.component';
+import { provideTexts } from '@testing/texts';
 
 describe('OrbitRuleComponent', () => {
   /** Four bodies, each with a distinct title, short, proof and role. */
@@ -29,7 +30,7 @@ describe('OrbitRuleComponent', () => {
   }) => {
     TestBed.configureTestingModule({
       imports: [OrbitRuleComponent],
-      providers: [provideRouter([])],
+      providers: [provideTexts(), provideRouter([])],
     });
 
     const fixture = TestBed.createComponent(OrbitRuleComponent);

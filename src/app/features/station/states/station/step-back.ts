@@ -1,10 +1,13 @@
 import { StationView } from '../../models';
 
+/** The views a step back can lead to; their address is the composition's. */
+export type ParentView = 'home' | 'index';
+
 /** What stepping back one notch does, when there is a notch to go. */
 export type StepBack =
   | { readonly kind: 'deselect' }
   | { readonly kind: 'close-preview' }
-  | { readonly kind: 'navigate'; readonly url: string };
+  | { readonly kind: 'navigate'; readonly to: ParentView };
 
 /**
  * The two gestures that step back. Escape reaches further than a click in
@@ -21,15 +24,15 @@ export interface StepBackFrom {
   readonly preview: string | null;
 }
 
-/** The address a view steps back to, where it has one. */
-export function parentOf(view: StationView): string | null {
+/** The view a view steps back to, where it has one. */
+export function parentOf(view: StationView): ParentView | null {
   switch (view) {
     case 'sheet':
     case 'not-found':
-      return '/projets';
+      return 'index';
     case 'index':
     case 'about':
-      return '/';
+      return 'home';
     case 'home':
       return null;
   }
@@ -50,7 +53,7 @@ export function stepBack(
   }
   const parent = parentOf(view);
   if (parent !== null && (gesture === 'escape' || view === 'sheet')) {
-    return { kind: 'navigate', url: parent };
+    return { kind: 'navigate', to: parent };
   }
   if (preview !== null && view === 'home') {
     return { kind: 'close-preview' };

@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-} from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SHARED_TEXTS } from '../../ports';
 import { LanguageItem } from '../../models/language-item.model';
@@ -13,7 +8,6 @@ import { LanguageItem } from '../../models/language-item.model';
   imports: [RouterLink],
   templateUrl: './language-switch.component.html',
   styleUrl: './language-switch.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageSwitchComponent {
   public readonly languages = input.required<readonly LanguageItem[]>();

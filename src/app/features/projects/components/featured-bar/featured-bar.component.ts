@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   ElementRef,
@@ -46,7 +45,6 @@ const LABEL_PX = 130;
   imports: [LayoutAnchorDirective, RouterLink],
   templateUrl: './featured-bar.component.html',
   styleUrl: './featured-bar.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[attr.data-arrival]': 'arrival()',
     '[attr.data-crowded]': 'crowded()',

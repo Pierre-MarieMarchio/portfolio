@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ScrollMemoryService } from '../services/scroll-memory.service';
 import { RememberScrollDirective } from './remember-scroll.directive';
@@ -12,7 +12,6 @@ import { RememberScrollDirective } from './remember-scroll.directive';
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class Host {
   public readonly shown = signal(true);

@@ -1,10 +1,10 @@
-import { ErrorHandler, inject, Injectable } from '@angular/core';
+import { ErrorHandler, inject, Service } from '@angular/core';
 import { createEffect } from 'ngx-statewise';
 import { catchError, map, of } from 'rxjs';
 import { ProjectsRepositoryService } from '../../services';
 import { getProjectsActions } from './projects.action';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ProjectsEffect {
   private readonly repository = inject(ProjectsRepositoryService);
   private readonly errorHandler = inject(ErrorHandler);

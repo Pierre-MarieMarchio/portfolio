@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Service } from '@angular/core';
 import { ClockService } from '@app/core/services';
 import { DesktopManager } from '@app/features/desktop/states';
 
@@ -17,7 +17,7 @@ const CURTAIN_STEP_MS = 900;
  *
  * Provided by the station: one per station, gone with it.
  */
-@Injectable()
+@Service({ autoProvided: false })
 export class FeaturedTourService {
   private readonly station = inject(DesktopManager);
   private readonly clock = inject(ClockService);

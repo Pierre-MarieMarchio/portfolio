@@ -1,6 +1,5 @@
 import {
   afterNextRender,
-  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -88,7 +87,6 @@ import { WindowStackService } from '@shared/windows/services';
   },
   templateUrl: './desktop-page.component.html',
   styleUrl: './desktop-page.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesktopPageComponent {
   private readonly landing = inject(ViewFocusService);

@@ -1,7 +1,6 @@
 import {
   afterEveryRender,
   afterNextRender,
-  ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
@@ -36,7 +35,6 @@ const DENSITY = 3800;
   providers: [SceneTargetsService],
   templateUrl: './space-scene.component.html',
   styleUrl: './space-scene.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpaceSceneComponent {
   private readonly canvas = inject(AnimatedCanvasService);

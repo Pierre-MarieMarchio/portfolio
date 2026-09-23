@@ -1,10 +1,10 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
 import { animationPauseToggled } from './animation.action';
 import { AnimationState } from './animation.state';
 import { animationUpdater } from './animation.updater';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AnimationManager {
   private readonly state = inject(AnimationState);
   private readonly statewise = injectStatewise(animationUpdater);

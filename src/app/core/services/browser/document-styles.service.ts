@@ -1,9 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
-import { DOCUMENT, inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { DOCUMENT, inject, PLATFORM_ID, Service } from '@angular/core';
 
 const DURATION = /^(\d+(?:\.\d+)?)(ms|s)$/;
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DocumentStylesService {
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));

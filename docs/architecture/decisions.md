@@ -450,6 +450,8 @@ Les raisons de lecture de la config, qui n'y sont plus en commentaire :
   `../../contact/…` ne sorte pas d'une feature sans écrire `features` ;
 - `FEATURES` est comparé au disque : une nouvelle feature sans sa ligne
   bloquerait sinon un import interdit sans rien dire ;
+- `prefer-on-push-component-change-detection` n'est pas activée : depuis
+  Angular 22, `OnPush` est la stratégie par défaut du framework ;
 - `.claude/**` est ignoré, car le worktree d'un agent y vit pendant qu'il
   travaille ;
 - Stylelint laisse à Prettier la mise en page, et les notations des jetons

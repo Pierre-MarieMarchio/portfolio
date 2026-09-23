@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 import { Lang, LANGS, langOfUrl } from '../models';
 import { DocumentHeadService } from '../services/head/document-head.service';
@@ -13,7 +13,7 @@ import { DocumentHeadService } from '../services/head/document-head.service';
  * resolver's job: the router hands this strategy the resolved string like
  * any other, and `PageHead` stays the only writer of the head.
  */
-@Injectable()
+@Service({ autoProvided: false })
 export class RouteHeadStrategy extends TitleStrategy {
   private readonly head = inject(DocumentHeadService);
 

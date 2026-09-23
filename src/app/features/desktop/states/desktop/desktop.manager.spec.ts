@@ -36,33 +36,33 @@ describe('StationManager', () => {
     expect('set' in manager.slug).toBe(false);
     expect('set' in manager.pins).toBe(false);
     expect('set' in manager.preview).toBe(false);
-    expect('set' in manager.selection).toBe(false);
+    expect('set' in manager.lastPreview).toBe(false);
+    expect('set' in manager.selected).toBe(false);
     expect('set' in manager.visited).toBe(false);
     expect('set' in manager.family).toBe(false);
     expect('set' in manager.chapter).toBe(false);
-    expect('set' in manager.part).toBe(false);
+    expect('set' in manager.section).toBe(false);
     expect('set' in manager.hovered).toBe(false);
-    expect('set' in manager.paused).toBe(false);
   });
 
-  describe('showsIndex', () => {
+  describe('showsList', () => {
     it('is true when the index is the current view', () => {
       manager.syncRoute('index');
 
-      expect(manager.showsIndex()).toBe(true);
+      expect(manager.showsList()).toBe(true);
     });
 
     it('is true when the index is pinned over another view', () => {
       manager.syncRoute('home');
       manager.togglePin('index');
 
-      expect(manager.showsIndex()).toBe(true);
+      expect(manager.showsList()).toBe(true);
     });
 
     it('is false otherwise', () => {
       manager.syncRoute('home');
 
-      expect(manager.showsIndex()).toBe(false);
+      expect(manager.showsList()).toBe(false);
     });
   });
 
@@ -133,7 +133,7 @@ describe('StationManager', () => {
   it('select dispatches the selection', () => {
     manager.select('skyted');
 
-    expect(manager.selection()).toBe('skyted');
+    expect(manager.selected()).toBe('skyted');
   });
 
   it('filter dispatches the family filter', () => {
@@ -148,22 +148,16 @@ describe('StationManager', () => {
     expect(manager.chapter()).toBe(2);
   });
 
-  it('choosePart dispatches the part', () => {
-    manager.choosePart(2);
+  it('chooseSection dispatches the section', () => {
+    manager.chooseSection(2);
 
-    expect(manager.part()).toBe(2);
+    expect(manager.section()).toBe(2);
   });
 
   it('hover dispatches the hovered project', () => {
     manager.hover('skyted');
 
     expect(manager.hovered()).toBe('skyted');
-  });
-
-  it('togglePause dispatches the pause flip', () => {
-    manager.togglePause();
-
-    expect(manager.paused()).toBe(true);
   });
 
   /** The void button reads it; the effect reads the same rule. */

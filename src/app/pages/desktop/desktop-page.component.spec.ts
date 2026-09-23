@@ -123,6 +123,19 @@ describe('StationComponent', () => {
       ).toBe('shown');
     });
 
+    it('plays the featured tour over the featured slugs once the rest is in', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, station } = await mount({ reducedMotion: false });
+
+      vi.advanceTimersByTime(8700);
+      await fixture.whenStable();
+      expect(station.hovered()).toBeNull();
+
+      vi.advanceTimersByTime(4200);
+      await fixture.whenStable();
+      expect(station.hovered()).toBe(KNOWN_SLUG);
+    });
+
     it('shows everything at once with reduced motion', async () => {
       const { fixture, host } = await mount({ reducedMotion: true });
 
@@ -312,12 +325,14 @@ describe('StationComponent', () => {
     station.syncRoute('index');
     station.select(KNOWN_SLUG);
     await fixture.whenStable();
-    expect(station.selection()).toBe(KNOWN_SLUG);
+    expect(station.selected()).toBe(KNOWN_SLUG);
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    );
     await fixture.whenStable();
 
-    expect(station.selection()).toBeNull();
+    expect(station.selected()).toBeNull();
   });
 
   /** D6: the first load leaves the focus where a reader expects to start. */
@@ -383,6 +398,30 @@ describe('StationComponent', () => {
     second.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await fixture.whenStable();
     expect(rank(second)).toBeGreaterThan(rank(first));
+  });
+
+  it('brings the window of the view to the front at each navigation, from one sheet to the next too', async () => {
+    const { fixture, station, host } = await mount();
+    const rank = (name: string): number =>
+      Number(
+        host
+          .querySelector<HTMLElement>(`.slot--${name}`)
+          ?.style.getPropertyValue('--stack'),
+      );
+    station.togglePin('index');
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(rank('sheet')).toBeGreaterThan(rank('index'));
+
+    host
+      .querySelector('.slot--index')
+      ?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await fixture.whenStable();
+    expect(rank('index')).toBeGreaterThan(rank('sheet'));
+
+    station.syncRoute('sheet', 'ghost-slug');
+    await fixture.whenStable();
+    expect(rank('sheet')).toBeGreaterThan(rank('index'));
   });
   /** The scene reads slugs: the page hands it the station's own. */
   it('hands the scene the planets, and the slugs of the sheet, the selection, the preview and the hovered body', async () => {
@@ -465,11 +504,11 @@ describe('StationComponent', () => {
     const { fixture, station } = await mount();
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
-    expect(station.reading()).toBe(KNOWN_SLUG);
+    expect(station.lastPreview()).toBe(KNOWN_SLUG);
 
     await station.close('preview');
     await fixture.whenStable();
 
-    expect(station.reading()).toBe(KNOWN_SLUG);
+    expect(station.lastPreview()).toBe(KNOWN_SLUG);
   });
 });

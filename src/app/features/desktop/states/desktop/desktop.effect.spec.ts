@@ -117,7 +117,7 @@ describe('StationEffect', () => {
 
       await statewise.dispatchAsync(desktopEscaped());
 
-      expect(state.selection()).toBeNull();
+      expect(state.selected()).toBeNull();
       expect(navigated).toEqual([]);
     });
 
@@ -184,7 +184,7 @@ describe('StationEffect', () => {
 
       await statewise.dispatchAsync(desktopSteppedBack());
 
-      expect(state.selection()).toBeNull();
+      expect(state.selected()).toBeNull();
       expect(navigated).toEqual([]);
     });
 

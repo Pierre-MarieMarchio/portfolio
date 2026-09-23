@@ -67,23 +67,29 @@ s'égare fait échouer la CI.
 
 ### 3.1 Les règles
 
-1. **Chaque fichier porte un suffixe de la liste fermée (§3.2).** Seules
+1. **Chaque fichier porte un suffixe de la liste (§3.2).** Seules
    exceptions : `index.ts` (le barrel) et les `app.*.ts` de la racine.
 2. **La classe porte le suffixe de son fichier** : `clock.service.ts` /
    `ClockService`, `window.component.ts` / `WindowComponent`,
    `planets.renderer.ts` / `PlanetsRenderer` (D7).
-3. **Chaque dossier n'accepte que ses suffixes (§3.3).** Un `.rules.ts` dans
-   `components/` est refusé.
-4. **Aucun dossier fourre-tout** : ni `utils/`, `helpers/`, `misc/`, `lib/`,
-   `services/`, ni `common/` hors de `features/common`, ni `shared/` hors de
-   `src/app/shared`. Un dossier porte le nom d'un concept, jamais d'un type
-   de fichier. Seule exception : les sous-dossiers fixes d'une feature
-   (§3.3).
-5. **Au plus 8 fichiers source par dossier** (specs, `.html` et `.scss` non
-   comptés). Au-delà, on découpe par concept, jamais par type.
-6. **Un morceau privé vit chez son seul utilisateur** : une directive dont un
-   seul composant se sert est dans le dossier de ce composant. Elle ne monte
-   qu'au second utilisateur.
+3. **Une seule structure partout** : zone → dossier de rôle → sous-dossier de
+   concept → fichiers. Le dossier de rôle porte le nom pluriel du suffixe
+   (`helpers/` pour `.helper.ts`, `directives/` pour `.directive.ts`) et
+   n'accepte que ce suffixe.
+4. **Chaque fichier va dans le dossier de son rôle dès sa création**, jamais
+   à côté de son utilisateur. Prévenir plutôt que guérir : ce qui pourra
+   resservir est déjà à sa place le jour où un second utilisateur arrive, et
+   rien n'est à déplacer. Le dossier d'un composant ne contient que le
+   composant : `.ts`, `.html`, `.scss`, `.spec.ts`.
+5. **Un dossier de rôle reste lisible** : un fichier par sujet, nommé par ce
+   sujet (`format.helper.ts`, `vector.helper.ts`), et au plus 8 fichiers
+   source. Au-delà, un sous-dossier par concept (`services/browser/`),
+   jamais par autre chose.
+6. **Un dossier de rôle n'existe que s'il a un fichier** : pas de dossier vide
+   créé par avance.
+7. **La zone dit le domaine, le rôle dit l'usage** : un helper sans domaine va
+   dans `core/helpers/`, une règle du domaine des projets dans
+   `features/projects/rules/`.
 
 ### 3.2 Les suffixes : comment on se sert du fichier
 
@@ -131,8 +137,8 @@ fournit (`projects-texts.port.ts`).
 | `.helper` | une petite fonction sans domaine, pure                        | `twoDigits(7)`                       | contenir un mot du portfolio, garder un état |
 | `.signal` | une fonction qui fabrique un signal branché sur le navigateur | `elementSize(el)`                    | être appelée hors contexte d'injection       |
 
-Un `.helper` vit à côté de son seul utilisateur, ou dans un dossier de
-`core` nommé par son sujet ; jamais dans un dossier `helpers/`.
+Un `.helper` vit toujours dans le dossier `helpers/` de sa zone, en général
+`core/helpers/`.
 
 **5. On l'importe comme valeur ou type.**
 
@@ -158,51 +164,53 @@ implémentation d'un port ou d'un service).
 **`index.ts`** : la surface publique d'un dossier de concept. Un import qui
 vient d'une autre zone passe par lui.
 
-Ajouter un rôle (`.pipe`, `.interceptor`, `.validator`…) demande une
-décision au journal : aucun n'existe tant qu'aucun besoin ne l'a demandé.
+**Les concepts d'Angular font partie de la liste** : on construit avec le
+framework, pas contre lui. `.pipe` (transforme une valeur dans un gabarit,
+`{{ date | since }}`), `.interceptor` (s'intercale dans les requêtes HTTP,
+`withInterceptors([...])`), `.validator` (valide un champ de formulaire) ont
+leur suffixe et leur dossier, créés le jour où le besoin arrive. Seul un rôle
+qu'Angular ne connaît pas demande une entrée au journal.
 
-### 3.3 Le contrat de chaque dossier
+### 3.3 Les dossiers de rôle
 
-**`core/`** : un dossier par sujet technique, sans un mot du portfolio.
+| Dossier         | Suffixe                                                          | Organisation                                            |
+| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------- |
+| `components/`   | `.component` (+ `.html`, `.scss`)                                | un dossier par composant, qui ne contient que lui       |
+| `directives/`   | `.directive`                                                     | un fichier par directive                                |
+| `pipes/`        | `.pipe`                                                          | un fichier par pipe                                     |
+| `services/`     | `.service`                                                       | un fichier par service                                  |
+| `states/`       | `.state .action .updater .effect .manager`                       | un dossier par état                                     |
+| `ports/`        | `.port`                                                          | un fichier par contrat                                  |
+| `providers/`    | `.provider`                                                      | un fichier par fonction `provideXxx()`                  |
+| `guards/`       | `.guard`                                                         | un fichier par garde                                    |
+| `resolvers/`    | `.resolver`                                                      | un fichier par sujet                                    |
+| `interceptors/` | `.interceptor`                                                   | un fichier par intercepteur                             |
+| `validators/`   | `.validator`                                                     | un fichier par sujet                                    |
+| `strategies/`   | `.strategy`                                                      | un fichier par stratégie                                |
+| `rules/`        | `.rules`                                                         | un fichier par sujet                                    |
+| `helpers/`      | `.helper`                                                        | un fichier par sujet                                    |
+| `signals/`      | `.signal`                                                        | un fichier par fabrique                                 |
+| `models/`       | `.model`                                                         | un fichier par sujet                                    |
+| `data/`         | `.data`                                                          | un fichier par ensemble ; au-delà de 8, un sous-dossier |
+| `engine/`       | `.engine`, et `motions/` (`.motion`), `renderers/` (`.renderer`) | la scène canvas seulement                               |
 
-| Dossier     | Rôle                                    | Suffixes                                |
-| ----------- | --------------------------------------- | --------------------------------------- |
-| `browser/`  | accès au navigateur, inerte au prérendu | `.service`                              |
-| `presence/` | savoir quand le lecteur est là          | `.service`                              |
-| `head/`     | le `<head>` du document                 | `.service` `.strategy` `.port` `.model` |
-| `i18n/`     | la langue                               | `.service` `.model` `.rules`            |
-| `errors/`   | les erreurs non attrapées               | `.service`                              |
-| `format/`   | mise en forme générique                 | `.helper`                               |
+Les specs restent à côté du fichier qu'elles testent (convention
+d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
+(`.double`).
 
-**`shared/ui/`** : un dossier par élément d'interface, à son nom. Il contient
-le composant ou la directive, et son modèle, son service, sa fabrique de
-signal s'il en a besoin. Suffixes : `.component` `.directive` `.service`
-`.model` `.signal` `.helper` `.data` `.port`.
+### 3.4 Les rôles permis dans chaque zone
 
-**`features/<concept>/`** : des sous-dossiers fixes, nommés par rôle, les
-mêmes dans chaque feature. Une feature ne crée que ceux dont elle a besoin
-et n'en invente aucun.
+| Zone                  | Dossiers de rôle permis                                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/`               | `services/` `ports/` `strategies/` `interceptors/` `models/` `rules/` `helpers/` `signals/`                                               |
+| `shared/ui/`          | `components/` `directives/` `pipes/` `services/` `validators/` `signals/` `ports/` `models/` `data/`                                      |
+| `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `desktop` |
+| `features/common/`    | `ports/` `models/` (types seuls)                                                                                                          |
+| `i18n/`               | `services/` `providers/` `guards/` `models/` `rules/` `data/`                                                                             |
+| `pages/`              | un dossier par écran (`-page.component`, `-route.component`) ; `resolvers/` `guards/` `providers/`                                        |
+| racine `src/app/`     | les `app.*.ts`                                                                                                                            |
 
-| Sous-dossier  | Rôle                                                                | Suffixes                                                           | Organisation                                                  |
-| ------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------- |
-| `components/` | ce que la feature affiche                                           | `.component` ; dans le dossier d'un composant, ses morceaux privés | un dossier par composant, aucun fichier posé à plat           |
-| `states/`     | l'état                                                              | les cinq de ngx-statewise                                          | un dossier par état                                           |
-| `rules/`      | décisions et calculs purs du domaine                                | `.rules`                                                           | un fichier par sujet                                          |
-| `models/`     | les types du concept                                                | `.model`                                                           | un fichier par sujet                                          |
-| `data/`       | le contenu                                                          | `.data`                                                            | au-delà de 8, un sous-dossier par ensemble (`data/projects/`) |
-| `services/`   | ce qui vit dans le temps : lecture des données, services d'un écran | `.service`                                                         | un fichier par service                                        |
-| `i18n/`       | la tranche de textes                                                | `.port`                                                            | un fichier                                                    |
-
-**`features/common/<contrat>/`** : un dossier par contrat entre features.
-Suffixes : `.port` `.model` (types seuls).
-
-**`i18n/`** : `.model` `.service` `.provider` `.guard` `.data` `.rules`.
-
-**`pages/`** : `pages/<écran>/` accepte `-page.component`,
-`-route.component`, `.resolver`, `.guard`, `.provider` ; `pages/` accepte à
-sa racine les `.resolver` communs à toutes les routes. Rien d'autre.
-
-**Racine `src/app/`** : les `app.*.ts` seulement.
+`pages/` est la seule zone rangée par écran : un écran est une page.
 
 ## 4. Les fiches
 
@@ -210,7 +218,7 @@ Chaque fiche donne : **but** · **contrat** · **rôle** · **d'où elle vient**
 
 ### 4.1 `core/` : la technique
 
-#### `core/browser/` : le navigateur, inerte au prérendu
+#### `core/services/browser/` : le navigateur, inerte au prérendu
 
 `BrowserEnvironment` mêlait neuf sujets ; chacun devient une unité, avec son
 spec « inerte côté serveur ». Rien d'autre dans le dépôt ne touche une
@@ -234,7 +242,7 @@ fenêtre devient un `(scroll)` de gabarit.
 **Signal de réveil** : un composant qui injecte plus de quatre de ces
 services pour un seul besoin appelle une façade propre à ce besoin.
 
-#### `core/presence/`
+#### `core/services/presence/`
 
 - **`UserPresenceService`**. But : savoir quand le lecteur est là, au premier
   geste ou au plus tard après un délai ; tout de suite s'il a demandé moins
@@ -243,7 +251,7 @@ services pour un seul besoin appelle une façade propre à ce besoin.
   carte d'ouverture et la révélation de l'accueil, qui écrivaient chacune la
   même séquence.
 
-#### `core/head/` : le `<head>` du document
+#### `core/services/head/`, `core/strategies/`, `core/ports/` : le `<head>` du document
 
 - **`DocumentHeadService`** (ex-`PageHead`). But : écrire le titre, la
   description et les liens de langue d'une page. Contrat : `write(content)`.
@@ -253,7 +261,7 @@ services pour un seul besoin appelle une façade propre à ce besoin.
   But : à chaque navigation, donner à `DocumentHeadService` ce que la route
   déclare. Son ancien nom ne disait que le titre.
 
-#### `core/i18n/` : la langue
+#### La langue : `core/services/i18n/`, `core/models/`, `core/rules/`
 
 - **`lang.model.ts`** : `Lang`, `LANGS`, `DEFAULT_LANG`, `langOfUrl`. La seule
   règle URL → langue.
@@ -267,7 +275,7 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 - **`draft.rules.ts`** : `draft(text)`, `draftsLeft()`. Marque un texte
   anglais à relire.
 
-#### `core/errors/`, `core/format/`
+#### `core/services/errors/`, `core/helpers/`
 
 - **`ConsoleErrorHandlerService`** (ex-`AppErrorHandler`) : le nom dit ce
   qu'il fait.
@@ -279,7 +287,7 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 Aucun mot du portfolio. Ce qui en contenait remonte dans une feature ou
 devient générique.
 
-#### `window/` : une fenêtre
+#### La fenêtre : `components/window/` et ses directives
 
 `WindowComponent` portait cinq responsabilités.
 
@@ -301,7 +309,7 @@ devient générique.
 - Les marges passées en dur (76, 88) deviennent `--window-reserve`, posée par
   le bureau.
 
-#### `window-stack/` : l'ordre des fenêtres
+#### L'ordre des fenêtres : `services/window-stack`, `directives/stacked-window`
 
 - **`WindowStackService`** (fourni par l'écran). But : quelle fenêtre est
   devant. Contrat : `bringToFront(id)`, `depthOf(id)`. Générique (des `id`).
@@ -310,7 +318,7 @@ devient générique.
   touche. Écoute sur son propre élément : l'écouteur global en capture et
   le contrat par `data-slot` disparaissent.
 
-#### `measure/` : mesurer un élément
+#### Mesurer un élément : `signals/element-size`, `directives/bottom-edge-variable`
 
 - **`elementSize(el)`** (`element-size.signal.ts`) : un signal de la taille
   d'un élément. Remplace la mesure écrite à la main dans la barre des
@@ -319,7 +327,7 @@ devient générique.
   en variable CSS jusqu'où descend l'élément qui la porte. Le nom de la
   variable est son entrée.
 
-#### `entrance/` : une animation d'entrée
+#### Une animation d'entrée : `models/entrance`
 
 - **`entrance.model.ts`** : `Entrance = 'timed' | 'held' | 'shown'`, l'état
   d'un élément qui entre en scène (ex-`Arrival`). Le vocabulaire d'une
@@ -413,7 +421,7 @@ et plus aucun relais inutile.
   | Unité                                                  | But                                                                   |
   | ------------------------------------------------------ | --------------------------------------------------------------------- |
   | `space-scene.component.ts` `SpaceSceneComponent`       | démarrer et arrêter la scène, lui passer ce que l'écran montre        |
-  | `canvas-resolution.helper.ts`                          | la taille des canvas selon le budget de pixels et la densité          |
+  | `rules/canvas-resolution.rules.ts`                     | la taille des canvas selon le budget de pixels et la densité          |
   | `scene-layout.rules.ts`                                | faire des ancres posées sur l'écran la mise en page de la scène       |
   | `turn-gesture.directive.ts` `TurnGestureDirective`     | tourner la scène en la faisant glisser, sans cliquer au lâcher        |
   | `planet-buttons.component.ts` `PlanetButtonsComponent` | un bouton accessible par planète, le double toucher sur écran tactile |
@@ -515,82 +523,77 @@ src/app/
   app.routes.ts  app.routes.server.ts  app.links.ts  app.site.ts
 
   core/
-    browser/   browser-window · media-preferences · clock · page-visibility ·
-               element-observer · document-styles · cursor · canvas-contexts   (.service.ts)
-    presence/  user-presence.service.ts
-    head/      document-head.service.ts · route-head.strategy.ts · site.port.ts
-    i18n/      lang.model.ts · locale.service.ts · localize.rules.ts · draft.rules.ts
-    errors/    console-error-handler.service.ts
-    format/    format.helper.ts
+    services/
+      browser/     browser-window · media-preferences · clock · page-visibility ·
+                   element-observer · document-styles · cursor · canvas-contexts
+      head/        document-head.service
+      i18n/        locale.service
+      presence/    user-presence.service
+      errors/      console-error-handler.service
+    strategies/    route-head.strategy
+    ports/         site.port
+    models/        lang.model
+    rules/         localize.rules · draft.rules
+    helpers/       format.helper · vector.helper · easing.helper · random.helper
 
   shared/ui/
-    window/          window.component · window.model · draggable.directive ·
-                     fit-height.directive · remember-scroll.directive · scroll-memory.service
-    window-stack/    window-stack.service · stacked-window.directive
-    measure/         element-size.signal · bottom-edge-variable.directive
-    entrance/        entrance.model
-    layout-anchors/  layout-anchors.service · layout-anchor.directive
-    view-focus/      view-focus.service · view-heading.directive
-    site-nav/        language-switch.component · main-nav.component · site-nav.model
-    segmented/       segmented.component · segmented.model
-    social-links/    social-links.component · social-link.model · social-icons.data
-    texts/           shared-texts.port
+    components/    window/ · segmented/ · social-links/ · language-switch/ · main-nav/
+    directives/    draggable · fit-height · remember-scroll · stacked-window ·
+                   bottom-edge-variable · layout-anchor · view-heading
+    services/      scroll-memory · window-stack · layout-anchors · view-focus
+    signals/       element-size.signal
+    models/        window · segmented · social-link · site-nav · entrance
+    data/          social-icons.data
+    ports/         shared-texts.port
 
   features/
     common/
-      links/          links.port
-      scene-anchors/  scene-anchors.model
+      ports/       links.port
+      models/      scene-anchors.model
     projects/
-      components/     featured-bar/ · project-list/ · project-preview/ · project-detail/
-      data/           projects.data.ts · projects/<un fichier par projet>.data.ts
-      i18n/           projects-texts.port.ts
-      models/         project.model · project-family.model · project-detail.model
-      rules/          ranking.rules · project-labels.rules
-      services/       projects-repository.service
-      states/projects/
+      components/  featured-bar/ · project-list/ · project-preview/ · project-detail/
+      services/    projects-repository.service
+      states/      projects/
+      ports/       projects-texts.port · featured-count.port
+      rules/       ranking.rules · project-labels.rules
+      models/      project · project-family · project-detail
+      data/        projects.data · projects/<un fichier par projet>.data
     desktop/
-      components/     space-scene/ · intro-card/ · home-title/ · not-found-window/ · animation-toggle/
-      i18n/           desktop-texts.port.ts
-      models/         desktop.model.ts
-      rules/          view.rules.ts
-      services/       home-reveal.service · featured-tour.service
-      states/         desktop/ · animation/
+      components/  space-scene/ · planet-buttons/ · intro-card/ · home-title/ ·
+                   not-found-window/ · animation-toggle/
+      directives/  turn-gesture.directive
+      services/    home-reveal.service · featured-tour.service
+      states/      desktop/ · animation/
+      ports/       desktop-texts.port
+      rules/       view.rules · scene-layout.rules · canvas-resolution.rules
+                   scene/  (les règles pures du moteur : projection, cadrage,
+                            orbites, libellés, traversée)
+      models/      desktop.model · scene.model
+      engine/      space-scene.engine
+                   motions/    camera · turntable · grains · stars
+                   renderers/  black-hole · grains · planets · planet-labels ·
+                               sky · constellations · comets
     profile/
-      components/     about-window/
-      data/           contact.data.ts
-      i18n/           profile-texts.port.ts
+      components/  about-window/
+      ports/       profile-texts.port
+      data/        contact.data
 
-  i18n/      catalog.model · catalog-loader.service · i18n.provider · catalog.guard ·
-             paths.data · paths.rules · fr.data · en.data
+  i18n/
+    services/      catalog-loader.service
+    providers/     i18n.provider
+    guards/        catalog.guard
+    models/        catalog.model
+    rules/         paths.rules
+    data/          paths.data · fr.data · en.data
 
   pages/
-    desktop/     desktop-page.component.* · desktop-route.component.ts
-    workbench/   workbench-page.component.*
-    page-head.resolver.ts
+    desktop/       desktop-page.component.* · desktop-route.component.ts
+    workbench/     workbench-page.component.*
+    resolvers/     page-head.resolver
 ```
 
-La scène spatiale, découpée par concept (esquisse, précisée méthode par
-méthode à l'étape du moteur) :
-
-```
-features/desktop/components/space-scene/
-  space-scene.component.*        démarre la scène, lui passe ce que l'écran montre
-  space-scene.model.ts           SceneBody et les entrées de la scène
-  planet-buttons/                un bouton accessible par planète
-  turn-gesture/                  tourner la scène au glisser
-  layout/                        scene-layout.rules · canvas-resolution.helper
-  engine/
-    space-scene.engine.ts        la boucle : faire avancer, puis dessiner
-    engine.model.ts              les types publics du moteur
-    frame/     frame-context.model · frame-context.rules
-    camera/    camera.motion · projection.rules · framing.rules
-    hand/      turntable.motion
-    matter/    grains.motion · grains.renderer · black-hole.renderer
-    planets/   orbits.rules · labels.rules · planets.renderer · planet-dom.renderer
-    sky/       stars.motion · sky.renderer · constellations.renderer · comets.renderer
-    travel/    travel.rules
-    math/      vector.helper · easing.helper · random.helper
-```
+Les contenus exacts du moteur (`engine/`, `rules/scene/`) se précisent
+méthode par méthode à l'étape du moteur ; leur place, elle, est fixée.
 
 ## 6. L'ordre de migration
 

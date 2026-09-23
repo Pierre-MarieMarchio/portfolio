@@ -320,18 +320,20 @@ lecteur du code n'a aucun moyen de les deviner.
 
 **Décision.** `docs/architecture/organisation.md` fait foi pour
 l'arborescence. Chaque unité y est conçue depuis son but, sa responsabilité,
-son contrat et son rôle, puis reçoit sa forme, son nom et son dossier. Un
-fichier porte un suffixe d'une liste fermée, un dossier porte le nom d'un
-concept et n'accepte que ses suffixes, aucun dossier fourre-tout, au plus
-8 fichiers source par dossier. `scripts/check-structure.mjs` le vérifie dans
-`npm run check`.
+son contrat et son rôle, puis reçoit sa forme, son nom et son dossier. Une
+seule structure partout : zone → dossier de rôle → sous-dossier de concept →
+fichiers. Un fichier porte le suffixe de son rôle et va dans le dossier de ce
+rôle, qui n'accepte que ce suffixe ; un fichier par sujet, au plus 8 fichiers
+source par dossier, un sous-dossier par concept au-delà.
+`scripts/check-structure.mjs` le vérifie dans `npm run check`.
 
 **Raison.** Un fichier générique finit n'importe où, et un dossier de
 cinquante fichiers ne se lit pas : le moteur en avait treize à plat. Une
 règle vérifiée ne s'érode pas.
 
-**Écarté.** Ranger par type de fichier (`services/`, `utils/`) ; une règle
-écrite sans script.
+**Écarté.** Ranger les morceaux à côté de leur premier utilisateur : il
+faudrait les déplacer au second. Un dossier `utils/` sans définition, qui
+accepte tout. Une règle écrite sans script.
 
 ## 2026-09-23 — L'état du bureau se découpe selon ses actions (D14)
 
@@ -369,9 +371,17 @@ un gabarit (`.component`, `.directive`), injecté (`.service`, `.manager` et
 les pièces d'ngx-statewise, `.port`), déclaré dans une configuration
 (`.provider`, `.guard`, `.resolver`, `.strategy`), appelé (`.rules`,
 `.helper`, `.signal`), importé (`.model`, `.data`), instancié dans la scène
-(`.engine`, `.motion`, `.renderer`). `.helper` remplace `.utils`, qui
-devient vite un fourre-tout. `.port` réunit un contrat et son jeton, tranches
-de textes comprises. Un nouveau rôle demande une entrée de ce journal.
+(`.engine`, `.motion`, `.renderer`). `.helper` remplace `.utils`. `.port`
+réunit un contrat et son jeton, tranches de textes comprises. Les concepts
+d'Angular (`.pipe`, `.interceptor`, `.validator`…) sont dans la liste
+d'office : on construit avec le framework, pas contre lui. Seul un rôle
+qu'Angular ne connaît pas demande une entrée de ce journal.
+
+Chaque fichier va, dès sa création, dans le dossier de son rôle
+(`helpers/`, `directives/`…), jamais à côté de son utilisateur : rien n'est
+à déplacer le jour où un second utilisateur arrive. Un dossier de rôle reste
+lisible : un fichier par sujet, au plus 8, un sous-dossier par concept
+au-delà.
 
 **Raison.** En créant ou en lisant un fichier, on sait tout de suite son rôle,
 qui s'en sert et dans quel contexte.

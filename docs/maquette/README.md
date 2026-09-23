@@ -129,7 +129,10 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   (`Arrival`) jusqu'au premier geste ou à 8,7 s, et chacun monte alors avec son
   délai de l'export. Sans script, le CSS seul les amène à 8,7 s. Comme dans
   l'export, quitter l'accueil ou arriver sur une autre adresse montre tout
-  d'emblée, et les planètes suivent le même signal.
+  d'emblée, et les planètes suivent le même signal. Jusque-là, la barre de
+  pages ne porte que la langue et s'élargit quand les pages arrivent ; chaque
+  repère de la règle se lève ensuite avec sa planète, sur la même horloge
+  (0,42 s d'écart, 0,7 s pour chacun).
 - **Le rail de contact porte des icônes Material Symbols.** L'export y écrit
   « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG (contour,
   graisse 400) : `mail`, puis `work` pour LinkedIn et `code` pour GitHub,

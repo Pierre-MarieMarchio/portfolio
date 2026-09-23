@@ -41,7 +41,9 @@ const DENSITY = 3800;
  * document is a panel the object dims its matter behind and keeps its
  * labels off. Its value may name a role the framing reads: `head` (the top
  * bar: it bounds the free band), `rule`, `sheet` and `preview` (their left
- * edge bounds the approach). Panels are measured when something changed
+ * edge bounds the approach). Every `[data-object-line]` element is a line
+ * of the home rule, in rank order: it rises with its planet, on the same
+ * clock. Panels are measured when something changed
  * (a render, a resize, the end of a gesture or an animation), never in the
  * loop.
  */
@@ -362,6 +364,13 @@ export class ObjectComponent {
           break;
       }
     }
+    engine.setLines(
+      Array.from(
+        this.browser.document.querySelectorAll<HTMLElement>(
+          '[data-object-line]',
+        ),
+      ),
+    );
     engine.measureLabels();
     const viewport = this.browser.viewport() ?? { width: 1200, height: 800 };
     const layout: Layout = {

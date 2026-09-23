@@ -5,12 +5,11 @@ import {
   desktopChapterChosen,
   desktopFiltered,
   desktopHovered,
-  desktopRouteSynced,
-  desktopPartChosen,
-  desktopPauseToggled,
   desktopPinToggled,
   desktopPreviewClosed,
   desktopPreviewOpened,
+  desktopRouteSynced,
+  desktopSectionChosen,
   desktopSelected,
   desktopWindowClosed,
 } from './desktop.action';
@@ -41,13 +40,12 @@ describe('stationUpdater', () => {
     expect(state.slug()).toBeNull();
     expect(state.pins()).toEqual(NO_PINS);
     expect(state.preview()).toBeNull();
-    expect(state.selection()).toBeNull();
+    expect(state.selected()).toBeNull();
     expect(state.visited()).toEqual([]);
     expect(state.family()).toBe('all');
     expect(state.chapter()).toBe(0);
-    expect(state.part()).toBe(0);
+    expect(state.section()).toBe(0);
     expect(state.hovered()).toBeNull();
-    expect(state.paused()).toBe(false);
   });
 
   describe('stationRouteSynced', () => {
@@ -117,7 +115,7 @@ describe('stationUpdater', () => {
 
       statewise.dispatch(desktopRouteSynced({ view: 'index', slug: null }));
 
-      expect(state.selection()).toBe('a');
+      expect(state.selected()).toBe('a');
     });
 
     it('leaves the selection untouched arriving on the index from a slug-less view', () => {
@@ -126,17 +124,17 @@ describe('stationUpdater', () => {
       statewise.dispatch(desktopRouteSynced({ view: 'home', slug: null }));
       statewise.dispatch(desktopRouteSynced({ view: 'index', slug: null }));
 
-      expect(state.selection()).toBe('kept');
+      expect(state.selected()).toBe('kept');
     });
 
-    it('never resets the family or the part filters', () => {
+    it('never resets the family or the section filters', () => {
       statewise.dispatch(desktopFiltered('personal'));
-      statewise.dispatch(desktopPartChosen(2));
+      statewise.dispatch(desktopSectionChosen(2));
 
       statewise.dispatch(desktopRouteSynced({ view: 'about', slug: null }));
 
       expect(state.family()).toBe('personal');
-      expect(state.part()).toBe(2);
+      expect(state.section()).toBe(2);
     });
   });
 
@@ -183,12 +181,12 @@ describe('stationUpdater', () => {
 
     statewise.dispatch(desktopSelected('picked'));
 
-    expect(state.selection()).toBe('picked');
+    expect(state.selected()).toBe('picked');
     expect(state.hovered()).toBeNull();
 
     statewise.dispatch(desktopSelected(null));
 
-    expect(state.selection()).toBeNull();
+    expect(state.selected()).toBeNull();
   });
 
   it('stationFiltered sets the family filter', () => {
@@ -211,10 +209,10 @@ describe('stationUpdater', () => {
     });
   });
 
-  it('stationPartChosen sets the part', () => {
-    statewise.dispatch(desktopPartChosen(3));
+  it('stationSectionChosen sets the section', () => {
+    statewise.dispatch(desktopSectionChosen(3));
 
-    expect(state.part()).toBe(3);
+    expect(state.section()).toBe(3);
   });
 
   it('stationPreviewOpened sets the preview and clears the hovered project', () => {
@@ -244,22 +242,13 @@ describe('stationUpdater', () => {
     expect(state.hovered()).toBeNull();
   });
 
-  it('stationPauseToggled flips the paused flag', () => {
-    statewise.dispatch(desktopPauseToggled());
-
-    expect(state.paused()).toBe(true);
-
-    statewise.dispatch(desktopPauseToggled());
-
-    expect(state.paused()).toBe(false);
-  });
   /** Closing the preview forgets what is open, not what was read. */
-  it('keeps the body last previewed as the reading, through a close', () => {
+  it('keeps the body last previewed as the last preview, through a close', () => {
     statewise.dispatch(desktopPreviewOpened('a'));
     statewise.dispatch(desktopPreviewOpened('b'));
     statewise.dispatch(desktopPreviewClosed());
 
     expect(state.preview()).toBeNull();
-    expect(state.reading()).toBe('b');
+    expect(state.lastPreview()).toBe('b');
   });
 });

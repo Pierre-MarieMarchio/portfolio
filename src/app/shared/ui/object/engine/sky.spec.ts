@@ -117,6 +117,32 @@ describe('Sky', () => {
     expect(median(slow) / median(fast)).toBeLessThan(1.25);
   });
 
+  it('keeps a tunnel in the turn: the trails stream away from the vanishing point', () => {
+    // 6.5 s: the camera swings round (the crossing's azimuth), the whole
+    // field slides sideways.
+    const { strokes } = run(60, 6.5);
+    // The vanishing point leads the turn by a few pixels only: the frame's
+    // centre stands for it.
+    const vx = W / 2;
+    const vy = H / 2;
+    const radial = strokes.filter((s) => {
+      // The head is the stroke's start, its tail streams back.
+      const hx = s.x0 - vx;
+      const hy = s.y0 - vy;
+      const tx = s.x0 - s.x1;
+      const ty = s.y0 - s.y1;
+      const cos =
+        (hx * tx + hy * ty) / (Math.hypot(hx, hy) * Math.hypot(tx, ty) || 1);
+      return cos > 0.85;
+    });
+
+    expect(strokes.length).toBeGreaterThan(20);
+    // Trails that followed the slide made parallel hatching: under a third
+    // of them streamed away from the vanishing point. The rest bend with the
+    // quarter of the slide they keep.
+    expect(radial.length / strokes.length).toBeGreaterThan(0.75);
+  });
+
   it('moves no star by a jump when the field is flattened at the end of the run', () => {
     const hz = 60;
     const sky = new Sky(seeded(11));

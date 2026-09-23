@@ -26,6 +26,24 @@ interface Star {
  * late neither lengthens the trails nor jolts them.
  */
 const TRAIL_SECONDS = 9 / 60;
+/**
+ * How much of a star's sideways motion its trail keeps. A trail points away
+ * from the vanishing point, whatever the camera does: in the turns the whole
+ * field slides sideways, and trails that followed it turned into parallel
+ * hatching, the tunnel gone. A quarter of the slide bends the tunnel into
+ * the turn without breaking it.
+ */
+const TRAIL_SIDEWAYS = 0.5;
+/**
+ * The crossing's turn, as a hyperspace jump shows it: the tunnel stays
+ * centred and BANKS into the turn, turning on itself around its vanishing
+ * point, while its mouth leads a little towards where the run goes. The
+ * mockup panned the whole field instead: the tunnel broke into parallel
+ * hatching, and once the tunnel was kept, the turn could no longer be felt.
+ */
+const BANK = 0.35;
+/** The share of the turn's pan the vanishing point keeps, as a lead. */
+const LEAD = 0.3;
 /** Around this speed a star starts to trail: 0.45 px a frame at 60 Hz. */
 const TRAIL_FROM = 0.45 * 60;
 
@@ -102,16 +120,25 @@ export class Sky {
     const deflMax = 26 * dpr;
     // The sky follows the camera: without it, the eye credits the motion to
     // the object. Each star moves by its depth; the biggest are the
-    // closest, they move most.
-    const az = cam.azim + trv.dAz;
-    const ev = Math.max(0.018, cam.elev + (0.022 - cam.elev) * -trv.dEv);
+    // closest, they move most. The camera at rest pans the field; its turn
+    // during the crossing banks the tunnel and leads its mouth (BANK, LEAD).
+    const az = cam.azim;
+    const ev = cam.elev;
+    const turnEv = Math.max(0.018, cam.elev + (0.022 - cam.elev) * -trv.dEv);
+    const turnX = -trv.dAz * 0.3 * w;
+    const turnY = (turnEv - ev) * 0.85 * h;
     // PARALLAX: during the arrival the sky spreads far more than the object
     // grows. That ratio, not the scale, says that we move forward.
     const scale = cam.scale * (1 + 0.55 * (1 - trv.grow));
     const panX = cam.camX - 0.42;
     const panY = cam.camY - 0.46;
-    const cx0 = cam.hole ? cam.hole.cx : w / 2;
-    const cy0 = cam.hole ? cam.hole.cy : h / 2;
+    // The vanishing point: the object, led a little into the turn.
+    const cx0 = (cam.hole ? cam.hole.cx : w / 2) + turnX * LEAD;
+    const cy0 = (cam.hole ? cam.hole.cy : h / 2) + turnY * LEAD;
+    // The bank: the camera's roll, and a lean into the turn.
+    const bank = trv.dRoll + BANK * trv.dAz;
+    const bankCos = Math.cos(bank);
+    const bankSin = Math.sin(bank);
     // One profile: the speed starts from ZERO (the sky is still while the
     // title is read), rises, then dies. The spread is its integral, hence
     // monotonic: no star ever turns back. What dies is the speed, so the
@@ -119,6 +146,10 @@ export class Sky {
     const tt = cam.reduced ? 99 : time;
     const u = clamp((tt - 3.5) / 4.4, 0, 1);
     const speed = 6 * u * (1 - u) * (1 - u);
+    // How fast a star at this depth spreads from the vanishing point, per
+    // second: its position AND its trail read it, so the two cannot part.
+    const spreadRate = (depth: number): number =>
+      speed * (0.55 + 1.25 * depth) * 1.7;
     // The trails come and go with the run instead of switching on and off:
     // cut at its end, a trail still long from the camera's motion vanished
     // in one frame. The last 4% only: earlier, it dimmed the run's end.
@@ -171,10 +202,13 @@ export class Sky {
       // the centre. A modulo would turn the radial flight into a
       // translation, and stars would cross the frame diagonally.
       if (speed > 0.0001) {
-        star.ray *= 1 + dtc * speed * (0.55 + 1.25 * depth) * 1.7;
+        star.ray *= 1 + dtc * spreadRate(depth);
       }
-      const bx = (star.x + star.vx * drift + slideX(depth) - cx0) * k + cx0;
-      const by = (star.y + star.vy * drift + slideY(depth) - cy0) * k + cy0;
+      // Scaled and banked around the vanishing point.
+      const sx0 = (star.x + star.vx * drift + slideX(depth) - cx0) * k;
+      const sy0 = (star.y + star.vy * drift + slideY(depth) - cy0) * k;
+      const bx = cx0 + sx0 * bankCos - sy0 * bankSin;
+      const by = cy0 + sx0 * bankSin + sy0 * bankCos;
       let x: number;
       let y: number;
       if (star.ray > 1.0005) {
@@ -239,7 +273,25 @@ export class Sky {
       }
       star.px = x;
       star.py = y;
-      const velocity = Math.sqrt(star.sdx * star.sdx + star.sdy * star.sdy);
+      // The trail's velocity: the star's FLIGHT away from the vanishing
+      // point, which the spread gives and the camera does not touch, plus a
+      // quarter of what it slides across. Measured on screen instead, the
+      // flight of the stars the turn pushes back towards the vanishing point
+      // cancelled out, and half the tunnel went dark.
+      const ox = x - cx0;
+      const oy = y - cy0;
+      const od = Math.sqrt(ox * ox + oy * oy);
+      let tx = star.sdx;
+      let ty = star.sdy;
+      if (od > 1 && star.ray > 1.0005) {
+        const ux = ox / od;
+        const uy = oy / od;
+        const flight = od * spreadRate(depth);
+        const across = tx * -uy + ty * ux;
+        tx = ux * flight - uy * across * TRAIL_SIDEWAYS;
+        ty = uy * flight + ux * across * TRAIL_SIDEWAYS;
+      }
+      const velocity = Math.sqrt(tx * tx + ty * ty);
       // A star near the threshold no longer flips between a dot and a
       // trail from one frame to the next: the two cross-fade just UNDER it,
       // from 0.7 to 1 times the threshold. Above, a trail is at full light,
@@ -250,8 +302,8 @@ export class Sky {
         smoothstep(clamp((velocity / (TRAIL_FROM * dpr) - 0.7) / 0.3, 0, 1));
       const color = star.accent ? cam.accent : cam.ink;
       if (trailing > 0.004) {
-        const qx = x - star.sdx * TRAIL_SECONDS;
-        const qy = y - star.sdy * TRAIL_SECONDS;
+        const qx = x - tx * TRAIL_SECONDS;
+        const qy = y - ty * TRAIL_SECONDS;
         this.strokeTrail(
           ctx,
           x,

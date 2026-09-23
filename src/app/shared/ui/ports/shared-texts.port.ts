@@ -2,19 +2,11 @@ import { InjectionToken, Signal } from '@angular/core';
 
 /**
  * The words the shared components say themselves, whatever page uses them:
- * a window's controls, the page bar's groups, the contact rail's pause. They
- * know no language: the composition root answers this token with the
- * catalogue of the reader's, and every text a caller passes stays the
- * caller's.
+ * the page bar's groups, the contact rail's pause. They know no language:
+ * the composition root answers this token with the catalogue of the
+ * reader's, and every text a caller passes stays the caller's.
  */
 export interface SharedTexts {
-  readonly window: {
-    readonly pin: string;
-    readonly unpin: string;
-    readonly fold: string;
-    readonly unfold: string;
-    readonly close: string;
-  };
   readonly segmented: {
     /** The group's name when the caller gives none. */
     readonly label: string;

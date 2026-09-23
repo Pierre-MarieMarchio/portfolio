@@ -8,6 +8,7 @@ import { Catalog, PAGES_TEXTS, pathOf } from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
 import { SHARED_TEXTS } from '@shared/ui/ports';
+import { WINDOW_TEXTS } from '@shared/windows/ports';
 
 const CATALOGS: Readonly<Record<Lang, Catalog>> = { fr: FR, en: EN };
 
@@ -22,6 +23,7 @@ export const provideTexts = (
   const catalog = CATALOGS[lang];
   return [
     { provide: SHARED_TEXTS, useValue: signal(catalog.shared) },
+    { provide: WINDOW_TEXTS, useValue: signal(catalog.windows) },
     { provide: PROJECTS_TEXTS, useValue: signal(catalog.projects) },
     { provide: DESKTOP_TEXTS, useValue: signal(catalog.desktop) },
     { provide: PROFILE_TEXTS, useValue: signal(catalog.profile) },

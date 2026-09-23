@@ -2,13 +2,6 @@ import { DetailSource, ProjectEntry } from '../models';
 import { localize } from '@app/core/rules';
 import { PROJECTS } from './projects.data';
 
-/**
- * The shipped content's shape. That every string matches the export is
- * established by comparing against the export itself, which a spec cannot
- * read; what a spec holds is what the rest of the site relies on. Nothing
- * here names a project or counts them: adding one is writing its file, and
- * no spec is to be edited for it.
- */
 describe('shipped project content', () => {
   const slugs = PROJECTS.map((entry) => entry.project.slug);
 
@@ -34,7 +27,6 @@ describe('shipped project content', () => {
     }
   });
 
-  /** D5: a text that differs is written in both, side by side. */
   it('writes every text of a project in both languages', () => {
     for (const entry of PROJECTS) {
       const fr = JSON.stringify(localize(entry, 'fr'));
@@ -58,7 +50,6 @@ describe('shipped project content', () => {
     }
   });
 
-  /** The acceptance criterion: an entry without facts or sheet is refused. */
   it('refuses a project written without its facts or its sheet', () => {
     const [first] = PROJECTS;
     if (!first) {
@@ -78,10 +69,6 @@ describe('shipped project content', () => {
     expect([noFacts, noDetail]).toHaveLength(2);
   });
 
-  /**
-   * One source per fact: a sheet carries none of them. The type refuses a
-   * sheet that would, so a second table cannot come back unnoticed.
-   */
   it('keeps facts out of the sheets', () => {
     const detail: DetailSource = {
       lede: 'l',

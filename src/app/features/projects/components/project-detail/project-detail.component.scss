@@ -58,8 +58,6 @@ h1 {
   color: var(--ink-2);
 }
 
-/* The mockup set its links side by side with nothing between them; they
-   wrap apart here. */
 .links {
   display: flex;
   flex-wrap: wrap;

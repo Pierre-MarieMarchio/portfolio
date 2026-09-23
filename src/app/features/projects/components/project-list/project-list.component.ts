@@ -15,14 +15,6 @@ import {
 } from '../../rules/project-labels.rules';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
-/**
- * The index: every project in a table whose most important column is
- * what a reader can check. Selecting a row opens it one notch (subject, the
- * sheet, the outbound link); the selection belongs to the station, since
- * Escape and a click in the void close it too.
- *
- * Filtering is not re-sorting: the rank order never changes.
- */
 @Component({
   selector: 'app-project-list',
   imports: [
@@ -38,21 +30,13 @@ export class ProjectListComponent {
   private readonly manager = inject(ProjectsManager);
 
   public readonly pinned = input(false);
-  /** The slug of the open row, or `null`. */
   public readonly selected = input<string | null>(null);
-  /** The sheets already read, marked "lu". */
   public readonly visited = input<readonly string[]>([]);
-  /**
-   * The family shown. The station holds it: in the mockup the filter
-   * survives a trip to a sheet and back, like the selection.
-   */
   public readonly family = input<FamilyFilter>('all');
 
   public readonly pinToggled = output();
   public readonly closed = output();
-  /** The slug to select, or `null` to close the open row. */
   public readonly selectedChange = output<string | null>();
-  /** The row under the pointer or the focus, for the object to light up. */
   public readonly hoveredChange = output<string | null>();
   public readonly familyChange = output<FamilyFilter>();
 
@@ -114,7 +98,6 @@ export class ProjectListComponent {
       }));
   });
 
-  /** A second click on the open row closes it. */
   protected toggle(slug: string): void {
     this.selectedChange.emit(this.selected() === slug ? null : slug);
   }

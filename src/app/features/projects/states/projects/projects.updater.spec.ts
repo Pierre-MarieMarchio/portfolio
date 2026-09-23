@@ -8,10 +8,6 @@ import { projectsUpdater } from './projects.updater';
 
 const CATALOG = catalogOf([sampleEntry()]);
 
-/**
- * No effects are registered, so a dispatch runs the updater and nothing else.
- * What is under test is the state machine, not the repository behind it.
- */
 describe('projectsUpdater', () => {
   let statewise: Statewise;
   let state: ProjectsState;
@@ -37,7 +33,6 @@ describe('projectsUpdater', () => {
     expect(state.isError()).toBe(false);
   });
 
-  /** One catalog, one write: facts and details never lag behind the projects. */
   it('fills the whole catalog and stops loading on success', () => {
     statewise.dispatch(getProjectsActions.request());
     statewise.dispatch(getProjectsActions.success(CATALOG));

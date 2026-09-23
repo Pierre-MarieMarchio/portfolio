@@ -3,8 +3,11 @@
 @use 'mixins/motion';
 @use 'mixins/type';
 
+$rise-duration: 1300ms;
+$rise-delay: 400ms;
+
 :host {
-  @include arrival.on-its-own(1300ms, 400ms);
+  @include arrival.on-its-own($rise-duration, $rise-delay);
 
   position: absolute;
   left: var(--gutter);
@@ -14,15 +17,12 @@
   pointer-events: none;
 }
 
-/* Arrives with the home page's rest (see `Arrival`): on its own at the end
-   of the crossing without a script, held until the reader is there with one,
-   then rising from that moment. */
 :host([data-arrival='held']) {
   @include arrival.held;
 }
 
 :host([data-arrival='shown']) {
-  @include arrival.shown(1300ms, 400ms);
+  @include arrival.shown($rise-duration, $rise-delay);
 }
 
 .head {
@@ -176,10 +176,6 @@ button {
   color: var(--accent);
 }
 
-/* Narrow, or too many markers for the width: titles of ~130px cannot sit
-   side by side without overlapping. The numbers stay; the planets carry the
-   names, and each marker keeps its full accessible name. The media query
-   holds without a script; the measure (`data-crowded`) holds for any count. */
 @media (width <= 620px) {
   .short {
     display: none;
@@ -190,8 +186,6 @@ button {
   display: none;
 }
 
-/* A low window keeps the markers and titles and gives back the rest: the
-   page bar already leads to the seven projects. */
 @media (height <= 640px) {
   .reading {
     display: none;

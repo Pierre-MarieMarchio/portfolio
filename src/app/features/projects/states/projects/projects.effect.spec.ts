@@ -54,7 +54,6 @@ describe('ProjectsEffect', () => {
     expect(reported).toEqual([]);
   });
 
-  /** The cause goes to the ErrorHandler, the state only keeps the flag. */
   it('reports the cause and flags the failure when the read throws', async () => {
     const cause = new Error('unreachable');
     source = throwError(() => cause);

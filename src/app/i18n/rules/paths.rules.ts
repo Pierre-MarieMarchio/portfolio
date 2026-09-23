@@ -1,17 +1,11 @@
 import { Lang, langOfUrl } from '@app/core/models';
 import { AddressedView, PATHS } from '../data/paths.data';
 
-/** The absolute path of a view in a language, `/projet/<slug>` for a sheet. */
 export function pathOf(view: AddressedView, lang: Lang, slug?: string): string {
   const base = `/${PATHS[view][lang]}`;
   return view === 'sheet' && slug ? `${base}/${slug}` : base;
 }
 
-/**
- * The same address in another language: the switch the page bar offers.
- * An address no view claims (an unknown one) moves under or out of `/en`
- * unchanged, so the unknown address stays unknown in the other language.
- */
 export function translatePath(url: string, lang: Lang): string {
   const path = (url.split(/[?#]/)[0] ?? '/').replace(/(?<!\/)\/+$/, '');
   const from = langOfUrl(path);

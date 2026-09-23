@@ -5,7 +5,6 @@ export interface ProfileTexts {
     readonly heading: string;
     readonly label: string;
     readonly parts: string;
-    /** The h1, which names the part on show. */
     readonly title: (part: string) => string;
     readonly goTo: (part: string) => string;
     readonly next: (part: string) => string;

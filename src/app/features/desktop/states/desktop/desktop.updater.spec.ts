@@ -16,10 +16,6 @@ import {
 import { NO_PINS, DesktopState } from './desktop.state';
 import { desktopUpdater } from './desktop.updater';
 
-/**
- * No effects are registered, so a dispatch runs the updater and nothing else.
- * What is under test is the state machine, not the navigation behind it.
- */
 describe('stationUpdater', () => {
   let statewise: Statewise;
   let state: DesktopState;
@@ -49,7 +45,6 @@ describe('stationUpdater', () => {
   });
 
   describe('stationRouteSynced', () => {
-    /** The language switch lands on the same view: the reader has not moved. */
     it('resets nothing when the view and its slug are the same', () => {
       statewise.dispatch(desktopRouteSynced({ view: 'sheet', slug: 'a' }));
       statewise.dispatch(desktopChapterChosen(2));
@@ -242,7 +237,6 @@ describe('stationUpdater', () => {
     expect(state.hovered()).toBeNull();
   });
 
-  /** Closing the preview forgets what is open, not what was read. */
   it('keeps the body last previewed as the last preview, through a close', () => {
     statewise.dispatch(desktopPreviewOpened('a'));
     statewise.dispatch(desktopPreviewOpened('b'));

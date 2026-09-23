@@ -30,23 +30,17 @@ class Unwatched {
   }
 }
 
-/**
- * The mechanism under test: the application runs without zone.js, so a view
- * updates because a signal it reads changed, and for no other reason.
- */
 describe('zoneless', () => {
   it('ships without zone.js', () => {
     expect('Zone' in globalThis).toBe(false);
   });
 
-  /** What the composition root provides, not what TestBed defaults to. */
   it('gives the application a zone that does nothing', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
 
     expect(TestBed.inject(NgZone)).toBeInstanceOf(NoopNgZone);
   });
 
-  /** No zone to notice the write: only the signal can schedule the render. */
   it('re-renders an OnPush view from a signal write alone', async () => {
     const fixture = TestBed.createComponent(Counter);
     await fixture.whenStable();

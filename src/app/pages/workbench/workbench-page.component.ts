@@ -20,11 +20,6 @@ const SIZES: Readonly<Record<Scenario, WindowSize>> = {
   fixed: 'l',
 };
 
-/**
- * A development-only bench for the shared window and selector, until the
- * pages that use them show every state. Its rows are neutral placeholders:
- * the bench exercises the grammar, it carries no content of the site.
- */
 @Component({
   selector: 'app-workbench-page',
   imports: [WindowComponent, SegmentedComponent],
@@ -56,7 +51,6 @@ export class WorkbenchPageComponent {
     })),
   );
 
-  /** The index's three families, to see a wrapping selector at 924px. */
   protected readonly familyItems = computed<readonly SegmentedItem[]>(() =>
     [
       { key: 'tout', label: 'Tout', count: '07' },

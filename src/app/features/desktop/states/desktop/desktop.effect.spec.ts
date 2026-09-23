@@ -30,8 +30,6 @@ describe('StationEffect', () => {
         provideStatewiseTesting({ effects: [DesktopEffect] }),
         {
           provide: Router,
-          // A fake recording where the effect sent the reader, never an
-          // actual navigation: the truths are about the URL asked for.
           useValue: {
             navigateByUrl: (url: string) => {
               navigated.push(url);

@@ -17,6 +17,7 @@ docs/audit/
     04-shared-design-system.md      découpage de shared/, jetons, primitives
     05-moteur-structure.md          moteur canvas : god class, clean code, découpage
     06-nommage-tests-outillage.md   nommage, clean code, tests, lint, CI
+    07-moteur-contraintes.md        moteur : ce qui contraint son découpage (phase 3)
 ```
 
 ## Méthode

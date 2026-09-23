@@ -24,7 +24,6 @@ describe('NotFoundWindowComponent', () => {
     expect(host.querySelector('a')?.getAttribute('href')).toBe('/projets');
   });
 
-  /** Counted, not written: a project added changes the sentence by itself. */
   it('counts the projects of the index, on two digits', async () => {
     const { fixture, host } = await mount(7);
     const sentence = (): string =>

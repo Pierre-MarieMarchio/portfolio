@@ -68,6 +68,18 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
 - La cause d'un échec va à l'`ErrorHandler`, l'état n'apprend que l'échec :
   la raison sert à qui débogue, le drapeau sert à la page.
 
+## `features/projects/states/projects/projects.manager.ts`
+
+- Les projets mis en avant se dérivent du rang : aucun drapeau, pour que la
+  sélection ne puisse pas s'en écarter.
+- Un catalogue distant auquel manquent des faits ne dessine pas de ligne
+  vide, et n'en décale aucune : les autres gardent leur numéro.
+- Les deux langues sont dans l'état ; celle du lecteur est une dérivation
+  (D5).
+- `find` se dérive de la liste : un rechargement qui a renommé un projet se
+  voit aussitôt.
+- Un seul cycle pour tout le catalogue : rien ne se montre avant les projets.
+
 ## `features/projects/states/projects/projects.state.ts`
 
 - L'état ne garde que ce qui ne se dérive pas : le catalogue tel que le dépôt
@@ -131,6 +143,8 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
   survit à un aller-retour vers une fiche, comme la sélection.
 - Filtrer ne retrie pas : l'ordre du rang ne change jamais.
 - Survol et sélection se disent de la même façon : un seul jeu d'états.
+- Dans le spec, chaque projet a des faits distincts, pour qu'une ligne se
+  reconnaisse à son propre texte.
 
 ## `features/projects/components/project-preview/`
 
@@ -139,6 +153,7 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
 - Il ne montre qu'un projet mis en avant : un projet hors de la sélection se
   lirait « 05 / 04 ».
 - Le badge nomme ce que montre la fenêtre, pas le dernier corps survolé.
+- L'aperçu n'a pas d'état : il ne montre que ce que dit son entrée `slug`.
 
 ## `features/projects/components/project-chapter/`
 
@@ -149,6 +164,8 @@ break-word` déprécié : couper un nom long seulement là où il déborderait.
 
 - La maquette posait les liens côte à côte sans rien entre eux ; ici ils
   passent à la ligne avec un écart.
+- L'identité du projet vient de la table des faits, jamais de la prose de la
+  fiche.
 
 ## `i18n/data/paths.data.ts`
 

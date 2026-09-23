@@ -64,13 +64,6 @@ const mount = async (featured: number, total: number) => {
   };
 };
 
-/**
- * The mechanism under test: the number of featured projects is one value
- * (`FEATURED`), and the home page follows it everywhere, whatever the
- * size of the catalogue. The value is provided here through `FEATURED`,
- * the token the manager reads it from, at three and five, with three and
- * twelve projects in all.
- */
 describe('featured count', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
@@ -123,7 +116,6 @@ describe('featured count', () => {
     });
   });
 
-  /** A body past the featured ones has no place in the preview. */
   it('opens no preview for a planet the home page does not feature', async () => {
     const { fixture, station, object } = await mount(3, 12);
 

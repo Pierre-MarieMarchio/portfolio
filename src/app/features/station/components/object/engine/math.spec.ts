@@ -16,13 +16,29 @@ import {
 const seeded = (seed: number): (() => number) => {
   let state = seed;
   return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
+    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return state / 4_294_967_296;
   };
 };
 
 const distance = (a: ScreenPoint, b: ScreenPoint): number =>
   Math.hypot(a.sx - b.sx, a.sy - b.sy);
+
+const firstFour = (count: number) =>
+  [0, 1, 2, 3].map((i) => orbitRank(i, count));
+
+const approachAfter = (frames: number): number => {
+  let value = 0;
+  for (let i = 0; i < frames; i++) {
+    value += (1 - value) * halfLifeStep(1 / frames, 0.55);
+  }
+  return value;
+};
+
+const litAt = (share: number): number[] =>
+  Array.from({ length: 5000 }, (_, i) => i).filter(
+    (i) => litAmount(i, share) > 0,
+  );
 
 describe('object math', () => {
   describe('orbitRank (Titius-Bode)', () => {
@@ -59,9 +75,6 @@ describe('object math', () => {
 
     /** Twelve used to stack the featured four within 5% of the first orbit. */
     it('keeps the featured orbits where they are, however many bodies follow', () => {
-      const firstFour = (count: number) =>
-        [0, 1, 2, 3].map((i) => orbitRank(i, count));
-
       expect(firstFour(12)).toEqual(firstFour(ORBIT_REFERENCE_COUNT));
       expect(firstFour(20)).toEqual(firstFour(ORBIT_REFERENCE_COUNT));
     });
@@ -75,9 +88,9 @@ describe('object math', () => {
       expect(twelve.at(-1)).toBeCloseTo(1, 10);
       const outer = twelve.slice(5);
       const gaps = outer.slice(1).map((rank, i) => rank - (outer[i] ?? 0));
-      gaps.forEach((gap) => {
+      for (const gap of gaps) {
         expect(gap).toBeCloseTo(gaps[0] ?? 0, 10);
-      });
+      }
     });
   });
 
@@ -87,23 +100,11 @@ describe('object math', () => {
     });
 
     it('lands at the same place whatever the frame rate', () => {
-      const run = (frames: number): number => {
-        let value = 0;
-        for (let i = 0; i < frames; i++) {
-          value += (1 - value) * halfLifeStep(1 / frames, 0.55);
-        }
-        return value;
-      };
-      expect(run(30)).toBeCloseTo(run(144), 10);
+      expect(approachAfter(30)).toBeCloseTo(approachAfter(144), 10);
     });
   });
 
   describe('litAmount (deterministic draw)', () => {
-    const litAt = (share: number): number[] =>
-      Array.from({ length: 5000 }, (_, i) => i).filter(
-        (i) => litAmount(i, share) > 0,
-      );
-
     it('fades a point in as the share rises past it, never switching it on', () => {
       const index = 7;
       const key = (index * 7919) % 1000;
@@ -190,7 +191,7 @@ describe('object math', () => {
 
   it('draws standard normal deviates', () => {
     const next = gaussian(seeded(42));
-    const values = Array.from({ length: 20000 }, next);
+    const values = Array.from({ length: 20_000 }, next);
     const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
     const variance =
       values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;

@@ -30,7 +30,7 @@ describe('fitOrbits', () => {
   const fitted = (w: number, h: number): number[] => {
     const { frame, freeHalf } = homeOf(w, h);
     const orbits = placeOrbits(7);
-    fitOrbits(orbits, w, h, frame, freeHalf, 1);
+    fitOrbits(orbits, { w, h, dpr: 1 }, frame, freeHalf);
     return orbits.map((orbit) => orbit.rb);
   };
   /** The room the outer orbit has across, in object radii. */

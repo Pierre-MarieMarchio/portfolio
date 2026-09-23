@@ -9,6 +9,9 @@ import {
 } from './camera';
 import { ARRIVED, traveling } from './traveling';
 
+const growthRate = (t: number): number =>
+  (traveling(t + 0.01, false).grow - traveling(t - 0.01, false).grow) / 0.02;
+
 const isFiniteNumbers = (frame: Frame): boolean =>
   Object.values(frame).every((value) => Number.isFinite(value));
 
@@ -27,7 +30,9 @@ describe('object camera', () => {
       for (const viewport of viewports) {
         for (const head of [null, 0, 72, 400]) {
           const m = measureHome(viewport, head, null);
-          expect(Object.values(m).every(Number.isFinite)).toBe(true);
+          expect(
+            Object.values(m).every((value) => Number.isFinite(value)),
+          ).toBe(true);
           expect(m.s).toBeGreaterThanOrEqual(0.07);
           expect(m.s).toBeLessThanOrEqual(0.42);
           expect(m.y).toBeGreaterThanOrEqual(0.14);
@@ -51,7 +56,7 @@ describe('object camera', () => {
     const orbit = { ang: 0.62, v: 0.01, rb: 5.2 };
 
     it('answers finite framings for every chapter, measured or not', () => {
-      SHEET_APPROACHES.forEach((_, chapter) => {
+      for (const chapter of SHEET_APPROACHES.keys()) {
         for (const panelLeft of [null, 0, 400, 5000]) {
           for (const withDims of [dims, null]) {
             const frame = sheetFrame({
@@ -67,7 +72,7 @@ describe('object camera', () => {
             expect(isFiniteNumbers(frame)).toBe(true);
           }
         }
-      });
+      }
     });
 
     it('keeps the sheet on the camera turn it is on', () => {
@@ -111,19 +116,16 @@ describe('object camera', () => {
     });
 
     it('lands instead of braking: the growth dies over more than a second', () => {
-      const rate = (t: number): number =>
-        (traveling(t + 0.01, false).grow - traveling(t - 0.01, false).grow) /
-        0.02;
       let peak = 0;
       let peakAt = 0;
       for (let t = 6; t <= 9.6; t += 0.01) {
-        if (rate(t) > peak) {
-          peak = rate(t);
+        if (growthRate(t) > peak) {
+          peak = growthRate(t);
           peakAt = t;
         }
       }
       let quiet = peakAt;
-      while (quiet < 9.6 && rate(quiet) > 0.1 * peak) {
+      while (quiet < 9.6 && growthRate(quiet) > 0.1 * peak) {
         quiet += 0.01;
       }
       // The cubic ease it replaces went from its peak to a tenth of it in
@@ -153,7 +155,9 @@ describe('object camera', () => {
     it('sits at its final state with reduced motion, and on a broken clock', () => {
       expect(traveling(0, true)).toBe(ARRIVED);
       expect(
-        Object.values(traveling(Number.NaN, false)).every(Number.isFinite),
+        Object.values(traveling(NaN, false)).every((value) =>
+          Number.isFinite(value),
+        ),
       ).toBe(true);
     });
   });

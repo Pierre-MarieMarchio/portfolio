@@ -12,6 +12,12 @@ export interface Rolled {
   ny: number;
 }
 
+export interface ScreenHole {
+  readonly cx: number;
+  readonly cy: number;
+  readonly radius: number;
+}
+
 /** How much the plane's depth is kept on screen, at an elevation. */
 export const flattening = (elev: number): number => 0.88 + 0.34 * elev;
 

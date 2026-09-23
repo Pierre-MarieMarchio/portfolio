@@ -16,15 +16,15 @@
     <app-desktop-scene
       #object
       [bodies]="planets()"
-      [featured]="binding.featuredCount()"
-      [view]="binding.objectView()"
-      [sheet]="binding.sheetSlug()"
+      [featured]="featuredCount()"
+      [view]="sceneView()"
+      [sheet]="sheetSlug()"
       [chapter]="station.chapter()"
-      [part]="station.part()"
+      [part]="station.section()"
       [preview]="station.preview()"
       [hovered]="station.hovered()"
-      [selected]="station.selection()"
-      [paused]="station.paused()"
+      [selected]="station.selected()"
+      [paused]="animation.paused()"
       [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
       (bodyHovered)="onBodyHovered($event)"
@@ -61,8 +61,8 @@
       @if (station.showsAbout()) {
         <app-about-window
           [pinned]="station.pins().about"
-          [part]="station.part()"
-          (partChange)="station.choosePart($event)"
+          [part]="station.section()"
+          (partChange)="station.chooseSection($event)"
           (pinToggled)="station.togglePin('about')"
           (closed)="station.close('about')"
         />
@@ -75,12 +75,12 @@
       appStackedWindow="index"
       appPanelAnchor
     >
-      @if (station.showsIndex()) {
+      @if (station.showsList()) {
         <app-project-list
           [pinned]="station.pins().index"
-          [selected]="station.selection()"
+          [selected]="station.selected()"
           [visited]="station.visited()"
-          [family]="binding.family()"
+          [family]="family()"
           (familyChange)="station.filter($event)"
           (selectedChange)="station.select($event)"
           (hoveredChange)="station.hover($event)"
@@ -96,12 +96,12 @@
       appStackedWindow="sheet"
       appPanelAnchor="sheet"
     >
-      @if (binding.isNotFound()) {
+      @if (isNotFound()) {
         <app-not-found-window
-          [total]="binding.projectCount()"
+          [total]="projectCount()"
           (closed)="station.close('sheet')"
         />
-      } @else if (binding.sheetSlug(); as slug) {
+      } @else if (sheetSlug(); as slug) {
         <app-project-detail
           [slug]="slug"
           [pinned]="station.pins().sheet"
@@ -136,10 +136,10 @@
     @if (showsRule()) {
       <app-featured-bar
         appPanelAnchor="rule"
-        [bodies]="binding.featured()"
+        [bodies]="projects.featured()"
         [controls]="ids.previewPanel"
         [hovered]="station.hovered()"
-        [reading]="station.reading()"
+        [reading]="station.lastPreview()"
         [arrival]="arrival()"
         (chosen)="station.openPreview($event)"
         (hoveredChange)="onRuleHovered($event)"
@@ -152,7 +152,7 @@
   appPanelAnchor
   [links]="contactLinks()"
   [showPause]="object.animated()"
-  [paused]="station.paused()"
+  [paused]="animation.paused()"
   [arrival]="arrival()"
-  (pauseToggled)="station.togglePause()"
+  (pauseToggled)="animation.togglePause()"
 />

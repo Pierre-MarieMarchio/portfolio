@@ -98,12 +98,12 @@ check` passe à chaque commit. Le nettoyage (étapes 2 à 5) passe avant les
 fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
 
 - [x] **0. `docs(audit)`** : versionner ce dossier.
-- [ ] **1. `chore(lint)`** : règles de taille et de complexité (`max-lines`,
+- [x] **1. `chore(lint)`** : règles de taille et de complexité (`max-lines`,
       `complexity`, `max-depth`), `@typescript-eslint/naming-convention`,
       `prefer-on-push`, complexité des gabarits, et stylelint pour le SCSS.
       Ces règles sont d'abord en avertissement, puis passent en erreur au fil
       des étapes (rapport 06 §4).
-- [ ] **2. `refactor(core)`** (rapport 03) :
+- [x] **2. `refactor(core)`** (rapport 03) :
   - supprimer le code mort : `LocalStorageService`, `json.utils`,
     `refusalReason`, la branche HTTP de `ReportedErrors` ;
   - `ReportedErrors` : lui donner un lecteur, ou le réduire ;
@@ -115,7 +115,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - déplacer `ScrollMemory` dans `shared/ui/window` ;
   - faire de `SITE_NAME` une constante et supprimer `environments/` ;
   - harmoniser les suffixes de classes.
-- [ ] **3. `refactor(styles)`** (rapport 04 §B) :
+- [x] **3. `refactor(styles)`** (rapport 04 §B) :
   - compléter les jetons (`--gutter`, `--target`, `--radius-control`,
     `--ls-display`, flou) et retirer les jetons morts ;
   - créer les partiels `_utilities`, `_motion` et `mixins/{type,controls,arrival}` ;
@@ -125,7 +125,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   Aucun changement visuel n'est attendu : on le vérifie sur le HTML et le CSS
   prérendus.
 
-- [ ] **4. `refactor(shared)`** (rapports 02, 04 §A et 06 §1) :
+- [x] **4. `refactor(shared)`** (rapports 02, 04 §A et 06 §1) :
   - `SegmentedItem<T>` porte une `value` ;
   - l'entrée `title` de `WindowComponent` devient `heading` (✔ elle fuit
     aujourd'hui en infobulle native) ;
@@ -136,7 +136,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
     des `querySelectorAll` ;
   - harmoniser les noms : sorties `xxxChange`, `data-*` en anglais, ids en
     constantes.
-- [ ] **5. `refactor(station)`** (rapports 02 et 03) :
+- [x] **5. `refactor(station)`** (rapports 02 et 03) :
   - découper `StationComponent` en `ArrivalController`, `Curtain`, directive
     `windowStack` (ordre dans un signal), directive `landingHeading`,
     directive `headBottom`, `StationProjectsBinding` et `HomeTitleComponent` ;
@@ -145,7 +145,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - `part` devient un nombre ;
   - renommer `syncRoute`, `stepBack` et `openPreview` ;
   - écrire les specs du rideau, du focus et de `windowStack`.
-- [ ] **6. `feat(projects)`** (rapports 00 §3 et 02) :
+- [x] **6. `feat(projects)`** (rapports 00 §3 et 02) :
   - une entrée typée par projet (identité, faits, fiche, figure), et
     `PROJECTS` réduit à une liste ordonnée d'imports ;
   - un projet sans faits ou sans fiche ne compile pas ;
@@ -155,14 +155,14 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - les doubles de test sont bâtis sur le vrai manager ;
   - la phrase « sept fiches » est dérivée du nombre ;
   - écrire `docs/contenu.md`.
-- [ ] **7. `feat(home)`** (rapports 00 §3 et 01) :
+- [x] **7. `feat(home)`** (rapports 00 §3 et 01) :
   - `FEATURED_COUNT` reste la seule valeur ;
   - la règle répartit ses repères selon leur nombre et la largeur
     disponible ;
   - `orbitRank` est calculé sur les corps affichés ;
   - l'aperçu est réservé à l'accueil et aux projets mis en avant ;
   - tests à 3 et 5 projets mis en avant, et à 3 et 12 projets en tout.
-- [ ] **8. `feat(i18n)`** :
+- [x] **8. `feat(i18n)`** :
   - un service `Locale` dans `core` ;
   - des catalogues `fr` et `en` typés (une clé manquante ne compile pas),
     chargés comme chunks par l'initialiseur ;
@@ -174,7 +174,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - l'anglais rédigé est marqué `draft('…')`, et un spec compte les textes
     restant à relire ;
   - consigner les écarts dans `docs/maquette/README.md`.
-- [ ] **9. `refactor(object)`**, en version limitée (rapports 01 et 05) :
+- [x] **9. `refactor(object)`**, en version limitée (rapports 01 et 05) :
   - d'abord un test « golden » : un contexte canvas enregistreur, une graine
     fixe, des instants fixes ;
   - puis `constants.ts` et `projection.ts` (dont une seule portée du curseur) ;

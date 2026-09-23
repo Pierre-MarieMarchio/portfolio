@@ -41,8 +41,11 @@ export class WorkbenchPageComponent {
   protected readonly family = signal('tout');
   protected readonly rows = Array.from({ length: 12 }, (_, i) => i + 1);
 
-  protected readonly scenarioItems = computed<readonly SegmentedItem[]>(() =>
+  protected readonly scenarioItems = computed<
+    readonly SegmentedItem<Scenario>[]
+  >(() =>
     this.scenarios.map((spec) => ({
+      value: spec.value,
       label: spec.label,
       active: spec.value === this.scenario(),
     })),
@@ -55,6 +58,7 @@ export class WorkbenchPageComponent {
       { key: 'pro', label: 'En entreprise', count: '04' },
       { key: 'perso', label: 'Personnels', count: '03' },
     ].map(({ key, label, count }) => ({
+      value: key,
       label,
       count,
       active: key === this.family(),
@@ -66,20 +70,8 @@ export class WorkbenchPageComponent {
     return scenario === 'preview' ? 'm' : scenario === 'short' ? 's' : 'l';
   });
 
-  protected choose(item: SegmentedItem): void {
-    const spec = this.scenarios.find((each) => each.label === item.label);
-    if (spec) {
-      this.scenario.set(spec.value);
-      this.isClosed.set(false);
-    }
-  }
-
-  protected chooseFamily(item: SegmentedItem): void {
-    const keys: Record<string, string> = {
-      Tout: 'tout',
-      'En entreprise': 'pro',
-      Personnels: 'perso',
-    };
-    this.family.set(keys[item.label] ?? 'tout');
+  protected choose(scenario: Scenario): void {
+    this.scenario.set(scenario);
+    this.isClosed.set(false);
   }
 }

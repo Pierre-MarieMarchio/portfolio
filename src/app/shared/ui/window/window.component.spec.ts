@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WindowComponent } from './window.component';
 import { WindowSize } from './window.model';
+import { provideTexts } from '@testing/texts';
 
 const PIN_OFF_LABEL =
   'Épingler : garder la fenêtre ouverte en changeant de page';
@@ -81,7 +82,7 @@ const pointerEvent = (
   standalone: true,
   imports: [WindowComponent],
   template: `
-    <app-window [title]="'Console'">
+    <app-window [heading]="'Console'">
       <div toolbar>TOOLBAR-MARK</div>
       <span>DEFAULT-MARK</span>
       <div body>BODY-MARK</div>
@@ -97,7 +98,7 @@ class HostWindowSlots {}
   standalone: true,
   imports: [WindowComponent],
   template: `
-    <app-window [title]="'Console'">
+    <app-window [heading]="'Console'">
       <div body>{{ renderBody() }}</div>
     </app-window>
   `,
@@ -120,10 +121,13 @@ describe('WindowComponent', () => {
     host: HTMLElement;
     section: HTMLElement;
   }> => {
-    TestBed.configureTestingModule({ imports: [WindowComponent] });
+    TestBed.configureTestingModule({
+      imports: [WindowComponent],
+      providers: [provideTexts()],
+    });
 
     const fixture = TestBed.createComponent(WindowComponent);
-    fixture.componentRef.setInput('title', 'Console');
+    fixture.componentRef.setInput('heading', 'Console');
     const host = fixture.nativeElement as HTMLElement;
     const section = host.querySelector('.window') as HTMLElement;
     await fixture.whenStable();
@@ -149,7 +153,29 @@ describe('WindowComponent', () => {
     }
   });
 
-  it('names the section from the label input, falling back to the title', async () => {
+  /** The regression `heading` exists for: `title` was a native tooltip. */
+  it('writes no title attribute on its host when given a heading in a template', async () => {
+    @Component({
+      imports: [WindowComponent],
+      template: '<app-window heading="À propos" />',
+    })
+    class Host {}
+
+    TestBed.configureTestingModule({
+      imports: [Host],
+      providers: [provideTexts()],
+    });
+    const fixture = TestBed.createComponent(Host);
+    await fixture.whenStable();
+    const element = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-window',
+    );
+
+    expect(element?.hasAttribute('title')).toBe(false);
+    expect(element?.querySelector('h2')?.textContent).toBe('À propos');
+  });
+
+  it('names the section from the label input, falling back to the heading', async () => {
     const { fixture, section } = await mount();
 
     expect(section.getAttribute('aria-label')).toBe('Console');
@@ -241,7 +267,10 @@ describe('WindowComponent', () => {
 
   describe('collapse button and dblclick', () => {
     it('starts expanded, toggles on click, and hides projected content while collapsed', async () => {
-      TestBed.configureTestingModule({ imports: [HostWindowSlots] });
+      TestBed.configureTestingModule({
+        imports: [HostWindowSlots],
+        providers: [provideTexts()],
+      });
       const fixture = TestBed.createComponent(HostWindowSlots);
       await fixture.whenStable();
       const host = fixture.nativeElement as HTMLElement;
@@ -338,7 +367,10 @@ describe('WindowComponent', () => {
   });
 
   it('projects toolbar, default, body and footer content, in that order, below the title bar', async () => {
-    TestBed.configureTestingModule({ imports: [HostWindowSlots] });
+    TestBed.configureTestingModule({
+      imports: [HostWindowSlots],
+      providers: [provideTexts()],
+    });
     const fixture = TestBed.createComponent(HostWindowSlots);
     await fixture.whenStable();
     const section = (fixture.nativeElement as HTMLElement).querySelector(
@@ -685,7 +717,10 @@ describe('WindowComponent', () => {
     });
 
     it('never re-renders projected content while the pointer is moving', async () => {
-      TestBed.configureTestingModule({ imports: [HostWindowRenderCount] });
+      TestBed.configureTestingModule({
+        imports: [HostWindowRenderCount],
+        providers: [provideTexts()],
+      });
       const fixture = TestBed.createComponent(HostWindowRenderCount);
       const host = fixture.nativeElement as HTMLElement;
       const section = host.querySelector('.window') as HTMLElement;

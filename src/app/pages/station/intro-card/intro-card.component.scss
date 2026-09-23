@@ -1,0 +1,105 @@
+@use 'mixins/motion';
+@use 'mixins/type';
+
+/* The word settles (0 → 2.6s), the rule opens, the trade comes under it
+   (1.5 → 3s), there is time to read, then the page rises slowly (to 5.6s)
+   over the object gathering. */
+.card {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-intro);
+  pointer-events: none;
+  background: color-mix(in oklab, var(--paper) 84%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 3vh, 32px);
+  animation: card var(--intro-duration) cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.word {
+  @include type.caps(var(--m3), 0.24em);
+
+  padding-left: 0.24em;
+  line-height: 1;
+  color: var(--ink-2);
+  animation: word 2600ms cubic-bezier(0.16, 0.72, 0.24, 1) both;
+}
+
+.rule {
+  width: min(420px, 52vw);
+  height: 1px;
+  background: var(--accent);
+  transform-origin: center;
+  animation: rule 2200ms 700ms cubic-bezier(0.16, 0.72, 0.24, 1) both;
+}
+
+.trade {
+  max-width: 22ch;
+  text-align: center;
+  font-size: var(--h0);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  color: var(--ink);
+  animation: rise 1500ms 1500ms both;
+}
+
+.caps {
+  @include type.title(var(--m1));
+
+  color: var(--ink-2);
+  animation: rise 1400ms 2600ms both;
+}
+
+@keyframes card {
+  0%,
+  64% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes word {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.78em;
+    transform: translateY(10px);
+  }
+
+  52% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    letter-spacing: 0.3em;
+    transform: none;
+  }
+}
+
+@keyframes rule {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@include motion.reduced {
+  .card {
+    display: none;
+  }
+}

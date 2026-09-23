@@ -1,2 +1,6 @@
 export { ProjectsEffect } from './projects/projects.effect';
-export { ProjectsManager } from './projects/projects.manager';
+export {
+  FEATURED,
+  FEATURED_COUNT,
+  ProjectsManager,
+} from './projects/projects.manager';

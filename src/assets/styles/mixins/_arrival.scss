@@ -1,0 +1,28 @@
+/*
+ * The home page's rest (the title, the rule, the contact rail) arrives at the
+ * end of the opening crossing (see `Arrival`). Without a script, the CSS lets
+ * each part rise on its own at `--arrival-at`; with one, the station holds
+ * them (`data-arrival='held'`) until the reader is there, then lets them rise
+ * from that moment (`'shown'`), each with its own delay.
+ */
+
+/* The rise on its own, for a page without a script. */
+@mixin on-its-own($duration, $delay) {
+  animation: rise $duration calc(var(--arrival-at) + #{$delay}) both;
+}
+
+/* Held back. `$hide` also takes it out of the reader's way; the title keeps
+   its place, for the landing focus. */
+@mixin held($hide: true) {
+  animation: none;
+  opacity: 0;
+
+  @if $hide {
+    visibility: hidden;
+  }
+}
+
+/* Let go: it rises from now. */
+@mixin shown($duration, $delay) {
+  animation: rise $duration $delay both;
+}

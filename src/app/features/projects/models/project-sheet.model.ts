@@ -1,47 +1,76 @@
+import { Resolved, Text } from '@app/core/i18n';
+
+/*
+ * A sheet as its project's file writes it (`…Source`, every text a `Text`,
+ * both languages side by side, D5), and as the views read it, in the
+ * reader's language: the same shape, `Resolved`.
+ */
+
 /** An outbound link of a sheet: a short label and where it leads. */
-export interface SheetLink {
-  readonly label: string;
+export interface SheetLinkSource {
+  readonly label: Text;
   readonly href: string;
 }
 
 /** A term and what it means, in a chapter's list. */
-export interface SheetBullet {
-  readonly term: string;
-  readonly text: string;
+export interface SheetBulletSource {
+  readonly term: Text;
+  readonly text: Text;
+}
+
+/** One row of the layers diagram: a layer and the projects it holds. */
+export interface SheetLayerSource {
+  readonly name: Text;
+  readonly projects: Text;
 }
 
 /**
- * The two reading diagrams. They are schemas, never screenshots presented
- * as proof.
+ * A reading diagram, carried by its chapter with its caption. A schema,
+ * never a screenshot presented as proof.
+ *
+ * - `flow`: steps in sequence, then what they loop back into;
+ * - `layers`: the layers of an architecture and what each holds.
  */
-export type SheetFigure = 'flow' | 'layers';
+export type SheetFigureSource =
+  | {
+      readonly kind: 'flow';
+      readonly steps: readonly Text[];
+      readonly loop: Text;
+      readonly caption: Text;
+    }
+  | {
+      readonly kind: 'layers';
+      readonly layers: readonly SheetLayerSource[];
+      readonly caption: Text;
+    };
 
 /**
  * One approach of a sheet. Its title is optional: an untitled chapter takes
  * the default title of its position.
  */
-export interface SheetChapter {
-  readonly title?: string;
-  readonly paragraphs: readonly string[];
-  readonly bullets?: readonly SheetBullet[];
-  readonly figure?: SheetFigure;
+export interface SheetChapterSource {
+  readonly title?: Text;
+  readonly paragraphs: readonly Text[];
+  readonly bullets?: readonly SheetBulletSource[];
+  readonly figure?: SheetFigureSource;
 }
 
 /**
  * A project's sheet: its prose, and nothing a fact already says. The
  * identity list of the first chapter (access, role, stack, context) is read
- * from `ProjectFacts`: a second table here once drifted from the first.
+ * from the facts: a second table here once drifted from the first. Its title
+ * is the project's.
  */
-export interface ProjectSheet {
-  readonly title: string;
+export interface SheetSource {
   /** The standfirst under the title. */
-  readonly lede: string;
-  readonly links: readonly SheetLink[];
-  readonly chapters: readonly SheetChapter[];
+  readonly lede: Text;
+  readonly links: readonly SheetLinkSource[];
+  readonly chapters: readonly SheetChapterSource[];
 }
 
-/** One row of the layers diagram: a layer and the projects it holds. */
-export interface SheetLayer {
-  readonly name: string;
-  readonly projects: string;
-}
+export type SheetLink = Resolved<SheetLinkSource>;
+export type SheetBullet = Resolved<SheetBulletSource>;
+export type SheetLayer = Resolved<SheetLayerSource>;
+export type SheetFigure = Resolved<SheetFigureSource>;
+export type SheetChapter = Resolved<SheetChapterSource>;
+export type ProjectSheet = Resolved<SheetSource>;

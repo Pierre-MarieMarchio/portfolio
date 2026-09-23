@@ -1,44 +1,46 @@
 import { inject, Injectable } from '@angular/core';
-import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
-import { environment } from '../../../environments/environment';
-import { SeoService } from './seo.service';
+import { Lang, LANGS, langOfUrl } from '../i18n';
+import { PageHead } from './page-head.service';
 
 /**
  * Every route names itself with `title`, and may describe itself with
- * `data.description`. This turns both into the document's head, in one place,
+ * `data.description` and give its other languages' addresses with
+ * `data.alternates`. This turns both into the document's head, in one place,
  * so no page has to remember to call a service from its constructor.
  *
- * A page whose title depends on its content (a project's name) calls
- * `Title` itself once it knows it; this strategy only sets the default.
+ * A title that depends on the content (a project's name) is a route
+ * resolver's job: the router hands this strategy the resolved string like
+ * any other, and `PageHead` stays the only writer of the head.
  */
 @Injectable()
 export class PageTitleStrategy extends TitleStrategy {
-  private readonly title = inject(Title);
-  private readonly seo = inject(SeoService);
+  private readonly head = inject(PageHead);
 
   public override updateTitle(snapshot: RouterStateSnapshot): void {
-    const pageTitle = this.buildTitle(snapshot);
-    const fullTitle = pageTitle
-      ? `${pageTitle} · ${environment.SITE_NAME}`
-      : environment.SITE_NAME;
-
-    this.title.setTitle(fullTitle);
-    this.seo.name(fullTitle);
-    this.seo.describe(deepestDescription(snapshot));
+    this.head.set({
+      title: this.buildTitle(snapshot),
+      description: deepest(snapshot, 'description', isString),
+      lang: langOfUrl(snapshot.url),
+      alternates: deepest(snapshot, 'alternates', isAlternates),
+    });
   }
 }
 
-/** The description of the deepest route that declares one. */
-function deepestDescription(snapshot: RouterStateSnapshot): string | null {
+/** A value of the deepest route that declares one of the right shape. */
+function deepest<T>(
+  snapshot: RouterStateSnapshot,
+  key: string,
+  is: (value: unknown) => value is T,
+): T | null {
   let route = snapshot.root;
-  let description: string | null = null;
+  let found: T | null = null;
 
   while (route) {
-    const candidate: unknown = route.data['description'];
+    const candidate: unknown = route.data[key];
 
-    if (typeof candidate === 'string') {
-      description = candidate;
+    if (is(candidate)) {
+      found = candidate;
     }
 
     if (!route.firstChild) {
@@ -48,5 +50,15 @@ function deepestDescription(snapshot: RouterStateSnapshot): string | null {
     route = route.firstChild;
   }
 
-  return description;
+  return found;
 }
+
+const isString = (value: unknown): value is string => typeof value === 'string';
+
+/** The page's address in each language, as `alternates` resolves it. */
+const isAlternates = (value: unknown): value is Record<Lang, string> =>
+  typeof value === 'object' &&
+  value !== null &&
+  LANGS.every(
+    (lang) => typeof (value as Record<string, unknown>)[lang] === 'string',
+  );

@@ -12,32 +12,19 @@ import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
+import { LINKS } from '@app/features/common';
+import { PROJECTS_TEXTS } from '../../i18n';
+import { positionOf, rowLabel } from '../project-labels';
+import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
 /** Which family the index shows; `all` is no filter. */
 export type FamilyFilter = ProjectFamily | 'all';
 
-interface FamilyChoice {
-  readonly value: FamilyFilter;
-  readonly label: string;
-  readonly aria: string;
-}
-
-const FAMILIES: readonly FamilyChoice[] = [
-  { value: 'all', label: 'Tout', aria: 'Voir tous les projets' },
-  {
-    value: 'professional',
-    label: 'En entreprise',
-    aria: 'Ne voir que les réalisations faites en entreprise',
-  },
-  {
-    value: 'personal',
-    label: 'Personnels',
-    aria: 'Ne voir que les projets personnels',
-  },
-];
+/** The index's filters, in their order. */
+const FAMILIES: readonly FamilyFilter[] = ['all', 'professional', 'personal'];
 
 /**
- * The index: the seven projects in a table whose most important column is
+ * The index: every project in a table whose most important column is
  * what a reader can check. Selecting a row opens it one notch (subject, the
  * sheet, the outbound link); the selection belongs to the station, since
  * Escape and a click in the void close it too.
@@ -46,7 +33,12 @@ const FAMILIES: readonly FamilyChoice[] = [
  */
 @Component({
   selector: 'app-project-index',
-  imports: [RouterLink, SegmentedComponent, WindowComponent],
+  imports: [
+    LandingHeadingDirective,
+    RouterLink,
+    SegmentedComponent,
+    WindowComponent,
+  ],
   templateUrl: './project-index.component.html',
   styleUrl: './project-index.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,36 +62,44 @@ export class ProjectIndexComponent {
   /** The slug to select, or `null` to close the open row. */
   public readonly selectedChange = output<string | null>();
   /** The row under the pointer or the focus, for the object to light up. */
-  public readonly hovered = output<string | null>();
+  public readonly hoveredChange = output<string | null>();
   public readonly familyChange = output<FamilyFilter>();
 
-  private readonly total = computed(() => this.manager.projects().length);
+  protected readonly texts = inject(PROJECTS_TEXTS);
+  protected readonly links = inject(LINKS);
 
-  protected readonly heading = computed(
-    () => `Projets — le relevé des ${twoDigits(this.total())} réalisations`,
+  private readonly total = computed(() => this.manager.ranked().length);
+
+  protected readonly heading = computed(() =>
+    this.texts().index.title(twoDigits(this.total())),
   );
 
   protected readonly meta = computed(() => {
     const family = this.family();
     return family === 'all'
-      ? `${twoDigits(this.total())} fiches`
-      : `${twoDigits(this.manager.familyCounts()[family])} / ${twoDigits(this.total())}`;
+      ? this.texts().index.count(twoDigits(this.total()))
+      : positionOf(this.manager.familyCounts()[family], this.total());
   });
 
-  protected readonly state = computed(() => {
+  protected readonly familySummary = computed(() => {
     const counts = this.manager.familyCounts();
-    return `${twoDigits(counts.professional)} en entreprise · ${twoDigits(counts.personal)} personnels`;
+    return this.texts().index.summary(
+      twoDigits(counts.professional),
+      twoDigits(counts.personal),
+    );
   });
 
-  protected readonly familyItems = computed<readonly SegmentedItem[]>(() => {
+  protected readonly familyItems = computed<
+    readonly SegmentedItem<FamilyFilter>[]
+  >(() => {
     const counts = this.manager.familyCounts();
-    return FAMILIES.map((choice) => ({
-      label: choice.label,
-      aria: choice.aria,
-      active: choice.value === this.family(),
-      count: twoDigits(
-        choice.value === 'all' ? this.total() : counts[choice.value],
-      ),
+    const families = this.texts().index.families;
+    return FAMILIES.map((family) => ({
+      value: family,
+      label: families[family].label,
+      aria: families[family].aria,
+      active: family === this.family(),
+      count: twoDigits(family === 'all' ? this.total() : counts[family]),
     }));
   });
 
@@ -107,36 +107,18 @@ export class ProjectIndexComponent {
     const family = this.family();
     const selected = this.selected();
     const visited = new Set(this.visited());
-    const featured = new Set(
-      this.manager.featured().map((project) => project.slug),
-    );
-    return this.manager.withFacts().flatMap((project, index) => {
-      if (family !== 'all' && project.family !== family) {
-        return [];
-      }
-      const number = twoDigits(index + 1);
-      const link = this.manager.sheetOf(project.slug)?.links[0] ?? null;
-      return [
-        {
-          ...project,
-          number,
-          featured: featured.has(project.slug),
-          level: this.manager.proofLevelLabel(project.facts.proofLevel),
-          label: `${number} — ${project.title} · ${project.facts.proof}`,
-          isSelected: project.slug === selected,
-          isVisited: visited.has(project.slug),
-          link,
-        },
-      ];
-    });
+    return this.manager
+      .ranked()
+      .filter((project) => family === 'all' || project.family === family)
+      .map((project) => ({
+        ...project,
+        level: this.manager.proofLevelLabel(project.facts.proofLevel),
+        label: rowLabel(project),
+        isSelected: project.slug === selected,
+        isVisited: visited.has(project.slug),
+        link: this.manager.sheetOf(project.slug)?.links[0] ?? null,
+      }));
   });
-
-  protected chooseFamily(item: SegmentedItem): void {
-    const choice = FAMILIES.find((each) => each.label === item.label);
-    if (choice) {
-      this.familyChange.emit(choice.value);
-    }
-  }
 
   /** A second click on the open row closes it. */
   protected toggle(slug: string): void {

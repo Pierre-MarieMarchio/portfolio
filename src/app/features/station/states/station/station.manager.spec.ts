@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { StationEffect } from './station.effect';
 import { StationManager } from './station.manager';
+import { provideTexts } from '@testing/texts';
 
 describe('StationManager', () => {
   let navigated: string[];
@@ -13,6 +14,7 @@ describe('StationManager', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTexts(),
         provideStatewise({ effects: [StationEffect] }),
         {
           provide: Router,
@@ -40,26 +42,25 @@ describe('StationManager', () => {
     expect('set' in manager.chapter).toBe(false);
     expect('set' in manager.part).toBe(false);
     expect('set' in manager.hovered).toBe(false);
-    expect('set' in manager.englishAsked).toBe(false);
     expect('set' in manager.paused).toBe(false);
   });
 
   describe('showsIndex', () => {
     it('is true when the index is the current view', () => {
-      manager.navigated('index');
+      manager.syncRoute('index');
 
       expect(manager.showsIndex()).toBe(true);
     });
 
     it('is true when the index is pinned over another view', () => {
-      manager.navigated('home');
+      manager.syncRoute('home');
       manager.togglePin('index');
 
       expect(manager.showsIndex()).toBe(true);
     });
 
     it('is false otherwise', () => {
-      manager.navigated('home');
+      manager.syncRoute('home');
 
       expect(manager.showsIndex()).toBe(false);
     });
@@ -67,20 +68,20 @@ describe('StationManager', () => {
 
   describe('showsAbout', () => {
     it('is true when about is the current view', () => {
-      manager.navigated('about');
+      manager.syncRoute('about');
 
       expect(manager.showsAbout()).toBe(true);
     });
 
     it('is true when about is pinned over another view', () => {
-      manager.navigated('home');
+      manager.syncRoute('home');
       manager.togglePin('about');
 
       expect(manager.showsAbout()).toBe(true);
     });
 
     it('is false otherwise', () => {
-      manager.navigated('home');
+      manager.syncRoute('home');
 
       expect(manager.showsAbout()).toBe(false);
     });
@@ -88,14 +89,14 @@ describe('StationManager', () => {
 
   describe('showsPreview', () => {
     it('is true on home once a preview is open', () => {
-      manager.navigated('home');
+      manager.syncRoute('home');
       manager.togglePreview('skyted');
 
       expect(manager.showsPreview()).toBe(true);
     });
 
     it('is true away from home when the preview is pinned', () => {
-      manager.navigated('index');
+      manager.syncRoute('index');
       manager.togglePreview('skyted');
       manager.togglePin('preview');
 
@@ -103,21 +104,21 @@ describe('StationManager', () => {
     });
 
     it('is false away from home when the preview is not pinned', () => {
-      manager.navigated('index');
+      manager.syncRoute('index');
       manager.togglePreview('skyted');
 
       expect(manager.showsPreview()).toBe(false);
     });
 
     it('is false when nothing is open, even on home', () => {
-      manager.navigated('home');
+      manager.syncRoute('home');
 
       expect(manager.showsPreview()).toBe(false);
     });
   });
 
   it('navigated dispatches the address change', () => {
-    manager.navigated('sheet', 'skyted');
+    manager.syncRoute('sheet', 'skyted');
 
     expect(manager.view()).toBe('sheet');
     expect(manager.slug()).toBe('skyted');
@@ -148,9 +149,9 @@ describe('StationManager', () => {
   });
 
   it('choosePart dispatches the part', () => {
-    manager.choosePart('02');
+    manager.choosePart(2);
 
-    expect(manager.part()).toBe('02');
+    expect(manager.part()).toBe(2);
   });
 
   it('hover dispatches the hovered project', () => {
@@ -159,16 +160,35 @@ describe('StationManager', () => {
     expect(manager.hovered()).toBe('skyted');
   });
 
-  it('askEnglish dispatches the flag', () => {
-    manager.askEnglish();
-
-    expect(manager.englishAsked()).toBe(true);
-  });
-
   it('togglePause dispatches the pause flip', () => {
     manager.togglePause();
 
     expect(manager.paused()).toBe(true);
+  });
+
+  /** The void button reads it; the effect reads the same rule. */
+  describe('canStepBack', () => {
+    it('is true on a sheet, an index with a row open, a home page with a preview', () => {
+      manager.syncRoute('sheet', 'skyted');
+      expect(manager.canStepBack()).toBe(true);
+
+      manager.syncRoute('index');
+      manager.select('skyted');
+      expect(manager.canStepBack()).toBe(true);
+
+      manager.syncRoute('home');
+      manager.openPreview('skyted');
+      expect(manager.canStepBack()).toBe(true);
+    });
+
+    it('is false where the void would close nothing', () => {
+      manager.syncRoute('home');
+      expect(manager.canStepBack()).toBe(false);
+      manager.syncRoute('index');
+      expect(manager.canStepBack()).toBe(false);
+      manager.syncRoute('about');
+      expect(manager.canStepBack()).toBe(false);
+    });
   });
 
   describe('togglePreview', () => {
@@ -195,17 +215,17 @@ describe('StationManager', () => {
     });
   });
 
-  describe('showPreview', () => {
+  describe('openPreview', () => {
     it('opens the given slug', () => {
-      manager.showPreview('skyted');
+      manager.openPreview('skyted');
 
       expect(manager.preview()).toBe('skyted');
     });
 
     it('never closes it, even called again with the slug already open', () => {
-      manager.showPreview('skyted');
+      manager.openPreview('skyted');
 
-      manager.showPreview('skyted');
+      manager.openPreview('skyted');
 
       expect(manager.preview()).toBe('skyted');
     });
@@ -213,7 +233,7 @@ describe('StationManager', () => {
 
   describe('close', () => {
     it('resolves once the effect has navigated home from the index', async () => {
-      manager.navigated('index');
+      manager.syncRoute('index');
 
       await manager.close('index');
 
@@ -223,7 +243,7 @@ describe('StationManager', () => {
 
   describe('escape', () => {
     it('resolves once the effect has navigated back to the list from a sheet', async () => {
-      manager.navigated('sheet', 'skyted');
+      manager.syncRoute('sheet', 'skyted');
 
       await manager.escape();
 
@@ -231,11 +251,11 @@ describe('StationManager', () => {
     });
   });
 
-  describe('clickVoid', () => {
+  describe('stepBack', () => {
     it('resolves once the effect has navigated back to the list from a sheet', async () => {
-      manager.navigated('sheet', 'skyted');
+      manager.syncRoute('sheet', 'skyted');
 
-      await manager.clickVoid();
+      await manager.stepBack();
 
       expect(navigated).toEqual(['/projets']);
     });

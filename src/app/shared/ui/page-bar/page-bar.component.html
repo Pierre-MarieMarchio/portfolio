@@ -1,23 +1,38 @@
 <div class="bar">
-  <div class="language" role="group" aria-label="Langue du site">
-    <span aria-current="true" class="here">FR</span>
-    <span aria-hidden="true" class="slash">/</span>
-    <button type="button" class="other" (click)="englishRequested.emit()">
-      EN
-    </button>
-    @if (englishAsked()) {
-      <span role="status" class="status">textes anglais à venir</span>
+  <div
+    class="language"
+    role="group"
+    [attr.aria-label]="texts().pageBar.languages"
+  >
+    @for (language of languages(); track language.lang; let first = $first) {
+      @if (!first) {
+        <span aria-hidden="true" class="slash">/</span>
+      }
+      @if (language.current) {
+        <span aria-current="true" class="here" [attr.lang]="language.lang">{{
+          language.code
+        }}</span>
+      } @else {
+        <a
+          class="other"
+          [routerLink]="language.route"
+          [attr.hreflang]="language.lang"
+          [attr.lang]="language.lang"
+          [attr.aria-label]="language.name"
+          >{{ language.code }}</a
+        >
+      }
     }
   </div>
   <span aria-hidden="true" class="rule"></span>
-  <nav aria-label="Navigation principale">
+  <nav [attr.aria-label]="texts().pageBar.navigation">
     <ul>
       @for (item of items(); track item.route) {
         <li>
           <a
             [routerLink]="item.route"
             [attr.aria-current]="item.route === current() ? 'page' : null"
-            [attr.data-actif]="item.route === current()"
+            [attr.data-active]="item.route === current()"
             >{{ item.label }}</a
           >
         </li>

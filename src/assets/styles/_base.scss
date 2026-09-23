@@ -3,6 +3,8 @@
  * component says anything.
  */
 
+@use 'mixins/motion';
+
 *,
 *::before,
 *::after {
@@ -65,7 +67,7 @@ button {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
 }
 
 * {
@@ -87,20 +89,8 @@ button {
   border-radius: 3px;
 }
 
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   html {
     scroll-behavior: auto;
   }
-}
-
-/* The heading a view's focus lands on when it has no visible one: hidden,
-   even focused, unlike the skip link, which shows itself when reached. */
-.landing {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  outline: none;
 }

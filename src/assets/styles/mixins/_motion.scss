@@ -1,0 +1,7 @@
+/* Where a reader who asked for less motion gets it: every component writes
+   its exceptions under this one query. */
+@mixin reduced {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}

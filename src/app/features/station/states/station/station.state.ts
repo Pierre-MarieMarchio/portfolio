@@ -33,11 +33,9 @@ export class StationState {
   public readonly family = signal('all');
   /** The approach of the sheet on show. */
   public readonly chapter = signal(0);
-  /** The part of "about" on show. */
-  public readonly part = signal('00');
+  /** The part of "about" on show, from 0. */
+  public readonly part = signal(0);
   /** The project under the pointer, for the object to light its planet. */
   public readonly hovered = signal<string | null>(null);
-  /** The English texts were asked for; they do not exist yet. */
-  public readonly englishAsked = signal(false);
   public readonly paused = signal(false);
 }

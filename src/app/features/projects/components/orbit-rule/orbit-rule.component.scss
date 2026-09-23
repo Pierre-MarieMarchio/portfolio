@@ -1,0 +1,210 @@
+@use 'mixins/arrival';
+@use 'mixins/controls';
+@use 'mixins/motion';
+@use 'mixins/type';
+
+:host {
+  @include arrival.on-its-own(1300ms, 400ms);
+
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: clamp(78px, 10vh, 94px);
+  z-index: var(--z-scene-top);
+  pointer-events: none;
+}
+
+/* Arrives with the home page's rest (see `Arrival`): on its own at the end
+   of the crossing without a script, held until the reader is there with one,
+   then rising from that moment. */
+:host([data-arrival='held']) {
+  @include arrival.held;
+}
+
+:host([data-arrival='shown']) {
+  @include arrival.shown(1300ms, 400ms);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 7px;
+}
+
+.square {
+  @include controls.marker(5px, var(--ink-2));
+
+  flex: 0 0 auto;
+}
+
+h2 {
+  @include type.title;
+
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+
+.track {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 62px;
+}
+
+.axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11px;
+  height: 1px;
+  background: var(--line);
+}
+
+li {
+  position: absolute;
+  top: 4px;
+}
+
+button {
+  pointer-events: auto;
+  position: relative;
+  left: -3.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  padding: 0 16px 10px 0;
+  cursor: pointer;
+  color: var(--ink-2);
+  transition: color var(--t);
+
+  &:hover,
+  &[data-lit='true'] {
+    color: var(--accent);
+  }
+}
+
+.dot {
+  @include controls.marker(5px);
+}
+
+.stem {
+  width: 1px;
+  height: 10px;
+  margin-left: 2px;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+.number {
+  @include type.mono(var(--m1));
+
+  color: var(--ink-2);
+}
+
+.short {
+  @include type.mono;
+
+  color: currentColor;
+}
+
+.all {
+  @include type.mono(var(--m2));
+
+  pointer-events: auto;
+  flex: 0 0 auto;
+  margin-top: var(--s3);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-compact);
+  white-space: nowrap;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+
+  &:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+.reading {
+  border-top: 1px solid var(--line);
+  padding-top: var(--s2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s4);
+  align-items: baseline;
+
+  p {
+    @include type.mono;
+
+    color: var(--ink-2);
+  }
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  min-width: 0;
+
+  span:last-child {
+    color: var(--ink);
+  }
+}
+
+.accent {
+  color: var(--accent);
+}
+
+/* Narrow, or too many markers for the width: titles of ~130px cannot sit
+   side by side without overlapping. The numbers stay; the planets carry the
+   names, and each marker keeps its full accessible name. The media query
+   holds without a script; the measure (`data-crowded`) holds for any count. */
+@media (width <= 620px) {
+  .short {
+    display: none;
+  }
+}
+
+:host([data-crowded='true']) .short {
+  display: none;
+}
+
+/* A low window keeps the markers and titles and gives back the rest: the
+   page bar already leads to the seven projects. */
+@media (height <= 640px) {
+  .reading {
+    display: none;
+  }
+}
+
+@include motion.reduced {
+  :host,
+  :host([data-arrival]) {
+    animation: none;
+  }
+
+  button {
+    transition: none;
+  }
+}

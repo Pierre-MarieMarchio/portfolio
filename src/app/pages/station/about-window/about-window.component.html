@@ -1,0 +1,95 @@
+<app-window
+  size="l"
+  [heading]="about().heading"
+  [label]="about().label"
+  [margin]="76"
+  [pinned]="pinned()"
+  (pinToggled)="pinToggled.emit()"
+  (closed)="closed.emit()"
+>
+  <app-segmented
+    toolbar
+    [label]="about().parts"
+    [items]="parts()"
+    (chosen)="partChange.emit($event)"
+  />
+  <div body>
+    <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
+    @switch (current().key) {
+      @case ('profile') {
+        <p class="lead">{{ about().profile.lead }}</p>
+        <dl class="facts">
+          @for (fact of about().profile.facts; track fact.term) {
+            <div>
+              <dt>{{ fact.term }}</dt>
+              <dd
+                [class.data]="fact.tone === 'data'"
+                [class.quiet]="fact.tone === 'quiet'"
+              >
+                {{ fact.value }}
+              </dd>
+            </div>
+          }
+        </dl>
+        @for (paragraph of about().profile.prose; track $index) {
+          <p class="prose" [class.first]="$first">{{ paragraph }}</p>
+        }
+      }
+      @case ('skills') {
+        <section>
+          <p class="caps">{{ about().skills.heading }}</p>
+          <dl class="domains">
+            @for (domain of domains(); track domain.number) {
+              <div>
+                <dt class="number">{{ domain.number }}</dt>
+                <dt class="label">{{ domain.label }}</dt>
+                <dd class="data quiet">{{ domain.value }}</dd>
+              </div>
+            }
+          </dl>
+          <p class="prose after">{{ about().skills.prose }}</p>
+        </section>
+      }
+      @case ('method') {
+        <section>
+          <p class="caps">{{ about().method.heading }}</p>
+          <ul class="method">
+            @for (step of about().method.steps; track $index) {
+              <li>
+                <span class="step">{{ '0' + ($index + 1) }}</span
+                ><span class="text">{{ step }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+      @case ('path') {
+        <section>
+          <div class="steps-head">
+            <p class="caps">{{ about().path.heading }}</p>
+            <span class="grow"></span>
+            <span class="caps missing">{{ about().path.missing }}</span>
+          </div>
+          <dl class="milestones">
+            @for (milestone of about().path.milestones; track milestone.fact) {
+              <div>
+                <dt>{{ milestone.year }}</dt>
+                <dd>{{ milestone.fact }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+      }
+    }
+  </div>
+  <ng-container footer>
+    <p class="position">{{ current().title }}</p>
+    @if (next(); as next) {
+      <button type="button" class="next" (click)="advance()">
+        {{ about().next(next.label) }}
+      </button>
+    } @else {
+      <a class="next" [routerLink]="links.index()">{{ about().back }}</a>
+    }
+  </ng-container>
+</app-window>

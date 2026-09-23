@@ -1,0 +1,80 @@
+@use 'mixins/arrival';
+@use 'mixins/controls';
+@use 'mixins/motion';
+
+:host {
+  @include arrival.on-its-own(1200ms, 800ms);
+
+  position: fixed;
+  right: var(--gutter);
+  bottom: clamp(16px, 2.6vh, 28px);
+  z-index: var(--z-chrome);
+}
+
+/* Arrives with the home page's rest (see `Arrival`): on its own at the end
+   of the crossing without a script, held until the reader is there with one,
+   then rising from that moment. */
+:host([data-arrival='held']) {
+  @include arrival.held;
+}
+
+:host([data-arrival='shown']) {
+  @include arrival.shown(1200ms, 800ms);
+}
+
+.rail {
+  @include controls.glass;
+
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 3px;
+}
+
+ul {
+  display: flex;
+  gap: 2px;
+}
+
+/* 44px: the touch target, never below. */
+a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target);
+  height: var(--target);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--ink-2);
+  text-decoration: none;
+  transition:
+    color var(--t),
+    border-color var(--t);
+
+  &:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* Material Design Icons, on their 24 grid, drawn in the link's colour. */
+svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.rule {
+  @include controls.divider;
+}
+
+button {
+  @include controls.icon-button(38px, var(--target-compact));
+}
+
+@include motion.reduced {
+  :host,
+  :host([data-arrival]) {
+    animation: none;
+  }
+}

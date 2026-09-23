@@ -4,16 +4,17 @@ import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
 import {
   stationEscaped,
-  stationNavigated,
+  stationRouteSynced,
   stationPinToggled,
   stationPreviewOpened,
   stationSelected,
-  stationVoidClicked,
+  stationSteppedBack,
   stationWindowClosed,
 } from './station.action';
 import { StationEffect } from './station.effect';
 import { StationState } from './station.state';
 import { stationUpdater } from './station.updater';
+import { provideTexts } from '@testing/texts';
 
 describe('StationEffect', () => {
   let navigated: string[];
@@ -25,6 +26,7 @@ describe('StationEffect', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideTexts(),
         provideStatewiseTesting({ effects: [StationEffect] }),
         {
           provide: Router,
@@ -48,7 +50,7 @@ describe('StationEffect', () => {
 
   describe('stationWindowClosed', () => {
     it('sends the reader home when the index closes while shown', async () => {
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
 
       await statewise.dispatchAsync(stationWindowClosed('index'));
 
@@ -56,7 +58,7 @@ describe('StationEffect', () => {
     });
 
     it('does not navigate when the index is only pinned elsewhere', async () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
       statewise.dispatch(stationPinToggled('index'));
 
       await statewise.dispatchAsync(stationWindowClosed('index'));
@@ -65,7 +67,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader home when about closes while shown', async () => {
-      statewise.dispatch(stationNavigated({ view: 'about', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'about', slug: null }));
 
       await statewise.dispatchAsync(stationWindowClosed('about'));
 
@@ -73,7 +75,7 @@ describe('StationEffect', () => {
     });
 
     it('does not navigate when about is only pinned elsewhere', async () => {
-      statewise.dispatch(stationNavigated({ view: 'home', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'home', slug: null }));
       statewise.dispatch(stationPinToggled('about'));
 
       await statewise.dispatchAsync(stationWindowClosed('about'));
@@ -82,7 +84,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader back to the list when a sheet closes', async () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
 
       await statewise.dispatchAsync(stationWindowClosed('sheet'));
 
@@ -90,7 +92,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader back to the list when a not-found sheet closes', async () => {
-      statewise.dispatch(stationNavigated({ view: 'not-found', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'not-found', slug: null }));
 
       await statewise.dispatchAsync(stationWindowClosed('sheet'));
 
@@ -98,7 +100,7 @@ describe('StationEffect', () => {
     });
 
     it('never navigates when the preview closes', async () => {
-      statewise.dispatch(stationNavigated({ view: 'home', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'home', slug: null }));
       statewise.dispatch(stationPreviewOpened('a'));
       statewise.dispatch(stationPinToggled('preview'));
 
@@ -110,7 +112,7 @@ describe('StationEffect', () => {
 
   describe('stationEscaped', () => {
     it('clears the selection without navigating when the index has one', async () => {
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
       statewise.dispatch(stationSelected('a'));
 
       await statewise.dispatchAsync(stationEscaped());
@@ -120,7 +122,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader back to the list from a sheet', async () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
 
       await statewise.dispatchAsync(stationEscaped());
 
@@ -128,7 +130,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader back to the list from a not-found sheet', async () => {
-      statewise.dispatch(stationNavigated({ view: 'not-found', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'not-found', slug: null }));
 
       await statewise.dispatchAsync(stationEscaped());
 
@@ -136,7 +138,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader home from the index without a selection', async () => {
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
 
       await statewise.dispatchAsync(stationEscaped());
 
@@ -144,7 +146,7 @@ describe('StationEffect', () => {
     });
 
     it('sends the reader home from about', async () => {
-      statewise.dispatch(stationNavigated({ view: 'about', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'about', slug: null }));
 
       await statewise.dispatchAsync(stationEscaped());
 
@@ -152,7 +154,7 @@ describe('StationEffect', () => {
     });
 
     it('closes an open preview on home without navigating', async () => {
-      statewise.dispatch(stationNavigated({ view: 'home', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'home', slug: null }));
       statewise.dispatch(stationPreviewOpened('a'));
 
       await statewise.dispatchAsync(stationEscaped());
@@ -162,7 +164,7 @@ describe('StationEffect', () => {
     });
 
     it('does nothing on home with nothing open', async () => {
-      statewise.dispatch(stationNavigated({ view: 'home', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'home', slug: null }));
 
       await statewise.dispatchAsync(stationEscaped());
 
@@ -171,39 +173,39 @@ describe('StationEffect', () => {
     });
   });
 
-  describe('stationVoidClicked', () => {
+  describe('stationSteppedBack', () => {
     it('sends the reader back to the list from a sheet', async () => {
-      statewise.dispatch(stationNavigated({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(stationRouteSynced({ view: 'sheet', slug: 'a' }));
 
-      await statewise.dispatchAsync(stationVoidClicked());
+      await statewise.dispatchAsync(stationSteppedBack());
 
       expect(navigated).toEqual(['/projets']);
     });
 
     it('clears the selection without navigating when the index has one', async () => {
-      statewise.dispatch(stationNavigated({ view: 'index', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
       statewise.dispatch(stationSelected('a'));
 
-      await statewise.dispatchAsync(stationVoidClicked());
+      await statewise.dispatchAsync(stationSteppedBack());
 
       expect(state.selection()).toBeNull();
       expect(navigated).toEqual([]);
     });
 
     it('closes an open preview on home without navigating', async () => {
-      statewise.dispatch(stationNavigated({ view: 'home', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'home', slug: null }));
       statewise.dispatch(stationPreviewOpened('a'));
 
-      await statewise.dispatchAsync(stationVoidClicked());
+      await statewise.dispatchAsync(stationSteppedBack());
 
       expect(state.preview()).toBeNull();
       expect(navigated).toEqual([]);
     });
 
     it('does nothing on a view with nothing to step back from', async () => {
-      statewise.dispatch(stationNavigated({ view: 'about', slug: null }));
+      statewise.dispatch(stationRouteSynced({ view: 'about', slug: null }));
 
-      await statewise.dispatchAsync(stationVoidClicked());
+      await statewise.dispatchAsync(stationSteppedBack());
 
       expect(navigated).toEqual([]);
     });

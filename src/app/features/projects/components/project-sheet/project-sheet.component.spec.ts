@@ -1,32 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import {
-  fakeProjectsManager,
-  sampleFacts,
-  sampleProject,
+  loadProjects,
+  provideProjects,
+  sampleEntry,
   sampleSheet,
 } from '@testing/fake-managers';
-import { ProjectsManager } from '@app/features/projects/states';
 import { ProjectSheetComponent } from './project-sheet.component';
 
 describe('ProjectSheetComponent', () => {
-  const projects = [
-    sampleProject({ slug: 'proj-a', title: 'Project A', short: 'A' }),
-    sampleProject({ slug: 'proj-b', title: 'Project B', short: 'B' }),
-    sampleProject({ slug: 'proj-c', title: 'Project C', short: 'C' }),
-  ];
-
-  const facts = {
-    'proj-b': sampleFacts({
-      proof: 'Proof B',
-      role: 'Role B',
-      stack: 'Stack B',
-      context: 'Context B',
-    }),
-  };
-
   const sheet = sampleSheet({
-    title: 'Project B — the sheet',
     lede: 'A short standfirst.',
     links: [{ label: 'Dépôt', href: 'https://example.test/repo' }],
     chapters: [
@@ -35,39 +18,56 @@ describe('ProjectSheetComponent', () => {
         title: 'Comment',
         paragraphs: ['Middle paragraph.'],
         bullets: [{ term: 'Terme', text: 'Explication' }],
-        figure: 'flow',
+        figure: {
+          kind: 'flow',
+          steps: ['action', 'updator', 'effect'],
+          loop: 'nouvelles actions',
+          caption: 'Séquence documentée dans le dépôt. Schéma de lecture.',
+        },
       },
       {
         title: 'Et ensuite',
         paragraphs: ['Last paragraph.'],
-        figure: 'layers',
+        figure: {
+          kind: 'layers',
+          layers: [
+            { name: 'UI', projects: 'proj-a, proj-b' },
+            { name: 'Core', projects: 'proj-b, proj-c' },
+          ],
+          caption: 'Arborescence réelle du dépôt.',
+        },
       },
     ],
   });
 
-  /** A manager with three ranked projects, and a sheet for the middle one. */
-  const createManager = () => {
-    const manager = fakeProjectsManager(projects);
-    manager.facts.set(facts);
-    manager.sheets.set({ 'proj-b': sheet });
-    manager.layers.set([
-      { name: 'UI', projects: 'proj-a, proj-b' },
-      { name: 'Core', projects: 'proj-b, proj-c' },
-    ]);
-    return manager;
-  };
+  /** Three ranked projects, each with its facts and the same sheet. */
+  const ENTRIES = ['a', 'b', 'c'].map((letter) =>
+    sampleEntry({
+      project: {
+        slug: `proj-${letter}`,
+        title: `Project ${letter.toUpperCase()}`,
+        short: letter.toUpperCase(),
+      },
+      facts: {
+        proof: `Proof ${letter.toUpperCase()}`,
+        role: `Role ${letter.toUpperCase()}`,
+        stack: `Stack ${letter.toUpperCase()}`,
+        context: `Context ${letter.toUpperCase()}`,
+      },
+      sheet,
+    }),
+  );
 
-  const mount = async (
-    inputs: { slug: string; pinned?: boolean; chapter?: number },
-    manager = createManager(),
-  ) => {
+  const mount = async (inputs: {
+    slug: string;
+    pinned?: boolean;
+    chapter?: number;
+  }) => {
     TestBed.configureTestingModule({
       imports: [ProjectSheetComponent],
-      providers: [
-        provideRouter([]),
-        { provide: ProjectsManager, useValue: manager },
-      ],
+      providers: [provideRouter([]), provideProjects(ENTRIES)],
     });
+    const manager = await loadProjects();
 
     const fixture = TestBed.createComponent(ProjectSheetComponent);
     fixture.componentRef.setInput('slug', inputs.slug);
@@ -78,31 +78,21 @@ describe('ProjectSheetComponent', () => {
     return { fixture, manager, host: fixture.nativeElement as HTMLElement };
   };
 
-  it('renders nothing when the manager has no sheet for the slug', async () => {
-    const { host } = await mount({ slug: 'proj-a' });
+  it('renders nothing for a slug that names no project', async () => {
+    const { host } = await mount({ slug: 'ghost' });
     expect(host.querySelector('.window')).toBeNull();
   });
 
-  it('opens a window titled after the sheet, with its rank over the total', async () => {
+  it('opens a window titled after the project, with its rank over the total', async () => {
     const { host } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
     expect(window?.getAttribute('aria-label')).toBe(
       'Fenêtre : fiche de projet',
     );
-    expect(window?.querySelector('h2')?.textContent?.trim()).toBe(
-      'Project B — the sheet',
-    );
+    expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     // proj-b is the second of three in the manager's order.
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
-  });
-
-  it('leaves the meta empty when the slug is not one of the manager projects', async () => {
-    const manager = createManager();
-    manager.sheets.set({ ghost: sheet });
-    const { host } = await mount({ slug: 'ghost' }, manager);
-
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
 
   it('lists one toolbar button per chapter, labelled and pressed on the current one', async () => {
@@ -194,13 +184,17 @@ describe('ProjectSheetComponent', () => {
     expect(bullet?.textContent).toContain('Explication');
   });
 
-  it('draws the flow figure with its three boxes and a figcaption', async () => {
+  it('draws the flow figure from its steps, loop and caption', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 1 });
     const boxes = Array.from(host.querySelectorAll('.box')).map((box) =>
       box.textContent?.trim(),
     );
 
     expect(boxes).toEqual(['action', 'updator', 'effect']);
+    expect(host.querySelectorAll('.flow .arrow')).toHaveLength(3);
+    expect(host.querySelector('.flow .data')?.textContent?.trim()).toBe(
+      'nouvelles actions',
+    );
     expect(
       host
         .querySelector('figcaption')
@@ -209,7 +203,7 @@ describe('ProjectSheetComponent', () => {
     ).toBe(true);
   });
 
-  it('draws one layer row per manager layer, on the layers figure', async () => {
+  it('draws one layer row per layer of the figure, with its caption', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 2 });
     const layers = Array.from(host.querySelectorAll('.layer'));
 
@@ -220,6 +214,9 @@ describe('ProjectSheetComponent', () => {
     expect(
       layers[0]?.querySelector('.layer-projects')?.textContent?.trim(),
     ).toBe('proj-a, proj-b');
+    expect(host.querySelector('figcaption')?.textContent?.trim()).toBe(
+      'Arborescence réelle du dépôt.',
+    );
   });
 
   it('lists the sheet links as outbound links', async () => {
@@ -259,9 +256,7 @@ describe('ProjectSheetComponent', () => {
   });
 
   it('wraps to the first project when the last one is the current sheet', async () => {
-    const manager = createManager();
-    manager.sheets.set({ 'proj-c': sheet });
-    const { host } = await mount({ slug: 'proj-c', chapter: 2 }, manager);
+    const { host } = await mount({ slug: 'proj-c', chapter: 2 });
 
     const next = host.querySelector<HTMLAnchorElement>('a.next');
     expect(next?.textContent?.trim()).toBe('Suivant : A →');

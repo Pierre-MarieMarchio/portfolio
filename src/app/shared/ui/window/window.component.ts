@@ -11,7 +11,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { BrowserEnvironment, ScrollMemory } from '@app/core/services';
+import { BrowserEnvironment } from '@app/core/services';
+import { SHARED_TEXTS } from '@shared/ui/texts';
+import { ScrollMemory } from './scroll-memory.service';
 import { WindowAnchor, WindowSize } from './window.model';
 
 /** Ceilings in pixels; the real one is the smaller of this and the room left. */
@@ -63,8 +65,14 @@ interface Grip {
 export class WindowComponent {
   private readonly browser = inject(BrowserEnvironment);
   private readonly memory = inject(ScrollMemory);
+  protected readonly texts = inject(SHARED_TEXTS);
 
-  public readonly title = input.required<string>();
+  /**
+   * The name in the title bar. Not `title`: that is an HTML attribute, and a
+   * static `title="…"` on the host landed in the DOM as a tooltip over the
+   * whole window.
+   */
+  public readonly heading = input.required<string>();
   public readonly meta = input('');
   public readonly size = input<WindowSize>('m');
   /**
@@ -76,7 +84,7 @@ export class WindowComponent {
   public readonly anchor = input<WindowAnchor>('top');
   public readonly pinned = input(false);
   public readonly closable = input(true);
-  /** The section's accessible name; the title when left empty. */
+  /** The section's accessible name; the heading when left empty. */
   public readonly label = input('');
   /**
    * The name its reading position is remembered under, for the visit: the
@@ -89,14 +97,12 @@ export class WindowComponent {
   public readonly closed = output();
 
   protected readonly collapsed = signal(false);
-  protected readonly name = computed(() => this.label() || this.title());
+  protected readonly name = computed(() => this.label() || this.heading());
   protected readonly pinLabel = computed(() =>
-    this.pinned()
-      ? 'Détacher : la fenêtre se refermera en changeant de page'
-      : 'Épingler : garder la fenêtre ouverte en changeant de page',
+    this.pinned() ? this.texts().window.unpin : this.texts().window.pin,
   );
   protected readonly collapseLabel = computed(() =>
-    this.collapsed() ? 'Déplier la fenêtre' : 'Replier la fenêtre',
+    this.collapsed() ? this.texts().window.unfold : this.texts().window.fold,
   );
 
   private readonly root = viewChild.required<ElementRef<HTMLElement>>('root');

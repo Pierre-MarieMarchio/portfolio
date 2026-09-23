@@ -1,11 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { SegmentedComponent } from './segmented.component';
 import { SegmentedItem } from './segmented.model';
+import { provideTexts } from '@testing/texts';
 
 const ITEMS: readonly SegmentedItem[] = [
-  { label: 'Tout', active: true },
-  { label: 'Projets', count: '07', active: false },
-  { label: 'Notes', count: '02', active: false, aria: 'Notes de veille' },
+  { value: 'all', label: 'Tout', active: true },
+  { value: 'projects', label: 'Projets', count: '07', active: false },
+  {
+    value: 'notes',
+    label: 'Notes',
+    count: '02',
+    active: false,
+    aria: 'Notes de veille',
+  },
 ];
 
 /** Indexed access with `noUncheckedIndexedAccess`: fail loudly, not with `undefined`. */
@@ -19,9 +26,12 @@ const at = <T>(items: readonly T[], index: number): T => {
 
 describe('SegmentedComponent', () => {
   const mount = async (items: readonly SegmentedItem[] = ITEMS) => {
-    TestBed.configureTestingModule({ imports: [SegmentedComponent] });
+    TestBed.configureTestingModule({
+      imports: [SegmentedComponent],
+      providers: [provideTexts()],
+    });
 
-    const fixture = TestBed.createComponent(SegmentedComponent);
+    const fixture = TestBed.createComponent(SegmentedComponent<string>);
     fixture.componentRef.setInput('items', items);
     await fixture.whenStable();
 
@@ -110,40 +120,44 @@ describe('SegmentedComponent', () => {
     expect(at(buttons, 1).contains(countSpan)).toBe(true);
   });
 
-  it('emits the clicked item, exactly once, on click', async () => {
+  it('emits the value of the clicked item, exactly once, on click', async () => {
     const { host, fixture } = await mount();
     const buttons = buttonsOf(host);
 
-    const received: SegmentedItem[] = [];
-    fixture.componentInstance.selected.subscribe((item: SegmentedItem) => {
-      received.push(item);
+    const received: string[] = [];
+    fixture.componentInstance.chosen.subscribe((value: string) => {
+      received.push(value);
     });
 
     at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await fixture.whenStable();
 
-    expect(received).toEqual([at(ITEMS, 1)]);
+    expect(received).toEqual(['projects']);
 
     at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await fixture.whenStable();
 
-    expect(received).toEqual([at(ITEMS, 1), at(ITEMS, 1)]);
+    expect(received).toEqual(['projects', 'projects']);
   });
 
-  it('emits the exact item object clicked, not a copy, for every item', async () => {
-    const { host, fixture } = await mount();
-    const buttons = buttonsOf(host);
-
-    const received: SegmentedItem[] = [];
-    fixture.componentInstance.selected.subscribe((item: SegmentedItem) => {
-      received.push(item);
+  /** Two choices may share a label; their values tell them apart. */
+  it('keeps two items with the same label apart by their value', async () => {
+    const { host, fixture } = await mount([
+      { value: 'a', label: 'Même', active: false },
+      { value: 'b', label: 'Même', active: false },
+    ]);
+    const received: string[] = [];
+    fixture.componentInstance.chosen.subscribe((value: string) => {
+      received.push(value);
     });
 
+    const buttons = buttonsOf(host);
+    at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     at(buttons, 0).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    at(buttons, 2).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await fixture.whenStable();
 
-    expect(received).toEqual([at(ITEMS, 0), at(ITEMS, 2)]);
+    expect(buttons).toHaveLength(2);
+    expect(received).toEqual(['b', 'a']);
   });
 
   it('renders an empty group without error when items is empty', async () => {

@@ -20,6 +20,7 @@ import { AppErrorHandler } from './core/error-handling';
 import { PageTitleStrategy } from './core/services';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
 import { StationEffect } from './features/station/states';
+import { provideI18n } from './i18n';
 
 /**
  * The composition root: the only place the library is configured, ports are
@@ -35,8 +36,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
-    // Every reported failure becomes state rather than a console line nobody
-    // reads on a deployed page.
+    // The one channel every failure reaches, the library's included.
     { provide: ErrorHandler, useClass: AppErrorHandler },
     provideRouter(
       routes,
@@ -60,6 +60,10 @@ export const appConfig: ApplicationConfig = {
     provideStatewise({
       effects: [ProjectsEffect, StationEffect],
     }),
+
+    // Both languages (D3): the texts of each layer, the links, and the
+    // catalogue of the first address loaded before the first render.
+    provideI18n(),
 
     // Awaited, so the prerendered HTML already holds the projects: the content
     // above the fold must exist without JavaScript.

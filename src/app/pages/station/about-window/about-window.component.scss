@@ -1,0 +1,180 @@
+@use 'mixins/controls';
+@use 'mixins/facts';
+@use 'mixins/type';
+
+:host {
+  display: contents;
+}
+
+.lead {
+  font-size: var(--h2);
+  line-height: 1.16;
+  letter-spacing: -0.024em;
+  font-weight: 600;
+  max-width: 24ch;
+}
+
+dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  border-bottom: 1px solid var(--line);
+}
+
+.facts {
+  margin-top: var(--s4);
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+
+  > div {
+    padding: 9px 0;
+  }
+
+  dt {
+    @include facts.term(11ch);
+  }
+
+  dd {
+    @include facts.value;
+
+    font-size: var(--p2);
+  }
+}
+
+dt,
+.caps {
+  @include type.caps;
+
+  color: var(--ink-2);
+}
+
+.data {
+  @include type.mono;
+}
+
+/* Not a repeat of the rule above: a `dd.data` of the facts would otherwise
+   take `.facts dd`'s running size, which is more specific than `.data`. */
+.facts .data {
+  font-size: var(--m3);
+}
+
+.quiet {
+  color: var(--ink-2);
+}
+
+.prose {
+  margin-top: var(--s2);
+  font-size: var(--p2);
+  color: var(--ink-2);
+
+  &.first {
+    margin-top: var(--s4);
+  }
+
+  &.after {
+    margin-top: var(--s3);
+  }
+}
+
+.domains,
+.milestones {
+  margin-top: var(--s2);
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+
+  > div {
+    padding: 11px 0;
+  }
+}
+
+.domains {
+  .number {
+    @include facts.term(3ch);
+
+    letter-spacing: normal;
+  }
+
+  .label {
+    @include facts.term(9ch);
+
+    font-family: var(--font);
+    font-size: var(--p2);
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--ink);
+  }
+
+  dd {
+    @include facts.value;
+  }
+}
+
+.method {
+  margin-top: var(--s2);
+  display: flex;
+  flex-direction: column;
+
+  li {
+    border-bottom: 1px solid var(--line);
+    padding: var(--s2) 0;
+  }
+}
+
+.step {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  color: var(--accent);
+}
+
+.text {
+  display: block;
+  margin-top: 5px;
+  font-size: var(--p2);
+}
+
+.steps-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.grow {
+  flex: 1;
+}
+
+/* A state, so the signal ink: the years are missing and say so. */
+.missing {
+  color: var(--sig);
+}
+
+.milestones {
+  dt {
+    @include facts.term(9ch);
+
+    font-size: var(--m2);
+    letter-spacing: var(--ls-mono);
+    text-transform: none;
+  }
+
+  dd {
+    @include facts.value;
+
+    font-size: var(--p2);
+  }
+}
+
+.position {
+  @include type.caps;
+
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--ink-2);
+}
+
+.next {
+  @include controls.next-link($button: true);
+
+  flex: 0 0 auto;
+}

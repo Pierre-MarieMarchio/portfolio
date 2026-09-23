@@ -7,15 +7,18 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { twoDigits } from '@app/core/utils/format.utils';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectsManager } from '../../states';
+import { LINKS } from '@app/features/common';
+import { PROJECTS_TEXTS } from '../../i18n';
+import { positionOf } from '../project-labels';
 
 /**
  * The home preview: a small window anchored bottom right, over the object,
  * with what a recruiter asks first (proof, role, stack) and the way to the
- * sheet. Its selector changes the body in place among the featured four.
+ * sheet. Its selector changes the body in place among the featured ones,
+ * and it shows no other: a body outside them would read "05 / 04".
  */
 @Component({
   selector: 'app-project-preview',
@@ -26,6 +29,8 @@ import { ProjectsManager } from '../../states';
 })
 export class ProjectPreviewComponent {
   private readonly manager = inject(ProjectsManager);
+  protected readonly texts = inject(PROJECTS_TEXTS);
+  protected readonly links = inject(LINKS);
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
@@ -35,34 +40,26 @@ export class ProjectPreviewComponent {
   /** Another featured body chosen in the selector. */
   public readonly chosen = output<string>();
 
-  protected readonly project = computed(() =>
-    this.manager.withFacts().find((row) => row.slug === this.slug()),
-  );
+  /** Only a featured project has a place among the preview's bodies. */
+  protected readonly project = computed(() => {
+    const project = this.manager.find(this.slug());
+    return project?.featured ? project : null;
+  });
 
   /** The badge names what the window shows, not the last body hovered. */
   protected readonly meta = computed(() => {
-    const index = this.manager
-      .featured()
-      .findIndex((project) => project.slug === this.slug());
-    return `${twoDigits(index + 1)} / ${twoDigits(this.manager.featured().length)}`;
+    const project = this.project();
+    return project
+      ? positionOf(project.rank + 1, this.manager.featured().length)
+      : '';
   });
 
-  protected readonly bodies = computed<readonly SegmentedItem[]>(() =>
-    this.manager.featured().map((project, index) => {
-      const number = twoDigits(index + 1);
-      return {
-        label: number,
-        active: project.slug === this.slug(),
-        aria: `Aperçu ${number} — ${project.title}`,
-      };
-    }),
+  protected readonly choices = computed<readonly SegmentedItem[]>(() =>
+    this.manager.featured().map((project) => ({
+      value: project.slug,
+      label: project.number,
+      active: project.slug === this.slug(),
+      aria: this.texts().preview.body(project.number, project.title),
+    })),
   );
-
-  protected choose(item: SegmentedItem): void {
-    const index = this.bodies().indexOf(item);
-    const project = this.manager.featured()[index];
-    if (project) {
-      this.chosen.emit(project.slug);
-    }
-  }
 }

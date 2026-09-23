@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  input,
-  untracked,
-} from '@angular/core';
+import { Component, effect, inject, input, untracked } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DesktopView } from '@app/features/desktop/models';
 import { DesktopManager } from '@app/features/desktop/states';
@@ -17,7 +10,6 @@ export interface DesktopRouteData {
 @Component({
   selector: 'app-desktop-route',
   template: '',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesktopRouteComponent {
   public readonly slug = input<string | null>(null);

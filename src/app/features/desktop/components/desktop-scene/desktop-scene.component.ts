@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -26,7 +25,6 @@ import { PlanetButtonsComponent } from '../planet-buttons/planet-buttons.compone
   ],
   templateUrl: './desktop-scene.component.html',
   styleUrl: './desktop-scene.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesktopSceneComponent {
   protected readonly texts = inject(DESKTOP_TEXTS);

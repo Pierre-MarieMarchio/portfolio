@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 
-@Injectable()
+@Service({ autoProvided: false })
 export class SceneTargetsService {
   private readonly targets = new Set<HTMLElement>();
 

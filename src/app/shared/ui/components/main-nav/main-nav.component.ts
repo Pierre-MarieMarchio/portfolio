@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-} from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SHARED_TEXTS } from '../../ports';
 import { Entrance } from '../../models/entrance.model';
@@ -14,7 +9,6 @@ import { NavigationItem } from '../../models/navigation-item.model';
   imports: [RouterLink],
   templateUrl: './main-nav.component.html',
   styleUrl: './main-nav.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[attr.data-arrival]': 'arrival()' },
 })
 export class MainNavComponent {

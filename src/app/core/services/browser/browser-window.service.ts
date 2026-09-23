@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
-import { DOCUMENT, inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { DOCUMENT, inject, PLATFORM_ID, Service } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class BrowserWindowService {
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));

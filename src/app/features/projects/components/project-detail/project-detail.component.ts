@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { SegmentedComponent } from '@shared/ui/components';
@@ -32,7 +25,6 @@ import {
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectDetailComponent {
   private readonly manager = inject(ProjectsManager);

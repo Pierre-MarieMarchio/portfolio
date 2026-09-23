@@ -1,9 +1,9 @@
 import { Location } from '@angular/common';
-import { computed, DOCUMENT, effect, inject, Injectable } from '@angular/core';
+import { computed, DOCUMENT, effect, inject, Service } from '@angular/core';
 import { Router } from '@angular/router';
 import { langOfUrl } from '../../models/lang.model';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class LocaleService {
   private readonly router = inject(Router);
   private readonly loadedPath = inject(Location).path() || '/';

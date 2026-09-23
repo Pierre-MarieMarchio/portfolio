@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { WindowAnchor } from '../models/window.model';
 import { FitHeightDirective } from './fit-height.directive';
@@ -37,7 +37,6 @@ const stubLayout = (
       <section [appFitHeight]="ceiling()" [anchor]="anchor()"></section>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class Host {
   public readonly ceiling = signal<number | null>(470);

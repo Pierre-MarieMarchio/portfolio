@@ -1,6 +1,6 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, Service, signal } from '@angular/core';
 
-@Injectable()
+@Service({ autoProvided: false })
 export class WindowStackService {
   private readonly registered = signal<readonly string[]>([]);
   private readonly raised = signal<readonly string[]>([]);

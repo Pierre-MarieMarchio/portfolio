@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Service } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { PROJECTS } from '../data';
 import { ProjectCatalog, ProjectEntry } from '../models';
@@ -19,7 +19,7 @@ function bySlug<T>(part: (entry: ProjectEntry) => T): Record<string, T> {
  * One read answers the whole catalog: projects, facts and details share one
  * loading cycle, so a detail is never there while its project is not.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ProjectsRepositoryService {
   public getCatalog(): Observable<ProjectCatalog> {
     return of({

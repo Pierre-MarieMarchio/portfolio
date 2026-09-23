@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WindowComponent } from './window.component';
 import { WindowSize } from '../../models/window.model';
@@ -65,7 +65,6 @@ const pointerEvent = (
       <div footer>FOOTER-MARK</div>
     </app-window>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class HostWindowZones {}
 

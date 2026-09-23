@@ -352,6 +352,12 @@ export class ObjectComponent {
     const elements =
       this.browser.document.querySelectorAll<HTMLElement>('[data-panel]');
     for (const element of Array.from(elements)) {
+      // A panel held out of sight (the home page's rest, during the
+      // crossing) is not there yet: the mockup mounts it later. Measured,
+      // the run was framed for a rule that did not show.
+      if (this.browser.computedStyle(element, 'visibility') === 'hidden') {
+        continue;
+      }
       const rect = element.getBoundingClientRect();
       const opacity = Number.parseFloat(
         this.browser.computedStyle(element, 'opacity'),

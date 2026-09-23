@@ -1,4 +1,5 @@
 import { clamp, nearestTurn } from './math';
+import { ORBIT_RATE } from './constants';
 
 /**
  * One framing, six numbers: where the centre of the object sits in the frame
@@ -200,7 +201,7 @@ export const sheetFrame = (args: {
   // sin > 0: the body passes IN FRONT of the disk, never in its shadow.
   const angle = Math.acos(cosA);
   frame.az = nearestTurn(
-    angle - (orbit.ang + args.phase * orbit.v * 0.42),
+    angle - (orbit.ang + args.phase * orbit.v * ORBIT_RATE),
     args.azim,
   );
   return frame;
@@ -233,7 +234,7 @@ export const previewFrame = (args: {
     return frame;
   }
   const az = nearestTurn(
-    aim.angle - (orbit.ang + args.phase * orbit.v * 0.42),
+    aim.angle - (orbit.ang + args.phase * orbit.v * ORBIT_RATE),
     args.azim,
   );
   frame.az = az;

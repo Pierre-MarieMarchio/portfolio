@@ -16,8 +16,8 @@ import {
 } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { routes } from './app.routes';
-import { AppErrorHandler } from './core/error-handling';
-import { PageTitleStrategy } from './core/services';
+import { ConsoleErrorHandlerService } from '@app/core/services';
+import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
 import { DesktopEffect } from './features/desktop/states';
 import { provideI18n } from './i18n';
@@ -37,7 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
     // The one channel every failure reaches, the library's included.
-    { provide: ErrorHandler, useClass: AppErrorHandler },
+    { provide: ErrorHandler, useClass: ConsoleErrorHandlerService },
     provideRouter(
       routes,
       // Route parameters arrive as component inputs: a page declares
@@ -51,7 +51,7 @@ export const appConfig: ApplicationConfig = {
       // animating it in would undo the point of prerendering it.
       withViewTransitions({ skipInitialTransition: true }),
     ),
-    { provide: TitleStrategy, useClass: PageTitleStrategy },
+    { provide: TitleStrategy, useClass: RouteHeadStrategy },
     // The pages are prerendered; hydration adopts that markup instead of
     // throwing it away and rendering the same thing again. Event replay is on
     // by default: a click made before the JavaScript arrives is replayed once

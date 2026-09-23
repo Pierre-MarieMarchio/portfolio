@@ -1,12 +1,12 @@
 import { EnvironmentProviders, Provider, signal } from '@angular/core';
-import { Lang } from '@app/core/i18n';
+import { Lang } from '@app/core/models';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '@app/features/projects/i18n';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { Catalog, PAGES_TEXTS, pathOf } from '@app/i18n';
 import { EN } from '@app/i18n/en';
 import { FR } from '@app/i18n/fr';
-import { SHARED_TEXTS } from '@shared/ui/texts';
+import { SHARED_TEXTS } from '@shared/ui/ports';
 
 const CATALOGS: Readonly<Record<Lang, Catalog>> = { fr: FR, en: EN };
 

@@ -1,4 +1,4 @@
-import { clamp, TAU } from '../../rules/scene/scene-math.rules';
+import { clamp, TAU } from '@app/core/helpers';
 import { CURSOR_REACH } from '../../models/scene-constants.model';
 import { travelingElevation } from '../../rules/scene/camera/projection.rules';
 import type { SkyCamera, SkyPan } from '../renderers/sky/star-sky.renderer';

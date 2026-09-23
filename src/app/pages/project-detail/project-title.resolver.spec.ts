@@ -7,7 +7,8 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fake-managers';
-import { PageTitleStrategy, SITE_NAME } from '@app/core/services';
+import { RouteHeadStrategy } from '@app/core/strategies';
+import { SITE_NAME } from '@app/core/services';
 import { projectTitle } from './project-title.resolver';
 
 @Component({ template: '' })
@@ -25,7 +26,7 @@ describe('projectTitle', () => {
         provideRouter([
           { path: 'projet/:slug', component: Blank, title: projectTitle },
         ]),
-        { provide: TitleStrategy, useClass: PageTitleStrategy },
+        { provide: TitleStrategy, useClass: RouteHeadStrategy },
         provideProjects([
           sampleEntry({
             project: { slug: 'ngx-statewise', title: 'ngx-statewise' },

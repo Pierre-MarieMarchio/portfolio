@@ -14,7 +14,7 @@
     (chosen)="partChange.emit($event)"
   />
   <div body>
-    <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
+    <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
     @switch (current().key) {
       @case ('profile') {
         <p class="lead">{{ about().profile.lead }}</p>

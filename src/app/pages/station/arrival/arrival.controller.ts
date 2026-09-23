@@ -1,6 +1,6 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
-import { Arrival } from '@shared/ui/arrival';
+import { BrowserEnvironmentService } from '@app/core/services';
+import { Entrance } from '@shared/ui/models';
 
 /**
  * When the home page's rest arrives (see `Arrival`). Landing on the home
@@ -13,8 +13,8 @@ import { Arrival } from '@shared/ui/arrival';
  */
 @Injectable()
 export class ArrivalController {
-  private readonly browser = inject(BrowserEnvironment);
-  private readonly state = signal<Arrival>('timed');
+  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly state = signal<Entrance>('timed');
   private cancel: () => void = () => {};
   private onArrived: () => void = () => {};
 

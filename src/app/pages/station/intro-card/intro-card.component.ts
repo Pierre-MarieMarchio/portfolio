@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
+import { BrowserEnvironmentService } from '@app/core/services';
 import { PAGES_TEXTS } from '@app/i18n';
 
 /**
@@ -27,7 +27,7 @@ export class IntroCardComponent {
   protected readonly texts = inject(PAGES_TEXTS);
 
   constructor() {
-    const browser = inject(BrowserEnvironment);
+    const browser = inject(BrowserEnvironmentService);
     let stop: (() => void) | undefined;
     const leave = (): void => {
       this.gone.set(true);

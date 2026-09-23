@@ -15,7 +15,7 @@
     [items]="familyItems()"
     (chosen)="familyChange.emit($event)"
   />
-  <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
+  <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
   <div class="columns" aria-hidden="true">
     @for (column of texts().index.columns; track $index) {
       <span>{{ column }}</span>

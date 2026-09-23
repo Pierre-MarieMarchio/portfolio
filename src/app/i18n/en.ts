@@ -1,4 +1,4 @@
-import { draft } from '@app/core/i18n';
+import { draft } from '@app/core/rules';
 import { Catalog } from './catalog';
 
 /**

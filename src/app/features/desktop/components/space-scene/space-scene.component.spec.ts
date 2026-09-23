@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectRegistry } from '@shared/ui/object-marks';
+import { LayoutAnchorsService } from '@shared/ui/services';
 import { SpaceSceneComponent } from './space-scene.component';
 import { SceneBody, SceneView } from '../../models/scene.model';
 import { provideTexts } from '@testing/texts';
@@ -60,7 +60,7 @@ const mount = async (
     imports: [SpaceSceneComponent],
     providers: [provideTexts()],
   });
-  const registry = TestBed.inject(ObjectRegistry);
+  const registry = TestBed.inject(LayoutAnchorsService);
   const lines = Array.from({ length: options.lines ?? 0 }, () => {
     const line = document.createElement('button');
     document.body.append(line);

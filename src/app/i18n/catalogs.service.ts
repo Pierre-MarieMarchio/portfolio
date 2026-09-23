@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { Lang, Locale } from '@app/core/i18n';
+import { Lang } from '@app/core/models';
+import { LocaleService } from '@app/core/services';
 import { Catalog } from './catalog';
 
 /** Each language's catalogue, as a chunk of its own: only the one read loads. */
@@ -16,7 +17,7 @@ const LOADERS: Readonly<Record<Lang, () => Promise<Catalog>>> = {
  */
 @Injectable({ providedIn: 'root' })
 export class Catalogs {
-  private readonly locale = inject(Locale);
+  private readonly locale = inject(LocaleService);
   private readonly loaded = signal<Partial<Record<Lang, Catalog>>>({});
   private readonly pending = new Map<Lang, Promise<void>>();
 

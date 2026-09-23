@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { RenderMode, type ServerRoute } from '@angular/ssr';
 import { firstValueFrom } from 'rxjs';
-import { LANGS } from '@app/core/i18n';
+import { LANGS } from '@app/core/models';
 import { PATHS } from '@app/i18n';
 import { ProjectsRepository } from './features/projects/services';
 

@@ -15,9 +15,9 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
-import { twoDigits } from '@app/core/utils/format.utils';
-import { ObjectRegistry } from '@shared/ui/object-marks';
+import { BrowserEnvironmentService } from '@app/core/services';
+import { twoDigits } from '@app/core/helpers';
+import { LayoutAnchorsService } from '@shared/ui/services';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
 import { DESKTOP_TEXTS } from '../../ports';
 import { canvasResolution } from '../../rules/canvas-resolution.rules';
@@ -42,11 +42,11 @@ const DENSITY = 3800;
  * positions are written into the DOM by `transform`. An output only leaves
  * on a gesture.
  *
- * The text comes before the matter: every element declared `appObjectPanel`
+ * The text comes before the matter: every element declared `appPanelAnchor`
  * is a panel the object dims its matter behind and keeps its labels off.
  * Its role, when it has one, is read by the framing: `head` (the top bar:
  * it bounds the free band), `rule`, `sheet` and `preview` (their left edge
- * bounds the approach). Every element declared `appObjectLine` is a line of
+ * bounds the approach). Every element declared `appLineAnchor` is a line of
  * the home rule, in rank order: it rises with its planet, on the same
  * clock. Both sign in to `ObjectRegistry`. Panels are measured when something changed
  * (a render, a resize, the end of a gesture or an animation), never in the
@@ -60,8 +60,8 @@ const DENSITY = 3800;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpaceSceneComponent {
-  private readonly browser = inject(BrowserEnvironment);
-  private readonly registry = inject(ObjectRegistry);
+  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly registry = inject(LayoutAnchorsService);
   private readonly texts = inject(DESKTOP_TEXTS);
 
   /** The projects in rank order: the rank is the distance to the centre. */

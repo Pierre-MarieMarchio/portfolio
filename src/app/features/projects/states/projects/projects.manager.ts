@@ -1,7 +1,8 @@
 import { computed, inject, Injectable, InjectionToken } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
-import { Locale, resolve } from '@app/core/i18n';
-import { twoDigits } from '@app/core/utils/format.utils';
+import { LocaleService } from '@app/core/services';
+import { localize } from '@app/core/rules';
+import { twoDigits } from '@app/core/helpers';
 import { PROJECTS_TEXTS } from '../../i18n';
 import {
   Project,
@@ -39,7 +40,7 @@ export class ProjectsManager {
   private readonly state = inject(ProjectsState);
   private readonly statewise = injectStatewise(projectsUpdater);
   private readonly featuredCount = inject(FEATURED);
-  private readonly lang = inject(Locale).lang;
+  private readonly lang = inject(LocaleService).lang;
   private readonly texts = inject(PROJECTS_TEXTS);
 
   /**
@@ -47,7 +48,7 @@ export class ProjectsManager {
    * them in one is a derivation, so a language switch reloads nothing.
    */
   public readonly projects = computed(() =>
-    resolve(this.state.projects(), this.lang()),
+    localize(this.state.projects(), this.lang()),
   );
   public readonly isLoading = this.state.isLoading.asReadonly();
   public readonly isError = this.state.isError.asReadonly();
@@ -70,7 +71,7 @@ export class ProjectsManager {
         ? [
             {
               ...project,
-              facts: resolve(found, lang),
+              facts: localize(found, lang),
               rank,
               number: twoDigits(rank + 1),
               featured: rank < this.featuredCount,
@@ -143,7 +144,7 @@ export class ProjectsManager {
 
   /** Every sheet in the reader's language, read once per language. */
   private readonly sheets = computed(() =>
-    resolve(this.state.sheets(), this.lang()),
+    localize(this.state.sheets(), this.lang()),
   );
 
   public sheetOf(slug: string): ProjectSheet | null {

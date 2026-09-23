@@ -1,5 +1,5 @@
 import { ORBIT_RATE, SHADOW_EDGE } from '../../models/scene-constants.model';
-import { TAU } from '../../rules/scene/scene-math.rules';
+import { TAU } from '@app/core/helpers';
 import { Rolled, rollFlatten } from '../../rules/scene/camera/projection.rules';
 import {
   Orbit,

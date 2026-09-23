@@ -6,12 +6,12 @@ import {
   input,
   output,
 } from '@angular/core';
-import { twoDigits } from '@app/core/utils/format.utils';
+import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
 import { PAGES_TEXTS } from '@app/i18n';
 import { RouterLink } from '@angular/router';
-import { WindowComponent } from '@shared/ui/window';
-import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+import { WindowComponent } from '@shared/ui/components';
+import { ViewHeadingDirective } from '@shared/ui/directives';
 
 /**
  * An address that leads nowhere, in the smallest window: it says so and
@@ -19,7 +19,7 @@ import { LandingHeadingDirective } from '@shared/ui/landing-focus';
  */
 @Component({
   selector: 'app-not-found-window',
-  imports: [LandingHeadingDirective, RouterLink, WindowComponent],
+  imports: [ViewHeadingDirective, RouterLink, WindowComponent],
   templateUrl: './not-found-window.component.html',
   styleUrl: './not-found-window.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

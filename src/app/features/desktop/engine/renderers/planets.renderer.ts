@@ -1,10 +1,9 @@
+import { clamp, TAU } from '@app/core/helpers';
 import {
-  clamp,
   PLANET_GAP,
   repel,
   ScreenPoint,
-  TAU,
-} from '../../rules/scene/scene-math.rules';
+} from '../../rules/scene/planets/planet-spacing.rules';
 import { Rolled, rollFlatten } from '../../rules/scene/camera/projection.rules';
 import { positionOrbit, Projected } from '../../rules/scene/scene-bodies.rules';
 import { TurntableMotion } from '../motions/turntable.motion';

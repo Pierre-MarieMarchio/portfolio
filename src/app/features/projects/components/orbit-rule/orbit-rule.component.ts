@@ -11,14 +11,14 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
+import { BrowserEnvironmentService } from '@app/core/services';
 import { RouterLink } from '@angular/router';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../i18n';
 import { RankedProject } from '../../models';
 import { rowLabel } from '../project-labels';
-import { Arrival } from '@shared/ui/arrival';
-import { ObjectLineDirective } from '@shared/ui/object-marks';
+import { Entrance } from '@shared/ui/models';
+import { LineAnchorDirective } from '@shared/ui/directives';
 
 /** Where the belt of markers starts, in % of the track. */
 const BELT_START = 2;
@@ -46,7 +46,7 @@ const LABEL_PX = 130;
  */
 @Component({
   selector: 'app-orbit-rule',
-  imports: [ObjectLineDirective, RouterLink],
+  imports: [LineAnchorDirective, RouterLink],
   templateUrl: './orbit-rule.component.html',
   styleUrl: './orbit-rule.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,7 +64,7 @@ export class OrbitRuleComponent {
   /** The body the preview last showed: read when nothing is hovered. */
   public readonly reading = input<string | null>(null);
   /** Arrives with the home page's rest, at the end of the crossing. */
-  public readonly arrival = input<Arrival>('timed');
+  public readonly arrival = input<Entrance>('timed');
 
   public readonly chosen = output<string>();
   public readonly hoveredChange = output<string | null>();
@@ -110,7 +110,7 @@ export class OrbitRuleComponent {
   });
 
   constructor() {
-    const browser = inject(BrowserEnvironment);
+    const browser = inject(BrowserEnvironmentService);
     let stop: (() => void) | undefined;
     afterNextRender(() => {
       const track = this.track().nativeElement;

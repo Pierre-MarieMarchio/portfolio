@@ -1,4 +1,4 @@
-import { TAU } from '../scene-math.rules';
+import { TAU } from '@app/core/helpers';
 
 export interface Star {
   x: number;

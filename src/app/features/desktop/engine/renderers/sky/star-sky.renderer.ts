@@ -1,4 +1,4 @@
-import { clamp, smoothstep } from '../../../rules/scene/scene-math.rules';
+import { clamp, smoothstep } from '@app/core/helpers';
 import { Traveling } from '../../../rules/scene/camera/traveling.rules';
 import { SHADOW_EDGE } from '../../../models/scene-constants.model';
 import { ScreenHole } from '../../../rules/scene/camera/projection.rules';

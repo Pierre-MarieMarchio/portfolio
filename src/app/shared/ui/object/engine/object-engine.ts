@@ -167,6 +167,9 @@ const DRAG_LAG = 0.55;
 
 type Rotor = 'disk' | 'orbits';
 
+/** The views where the object is seen whole, and can be turned. */
+const TURNABLE: ReadonlySet<ObjectView> = new Set(['home', 'index', 'about']);
+
 /** The reserve holds 1.9 times what is shown at rest; zooming lights more. */
 const RESERVE = 1.9;
 
@@ -426,13 +429,15 @@ export class ObjectEngine {
   }
 
   /**
-   * Turning the object by hand, home only. Nothing announces it: the
+   * Turning the object by hand, on the home page, the index and "about":
+   * wherever the object is seen whole. Not on a sheet, where the camera is
+   * framed on one planet and a turn would carry it off. Nothing announces it: the
    * reader grabs the void around the disk and pushes: near the hole, the
    * disk; further out, the orbits. Grabbing a spinning turntable stops it,
    * as a hand stops a turntable.
    */
   public grab(clientX: number, clientY: number): boolean {
-    if (this.inputs.view !== 'home' || this.inputs.reduced) {
+    if (!TURNABLE.has(this.inputs.view) || this.inputs.reduced) {
       return false;
     }
     const under = this.pointUnder(clientX, clientY);

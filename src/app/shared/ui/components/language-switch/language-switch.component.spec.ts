@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
-import { PageBarComponent } from './page-bar.component';
+import { LanguageSwitchComponent } from './language-switch.component';
 
 const LANGUAGES = [
   {
@@ -20,51 +20,24 @@ const LANGUAGES = [
   },
 ];
 
-const ITEMS = [
-  { label: 'Accueil', route: '/' },
-  { label: 'Projets', route: '/projets' },
-];
-
-const mount = async (current: string | null = null) => {
+const mount = async () => {
   TestBed.configureTestingModule({
-    imports: [PageBarComponent],
+    imports: [LanguageSwitchComponent],
     providers: [provideRouter([]), provideTexts()],
   });
 
-  const fixture = TestBed.createComponent(PageBarComponent);
-  fixture.componentRef.setInput('items', ITEMS);
-  fixture.componentRef.setInput('current', current);
+  const fixture = TestBed.createComponent(LanguageSwitchComponent);
   fixture.componentRef.setInput('languages', LANGUAGES);
   await fixture.whenStable();
 
   return { fixture, host: fixture.nativeElement as HTMLElement };
 };
 
-describe('PageBarComponent', () => {
-  it('lists one link per navigation item, in order', async () => {
-    const { host } = await mount();
-    const links = [...host.querySelectorAll('nav a')];
-
-    expect(links.map((link) => link.textContent?.trim())).toEqual([
-      'Accueil',
-      'Projets',
-    ]);
-    expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/',
-      '/projets',
-    ]);
+describe('LanguageSwitchComponent', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
   });
 
-  /** A sheet lights "Projets" although its own address is another one. */
-  it('marks the entry it is told is current, and only that one', async () => {
-    const { host } = await mount('/projets');
-    const current = host.querySelectorAll('[aria-current="page"]');
-
-    expect(current).toHaveLength(1);
-    expect(current[0]?.textContent?.trim()).toBe('Projets');
-  });
-
-  /** D3: switching is a navigation, to the same page in the other language. */
   it('offers the other language as a link to the same page', async () => {
     const { host } = await mount();
     const other = host.querySelector('.language a');
@@ -85,11 +58,11 @@ describe('PageBarComponent', () => {
     expect(own?.textContent?.trim()).toBe('FR');
   });
 
-  it('names its navigation in the reader language', async () => {
+  it('separates the languages with a hidden slash', async () => {
     const { host } = await mount();
+    const slashes = host.querySelectorAll('.slash[aria-hidden="true"]');
 
-    expect(host.querySelector('nav')?.getAttribute('aria-label')).toBe(
-      'Navigation principale',
-    );
+    expect(slashes).toHaveLength(1);
+    expect(slashes[0]?.textContent).toBe('/');
   });
 });

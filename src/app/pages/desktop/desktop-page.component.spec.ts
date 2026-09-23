@@ -13,7 +13,7 @@ import { DESKTOP_WINDOWS } from '@app/features/desktop/models/desktop.model';
 import { DesktopPageComponent } from './desktop-page.component';
 
 const arrivals = (host: HTMLElement) =>
-  ['#home', 'app-page-bar', 'app-featured-bar', 'app-social-links'].map(
+  ['#home', 'app-main-nav', 'app-featured-bar', 'app-social-links'].map(
     (selector) =>
       host.querySelector<HTMLElement>(selector)?.dataset['arrival'] ?? null,
   );
@@ -119,7 +119,7 @@ describe('StationComponent', () => {
       station.syncRoute('index');
       await fixture.whenStable();
       expect(
-        host.querySelector<HTMLElement>('app-page-bar')?.dataset['arrival'],
+        host.querySelector<HTMLElement>('app-main-nav')?.dataset['arrival'],
       ).toBe('shown');
     });
 
@@ -279,7 +279,7 @@ describe('StationComponent', () => {
     station.syncRoute('index');
     await fixture.whenStable();
 
-    const english = host.querySelector('app-page-bar .language a');
+    const english = host.querySelector('app-language-switch a');
     expect(english?.textContent?.trim()).toBe('EN');
     expect(english?.getAttribute('hreflang')).toBe('en');
   });

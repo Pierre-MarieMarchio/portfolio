@@ -93,7 +93,7 @@ describe('OrbitRuleComponent', () => {
   it('hands every marker to the object as a line, so each rises with its planet', async () => {
     const { host } = await mount({ bodies });
 
-    expect(TestBed.inject(LayoutAnchorsService).lines()).toEqual(
+    expect(TestBed.inject(LayoutAnchorsService).list('line')).toEqual(
       markerButtons(host),
     );
   });

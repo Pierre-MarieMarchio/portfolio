@@ -1,3 +1,6 @@
+@use 'mixins/controls';
+@use 'mixins/motion';
+
 :host {
   display: block;
 }
@@ -11,6 +14,27 @@ main {
   height: 100svh;
   min-height: 380px;
   overflow: hidden;
+}
+
+.bar {
+  @include controls.glass;
+
+  position: absolute;
+  right: var(--gutter);
+  top: clamp(20px, 4vh, 40px);
+  z-index: var(--z-chrome);
+  max-width: calc(100% - 2 * var(--gutter));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--s2);
+  padding: 3px 3px 3px 4px;
+  animation: rise 1100ms 200ms both;
+}
+
+.rule {
+  @include controls.divider;
 }
 
 /* The void closes one notch back: under everything, and out of the tab
@@ -58,4 +82,10 @@ main {
 .slot--sheet {
   top: max(clamp(96px, 13vh, 120px), calc(var(--head-bottom, 0px) + var(--s4)));
   z-index: calc(var(--z-window) + var(--stack, 1));
+}
+
+@include motion.reduced {
+  .bar {
+    animation: none;
+  }
 }

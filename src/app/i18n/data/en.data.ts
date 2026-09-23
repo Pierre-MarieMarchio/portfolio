@@ -17,8 +17,6 @@ export const EN: Catalog = {
     },
     contactRail: {
       label: draft('Contact me'),
-      pause: draft('Pause the animation of the object'),
-      resume: draft('Resume the animation of the object'),
     },
   },
 
@@ -107,6 +105,10 @@ export const EN: Catalog = {
   },
 
   desktop: {
+    animation: {
+      pause: draft('Pause the animation of the object'),
+      resume: draft('Resume the animation of the object'),
+    },
     object: {
       select: draft(
         (number: string, title: string) =>

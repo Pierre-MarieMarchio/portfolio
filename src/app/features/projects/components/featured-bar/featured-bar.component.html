@@ -10,7 +10,7 @@
         <li [style.left]="marker.left">
           <button
             type="button"
-            appLineAnchor
+            [appLayoutAnchor]="lineAnchor"
             [attr.aria-controls]="controls()"
             [attr.aria-label]="marker.label"
             [attr.data-lit]="marker.lit"

@@ -64,14 +64,6 @@ svg {
   fill: currentColor;
 }
 
-.rule {
-  @include controls.divider;
-}
-
-button {
-  @include controls.icon-button(38px, var(--target-compact));
-}
-
 @include motion.reduced {
   :host,
   :host([data-arrival]) {

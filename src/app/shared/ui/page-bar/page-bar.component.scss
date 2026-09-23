@@ -107,14 +107,15 @@ a {
 
 /* The pages wait for the home page's rest: without a script, the CSS lets
    them in at the end of the crossing; with one, the station holds them until
-   the reader is there. They appear, they do not rise, as in the mockup. */
+   the reader is there. Until then the bar holds the language alone, and
+   widens when they appear: they do not rise, as in the mockup. */
 nav {
   animation: wait 0s var(--arrival-at) backwards;
 }
 
 :host([data-arrival='held']) nav {
   animation: none;
-  visibility: hidden;
+  display: none;
 }
 
 :host([data-arrival='shown']) nav {
@@ -124,7 +125,7 @@ nav {
 @keyframes wait {
   from,
   to {
-    visibility: hidden;
+    display: none;
   }
 }
 

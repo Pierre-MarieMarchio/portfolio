@@ -86,6 +86,15 @@ describe('OrbitRuleComponent', () => {
     ).toEqual(['Alp', 'Bet', 'Gam', 'Del']);
   });
 
+  it('hands every marker to the object as a line, so each rises with its planet', async () => {
+    const { host } = await mount({ bodies });
+    expect(
+      markerButtons(host).every((button) =>
+        button.hasAttribute('data-object-line'),
+      ),
+    ).toBe(true);
+  });
+
   it('spreads the markers evenly along the belt, from 2% to 58%', async () => {
     const { host } = await mount({ bodies });
     // The percentages the truths describe as "2.0%"/"58.0%" are what the

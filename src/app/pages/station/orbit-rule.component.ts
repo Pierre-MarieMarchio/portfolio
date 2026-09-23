@@ -8,6 +8,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/utils/format.utils';
 import { ProjectWithFacts } from '@app/features/projects/models';
+import { Arrival } from '@shared/ui/page-bar';
 
 /**
  * The rule of the projects in orbit, along the bottom of the home page: one
@@ -22,6 +23,7 @@ import { ProjectWithFacts } from '@app/features/projects/models';
   templateUrl: './orbit-rule.component.html',
   styleUrl: './orbit-rule.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[attr.data-arrival]': 'arrival()' },
 })
 export class OrbitRuleComponent {
   /** The featured projects, in rank order. */
@@ -29,6 +31,8 @@ export class OrbitRuleComponent {
   public readonly hovered = input<string | null>(null);
   /** The body the preview last showed: read when nothing is hovered. */
   public readonly reading = input<string | null>(null);
+  /** Arrives with the home page's rest, at the end of the crossing. */
+  public readonly arrival = input<Arrival>('timed');
 
   public readonly chosen = output<string>();
   public readonly hoveredChange = output<string | null>();

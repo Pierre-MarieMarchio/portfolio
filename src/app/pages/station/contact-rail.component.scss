@@ -3,6 +3,20 @@
   right: clamp(20px, 4vw, 44px);
   bottom: clamp(16px, 2.6vh, 28px);
   z-index: var(--z-chrome);
+  animation: rise 1200ms calc(var(--arrival-at) + 800ms) both;
+}
+
+/* Arrives with the home page's rest (see `Arrival`): on its own at the end
+   of the crossing without a script, held until the reader is there with one,
+   then rising from that moment. */
+:host([data-arrival='held']) {
+  animation: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+:host([data-arrival='shown']) {
+  animation: rise 1200ms 800ms both;
 }
 
 .rail {
@@ -13,7 +27,6 @@
   border: 1px solid var(--line);
   background: var(--vitre);
   backdrop-filter: blur(10px) saturate(1.1);
-  animation: rise 1200ms 800ms both;
 }
 
 ul {
@@ -32,8 +45,6 @@ a {
   border-radius: 2px;
   color: var(--ink-2);
   text-decoration: none;
-  font-family: var(--mono);
-  font-size: var(--m4);
   transition:
     color var(--t),
     border-color var(--t);
@@ -42,10 +53,13 @@ a {
     color: var(--accent);
     border-color: var(--accent);
   }
+}
 
-  &.glyph {
-    font-size: var(--g);
-  }
+/* Material Symbols (outlined, weight 400), drawn in the link's colour. */
+svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
 .rule {
@@ -93,7 +107,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rail {
+  :host,
+  :host([data-arrival]) {
     animation: none;
   }
 }

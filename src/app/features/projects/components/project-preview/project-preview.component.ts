@@ -8,12 +8,6 @@ import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
 import { positionOf } from '../../rules/project-labels.rules';
 
-/**
- * The home preview: a small window anchored bottom right, over the object,
- * with what a recruiter asks first (proof, role, stack) and the way to the
- * sheet. Its selector changes the body in place among the featured ones,
- * and it shows no other: a body outside them would read "05 / 04".
- */
 @Component({
   selector: 'app-project-preview',
   imports: [RouterLink, SegmentedComponent, WindowComponent],
@@ -30,16 +24,13 @@ export class ProjectPreviewComponent {
 
   public readonly pinToggled = output();
   public readonly closed = output();
-  /** Another featured body chosen in the selector. */
   public readonly chosen = output<string>();
 
-  /** Only a featured project has a place among the preview's bodies. */
   protected readonly project = computed(() => {
     const project = this.manager.find(this.slug());
     return project?.featured ? project : null;
   });
 
-  /** The badge names what the window shows, not the last body hovered. */
   protected readonly meta = computed(() => {
     const project = this.project();
     return project

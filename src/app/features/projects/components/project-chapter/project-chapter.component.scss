@@ -45,7 +45,6 @@
   color: var(--ink);
 }
 
-/* Reading diagrams, never screenshots presented as proof. */
 figure {
   margin: 0;
 }
@@ -98,8 +97,6 @@ figure {
   font-weight: 500;
 }
 
-/* `overflow-wrap: anywhere` is what the deprecated `word-break: break-word`
-   always meant: break a long name only where it would overflow. */
 .layer-projects {
   font-family: var(--mono);
   font-size: var(--m4);

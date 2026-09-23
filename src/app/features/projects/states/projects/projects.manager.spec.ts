@@ -5,7 +5,8 @@ import {
   sampleProject,
   sampleSheet,
 } from '@testing/fake-managers';
-import { ProjectsManager } from './projects.manager';
+import { PROJECTS } from '../../data';
+import { FEATURED_COUNT, ProjectsManager } from './projects.manager';
 import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
 
@@ -27,30 +28,60 @@ describe('ProjectsManager', () => {
     expect('set' in manager.isLoading).toBe(false);
   });
 
-  /** Derived from the rank: no flag, so the selection cannot drift from it. */
-  it('features the first four projects of the rank order', () => {
-    state.projects.set(
-      ['a', 'b', 'c', 'd', 'e', 'f'].map((slug) => sampleProject({ slug })),
-    );
+  const SIX = ['a', 'b', 'c', 'd', 'e', 'f'];
 
-    expect(manager.featured().map((project) => project.slug)).toEqual([
-      'a',
-      'b',
-      'c',
-      'd',
+  /** Six projects, each with its facts, as a loaded catalog holds them. */
+  const setSix = (): void => {
+    state.projects.set(SIX.map((slug) => sampleProject({ slug })));
+    state.facts.set(
+      Object.fromEntries(SIX.map((slug) => [slug, sampleFacts()])),
+    );
+  };
+
+  /** Derived from the rank: no flag, so the selection cannot drift from it. */
+  it('features the first FEATURED_COUNT projects of the rank order', () => {
+    setSix();
+
+    expect(manager.featured().map((project) => project.slug)).toEqual(
+      SIX.slice(0, FEATURED_COUNT),
+    );
+    expect(manager.isFeatured('a')).toBe(true);
+    expect(manager.isFeatured('f')).toBe(false);
+    expect(manager.isFeatured('missing')).toBe(false);
+  });
+
+  it('ranks and numbers each project once, from its place in the order', () => {
+    setSix();
+
+    expect(
+      manager.ranked().map(({ slug, rank, number }) => [slug, rank, number]),
+    ).toEqual(SIX.map((slug, rank) => [slug, rank, `0${String(rank + 1)}`]));
+  });
+
+  /** A remote catalog lacking some facts draws no blank row, and shifts none. */
+  it('leaves out a project without facts, keeping the numbers of the others', () => {
+    state.projects.set(['a', 'b', 'c'].map((slug) => sampleProject({ slug })));
+    state.facts.set({ a: sampleFacts(), c: sampleFacts() });
+
+    expect(manager.ranked().map(({ slug, number }) => [slug, number])).toEqual([
+      ['a', '01'],
+      ['c', '03'],
     ]);
   });
 
-  it('joins each project to its facts, leaving out one without facts', () => {
-    state.projects.set([
-      sampleProject({ slug: 'a' }),
-      sampleProject({ slug: 'b' }),
-    ]);
-    state.facts.set({ a: sampleFacts({ proof: 'A proof' }) });
+  it('leads from each project to the next, wrapping round after the last', () => {
+    setSix();
 
-    expect(
-      manager.withFacts().map((row) => [row.slug, row.facts.proof]),
-    ).toEqual([['a', 'A proof']]);
+    expect(manager.nextOf('a')?.slug).toBe('b');
+    expect(manager.nextOf('f')?.slug).toBe('a');
+    expect(manager.nextOf('missing')).toBeNull();
+  });
+
+  it('leads nowhere when there is no other project', () => {
+    state.projects.set([sampleProject({ slug: 'a' })]);
+    state.facts.set({ a: sampleFacts() });
+
+    expect(manager.nextOf('a')).toBeNull();
   });
 
   it('counts the projects of each family', () => {
@@ -59,6 +90,7 @@ describe('ProjectsManager', () => {
       sampleProject({ slug: 'b', family: 'personal' }),
       sampleProject({ slug: 'c', family: 'professional' }),
     ]);
+    state.facts.set({ a: sampleFacts(), b: sampleFacts(), c: sampleFacts() });
 
     expect(manager.familyCounts()).toEqual({ professional: 2, personal: 1 });
   });
@@ -71,16 +103,6 @@ describe('ProjectsManager', () => {
     expect(manager.sheetOf('p')?.lede).toBe('Chapô');
     expect(manager.factsOf('missing')).toBeNull();
     expect(manager.sheetOf('missing')).toBeNull();
-  });
-
-  it('numbers a project by its place in the rank, 0 when unknown', () => {
-    state.projects.set([
-      sampleProject({ slug: 'a' }),
-      sampleProject({ slug: 'b' }),
-    ]);
-
-    expect(manager.rankOf('b')).toBe(2);
-    expect(manager.rankOf('missing')).toBe(0);
   });
 
   it('titles a chapter by its own title, else the default of its place', () => {
@@ -102,6 +124,7 @@ describe('ProjectsManager', () => {
 
   /** Derived from the list, so a reload that renamed it shows through. */
   it('finds a project by its slug from the current list', () => {
+    state.facts.set({ p: sampleFacts() });
     state.projects.set([sampleProject({ slug: 'p', title: 'Before' })]);
     expect(manager.find('p')?.title).toBe('Before');
 
@@ -113,9 +136,9 @@ describe('ProjectsManager', () => {
   it('loads the shipped catalog, the whole cascade awaited', async () => {
     await manager.load();
 
-    expect(manager.projects()).toHaveLength(7);
-    expect(manager.withFacts()).toHaveLength(7);
-    expect(manager.sheetOf('skyted-voice')?.title).toBe('Skyted Voice');
+    expect(manager.projects()).toHaveLength(PROJECTS.length);
+    expect(manager.ranked()).toHaveLength(PROJECTS.length);
+    expect(manager.sheetOf('skyted-voice')?.chapters.length).toBeGreaterThan(0);
     expect(manager.proofLevelLabel('indirect')).toBe('Vérifiable, code privé');
     expect(manager.isLoading()).toBe(false);
   });

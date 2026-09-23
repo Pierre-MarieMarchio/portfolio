@@ -6,8 +6,8 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { twoDigits } from '@app/core/utils/format.utils';
-import { ProjectWithFacts } from '@app/features/projects/models';
+import { RankedProject } from '../../models';
+import { rowLabel } from '../project-labels';
 import { Arrival } from '@shared/ui/arrival';
 import { ObjectLineDirective } from '@shared/ui/object-marks';
 
@@ -28,7 +28,7 @@ import { ObjectLineDirective } from '@shared/ui/object-marks';
 })
 export class OrbitRuleComponent {
   /** The featured projects, in rank order. */
-  public readonly bodies = input.required<readonly ProjectWithFacts[]>();
+  public readonly bodies = input.required<readonly RankedProject[]>();
   /** The id of the panel a marker opens, for `aria-controls`. */
   public readonly controls = input.required<string>();
   public readonly hovered = input<string | null>(null);
@@ -45,11 +45,10 @@ export class OrbitRuleComponent {
     const last = Math.max(1, bodies.length - 1);
     return bodies.map((body, index) => ({
       ...body,
-      number: twoDigits(index + 1),
       // Spread on the real width of a label (~130px of mono): tighter, two
       // neighbours' boxes overlapped and a click fell on the wrong project.
       left: `${(2 + (index / last) * 56).toFixed(1)}%`,
-      label: `${twoDigits(index + 1)} — ${body.title} · ${body.facts.proof}`,
+      label: rowLabel(body),
       lit: body.slug === this.hovered(),
     }));
   });

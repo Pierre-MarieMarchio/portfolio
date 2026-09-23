@@ -1,51 +1,47 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import {
-  fakeProjectsManager,
-  sampleFacts,
-  sampleProject,
-  sampleSheet,
+  loadProjects,
+  provideProjects,
+  sampleEntry,
 } from '@testing/fake-managers';
-import { ProjectsManager } from '@app/features/projects/states';
+import { ProjectEntry } from '@app/features/projects/models';
+import { FEATURED_COUNT } from '@app/features/projects/states';
 import { ProjectIndexComponent } from './project-index.component';
 
 describe('ProjectIndexComponent', () => {
   // Two professional, three personal, each with distinct facts so a row can
   // be told from another by its own text.
-  const projects = [
-    sampleProject({
-      slug: 'proj-a',
-      title: 'Project A',
-      family: 'professional',
-    }),
-    sampleProject({ slug: 'proj-b', title: 'Project B', family: 'personal' }),
-    sampleProject({
-      slug: 'proj-c',
-      title: 'Project C',
-      family: 'professional',
-    }),
-    sampleProject({ slug: 'proj-d', title: 'Project D', family: 'personal' }),
-    sampleProject({ slug: 'proj-e', title: 'Project E', family: 'personal' }),
-  ];
+  const FAMILIES = [
+    'professional',
+    'personal',
+    'professional',
+    'personal',
+    'personal',
+  ] as const;
 
-  const facts = Object.fromEntries(
-    projects.map((project, index) => [
-      project.slug,
-      sampleFacts({
-        proof: `Proof ${project.slug}`,
-        role: `Role ${project.slug}`,
-        stack: `Stack ${project.slug}`,
+  const entryAt = (
+    index: number,
+    sheet: Partial<ProjectEntry['sheet']> = {},
+  ): ProjectEntry => {
+    const slug = `proj-${'abcde'.charAt(index)}`;
+    return sampleEntry({
+      project: {
+        slug,
+        title: `Project ${'ABCDE'.charAt(index)}`,
+        family: FAMILIES[index] ?? 'personal',
+      },
+      facts: {
+        proof: `Proof ${slug}`,
+        role: `Role ${slug}`,
+        stack: `Stack ${slug}`,
         proofLevel: index % 2 === 0 ? 'public' : 'indirect',
-      }),
-    ]),
-  );
-
-  /** A manager pre-loaded with the sample projects and their distinct facts. */
-  const createManager = () => {
-    const manager = fakeProjectsManager(projects);
-    manager.facts.set(facts);
-    return manager;
+      },
+      sheet,
+    });
   };
+
+  const ENTRIES = FAMILIES.map((_, index) => entryAt(index));
 
   const mount = async (
     inputs: {
@@ -54,15 +50,13 @@ describe('ProjectIndexComponent', () => {
       visited?: readonly string[];
       family?: 'all' | 'professional' | 'personal';
     } = {},
-    manager = createManager(),
+    entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
     TestBed.configureTestingModule({
       imports: [ProjectIndexComponent],
-      providers: [
-        provideRouter([]),
-        { provide: ProjectsManager, useValue: manager },
-      ],
+      providers: [provideRouter([]), provideProjects(entries)],
     });
+    const manager = await loadProjects();
 
     const fixture = TestBed.createComponent(ProjectIndexComponent);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
@@ -171,29 +165,13 @@ describe('ProjectIndexComponent', () => {
     ]);
   });
 
-  it('leaves out a project with no facts', async () => {
-    const manager = createManager();
-    manager.facts.set(
-      Object.fromEntries(
-        Object.entries(facts).filter(([slug]) => slug !== 'proj-c'),
-      ),
-    );
-    const { host } = await mount({}, manager);
-
-    const titles = rows(host).map(
-      (row) => row.querySelector('.title')?.textContent,
-    );
-    expect(titles?.some((title) => title?.includes('Project C'))).toBe(false);
-    expect(rows(host)).toHaveLength(4);
-  });
-
-  it('marks the first four ranks as featured, and only those', async () => {
+  it('marks the first FEATURED_COUNT ranks as featured, and only those', async () => {
     const { host } = await mount();
     const featured = rows(host).map((row) =>
       row.querySelector('.number')?.classList.contains('featured'),
     );
 
-    expect(featured).toEqual([true, true, true, true, false]);
+    expect(featured).toEqual(ENTRIES.map((_, rank) => rank < FEATURED_COUNT));
   });
 
   it('filters the rows by family without renumbering them', async () => {
@@ -272,13 +250,16 @@ describe('ProjectIndexComponent', () => {
   });
 
   it('adds an outbound link from the sheet, when the sheet has one', async () => {
-    const manager = createManager();
-    manager.sheets.set({
-      'proj-b': sampleSheet({
-        links: [{ label: 'Dépôt', href: 'https://example.test/repo' }],
-      }),
-    });
-    const { host } = await mount({ selected: 'proj-b' }, manager);
+    const { host } = await mount(
+      { selected: 'proj-b' },
+      ENTRIES.map((entry, index) =>
+        index === 1
+          ? entryAt(1, {
+              links: [{ label: 'Dépôt', href: 'https://example.test/repo' }],
+            })
+          : entry,
+      ),
+    );
     const row = rows(host)[1];
     const opened = row?.nextElementSibling;
     const outbound = opened?.querySelector('a[target="_blank"]');

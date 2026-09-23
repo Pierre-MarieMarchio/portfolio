@@ -11,10 +11,24 @@ export interface SheetBullet {
 }
 
 /**
- * The two reading diagrams. They are schemas, never screenshots presented
- * as proof.
+ * A reading diagram, carried by its chapter with its caption. A schema,
+ * never a screenshot presented as proof.
+ *
+ * - `flow`: steps in sequence, then what they loop back into;
+ * - `layers`: the layers of an architecture and what each holds.
  */
-export type SheetFigure = 'flow' | 'layers';
+export type SheetFigure =
+  | {
+      readonly kind: 'flow';
+      readonly steps: readonly string[];
+      readonly loop: string;
+      readonly caption: string;
+    }
+  | {
+      readonly kind: 'layers';
+      readonly layers: readonly SheetLayer[];
+      readonly caption: string;
+    };
 
 /**
  * One approach of a sheet. Its title is optional: an untitled chapter takes
@@ -30,10 +44,10 @@ export interface SheetChapter {
 /**
  * A project's sheet: its prose, and nothing a fact already says. The
  * identity list of the first chapter (access, role, stack, context) is read
- * from `ProjectFacts`: a second table here once drifted from the first.
+ * from `ProjectFacts`: a second table here once drifted from the first. Its
+ * title is the project's.
  */
 export interface ProjectSheet {
-  readonly title: string;
   /** The standfirst under the title. */
   readonly lede: string;
   readonly links: readonly SheetLink[];

@@ -36,15 +36,14 @@ export class StationProjectsBinding {
     return family === 'professional' || family === 'personal' ? family : 'all';
   });
 
-  /** The featured projects with their facts, for the home rule. */
-  public readonly featuredRows = computed(() => {
-    const featured = new Set(this.featuredSlugs());
-    return this.projects.withFacts().filter((row) => featured.has(row.slug));
-  });
+  /** The featured projects, numbered, for the home rule. */
+  public readonly featured = this.projects.featured;
 
   public readonly featuredSlugs = computed(() =>
     this.projects.featured().map((project) => project.slug),
   );
+
+  public readonly projectCount = computed(() => this.projects.ranked().length);
 
   public readonly featuredCount = computed(
     () => this.projects.featured().length,
@@ -77,8 +76,6 @@ export class StationProjectsBinding {
 
   /** The rank from 0, -1 for none: the object's own reading. */
   private rankOf(slug: string | null): number {
-    return slug === null
-      ? -1
-      : this.projects.projects().findIndex((project) => project.slug === slug);
+    return slug === null ? -1 : (this.projects.find(slug)?.rank ?? -1);
   }
 }

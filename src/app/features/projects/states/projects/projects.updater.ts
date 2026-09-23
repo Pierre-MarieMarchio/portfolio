@@ -17,7 +17,6 @@ export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
       state.sheets.set(catalog.sheets);
       state.proofLevelLabels.set(catalog.proofLevelLabels);
       state.defaultChapterTitles.set(catalog.defaultChapterTitles);
-      state.layers.set(catalog.layers);
     },
   });
 
@@ -27,7 +26,6 @@ export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
     state.sheets.set({});
     state.proofLevelLabels.set(NO_PROOF_LEVEL_LABELS);
     state.defaultChapterTitles.set([]);
-    state.layers.set([]);
     state.isLoading.set(false);
     state.isError.set(false);
   });

@@ -7,15 +7,15 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { twoDigits } from '@app/core/utils/format.utils';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectsManager } from '../../states';
+import { positionOf } from '../project-labels';
 
 /**
  * The home preview: a small window anchored bottom right, over the object,
  * with what a recruiter asks first (proof, role, stack) and the way to the
- * sheet. Its selector changes the body in place among the featured four.
+ * sheet. Its selector changes the body in place among the featured ones.
  */
 @Component({
   selector: 'app-project-preview',
@@ -35,27 +35,22 @@ export class ProjectPreviewComponent {
   /** Another featured body chosen in the selector. */
   public readonly chosen = output<string>();
 
-  protected readonly project = computed(() =>
-    this.manager.withFacts().find((row) => row.slug === this.slug()),
-  );
+  protected readonly project = computed(() => this.manager.find(this.slug()));
 
   /** The badge names what the window shows, not the last body hovered. */
   protected readonly meta = computed(() => {
-    const index = this.manager
-      .featured()
-      .findIndex((project) => project.slug === this.slug());
-    return `${twoDigits(index + 1)} / ${twoDigits(this.manager.featured().length)}`;
+    const project = this.project();
+    return project
+      ? positionOf(project.rank + 1, this.manager.featured().length)
+      : '';
   });
 
   protected readonly choices = computed<readonly SegmentedItem[]>(() =>
-    this.manager.featured().map((project, index) => {
-      const number = twoDigits(index + 1);
-      return {
-        value: project.slug,
-        label: number,
-        active: project.slug === this.slug(),
-        aria: `Aperçu ${number} — ${project.title}`,
-      };
-    }),
+    this.manager.featured().map((project) => ({
+      value: project.slug,
+      label: project.number,
+      active: project.slug === this.slug(),
+      aria: `Aperçu ${project.number} — ${project.title}`,
+    })),
   );
 }

@@ -10,7 +10,9 @@ export type {
 export type {
   Project,
   ProjectFacts,
+  ProjectEntry,
   ProjectFamily,
   ProjectWithFacts,
   ProofLevel,
+  RankedProject,
 } from './project.model';

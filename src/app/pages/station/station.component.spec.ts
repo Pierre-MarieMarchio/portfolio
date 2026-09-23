@@ -1,14 +1,11 @@
 import { DebugElement } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideStatewise } from 'ngx-statewise';
 import {
-  fakeProjectsManager,
-  sampleFacts,
-  sampleProject,
-  sampleSheet,
+  loadProjects,
+  provideProjects,
+  sampleEntry,
 } from '@testing/fake-managers';
-import { ProjectsManager } from '@app/features/projects/states';
 import { StationEffect } from '@app/features/station/states';
 import { StationManager } from '@app/features/station/states';
 import { ObjectComponent } from '@app/features/station/components';
@@ -18,14 +15,9 @@ describe('StationComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
   /** One project the catalog knows, with facts and a sheet to open. */
-  const createProjectsManager = () => {
-    const manager = fakeProjectsManager([
-      sampleProject({ slug: KNOWN_SLUG, title: 'Known project' }),
-    ]);
-    manager.facts.set({ [KNOWN_SLUG]: sampleFacts() });
-    manager.sheets.set({ [KNOWN_SLUG]: sampleSheet() });
-    return manager;
-  };
+  const ENTRIES = [
+    sampleEntry({ project: { slug: KNOWN_SLUG, title: 'Known project' } }),
+  ];
 
   const mount = async (options: { reducedMotion?: boolean } = {}) => {
     // jsdom has no matchMedia: without it the station reads reduced motion,
@@ -51,10 +43,10 @@ describe('StationComponent', () => {
         // through the real router, and this keeps it from throwing on an
         // address nothing else declares in this spec.
         provideRouter([{ path: '**', children: [] }]),
-        provideStatewise({ effects: [StationEffect] }),
-        { provide: ProjectsManager, useValue: createProjectsManager() },
+        provideProjects(ENTRIES, [StationEffect]),
       ],
     });
+    await loadProjects();
 
     const fixture = TestBed.createComponent(StationComponent);
     const station = TestBed.inject(StationManager);

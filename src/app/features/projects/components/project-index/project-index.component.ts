@@ -12,6 +12,7 @@ import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
+import { positionOf, rowLabel } from '../project-labels';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
 /** Which family the index shows; `all` is no filter. */
@@ -38,7 +39,7 @@ const FAMILIES: readonly FamilyChoice[] = [
 ];
 
 /**
- * The index: the seven projects in a table whose most important column is
+ * The index: every project in a table whose most important column is
  * what a reader can check. Selecting a row opens it one notch (subject, the
  * sheet, the outbound link); the selection belongs to the station, since
  * Escape and a click in the void close it too.
@@ -79,7 +80,7 @@ export class ProjectIndexComponent {
   public readonly hoveredChange = output<string | null>();
   public readonly familyChange = output<FamilyFilter>();
 
-  private readonly total = computed(() => this.manager.projects().length);
+  private readonly total = computed(() => this.manager.ranked().length);
 
   protected readonly heading = computed(
     () => `Projets — le relevé des ${twoDigits(this.total())} réalisations`,
@@ -89,7 +90,7 @@ export class ProjectIndexComponent {
     const family = this.family();
     return family === 'all'
       ? `${twoDigits(this.total())} fiches`
-      : `${twoDigits(this.manager.familyCounts()[family])} / ${twoDigits(this.total())}`;
+      : positionOf(this.manager.familyCounts()[family], this.total());
   });
 
   protected readonly familySummary = computed(() => {
@@ -116,28 +117,17 @@ export class ProjectIndexComponent {
     const family = this.family();
     const selected = this.selected();
     const visited = new Set(this.visited());
-    const featured = new Set(
-      this.manager.featured().map((project) => project.slug),
-    );
-    return this.manager.withFacts().flatMap((project, index) => {
-      if (family !== 'all' && project.family !== family) {
-        return [];
-      }
-      const number = twoDigits(index + 1);
-      const link = this.manager.sheetOf(project.slug)?.links[0] ?? null;
-      return [
-        {
-          ...project,
-          number,
-          featured: featured.has(project.slug),
-          level: this.manager.proofLevelLabel(project.facts.proofLevel),
-          label: `${number} — ${project.title} · ${project.facts.proof}`,
-          isSelected: project.slug === selected,
-          isVisited: visited.has(project.slug),
-          link,
-        },
-      ];
-    });
+    return this.manager
+      .ranked()
+      .filter((project) => family === 'all' || project.family === family)
+      .map((project) => ({
+        ...project,
+        level: this.manager.proofLevelLabel(project.facts.proofLevel),
+        label: rowLabel(project),
+        isSelected: project.slug === selected,
+        isVisited: visited.has(project.slug),
+        link: this.manager.sheetOf(project.slug)?.links[0] ?? null,
+      }));
   });
 
   /** A second click on the open row closes it. */

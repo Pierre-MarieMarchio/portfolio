@@ -1,5 +1,5 @@
 import { Project, ProjectFacts, ProofLevel } from './project.model';
-import { ProjectSheet, SheetLayer } from './project-sheet.model';
+import { ProjectSheet } from './project-sheet.model';
 
 /**
  * Everything the projects feature ships, read in one go by the repository:
@@ -15,6 +15,4 @@ export interface ProjectCatalog {
   readonly proofLevelLabels: Readonly<Record<ProofLevel, string>>;
   /** The title of an untitled chapter, by position. */
   readonly defaultChapterTitles: readonly string[];
-  /** The rows of the layers diagram. */
-  readonly layers: readonly SheetLayer[];
 }

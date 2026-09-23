@@ -2,7 +2,7 @@
   <app-window
     label="Fenêtre : fiche de projet"
     size="l"
-    [heading]="sheet.title"
+    [heading]="project()?.title ?? ''"
     [margin]="76"
     [meta]="meta()"
     [scrollKey]="scrollKey()"
@@ -18,7 +18,7 @@
     />
     <div body>
       <header>
-        <h1 tabindex="-1" appLandingHeading>{{ sheet.title }}</h1>
+        <h1 tabindex="-1" appLandingHeading>{{ project()?.title }}</h1>
         @if (chapter() === 0) {
           <p class="lede">{{ sheet.lede }}</p>
         }
@@ -63,37 +63,33 @@
               }
             </ul>
           }
-          @if (chapter.figure === 'flow') {
+          @if (chapter.figure; as figure) {
             <figure>
-              <div class="flow">
-                <span class="box">action</span>
-                <span class="arrow" aria-hidden="true">→</span>
-                <span class="box">updator</span>
-                <span class="arrow" aria-hidden="true">→</span>
-                <span class="box">effect</span>
-                <span class="arrow" aria-hidden="true">↻</span>
-                <span class="quiet data">nouvelles actions</span>
-              </div>
-              <figcaption>
-                Séquence documentée dans le dépôt. Schéma de lecture, pas une
-                capture d’application.
-              </figcaption>
-            </figure>
-          }
-          @if (chapter.figure === 'layers') {
-            <figure>
-              <div class="layers">
-                @for (layer of layers(); track layer.name) {
-                  <div class="layer">
-                    <span class="layer-name">{{ layer.name }}</span>
-                    <span class="layer-projects">{{ layer.projects }}</span>
+              @switch (figure.kind) {
+                @case ('flow') {
+                  <div class="flow">
+                    @for (step of figure.steps; track $index) {
+                      @if (!$first) {
+                        <span class="arrow" aria-hidden="true">→</span>
+                      }
+                      <span class="box">{{ step }}</span>
+                    }
+                    <span class="arrow" aria-hidden="true">↻</span>
+                    <span class="quiet data">{{ figure.loop }}</span>
                   </div>
                 }
-              </div>
-              <figcaption>
-                Arborescence réelle du dépôt : les tests d’architecture échouent
-                si un projet est ajouté sans que sa place soit décrite.
-              </figcaption>
+                @case ('layers') {
+                  <div class="layers">
+                    @for (layer of figure.layers; track layer.name) {
+                      <div class="layer">
+                        <span class="layer-name">{{ layer.name }}</span>
+                        <span class="layer-projects">{{ layer.projects }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+              <figcaption>{{ figure.caption }}</figcaption>
             </figure>
           }
         </section>

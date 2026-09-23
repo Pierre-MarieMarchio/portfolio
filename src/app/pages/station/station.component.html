@@ -84,7 +84,10 @@
 
     <div class="slot slot--sheet" appWindowSlot="sheet" appObjectPanel="sheet">
       @if (binding.isNotFound()) {
-        <app-not-found-window (closed)="station.close('sheet')" />
+        <app-not-found-window
+          [total]="binding.projectCount()"
+          (closed)="station.close('sheet')"
+        />
       } @else if (binding.sheetSlug(); as slug) {
         <app-project-sheet
           [slug]="slug"
@@ -119,7 +122,7 @@
     @if (showsRule()) {
       <app-orbit-rule
         appObjectPanel="rule"
-        [bodies]="binding.featuredRows()"
+        [bodies]="binding.featured()"
         [controls]="ids.previewPanel"
         [hovered]="station.hovered()"
         [reading]="station.reading()"

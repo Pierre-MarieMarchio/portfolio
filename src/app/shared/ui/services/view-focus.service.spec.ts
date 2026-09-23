@@ -51,7 +51,6 @@ describe('LandingFocus', () => {
     expect(focused()).toBe('First');
   });
 
-  /** A window mounts in the render after the navigation that opens it. */
   it('waits for a heading that is not there yet', async () => {
     const { fixture, focus, section, focused } = await mount();
 

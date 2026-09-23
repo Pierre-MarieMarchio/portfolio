@@ -6,6 +6,7 @@ import {
   inject,
   input,
 } from '@angular/core';
+import { clamp, isOnControl } from '@app/core/helpers';
 import { BrowserWindowService } from '@app/core/services';
 
 const VISIBLE_SIDEWAYS = 150;
@@ -19,12 +20,6 @@ interface Grip {
   readonly dx: number;
   readonly dy: number;
 }
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.max(min, Math.min(max, value));
-
-const isOnControl = (event: Event): boolean =>
-  event.target instanceof Element && event.target.closest('button, a') !== null;
 
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {

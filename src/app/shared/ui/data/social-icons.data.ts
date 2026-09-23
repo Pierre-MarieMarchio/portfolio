@@ -1,11 +1,5 @@
 import { SocialIcon } from '../models/social-link.model';
 
-/**
- * Material Design Icons (Pictogrammers, Apache 2.0), on their 24 grid: the
- * community set drawn on Material's grid, which has the brand marks that
- * Google's Material Symbols leave out. The three from the one set, so they
- * share a weight: `email-outline`, `linkedin`, `github`.
- */
 export const SOCIAL_ICONS: Readonly<Record<SocialIcon, string>> = {
   email:
     'M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z',

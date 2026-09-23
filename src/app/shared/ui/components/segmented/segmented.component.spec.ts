@@ -15,7 +15,6 @@ const ITEMS: readonly SegmentedItem[] = [
   },
 ];
 
-/** Indexed access with `noUncheckedIndexedAccess`: fail loudly, not with `undefined`. */
 const at = <T>(items: readonly T[], index: number): T => {
   const item = items[index];
   if (item === undefined) {
@@ -88,14 +87,11 @@ describe('SegmentedComponent', () => {
     const { host } = await mount();
     const buttons = buttonsOf(host);
 
-    // First two items have no `aria`: the accessible name falls back to
-    // their own `label` (not the group's).
     expect(at(buttons, 0).getAttribute('aria-label')).toBe('Tout');
     expect(at(buttons, 0).getAttribute('title')).toBe('Tout');
     expect(at(buttons, 1).getAttribute('aria-label')).toBe('Projets');
     expect(at(buttons, 1).getAttribute('title')).toBe('Projets');
 
-    // The third item carries its own `aria`, which wins over its `label`.
     expect(at(buttons, 2).getAttribute('aria-label')).toBe('Notes de veille');
     expect(at(buttons, 2).getAttribute('title')).toBe('Notes de veille');
   });
@@ -113,10 +109,8 @@ describe('SegmentedComponent', () => {
     const { host } = await mount();
     const buttons = buttonsOf(host);
 
-    // No `count` on the first item: no hidden span at all.
     expect(at(buttons, 0).querySelector('span[aria-hidden="true"]')).toBeNull();
 
-    // A `count` on the second item: a hidden span carries it, inside the button.
     const countSpan = at(buttons, 1).querySelector('span[aria-hidden="true"]');
     expect(countSpan).not.toBeNull();
     expect(countSpan?.textContent?.trim()).toBe('07');
@@ -143,7 +137,6 @@ describe('SegmentedComponent', () => {
     expect(received).toEqual(['projects', 'projects']);
   });
 
-  /** Two choices may share a label; their values tell them apart. */
   it('keeps two items with the same label apart by their value', async () => {
     const { host, fixture } = await mount([
       { value: 'a', label: 'Même', active: false },

@@ -1,9 +1,3 @@
-/*
- * A list of facts (`dl`): one row per fact, the term in a column of its own,
- * the value taking the rest. Each list sets its row padding and its term's
- * width, as the export does.
- */
-
 @mixin row($padding) {
   display: flex;
   align-items: baseline;

@@ -7,11 +7,6 @@ export { ElementObserverService } from './browser/element-observer.service';
 export { MediaPreferencesService } from './browser/media-preferences.service';
 export { PageVisibilityService } from './browser/page-visibility.service';
 export { ConsoleErrorHandlerService } from './errors/console-error-handler.service';
-export {
-  DocumentHeadService,
-  SITE_NAME,
-  SITE_URL,
-} from './head/document-head.service';
-export type { HeadContent } from './head/document-head.service';
+export { SITE_NAME } from './head/document-head.service';
 export { LocaleService } from './i18n/locale.service';
 export { UserPresenceService } from './presence/user-presence.service';

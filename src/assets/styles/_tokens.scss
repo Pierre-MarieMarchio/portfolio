@@ -1,18 +1,6 @@
-/*
- * The design tokens of "la station", as CSS custom properties so that
- * components and the canvas read them at runtime.
- *
- * Night mode only: a black hole on a light ground does not hold. The values
- * are the export's `applyTheme()`, not its `:root`, which still carries the
- * light palette the night theme overwrites.
- */
-
 :root {
   color-scheme: dark;
 
-  /* Two inks and nothing else: the accent says "here", the signal says
-     "state"; everything else is grey. --line is a rule, never an ink: at
-     1.57:1 a text written with it is unreadable. */
   --paper: oklch(0.165 0.014 265);
   --paper-2: oklch(0.205 0.016 265);
   --ink: oklch(0.93 0.008 250);
@@ -20,18 +8,12 @@
   --line: oklch(0.33 0.018 260);
   --accent: oklch(0.76 0.12 230);
   --sig: oklch(0.82 0.14 74);
-  /* 72% is the least veil under which a paragraph laid over moving matter
-     still reads. */
   --vitre: color-mix(in oklab, oklch(0.175 0.014 265) 72%, transparent);
   --vitre-2: color-mix(in oklab, oklch(0.3 0.02 262) 30%, transparent);
 
   --font: 'Instrument Sans', -apple-system, 'Segoe UI', Helvetica, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* One scale, in pixels: nested em compounded, and a counter at 0.92em in a
-     button at 0.66em came out at 9.7px. The floor is 11px, strict.
-     Mono by role: m1 caps label, m2 command, m3 data, m4 glyph.
-     Running text: p1 secondary, p2 body, p3 emphasis. */
   --m1: 11px;
   --m2: 12px;
   --m3: 13px;
@@ -43,9 +25,6 @@
   --h1: clamp(21px, 2.5vw, 34px);
   --h2: clamp(19px, 2.1vw, 27px);
 
-  /* One letter-spacing per role: capitals, mono titles, mono data. The
-     display headings keep the export's tracking, one per heading: they are
-     drawn one by one, not read off a scale. */
   --ls-caps: 0.14em;
   --ls-title: 0.18em;
   --ls-mono: 0.04em;
@@ -54,38 +33,21 @@
   --s2: 12px;
   --s3: 20px;
   --s4: 32px;
-  /* The page's side margin: the chrome, the rule and the windows keep to
-     it, so they line up at every width. */
   --gutter: clamp(20px, 4vw, 44px);
-  /* The touch target, never below; the compact one is for the secondary
-     controls a keyboard doubles (the selector's tabs, the page bar). */
   --target: 44px;
   --target-compact: 34px;
 
-  /* Near-square corners: an instrument, not a consumer app. Figures take
-     the radius; controls, and the focus ring drawn around them, the tighter
-     one. */
   --radius: 3px;
   --radius-control: 2px;
 
-  /* The glass of the chrome (page bar, contact rail), and of the windows,
-     which the export draws a touch heavier. */
   --glass-blur: blur(10px) saturate(1.1);
   --glass-blur-window: blur(11px) saturate(1.08);
 
-  /* One duration, and the easing that goes with it. A tab's or a window
-     control's hover takes the duration alone, as in the export. */
   --t-duration: 180ms;
   --t: var(--t-duration) cubic-bezier(0.2, 0.6, 0.2, 1);
-  /* The end of the opening crossing: the home page's rest arrives then, on
-     its own, when no gesture brought it sooner (see `Arrival`). */
   --arrival-at: 8700ms;
-  /* The opening card's length: it fades out on its own by then. */
   --intro-duration: 5600ms;
 
-  /* Depth tiers, with gaps so that no two layers can tie: at equal z-index
-     the DOM order decides, which is chance. Windows take 5 to 8, the last
-     one touched in front; the skip link is above everything. */
   --z-scene: 0;
   --z-scene-top: 3;
   --z-window: 5;

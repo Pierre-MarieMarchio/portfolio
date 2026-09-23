@@ -1,4 +1,11 @@
-export { BrowserEnvironmentService } from './browser/browser-environment.service';
+export { BrowserWindowService } from './browser/browser-window.service';
+export { CanvasContextsService } from './browser/canvas-contexts.service';
+export { ClockService } from './browser/clock.service';
+export { CursorService } from './browser/cursor.service';
+export { DocumentStylesService } from './browser/document-styles.service';
+export { ElementObserverService } from './browser/element-observer.service';
+export { MediaPreferencesService } from './browser/media-preferences.service';
+export { PageVisibilityService } from './browser/page-visibility.service';
 export { ConsoleErrorHandlerService } from './errors/console-error-handler.service';
 export {
   DocumentHeadService,
@@ -7,3 +14,4 @@ export {
 } from './head/document-head.service';
 export type { HeadContent } from './head/document-head.service';
 export { LocaleService } from './i18n/locale.service';
+export { UserPresenceService } from './presence/user-presence.service';

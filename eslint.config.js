@@ -379,10 +379,7 @@ export default defineConfig(
 
   {
     files: [`${APP}/**/*.ts`],
-    ignores: [
-      `${APP}/**/*.spec.ts`,
-      `${APP}/core/services/browser/browser-environment.service.ts`,
-    ],
+    ignores: [`${APP}/**/*.spec.ts`, `${APP}/core/services/browser/**`],
     rules: {
       'no-restricted-globals': [
         'error',
@@ -397,7 +394,7 @@ export default defineConfig(
           'cancelAnimationFrame',
         ].map((name) => ({
           name,
-          message: `${name} is not there at prerender: go through BrowserEnvironment, and extend it if it lacks it.`,
+          message: `${name} is not there at prerender: go through core/services/browser/, and extend it if it lacks it.`,
         })),
       ],
       'no-restricted-properties': [
@@ -406,7 +403,7 @@ export default defineConfig(
           (property) => ({
             object: 'globalThis',
             property,
-            message: `globalThis.${property} dodges the same ban: go through BrowserEnvironment.`,
+            message: `globalThis.${property} dodges the same ban: go through core/services/browser/.`,
           }),
         ),
       ],

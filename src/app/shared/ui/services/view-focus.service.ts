@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ClockService } from '@app/core/services';
 
 /** A claim gives up after this: a heading that never came is not waited for. */
 const DEADLINE_MS = 2500;
@@ -14,6 +15,7 @@ const DEADLINE_MS = 2500;
  */
 @Injectable({ providedIn: 'root' })
 export class ViewFocusService {
+  private readonly clock = inject(ClockService);
   private readonly headings = new Set<HTMLElement>();
   private claim: {
     readonly within: () => Element | undefined;
@@ -35,7 +37,7 @@ export class ViewFocusService {
    * either, when the view mounts it with its heading.
    */
   public claimWithin(within: () => Element | undefined): () => void {
-    const claim = { within, until: Date.now() + DEADLINE_MS };
+    const claim = { within, until: this.clock.now() + DEADLINE_MS };
     this.claim = claim;
     this.settle();
     return () => {
@@ -50,7 +52,7 @@ export class ViewFocusService {
     if (!claim) {
       return;
     }
-    if (Date.now() > claim.until) {
+    if (this.clock.now() > claim.until) {
       this.claim = null;
       return;
     }

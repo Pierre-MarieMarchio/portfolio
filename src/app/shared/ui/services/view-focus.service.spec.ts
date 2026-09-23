@@ -66,7 +66,7 @@ describe('LandingFocus', () => {
 
   it('gives up after 2500 ms, and never steals the focus later', async () => {
     const { fixture, focus, section, focused } = await mount();
-    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.useFakeTimers({ toFake: ['performance'] });
 
     focus.claimWithin(() => section('second'));
     vi.advanceTimersByTime(2501);

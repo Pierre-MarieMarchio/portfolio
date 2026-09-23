@@ -11,7 +11,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { ElementObserverService } from '@app/core/services';
 import { RouterLink } from '@angular/router';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
@@ -110,7 +110,7 @@ export class FeaturedBarComponent {
   });
 
   constructor() {
-    const browser = inject(BrowserEnvironmentService);
+    const observer = inject(ElementObserverService);
     let stop: (() => void) | undefined;
     afterNextRender(() => {
       const track = this.track().nativeElement;
@@ -118,7 +118,7 @@ export class FeaturedBarComponent {
         this.trackWidth.set(track.getBoundingClientRect().width);
       };
       measure();
-      stop = browser.observeResize(track, measure);
+      stop = observer.onResize(track, measure);
     });
     inject(DestroyRef).onDestroy(() => {
       stop?.();

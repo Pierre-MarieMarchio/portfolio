@@ -1,6 +1,5 @@
 import {
   afterRenderEffect,
-  DestroyRef,
   Directive,
   ElementRef,
   inject,
@@ -8,7 +7,10 @@ import {
 } from '@angular/core';
 import { ScrollMemoryService } from '../services/scroll-memory.service';
 
-@Directive({ selector: '[appRememberScroll]' })
+@Directive({
+  selector: '[appRememberScroll]',
+  host: { '(scroll)': 'remember()' },
+})
 export class RememberScrollDirective {
   private readonly memory = inject(ScrollMemoryService);
   private readonly element =
@@ -32,16 +34,12 @@ export class RememberScrollDirective {
         }
       },
     });
+  }
 
-    const remember = (): void => {
-      const key = this.appRememberScroll();
-      if (key) {
-        this.memory.save(key, this.element.scrollTop);
-      }
-    };
-    this.element.addEventListener('scroll', remember, { passive: true });
-    inject(DestroyRef).onDestroy(() => {
-      this.element.removeEventListener('scroll', remember);
-    });
+  protected remember(): void {
+    const key = this.appRememberScroll();
+    if (key) {
+      this.memory.save(key, this.element.scrollTop);
+    }
   }
 }

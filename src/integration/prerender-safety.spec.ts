@@ -1,6 +1,16 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { BrowserEnvironmentService } from '@app/core/services';
+import {
+  BrowserWindowService,
+  CanvasContextsService,
+  ClockService,
+  CursorService,
+  DocumentStylesService,
+  ElementObserverService,
+  MediaPreferencesService,
+  PageVisibilityService,
+  UserPresenceService,
+} from '@app/core/services';
 
 const on = (platform: 'browser' | 'server') => {
   TestBed.configureTestingModule({
@@ -9,8 +19,8 @@ const on = (platform: 'browser' | 'server') => {
 };
 
 /**
- * The mechanism under test: the one service that touches the browser is
- * inert while prerendering. The server platform is simulated by
+ * The mechanism under test: the services that touch the browser are inert
+ * while prerendering. The server platform is simulated by
  * `PLATFORM_ID`, while jsdom still provides `matchMedia`, a document and a
  * layout, so a method that forgot its guard would reach them and this suite
  * would see it.
@@ -20,10 +30,10 @@ describe('prerender safety', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
     on('server');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const media = TestBed.inject(MediaPreferencesService);
 
-    expect(environment.prefersReducedMotion()).toBe(true);
-    expect(environment.watchMedia('(min-width: 1px)', () => {})).toEqual(
+    expect(media.reducedMotion()).toBe(true);
+    expect(media.watch('(min-width: 1px)', () => {})).toEqual(
       expect.any(Function),
     );
     expect(matchMedia).not.toHaveBeenCalled();
@@ -35,13 +45,13 @@ describe('prerender safety', () => {
   it('answers no viewport, listens to nothing and waits for no frame on the server', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
     on('server');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const browserWindow = TestBed.inject(BrowserWindowService);
 
-    expect(environment.viewport()).toBeNull();
-    environment.listen('resize', () => {})();
+    expect(browserWindow.size()).toBeNull();
+    browserWindow.on('resize', () => {})();
     expect(addEventListener).not.toHaveBeenCalled();
     const frame = vi.spyOn(window, 'requestAnimationFrame');
-    environment.nextFrame(() => {})();
+    TestBed.inject(ClockService).nextFrame(() => {})();
     expect(frame).not.toHaveBeenCalled();
     frame.mockRestore();
 
@@ -76,21 +86,24 @@ describe('prerender safety', () => {
     const computed = vi.spyOn(window, 'getComputedStyle');
     const now = vi.spyOn(performance, 'now');
     on('server');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const contexts = TestBed.inject(CanvasContextsService);
+    const visibility = TestBed.inject(PageVisibilityService);
+    const observer = TestBed.inject(ElementObserverService);
+    const styles = TestBed.inject(DocumentStylesService);
     const canvas = document.createElement('canvas');
     const onFonts = vi.fn();
 
-    expect(environment.cannotHover()).toBe(false);
-    expect(environment.devicePixelRatio()).toBe(1);
-    expect(environment.now()).toBe(0);
-    expect(environment.isHidden()).toBe(true);
-    environment.watchVisibility(() => {})();
-    environment.observeResize(canvas, () => {})();
-    environment.observeIntersection(canvas, 0.01, () => {})();
-    expect(environment.context2d(canvas)).toBeNull();
-    expect(environment.computedStyle(canvas, 'opacity')).toBe('');
-    expect(environment.rootStyle('--ink')).toBe('');
-    environment.whenFontsReady(onFonts);
+    expect(TestBed.inject(MediaPreferencesService).cannotHover()).toBe(false);
+    expect(contexts.pixelRatio()).toBe(1);
+    expect(TestBed.inject(ClockService).now()).toBe(0);
+    expect(visibility.isHidden()).toBe(true);
+    visibility.watch(() => {})();
+    observer.onResize(canvas, () => {})();
+    observer.onVisible(canvas, 0.01, () => {})();
+    expect(contexts.context2d(canvas)).toBeNull();
+    expect(styles.token('opacity', canvas)).toBe('');
+    expect(styles.token('--ink')).toBe('');
+    styles.fontsReady(onFonts);
 
     expect(matchMedia).not.toHaveBeenCalled();
     expect(observed).not.toHaveBeenCalled();
@@ -122,25 +135,30 @@ describe('prerender safety', () => {
       },
     );
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironmentService);
     const canvas = document.createElement('canvas');
     const heard: boolean[] = [];
 
-    environment.observeResize(canvas, () => {})();
+    TestBed.inject(ElementObserverService).onResize(canvas, () => {})();
     expect(observed).toEqual([canvas]);
     expect(disconnected).toEqual(['resize']);
 
-    const stop = environment.watchVisibility((hidden) => heard.push(hidden));
+    const stop = TestBed.inject(PageVisibilityService).watch((hidden) =>
+      heard.push(hidden),
+    );
     document.dispatchEvent(new Event('visibilitychange'));
     stop();
     document.dispatchEvent(new Event('visibilitychange'));
     expect(heard).toEqual([document.hidden]);
 
-    expect(environment.now()).toBeGreaterThan(0);
-    expect(environment.devicePixelRatio()).toBe(window.devicePixelRatio || 1);
+    expect(TestBed.inject(ClockService).now()).toBeGreaterThan(0);
+    expect(TestBed.inject(CanvasContextsService).pixelRatio()).toBe(
+      window.devicePixelRatio || 1,
+    );
     canvas.style.opacity = '0.5';
     document.body.append(canvas);
-    expect(environment.computedStyle(canvas, 'opacity')).toBe('0.5');
+    expect(TestBed.inject(DocumentStylesService).token('opacity', canvas)).toBe(
+      '0.5',
+    );
     canvas.remove();
 
     vi.unstubAllGlobals();
@@ -148,16 +166,14 @@ describe('prerender safety', () => {
 
   it('reads the viewport and stops listening when asked, in the browser', () => {
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const browserWindow = TestBed.inject(BrowserWindowService);
     const heard: string[] = [];
 
-    expect(environment.viewport()).toEqual({
+    expect(browserWindow.size()).toEqual({
       width: window.innerWidth,
       height: window.innerHeight,
     });
-    const stop = environment.listen('resize', (event) =>
-      heard.push(event.type),
-    );
+    const stop = browserWindow.on('resize', (event) => heard.push(event.type));
     window.dispatchEvent(new Event('resize'));
     stop();
     window.dispatchEvent(new Event('resize'));
@@ -168,7 +184,7 @@ describe('prerender safety', () => {
   it('leaves the cursor alone on the server', () => {
     on('server');
 
-    TestBed.inject(BrowserEnvironmentService).setCursor('grabbing');
+    TestBed.inject(CursorService).set('grabbing');
 
     expect(document.body.style.cursor).toBe('');
   });
@@ -176,13 +192,15 @@ describe('prerender safety', () => {
   it('sets the cursor and reads the root tokens in the browser', () => {
     document.documentElement.style.setProperty('--ink', ' #2b2f3a ');
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const cursor = TestBed.inject(CursorService);
 
-    environment.setCursor('grabbing');
+    cursor.set('grabbing');
     expect(document.body.style.cursor).toBe('grabbing');
-    environment.setCursor('');
+    cursor.set('');
     expect(document.body.style.cursor).toBe('');
-    expect(environment.rootStyle('--ink')).toBe('#2b2f3a');
+    expect(TestBed.inject(DocumentStylesService).token('--ink')).toBe(
+      '#2b2f3a',
+    );
 
     document.documentElement.style.removeProperty('--ink');
   });
@@ -192,11 +210,11 @@ describe('prerender safety', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     document.documentElement.style.setProperty('--arrival-at', '8700ms');
     on('server');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const styles = TestBed.inject(DocumentStylesService);
     const called = vi.fn();
 
-    expect(environment.rootDuration('--arrival-at')).toBeNull();
-    environment.firstGesture(10, called);
+    expect(styles.duration('--arrival-at')).toBeNull();
+    TestBed.inject(UserPresenceService).whenPresent(10, called);
     vi.advanceTimersByTime(100);
     window.dispatchEvent(new Event('keydown'));
 
@@ -207,44 +225,46 @@ describe('prerender safety', () => {
 
   it('reads a duration token in ms or s, and nothing else, in the browser', () => {
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const styles = TestBed.inject(DocumentStylesService);
     const read = (value: string): number | null => {
       document.documentElement.style.setProperty('--probe', value);
-      return environment.rootDuration('--probe');
+      return styles.duration('--probe');
     };
 
     expect(read('8700ms')).toBe(8700);
     expect(read('5.6s')).toBe(5600);
     expect(read('auto')).toBeNull();
     document.documentElement.style.removeProperty('--probe');
-    expect(environment.rootDuration('--probe')).toBeNull();
+    expect(styles.duration('--probe')).toBeNull();
   });
 
   it('calls back once, at the first gesture or the timeout, in the browser', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
     on('browser');
-    const environment = TestBed.inject(BrowserEnvironmentService);
+    const presence = TestBed.inject(UserPresenceService);
     const byGesture = vi.fn();
     const byTime = vi.fn();
     const cancelled = vi.fn();
 
-    environment.firstGesture(1000, byGesture);
+    presence.whenPresent(1000, byGesture);
     window.dispatchEvent(new Event('wheel'));
     window.dispatchEvent(new Event('keydown'));
     vi.advanceTimersByTime(1000);
     expect(byGesture).toHaveBeenCalledTimes(1);
 
-    environment.firstGesture(1000, byTime);
+    presence.whenPresent(1000, byTime);
     vi.advanceTimersByTime(999);
     expect(byTime).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
     window.dispatchEvent(new Event('pointerdown'));
     expect(byTime).toHaveBeenCalledTimes(1);
 
-    environment.firstGesture(1000, cancelled)();
+    presence.whenPresent(1000, cancelled)();
     vi.advanceTimersByTime(1000);
     window.dispatchEvent(new Event('touchstart'));
     expect(cancelled).not.toHaveBeenCalled();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 });

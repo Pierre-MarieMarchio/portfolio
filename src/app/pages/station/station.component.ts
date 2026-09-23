@@ -24,6 +24,7 @@ import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
 import { navigationItems } from '../../app.navigation';
 import { AboutWindowComponent } from './about-window.component';
 import { ContactRailComponent } from './contact-rail.component';
+import { IntroCardComponent } from './intro-card.component';
 import { NotFoundWindowComponent } from './not-found-window.component';
 import { OrbitRuleComponent } from './orbit-rule.component';
 
@@ -56,6 +57,7 @@ const FOCUS_DEADLINE_MS = 2500;
   imports: [
     AboutWindowComponent,
     ContactRailComponent,
+    IntroCardComponent,
     NotFoundWindowComponent,
     OrbitRuleComponent,
     ObjectComponent,

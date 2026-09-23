@@ -154,10 +154,13 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   vaut sur l'accueil, le relevé et l'à-propos, partout où l'objet se voit en
   entier ; l'export le réservait à l'accueil. Pas sur une fiche, cadrée sur
   une planète qu'un tour emporterait.
-- **Le rail de contact porte des icônes Material Symbols.** L'export y écrit
-  « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG (contour,
-  graisse 400) : `mail`, puis `work` pour LinkedIn et `code` pour GitHub,
-  Material n'ayant pas de logos de marque. Les noms accessibles ne changent pas.
+- **Le rail de contact porte des icônes Material Design Icons.** L'export y
+  écrit « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG,
+  tirées de Material Design Icons (Pictogrammers, Apache 2.0), le jeu
+  communautaire dessiné sur la grille Material : il a les logos de marque que
+  Material Symbols, le jeu de Google, n'a pas. `email-outline`, `linkedin` et
+  `github`, les trois du même jeu pour une même graisse. Les noms accessibles
+  ne changent pas.
 - **Le carton s'efface sans JavaScript.** Il est prérendu et son fondu est en
   CSS (`animation … both`) : sans script, il disparaît seul à 5,6 s ; le script
   ne fait que le retirer au premier geste.

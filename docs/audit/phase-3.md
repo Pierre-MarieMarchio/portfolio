@@ -60,7 +60,7 @@ Une branche et une PR par étape, empilées ; `npm run check` passe à chaque
 commit.
 
 - [ ] **0. `docs(audit)`** : ce fichier, `organisation.md` et les décisions
-      D7 à D14.
+      D7 à D15.
 - [ ] **1. `chore(lint)`** : zones `i18n` et racine ; `--max-warnings 0` ;
       aucun `eslint-disable` ; revue des réglages par fichier ; règles Sonar
       choisies ; `angular.json` (`type` des schematics, `changeDetection`
@@ -73,8 +73,8 @@ commit.
       selon `organisation.md`, sans changer de comportement ;
       `check-structure.mjs` passe en erreur.
 - [ ] **4. `refactor(units)`** : les découpages d'`organisation.md` §4.
-- [ ] **5. `refactor(angular)`** : langue dérivée du routeur, resolver de
-      vue, têtes de page dans la langue visée, OnPush implicite,
+- [ ] **5. `refactor(angular)`** : langue dérivée du routeur, composant de
+      route unique qui déclare la vue, têtes de page dans la langue visée, OnPush implicite,
       `@Service()` si ngx-statewise l'accepte, `afterRenderEffect`,
       `RouterTestingHarness`.
 - [ ] **6. `refactor(clean)`** : commentaires retirés (leurs raisons au

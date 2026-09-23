@@ -25,25 +25,25 @@ const ITEMS = [
   { label: 'Projets', route: '/projets' },
 ];
 
+const mount = async (current: string | null = null) => {
+  TestBed.configureTestingModule({
+    imports: [PageBarComponent],
+    providers: [provideRouter([]), provideTexts()],
+  });
+
+  const fixture = TestBed.createComponent(PageBarComponent);
+  fixture.componentRef.setInput('items', ITEMS);
+  fixture.componentRef.setInput('current', current);
+  fixture.componentRef.setInput('languages', LANGUAGES);
+  await fixture.whenStable();
+
+  return { fixture, host: fixture.nativeElement as HTMLElement };
+};
+
 describe('PageBarComponent', () => {
-  const mount = async (current: string | null = null) => {
-    TestBed.configureTestingModule({
-      imports: [PageBarComponent],
-      providers: [provideRouter([]), provideTexts()],
-    });
-
-    const fixture = TestBed.createComponent(PageBarComponent);
-    fixture.componentRef.setInput('items', ITEMS);
-    fixture.componentRef.setInput('current', current);
-    fixture.componentRef.setInput('languages', LANGUAGES);
-    await fixture.whenStable();
-
-    return { fixture, host: fixture.nativeElement as HTMLElement };
-  };
-
   it('lists one link per navigation item, in order', async () => {
     const { host } = await mount();
-    const links = Array.from(host.querySelectorAll('nav a'));
+    const links = [...host.querySelectorAll('nav a')];
 
     expect(links.map((link) => link.textContent?.trim())).toEqual([
       'Accueil',

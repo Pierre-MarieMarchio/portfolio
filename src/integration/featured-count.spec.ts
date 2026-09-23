@@ -12,6 +12,50 @@ import { ObjectComponent } from '@app/features/station/components';
 import { StationEffect, StationManager } from '@app/features/station/states';
 import { StationComponent } from '@app/pages/station/station.component';
 
+const entries = (count: number): ProjectEntry[] =>
+  Array.from({ length: count }, (_, index) =>
+    sampleEntry({
+      project: {
+        slug: `project-${String(index + 1)}`,
+        title: `Project ${String(index + 1)}`,
+      },
+    }),
+  );
+
+const mount = async (featured: number, total: number) => {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: true,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  document.documentElement.style.setProperty('--arrival-at', '8700ms');
+  TestBed.configureTestingModule({
+    imports: [StationComponent],
+    providers: [
+      provideRouter([{ path: '**', children: [] }]),
+      provideProjects(entries(total), [StationEffect]),
+      { provide: FEATURED, useValue: featured },
+    ],
+  });
+  await loadProjects();
+  const fixture = TestBed.createComponent(StationComponent);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  const object = fixture.debugElement.query(
+    (node: DebugElement) => node.componentInstance instanceof ObjectComponent,
+  ).componentInstance as ObjectComponent;
+  return {
+    fixture,
+    host,
+    object,
+    station: TestBed.inject(StationManager),
+    markers: () => host.querySelectorAll('app-orbit-rule li').length,
+    choices: () =>
+      host.querySelectorAll('[aria-label="Corps en orbite"] button').length,
+  };
+};
+
 /**
  * The mechanism under test: the number of featured projects is one value
  * (`FEATURED_COUNT`), and the home page follows it everywhere, whatever the
@@ -20,50 +64,6 @@ import { StationComponent } from '@app/pages/station/station.component';
  * twelve projects in all.
  */
 describe('featured count', () => {
-  const entries = (count: number): ProjectEntry[] =>
-    Array.from({ length: count }, (_, index) =>
-      sampleEntry({
-        project: {
-          slug: `project-${String(index + 1)}`,
-          title: `Project ${String(index + 1)}`,
-        },
-      }),
-    );
-
-  const mount = async (featured: number, total: number) => {
-    vi.stubGlobal('matchMedia', () => ({
-      matches: true,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-    }));
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    document.documentElement.style.setProperty('--arrival-at', '8700ms');
-    TestBed.configureTestingModule({
-      imports: [StationComponent],
-      providers: [
-        provideRouter([{ path: '**', children: [] }]),
-        provideProjects(entries(total), [StationEffect]),
-        { provide: FEATURED, useValue: featured },
-      ],
-    });
-    await loadProjects();
-    const fixture = TestBed.createComponent(StationComponent);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
-    const object = fixture.debugElement.query(
-      (node: DebugElement) => node.componentInstance instanceof ObjectComponent,
-    ).componentInstance as ObjectComponent;
-    return {
-      fixture,
-      host,
-      object,
-      station: TestBed.inject(StationManager),
-      markers: () => host.querySelectorAll('app-orbit-rule li').length,
-      choices: () =>
-        host.querySelectorAll('[aria-label="Corps en orbite"] button').length,
-    };
-  };
-
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
     TestBed.resetTestingModule();

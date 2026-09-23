@@ -403,6 +403,69 @@ en serait une, et le moteur ne se corrige que sous le golden étendu.
 d'avertissements qui ne fait que baisser (un second appel à eslint, une
 sortie bruyante).
 
+## 2026-09-23 — Les règles du lint et leurs réglages par catégorie (D17)
+
+**Décision.** Précise D9. Le lint ajoute `sonarjs` recommandé, entier : c'est
+le profil que montre SonarLint. Il ajoute aussi une liste fermée de règles
+`unicorn`, écrite dans `eslint.config.js` (`UNICORN_RULES`) : celles que
+SonarLint reprend, plus `consistent-boolean-name`, `switch-case-braces`,
+`no-useless-undefined` et `prefer-ternary`. Tout est en erreur, templates
+compris, et `eslint` comme `stylelint` tournent avec `--max-warnings 0`.
+`no-null` et `prefer-global-this` restent dehors. Le moteur n'a plus de bloc
+à lui, ni pour la taille ni pour les noms de formule (`R`, `Q`, `M0`). Les
+zones `i18n/` et `pages/` ont leur loi, et aucune zone ne remonte vers les
+`app.*.ts` de la racine. `scripts/check-structure.mjs` vérifie
+`organisation.md` §3 : il fait un rapport dans `npm run check`, et passe en
+`--strict` à la fin de l'étape 3.
+
+Les réglages qui restent sont ceux d'une catégorie de fichiers, et chacun a
+sa raison :
+
+- **Specs et `src/testing/`** : pas de modificateur d'accès obligatoire (des
+  doubles jetables, pas une surface d'application) ; pas de plafond de
+  lignes par fichier ni par fonction (un `describe` est aussi long que le
+  nombre de comportements qu'il fixe).
+- **`@ts-expect-error` avec sa raison** : la seule façon de tester qu'un type
+  refuse une valeur (`projects.data.spec.ts`).
+- **`states/`** : seul le manager importe le state et l'updater ; les autres
+  zones passent par le manager.
+- **`browser-environment.service.ts`** : la seule porte vers les globales du
+  navigateur, qui sont interdites partout ailleurs parce qu'elles n'existent
+  pas au prérendu.
+- **`features/common/`** : n'importe rien du dépôt ; `../../` en sort
+  toujours, et `@testing` n'a rien à y faire.
+- **`_tokens.scss`** (Stylelint) : là où s'écrivent les valeurs que
+  `declaration-property-value-disallowed-list` interdit ailleurs.
+
+Les raisons de lecture de la config, qui n'y sont plus en commentaire :
+
+- les noms (`NAMES`) sont ceux que suit déjà le code. Une clé entre
+  guillemets (`'data-view'`, `'--head-bottom'`) est un nom du DOM, et un `_`
+  en tête marque un paramètre qui n'est là que pour sa position ;
+- le lint est typé, car interdire `any` doit voir aussi celui que personne
+  n'a écrit (une bibliothèque, un `JSON.parse`) ;
+- le groupe `core` exclut `@angular/core`, dont un jeton de port a besoin
+  même dans `features/common` ;
+- une feature sœur est aussi refusée par son nom nu, pour qu'un
+  `../../contact/…` ne sorte pas d'une feature sans écrire `features` ;
+- `FEATURES` est comparé au disque : une nouvelle feature sans sa ligne
+  bloquerait sinon un import interdit sans rien dire ;
+- `.claude/**` est ignoré, car le worktree d'un agent y vit pendant qu'il
+  travaille ;
+- Stylelint laisse à Prettier la mise en page, et les notations des jetons
+  (`oklch(0.165 0.02 265)`) disent la même couleur dans les deux écritures.
+  Safari sur iOS ne lit encore que `-webkit-text-size-adjust`.
+- le DOM du prérendu (Domino) n'a ni `dataset` ni `append()` : ce qui
+  s'exécute au prérendu écrit ses `data-*` par `setAttribute` et insère par
+  `insertBefore(element, null)` (`page-head.service.ts`) ; `dataset` ne sert
+  que dans le navigateur.
+
+**Raison.** Une règle se lit dans la config, sa raison dans ce journal (D10).
+Un réglage de catégorie est la règle de cette catégorie, pas une exception.
+
+**Écarté.** `unicorn` recommandé entier (un millier de constats contraires aux
+choix du projet) ; garder le bloc du moteur jusqu'à l'étape 7 (D16).
+
 ## 2026-09-23 — Les réglages de la scène canvas hors moteur (D18)
 
 **Décision.** Ce que `ObjectComponent` portait en commentaire, sorti avec les

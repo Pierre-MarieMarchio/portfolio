@@ -73,9 +73,9 @@ describe('ProjectPreviewComponent', () => {
   it('lists one toolbar button per featured project only, labelled and pressed on the shown one', async () => {
     const { host } = await mount({ slug: 'proj-2' });
     const toolbar = host.querySelector('[aria-label="Corps en orbite"]');
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
 
     const featured = NAMES.slice(0, FEATURED_COUNT);
     expect(buttons).toHaveLength(FEATURED_COUNT);
@@ -100,9 +100,9 @@ describe('ProjectPreviewComponent', () => {
     );
 
     const toolbar = host.querySelector('[aria-label="Corps en orbite"]');
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
     buttons[2]?.click();
     await fixture.whenStable();
 
@@ -117,10 +117,10 @@ describe('ProjectPreviewComponent', () => {
     const { host } = await mount({ slug: 'proj-2' });
 
     expect(host.querySelector('.window')?.textContent).toContain('Summary two');
-    const terms = Array.from(host.querySelectorAll('dl dt')).map((dt) =>
+    const terms = [...host.querySelectorAll('dl dt')].map((dt) =>
       dt.textContent?.trim(),
     );
-    const values = Array.from(host.querySelectorAll('dl dd')).map((dd) =>
+    const values = [...host.querySelectorAll('dl dd')].map((dd) =>
       dd.textContent?.trim(),
     );
     expect(terms).toEqual(['Preuve', 'Rôle', 'Pile']);
@@ -131,7 +131,7 @@ describe('ProjectPreviewComponent', () => {
     const { host } = await mount({ slug: 'proj-2' });
 
     expect(host.querySelector('.window')?.textContent).toContain('live');
-    const link = Array.from(host.querySelectorAll('a')).find(
+    const link = [...host.querySelectorAll('a')].find(
       (anchor) => anchor.textContent?.trim() === 'Ouvrir la fiche →',
     );
     expect(link?.getAttribute('href')).toBe('/projet/proj-2');

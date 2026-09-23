@@ -4,20 +4,13 @@ import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import prettier from 'eslint-config-prettier';
 import angular from 'angular-eslint';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 
 const APP = 'src/app';
 
-/**
- * Every feature of the application, by folder name. `features/common` is not
- * one: it is the shared kernel, with a zone of its own below.
- *
- * Each feature gets a row denying every other one, so adding a feature means
- * adding its name here, and the check right after refuses to lint until that
- * is done. Without it, a new folder would lint with no law at all, and the
- * first cross-feature import would pass in silence.
- */
-const FEATURES = ['projects', 'station'];
+const FEATURES = ['profile', 'projects', 'station'];
 
 const onDisk = readdirSync(`${APP}/features`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && entry.name !== 'common')
@@ -32,14 +25,6 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   );
 }
 
-/**
- * The names the code base already follows, written down so a new file follows
- * them too: camelCase for values and members, PascalCase for types and
- * classes, SCREAMING_CASE for module constants and injection tokens. Keys that
- * need quotes (`'data-view'`, `'--head-bottom'`) are the DOM's names, not
- * ours, and are left alone. A leading underscore marks a parameter that is
- * there for its position only.
- */
 const NAMES = [
   { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
   { selector: 'typeLike', format: ['PascalCase'] },
@@ -62,59 +47,113 @@ const NAMES = [
   },
 ];
 
-const SIBLING_WHY =
-  'no feature imports another feature; the need descends into features/common, or is joined in pages/';
+const UNICORN_RULES = [
+  'catch-error-name',
+  'consistent-boolean-name',
+  'consistent-function-scoping',
+  'dom-node-dataset',
+  'explicit-length-check',
+  'no-array-callback-reference',
+  'no-array-push-push',
+  'no-for-each',
+  'no-lonely-if',
+  'no-negated-condition',
+  'no-typeof-undefined',
+  'no-useless-fallback-in-spread',
+  'no-useless-spread',
+  'no-useless-undefined',
+  'no-zero-fractions',
+  'numeric-separators-style',
+  'prefer-array-find',
+  'prefer-array-flat-map',
+  'prefer-array-index-of',
+  'prefer-array-some',
+  'prefer-at',
+  'prefer-code-point',
+  'prefer-date-now',
+  'prefer-dom-node-append',
+  'prefer-export-from',
+  'prefer-global-number-constants',
+  'prefer-includes',
+  'prefer-math-min-max',
+  'prefer-math-trunc',
+  'prefer-modern-math-apis',
+  'prefer-native-coercion-functions',
+  'prefer-negative-index',
+  'prefer-node-protocol',
+  'prefer-optional-catch-binding',
+  'prefer-regexp-test',
+  'prefer-set-has',
+  'prefer-spread',
+  'prefer-string-raw',
+  'prefer-string-replace-all',
+  'prefer-string-slice',
+  'prefer-structured-clone',
+  'prefer-ternary',
+  'prefer-top-level-await',
+  'prefer-type-error',
+  'switch-case-braces',
+  'throw-new-error',
+];
+
+const FEATURE_WHY =
+  'a feature reaches down only, to core, shared/ui and features/common; what two features share descends into features/common, or is joined in pages/';
 
 /**
  * @typedef {object} Zone
- * @property {string} zone   A folder under `src/app/`.
- * @property {string} why    The sentence the lint error gives back.
- * @property {string[]} denies  Names of `GROUPS` this zone may not import.
+ * @property {string[]} files
+ * @property {string} name
+ * @property {string} why
+ * @property {string[]} denies
  */
 
-/**
- * The zones and what each is forbidden to reach for. Read a row as "this zone
- * may not import those". `core` sits at the bottom and knows nothing, `pages`
- * sits at the top and composes everything.
- */
 /** @type {Zone[]} */
 const ZONES = [
   {
-    zone: 'core',
+    files: [`${APP}/core/**/*.ts`],
+    name: 'core/',
     why: 'infrastructure: it must not know a business concept exists',
-    denies: ['features', 'shared', 'pages'],
+    denies: ['features', 'shared', 'i18n', 'pages', 'root'],
   },
   {
-    zone: 'shared/ui',
+    files: [`${APP}/shared/ui/**/*.ts`],
+    name: 'shared/ui/',
     why: 'reusable UI, almost extractable: it may use core and nothing above',
-    denies: ['features', 'pages'],
+    denies: ['features', 'i18n', 'pages', 'root'],
   },
   {
-    zone: 'features/common',
+    files: [`${APP}/features/common/**/*.ts`],
+    name: 'features/common/',
     why: 'the shared kernel: it imports nothing from this repository at all',
-    denies: ['core', 'shared', 'features', 'pages', 'escapes'],
+    denies: ['core', 'shared', 'features', 'i18n', 'pages', 'root', 'escapes'],
   },
   ...FEATURES.map((feature) => ({
-    zone: `features/${feature}`,
-    why: SIBLING_WHY,
-    denies: [...FEATURES.filter((other) => other !== feature), 'pages'],
+    files: [`${APP}/features/${feature}/**/*.ts`],
+    name: `features/${feature}/`,
+    why: FEATURE_WHY,
+    denies: [
+      ...FEATURES.filter((other) => other !== feature),
+      'i18n',
+      'pages',
+      'root',
+    ],
   })),
   {
-    zone: 'pages',
-    why: 'composition: it may reach for any feature and any shared component',
-    denies: [],
+    files: [`${APP}/i18n/**/*.ts`],
+    name: 'i18n/',
+    why: 'the texts and the addresses: they serve the pages and know none',
+    denies: ['pages', 'root'],
+  },
+  {
+    files: [`${APP}/pages/**/*.ts`],
+    name: 'pages/',
+    why: 'composition: it may reach for any feature, never for the root that boots it',
+    denies: ['root'],
   },
 ];
 
-/**
- * What each denial name expands to, in every form an import can be written.
- * A pattern matches the import string, not a resolved path, so the alias form
- * and the relative forms are both listed.
- */
 /** @type {Record<string, string[]>} */
 const GROUPS = {
-  // `**/core` would catch `@angular/core` too: a port's token needs it, even
-  // in the kernel that imports nothing of this repository.
   core: [
     '@app/core',
     '@app/core/**',
@@ -124,13 +163,9 @@ const GROUPS = {
   ],
   shared: ['@shared/**', '@app/shared/**', '**/shared/**'],
   features: ['@app/features/**', '**/features/**'],
+  i18n: ['@app/i18n', '@app/i18n/**'],
   pages: ['@app/pages/**', '**/pages/**'],
-  // A sibling feature is denied by its bare name as well as by its alias:
-  // `../../contact/services` climbs out of a feature without ever writing the
-  // word `features`. No legitimate path inside one feature carries another
-  // feature's name, so the bare form costs nothing and closes the climb. The
-  // generic `../!(..)/**` would say it in one line, but the rule does not
-  // read extglob, hence one group per feature.
+  root: ['@app/app.*', '**/app.*'],
   ...Object.fromEntries(
     FEATURES.map((feature) => [
       feature,
@@ -143,36 +178,30 @@ const GROUPS = {
       ],
     ]),
   ),
-  // Only features/common uses this: inside it, `../<sibling>` is legitimate
-  // and `../../anything` always leaves the folder.
   escapes: ['../../*', '../../**', '@testing/**'],
 };
 
 /**
- * Turns the table of zones into one lint block each.
- *
- * @param {{ app: string, zones: Zone[], groups: Record<string, string[]> }} law
+ * @param {{ zones: Zone[], groups: Record<string, string[]> }} law
  * @returns {import('eslint').Linter.Config[]}
  */
-function zoneLaws({ app, zones, groups }) {
-  return zones
-    .filter(({ denies }) => denies.length > 0)
-    .map(({ zone, why, denies }) => ({
-      files: [`${app}/${zone}/**/*.ts`],
-      rules: {
-        '@typescript-eslint/no-restricted-imports': [
-          'error',
-          {
-            patterns: [
-              {
-                group: denies.flatMap((name) => groups[name] ?? []),
-                message: `${zone}/ — ${why}. See README.md, "La loi de dépendance".`,
-              },
-            ],
-          },
-        ],
-      },
-    }));
+function zoneLaws({ zones, groups }) {
+  return zones.map(({ files, name, why, denies }) => ({
+    files,
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: denies.flatMap((denied) => groups[denied] ?? []),
+              message: `${name} — ${why}. See docs/architecture/organisation.md, §2.`,
+            },
+          ],
+        },
+      ],
+    },
+  }));
 }
 
 export default defineConfig(
@@ -183,8 +212,6 @@ export default defineConfig(
       'node_modules/**',
       '.angular/**',
       'docs/maquette/**',
-      // Local tooling, ignored by git: an agent's worktree lives here while
-      // it works, and its unfinished code is not this checkout's.
       '.claude/**',
     ],
   },
@@ -195,11 +222,10 @@ export default defineConfig(
       eslint.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
       ...angular.configs.tsRecommended,
+      sonarjs.configs.recommended,
     ],
+    plugins: { unicorn },
     processor: angular.processInlineTemplates,
-    // Type-aware, because banning `any` has to see the ones nobody wrote: a
-    // library returning `any`, a `JSON.parse`, a matcher. `no-explicit-any`
-    // alone only catches the keyword.
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -207,8 +233,6 @@ export default defineConfig(
       },
     },
     rules: {
-      // `any` is banned from this repository, written or inherited. What is
-      // not known yet is `unknown`, and gets narrowed before it is used.
       '@typescript-eslint/no-explicit-any': ['error', { fixToUnknown: true }],
       '@typescript-eslint/no-unsafe-argument': 'error',
       '@typescript-eslint/no-unsafe-assignment': 'error',
@@ -229,8 +253,6 @@ export default defineConfig(
         'error',
         { type: 'attribute', prefix: 'app', style: 'camelCase' },
       ],
-      // `public` / `private` / `protected` written out on every member: in a
-      // component, it is what says which members the template may use.
       '@typescript-eslint/explicit-member-accessibility': [
         'error',
         { overrides: { constructors: 'no-public' } },
@@ -239,16 +261,6 @@ export default defineConfig(
         'error',
         { varsIgnorePattern: '^_', argsIgnorePattern: '^_' },
       ],
-    },
-  },
-
-  {
-    // Size, shape and names, as errors: the code obeys them, and the ground
-    // won cannot be lost. The files the audit of September 23
-    // (docs/audit/README.md) has not reached yet keep them as warnings, in
-    // the block right after, each with the step that takes it on.
-    files: ['src/**/*.ts'],
-    rules: {
       'max-lines': [
         'error',
         { max: 300, skipBlankLines: true, skipComments: true },
@@ -265,68 +277,16 @@ export default defineConfig(
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@angular-eslint/prefer-output-readonly': 'error',
       '@angular-eslint/prefer-signals': 'error',
-    },
-  },
-
-  {
-    // The engine's long functions, kept by D2 (a limited refactor under a
-    // golden test, docs/architecture/decisions.md): warnings for these files
-    // only. What step 9 extracted (constants, projection, turntable, labels)
-    // is held to the errors like the rest.
-    files: [
-      `${APP}/features/station/components/object/object.component.ts`,
-      ...[
-        'object-engine',
-        'sky',
-        'scene',
-        'comets',
-        'constellations',
-        'math',
-      ].map(
-        (file) => `${APP}/features/station/components/object/engine/${file}.ts`,
+      ...Object.fromEntries(
+        UNICORN_RULES.map((rule) => [`unicorn/${rule}`, 'error']),
       ),
-    ],
-    rules: {
-      'max-lines': [
-        'warn',
-        { max: 300, skipBlankLines: true, skipComments: true },
-      ],
-      'max-lines-per-function': [
-        'warn',
-        { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
-      ],
-      complexity: ['warn', 10],
-      'max-depth': ['warn', 3],
-      'max-params': ['warn', 4],
     },
   },
 
   {
-    // The canvas engine writes its physics as the formulas do: `R` a radius,
-    // `Q` a quaternion, `M0` a mean anomaly at the epoch. Spelled out, they
-    // would read worse next to the equations they come from.
-    files: [`${APP}/features/station/components/object/engine/**/*.ts`],
-    rules: {
-      '@typescript-eslint/naming-convention': [
-        'error',
-        {
-          selector: ['variable', 'parameter', 'property'],
-          filter: { regex: '^[A-Z][A-Za-z]?[0-9]?$', match: true },
-          format: null,
-        },
-        ...NAMES,
-      ],
-    },
-  },
-
-  {
-    // Specs build throwaway doubles; the accessibility rule aimed at the
-    // application's surface only gets in the way there.
     files: ['src/**/*.spec.ts', 'src/testing/**/*.ts'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
-      // A spec is one `describe` holding its cases: its length is the number
-      // of behaviours it pins, not a function grown too big.
       'max-lines': 'off',
       'max-lines-per-function': 'off',
     },
@@ -339,16 +299,13 @@ export default defineConfig(
       ...angular.configs.templateAccessibility,
     ],
     rules: {
-      // The template's own way of writing `any`.
       '@angular-eslint/template/no-any': 'error',
-      // A template stays a view: a branch that needs more than this belongs
-      // in a `computed` of its component.
       '@angular-eslint/template/conditional-complexity': [
-        'warn',
+        'error',
         { maxComplexity: 4 },
       ],
       '@angular-eslint/template/cyclomatic-complexity': [
-        'warn',
+        'error',
         { maxComplexity: 12 },
       ],
       '@angular-eslint/template/prefer-control-flow': 'error',
@@ -356,14 +313,9 @@ export default defineConfig(
     },
   },
 
-  // The dependency law, enforced rather than documented.
-  ...zoneLaws({ app: APP, zones: ZONES, groups: GROUPS }),
+  ...zoneLaws({ zones: ZONES, groups: GROUPS }),
 
   {
-    // Only the manager reads the state and only the updater writes it; the
-    // rest of the application talks to the manager. The base rule is used
-    // on purpose: the zone laws own `@typescript-eslint/no-restricted-imports`,
-    // and a second block on the same rule would replace them, not add to them.
     files: [`${APP}/**/*.ts`],
     ignores: [`${APP}/**/states/**`],
     rules: {
@@ -383,9 +335,6 @@ export default defineConfig(
   },
 
   {
-    // The prerender runs with no window: a direct browser global either
-    // throws at build time or ships a page that was rendered wrong. This
-    // service is the only door, and is inert on the server.
     files: [`${APP}/**/*.ts`],
     ignores: [
       `${APP}/**/*.spec.ts`,
@@ -421,6 +370,5 @@ export default defineConfig(
     },
   },
 
-  // Last: switches off every rule Prettier already decides.
   prettier,
 );

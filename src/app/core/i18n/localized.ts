@@ -43,10 +43,12 @@ function resolveAny(value: unknown, lang: Lang): unknown {
   if (value === null || typeof value !== 'object') {
     return value;
   }
-  if (isLocalized(value)) {
-    return value[lang];
-  }
-  return Object.fromEntries(
-    Object.entries(value).map(([key, each]) => [key, resolveAny(each, lang)]),
-  );
+  return isLocalized(value)
+    ? value[lang]
+    : Object.fromEntries(
+        Object.entries(value).map(([key, each]) => [
+          key,
+          resolveAny(each, lang),
+        ]),
+      );
 }

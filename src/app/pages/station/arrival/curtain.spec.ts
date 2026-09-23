@@ -3,18 +3,18 @@ import { provideStatewise } from 'ngx-statewise';
 import { StationManager } from '@app/features/station/states';
 import { Curtain } from './curtain';
 
+const setUp = () => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+  TestBed.configureTestingModule({
+    providers: [provideStatewise(), Curtain],
+  });
+  const station = TestBed.inject(StationManager);
+  station.syncRoute('home');
+  return { station, curtain: TestBed.inject(Curtain) };
+};
+
 describe('Curtain', () => {
   const SLUGS = ['a', 'b', 'c'];
-
-  const setUp = () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    TestBed.configureTestingModule({
-      providers: [provideStatewise(), Curtain],
-    });
-    const station = TestBed.inject(StationManager);
-    station.syncRoute('home');
-    return { station, curtain: TestBed.inject(Curtain) };
-  };
 
   afterEach(() => {
     TestBed.resetTestingModule();

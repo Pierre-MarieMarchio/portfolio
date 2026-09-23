@@ -8,7 +8,6 @@ import {
   injectStatewise,
   provideStatewise,
 } from 'ngx-statewise';
-import { appConfig } from '../../app.config';
 import { AppErrorHandler } from './app-error-handler';
 
 const promised = defineSingleAction('PROMISED', emptyPayload);
@@ -24,10 +23,12 @@ const promisedUpdater = defineUpdater(PromisedState, (on) => {
   });
 });
 
+const giveNoAnswer = (): void => {};
+
 /** An effect that promised an answer and gives none. */
 @Injectable({ providedIn: 'root' })
 class SilentEffect {
-  public readonly promisedEffect = createEffect(promised, () => undefined, {
+  public readonly promisedEffect = createEffect(promised, giveNoAnswer, {
     mustAnswer: true,
   });
 }
@@ -44,12 +45,6 @@ describe('AppErrorHandler', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it('is the handler the composition root provides', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
-
-    expect(TestBed.inject(ErrorHandler)).toBeInstanceOf(AppErrorHandler);
   });
 
   it('logs what it is handed, in every build', () => {

@@ -11,6 +11,8 @@ export const SITE_NAME = 'Pierre-Marie Marchio';
  */
 export const SITE_URL = 'https://pierre-mariemarchio.github.io/portfolio';
 
+const absoluteUrl = (path: string): string => `${SITE_URL}${path}`;
+
 /** The locale each language is shared in, for the share card. */
 const OG_LOCALES: Readonly<Record<Lang, string>> = {
   fr: 'fr_FR',
@@ -103,21 +105,26 @@ export class PageHead {
     }
     const add = (attributes: Readonly<Record<string, string>>): void => {
       const element = this.document.createElement('link');
-      Object.entries(attributes).forEach(([name, value]) => {
+      for (const [name, value] of Object.entries({
+        ...attributes,
+        'data-page-head': '',
+      })) {
         element.setAttribute(name, value);
-      });
-      element.setAttribute('data-page-head', '');
-      head.appendChild(element);
+      }
+      head.insertBefore(element, null);
     };
-    const url = (path: string): string => `${SITE_URL}${path}`;
-    add({ rel: 'canonical', href: url(alternates[lang]) });
+    add({ rel: 'canonical', href: absoluteUrl(alternates[lang]) });
     for (const lang of LANGS) {
-      add({ rel: 'alternate', hreflang: lang, href: url(alternates[lang]) });
+      add({
+        rel: 'alternate',
+        hreflang: lang,
+        href: absoluteUrl(alternates[lang]),
+      });
     }
     add({
       rel: 'alternate',
       hreflang: 'x-default',
-      href: url(alternates[DEFAULT_LANG]),
+      href: absoluteUrl(alternates[DEFAULT_LANG]),
     });
   }
 }

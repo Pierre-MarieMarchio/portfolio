@@ -111,7 +111,7 @@ export class OrbitRuleComponent {
 
   constructor() {
     const browser = inject(BrowserEnvironment);
-    let stop: () => void = () => undefined;
+    let stop: (() => void) | undefined;
     afterNextRender(() => {
       const track = this.track().nativeElement;
       const measure = (): void => {
@@ -121,7 +121,7 @@ export class OrbitRuleComponent {
       stop = browser.observeResize(track, measure);
     });
     inject(DestroyRef).onDestroy(() => {
-      stop();
+      stop?.();
     });
   }
 

@@ -6,7 +6,7 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { BrowserWindowService } from '@app/core/services';
 
 const VISIBLE_SIDEWAYS = 150;
 const EDGE_LEFT = 16;
@@ -28,7 +28,7 @@ const isOnControl = (event: Event): boolean =>
 
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly browserWindow = inject(BrowserWindowService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -68,11 +68,11 @@ export class DraggableDirective {
     };
     handle.style.cursor = 'grabbing';
     this.releaseDrag = [
-      this.browser.listen('pointermove', (move) => this.drag(move), {
+      this.browserWindow.on('pointermove', (move) => this.drag(move), {
         passive: false,
       }),
-      this.browser.listen('pointerup', () => this.release()),
-      this.browser.listen('pointercancel', () => this.release()),
+      this.browserWindow.on('pointerup', () => this.release()),
+      this.browserWindow.on('pointercancel', () => this.release()),
       () => {
         handle.style.cursor = '';
       },
@@ -81,7 +81,7 @@ export class DraggableDirective {
 
   private drag(event: PointerEvent): void {
     const grip = this.grip;
-    const viewport = this.browser.viewport();
+    const viewport = this.browserWindow.size();
     if (!grip || !viewport) {
       return;
     }

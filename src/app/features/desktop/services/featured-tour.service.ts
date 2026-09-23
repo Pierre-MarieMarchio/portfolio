@@ -1,4 +1,5 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
+import { ClockService } from '@app/core/services';
 import { DesktopManager } from '@app/features/desktop/states';
 
 /** After the rest has arrived, the curtain waits this long before it plays. */
@@ -19,21 +20,22 @@ const CURTAIN_STEP_MS = 900;
 @Injectable()
 export class FeaturedTourService {
   private readonly station = inject(DesktopManager);
-  private timer: ReturnType<typeof setTimeout> | undefined;
+  private readonly clock = inject(ClockService);
+  private cancelStep: () => void = () => {};
   private takenOver = false;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
-      clearTimeout(this.timer);
+      this.cancelStep();
     });
   }
 
   /** Plays through `slugs`, read at each step, from the first. */
   public play(slugs: () => readonly string[]): void {
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => {
+    this.cancelStep();
+    this.cancelStep = this.clock.after(CURTAIN_DELAY_MS, () => {
       this.step(slugs, 0);
-    }, CURTAIN_DELAY_MS);
+    });
   }
 
   /** The reader pointed at something: the curtain stops for good. */
@@ -52,9 +54,9 @@ export class FeaturedTourService {
     const slug = slugs()[index];
     this.station.hover(slug ?? null);
     if (slug !== undefined) {
-      this.timer = setTimeout(() => {
+      this.cancelStep = this.clock.after(CURTAIN_STEP_MS, () => {
         this.step(slugs, index + 1);
-      }, CURTAIN_STEP_MS);
+      });
     }
   }
 }

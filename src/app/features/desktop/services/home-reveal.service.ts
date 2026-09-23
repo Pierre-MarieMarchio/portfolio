@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { DocumentStylesService, UserPresenceService } from '@app/core/services';
 import { Entrance } from '@shared/ui/models';
 
 /**
@@ -13,7 +13,8 @@ import { Entrance } from '@shared/ui/models';
  */
 @Injectable()
 export class HomeRevealService {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly styles = inject(DocumentStylesService);
+  private readonly presence = inject(UserPresenceService);
   private readonly state = signal<Entrance>('timed');
   private cancel: () => void = () => {};
   private onArrived: () => void = () => {};
@@ -34,16 +35,20 @@ export class HomeRevealService {
    * runs when a held rest is let in, never when it was shown at once.
    */
   public start(isOnHome: boolean, onArrived: () => void): void {
-    const crossing = this.browser.rootDuration('--arrival-at');
-    if (!isOnHome || this.browser.prefersReducedMotion() || crossing === null) {
+    if (!isOnHome) {
       this.state.set('shown');
       return;
     }
-    this.onArrived = onArrived;
     this.state.set('held');
-    this.cancel = this.browser.firstGesture(crossing, () => {
-      this.arrive();
-    });
+    this.cancel = this.presence.whenPresent(
+      this.styles.duration('--arrival-at'),
+      () => {
+        this.arrive();
+      },
+    );
+    if (this.state() === 'held') {
+      this.onArrived = onArrived;
+    }
   }
 
   /** Lets a held rest in now: leaving the home page is a sign of presence. */

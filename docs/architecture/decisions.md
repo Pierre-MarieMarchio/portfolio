@@ -220,9 +220,10 @@ prix : la règle les garde en avertissement pour ces fichiers seulement.
 
 ## 2026-09-23 — Les fichiers gardent leur suffixe (D7)
 
-**Décision.** Les fichiers et les classes gardent leur suffixe de rôle :
-`window.component.ts` / `WindowComponent`, `page-head.service.ts`,
-`*.directive.ts`, `*.resolver.ts`, `*.provider.ts`. `angular.json` fixe `type`
+**Décision.** Les fichiers et les classes gardent leur suffixe de rôle, les
+services compris : `window.component.ts` / `WindowComponent`,
+`clock.service.ts` / `ClockService`. La liste des suffixes est fermée
+(`organisation.md` §3). `angular.json` fixe `type`
 pour chaque schematic, afin que `ng generate` produise la même forme.
 
 **Raison.** Le suffixe dit le rôle avant d'ouvrir le fichier, et une recherche
@@ -239,7 +240,7 @@ l'écran, les `*.provider.ts` qui joignent deux features et les
 de profil (fenêtre « à propos », liens de contact) dans une feature
 `profile`, les composants de l'écran dans `features/desktop`, ce qui n'a
 aucun métier (pile des fenêtres, bas de l'en-tête, arrivée) dans `shared/ui`.
-Le tableau des destinations est dans `docs/audit/phase-3.md`.
+Les destinations sont dans `docs/architecture/organisation.md`.
 
 **Raison.** La référence définit `pages/` comme la couche de composition ;
 dix-sept fichiers y avaient glissé sans qu'aucune règle ne le voie.
@@ -306,8 +307,59 @@ le seul qu'on ne peut pas lire sans la maquette.
 **Décision.** Un nom se comprend sans avoir lu la maquette. La feature et la
 page `station` deviennent `desktop` (l'écran se comporte comme un bureau à
 fenêtres), le composant `object` devient `space-scene` (la scène spatiale en
-canvas), `shared/ui/object-marks` devient `shared/ui/scene-anchors`. Les
+canvas), `shared/ui/object-marks` devient `shared/ui/layout-anchors` : dans
+`shared/ui`, un nom ne connaît pas son lecteur. Le vocabulaire des ancres,
+partagé par la barre des vedettes et la scène, est un type de
+`features/common/scene-anchors`. Les
 autres noms du même genre sont revus avec le même critère.
 
 **Raison.** « la station » et « l'objet » sont des mots de la maquette ; un
 lecteur du code n'a aucun moyen de les deviner.
+
+## 2026-09-23 — Une nomenclature précise et modulaire (D13)
+
+**Décision.** `docs/architecture/organisation.md` fait foi pour
+l'arborescence. Chaque unité y est conçue depuis son but, sa responsabilité,
+son contrat et son rôle, puis reçoit sa forme, son nom et son dossier. Un
+fichier porte un suffixe d'une liste fermée, un dossier porte le nom d'un
+concept et n'accepte que ses suffixes, aucun dossier fourre-tout, au plus
+8 fichiers source par dossier. `scripts/check-structure.mjs` le vérifie dans
+`npm run check`.
+
+**Raison.** Un fichier générique finit n'importe où, et un dossier de
+cinquante fichiers ne se lit pas : le moteur en avait treize à plat. Une
+règle vérifiée ne s'érode pas.
+
+**Écarté.** Ranger par type de fichier (`services/`, `utils/`) ; une règle
+écrite sans script.
+
+## 2026-09-23 — L'état du bureau se découpe selon ses actions (D14)
+
+**Décision.** Un état est un ensemble de signaux qu'aucune action ne
+traverse. Le bureau a deux états : `desktop` (la vue, la fiche, le chapitre,
+les fenêtres, la sélection, le survol, le filtre) et `animation` (la pause).
+
+**Raison.** Arriver sur une vue change à la fois la vue, l'aperçu selon les
+épingles et le survol. Découpés par concept nommé, ces signaux obligeraient
+une règle métier à se disperser en chaînes d'effets entre managers.
+
+**Écarté.** Un état par concept (`location`, `windows`, `selection`).
+
+## 2026-09-23 — La vue se déclare dans un resolver, la langue se dérive du routeur
+
+**Décision.** Un resolver synchrone de `pages/` déclare la vue du bureau avant
+l'activation ; un seul composant de route, vide, sert toutes les vues. La
+langue se dérive de `Router.lastSuccessfulNavigation` ; la garde ne fait que
+charger le catalogue ; les têtes de page lisent le catalogue de la langue
+visée. Amende D3 et l'entrée « Les fenêtres vivent à la station » (les
+marqueurs déclaraient la vue dans leur constructeur).
+
+**Raison.** Un seul point d'écriture de la vue, avant tout rendu ; une seule
+source de la langue.
+
+**Écarté.** Garder deux composants marqueurs, dont un effet pour passer d'une
+fiche à l'autre ; dériver la langue de la navigation en cours (le catalogue
+serait lu avant d'être chargé).
+
+**À revoir** si une navigation annulée laisse le bureau sur une vue que
+l'adresse ne montre pas.

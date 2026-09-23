@@ -28,6 +28,16 @@ import { ObjectBody, ObjectView } from './object.model';
 const DENSITY = 3800;
 
 /**
+ * The most device pixels a canvas may hold. The crossing's cost follows the
+ * pixels drawn and the stars, whose number follows them too: past about
+ * five million pixels a canvas, a 4K screen at 200% fell to under ten frames
+ * a second during the run. 4.2 million keeps a 1080p screen at 150% and a
+ * 13-inch retina screen at full sharpness; beyond, the ratio gives way, and
+ * dust drawn in 2.5 px squares loses nothing to it.
+ */
+const PIXEL_BUDGET = 4_200_000;
+
+/**
  * The object: a black hole in two `<canvas>` layers (the sky behind, the
  * matter in front) with the projects in orbit, and a `<button>` per planet
  * so that no information lives in the canvas only.
@@ -298,16 +308,21 @@ export class ObjectComponent {
     this.running.set(true);
   }
 
-  /** Canvas size in device pixels, the ratio capped at 2. */
+  /** Canvas size in device pixels, the ratio capped at 2 and by the budget. */
   private resize(): void {
     const engine = this.engine;
     if (!engine) {
       return;
     }
-    const dpr = Math.min(2, this.browser.devicePixelRatio());
     const matter = this.matter().nativeElement;
     const sky = this.sky().nativeElement;
     const rect = matter.getBoundingClientRect();
+    const area = Math.max(1, rect.width * rect.height);
+    const dpr = Math.min(
+      2,
+      this.browser.devicePixelRatio(),
+      Math.sqrt(PIXEL_BUDGET / area),
+    );
     const width = Math.max(1, Math.round(rect.width * dpr));
     const height = Math.max(1, Math.round(rect.height * dpr));
     for (const canvas of [matter, sky]) {

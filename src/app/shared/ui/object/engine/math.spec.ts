@@ -1,7 +1,7 @@
 import {
   gaussian,
   halfLifeStep,
-  isLit,
+  litAmount,
   nearestTurn,
   onCurrentTurn,
   orbitRank,
@@ -65,9 +65,21 @@ describe('object math', () => {
     });
   });
 
-  describe('isLit (deterministic draw)', () => {
+  describe('litAmount (deterministic draw)', () => {
     const litAt = (share: number): number[] =>
-      Array.from({ length: 5000 }, (_, i) => i).filter((i) => isLit(i, share));
+      Array.from({ length: 5000 }, (_, i) => i).filter(
+        (i) => litAmount(i, share) > 0,
+      );
+
+    it('fades a point in as the share rises past it, never switching it on', () => {
+      const index = 7;
+      const key = (index * 7919) % 1000;
+      const at = (share: number): number => litAmount(index, share);
+      expect(at(key / 1000)).toBe(0);
+      expect(at((key + 10) / 1000)).toBeCloseTo(0.5, 5);
+      expect(at((key + 20) / 1000)).toBe(1);
+      expect(at(1)).toBe(1);
+    });
 
     it('lights the same points every time', () => {
       expect(litAt(0.4)).toEqual(litAt(0.4));

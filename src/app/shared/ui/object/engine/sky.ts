@@ -1,4 +1,4 @@
-import { clamp, TAU } from './math';
+import { clamp, smoothstep, TAU } from './math';
 import { Traveling } from './traveling';
 
 interface Star {
@@ -15,10 +15,23 @@ interface Star {
   /** Last drawn position, `NaN` when there is none to trail from. */
   px: number;
   py: number;
-  /** Smoothed displacement, for the trail. */
+  /** Smoothed velocity, in device pixels per second, for the trail. */
   sdx: number;
   sdy: number;
+  /** When the star was last recycled near the centre; it fades in from there. */
+  born: number;
 }
+
+/**
+ * A trail is as long as the path its star travels in this time: nine frames
+ * at 60 Hz, the mockup's stretch, but in seconds, so that a frame that comes
+ * late neither lengthens the trails nor jolts them.
+ */
+const TRAIL_SECONDS = 9 / 60;
+/** Around this speed a star starts to trail: 0.45 px a frame at 60 Hz. */
+const TRAIL_FROM = 0.45 * 60;
+/** A recycled star fades in over this, rather than popping up. */
+const REBORN_SECONDS = 0.4;
 
 /** What the sky needs of the camera, read once per frame. */
 export interface SkyCamera {
@@ -59,6 +72,7 @@ export class Sky {
   private builtH = 0;
   private flattened = false;
   private previousTime = 0;
+  private warmed = false;
 
   constructor(private readonly rnd: () => number) {}
 
@@ -75,6 +89,10 @@ export class Sky {
     ctx.clearRect(0, 0, w, h);
     if (this.builtW !== w || this.builtH !== h) {
       this.build(w, h, cam.dpr);
+    }
+    if (!this.warmed) {
+      this.warmed = true;
+      this.warm(ctx, cam);
     }
     const { trv, dpr } = cam;
     const time = cam.time;
@@ -105,18 +123,36 @@ export class Sky {
     const tt = cam.reduced ? 99 : time;
     const u = clamp((tt - 3.5) / 4.4, 0, 1);
     const speed = 6 * u * (1 - u) * (1 - u);
-    const voyaging = u > 0.0001 && u < 0.999;
+    // The trails come and go with the run instead of switching on and off:
+    // cut at its end, a trail still long from the camera's motion vanished
+    // in one frame.
+    const voyage = clamp(u / 0.04, 0, 1) * clamp((1 - u) / 0.12, 0, 1);
     const dtc = clamp(time - this.previousTime, 0, 0.08);
     this.previousTime = time;
+    // Velocity smoothing as a rate: the same lag whatever the frame rate.
+    const smooth = dtc > 0 ? 1 - Math.pow(0.55, dtc * 60) : 0;
+    const drift = cam.reduced ? 0 : time * 0.34;
+    const depthOf = (star: Star): number =>
+      0.32 + 0.68 * Math.min(1, star.r / (2.4 * dpr));
+    const slideX = (depth: number): number =>
+      (-az * 0.3 - panX * 0.55) * w * depth;
+    const slideY = (depth: number): number =>
+      ((ev - 0.18) * 0.85 - panY * 0.55) * h * depth;
     // At the end of the run the field is flattened once and for all: the
     // radial spread is not reversible, and without this the sky would stay
     // empty for the whole visit.
+    // The spread applies to the star's DRAWN base, drift and slide included:
+    // folded into its position alone, every spread star jumped by its slide
+    // times its spread at the end of the run.
     if (!this.flattened && u >= 1 && speed <= 0) {
       this.flattened = true;
       for (const star of this.stars) {
         if (star.ray > 1.0005) {
-          star.x = cx0 + (star.x - cx0) * star.ray;
-          star.y = cy0 + (star.y - cy0) * star.ray;
+          const depth = depthOf(star);
+          const ox = star.vx * drift + slideX(depth);
+          const oy = star.vy * drift + slideY(depth);
+          star.x = cx0 + (star.x + ox - cx0) * star.ray - ox;
+          star.y = cy0 + (star.y + oy - cy0) * star.ray - oy;
         }
         star.ray = 1;
         star.px = Number.NaN;
@@ -132,10 +168,7 @@ export class Sky {
       const twinkle = cam.reduced
         ? 1
         : 0.72 + 0.28 * Math.sin(time * 0.26 + star.ph);
-      const drift = cam.reduced ? 0 : time * 0.34;
-      const depth = 0.32 + 0.68 * Math.min(1, star.r / (2.4 * dpr));
-      const slideX = (-az * 0.3 - panX * 0.55) * w * depth;
-      const slideY = ((ev - 0.18) * 0.85 - panY * 0.55) * h * depth;
+      const depth = depthOf(star);
       const k = 1 + (scale - 1) * 0.72 * depth;
       // RADIAL FLOW. The star leaves the vanishing point, faster and faster,
       // and never comes back. One that leaves the frame is RECYCLED near
@@ -144,8 +177,8 @@ export class Sky {
       if (speed > 0.0001) {
         star.ray *= 1 + dtc * speed * (0.55 + 1.25 * depth) * 1.7;
       }
-      const bx = (star.x + star.vx * drift + slideX - cx0) * k + cx0;
-      const by = (star.y + star.vy * drift + slideY - cy0) * k + cy0;
+      const bx = (star.x + star.vx * drift + slideX(depth) - cx0) * k + cx0;
+      const by = (star.y + star.vy * drift + slideY(depth) - cy0) * k + cy0;
       let x: number;
       let y: number;
       if (star.ray > 1.0005) {
@@ -164,6 +197,7 @@ export class Sky {
           star.py = Number.NaN;
           star.sdx = 0;
           star.sdy = 0;
+          star.born = time;
           continue;
         }
       } else {
@@ -194,42 +228,52 @@ export class Sky {
           near = 1 + 1.15 * Math.pow(1 - d / reach, 1.8);
         }
       }
-      // The trail is the displacement really travelled since the last
-      // frame, stretched: it cannot point where the star did not go. A
-      // wrap jump is not a displacement and leaves no trace.
-      let tdx = Number.isNaN(star.px) ? 0 : x - star.px;
-      let tdy = Number.isNaN(star.py) ? 0 : y - star.py;
+      // The trail is the velocity really travelled since the last frame,
+      // stretched: it cannot point where the star did not go. A wrap jump
+      // is not a displacement and leaves no trace.
+      if (dtc > 0) {
+        let tdx = Number.isNaN(star.px) ? 0 : x - star.px;
+        let tdy = Number.isNaN(star.py) ? 0 : y - star.py;
+        if (Math.abs(tdx) > w / 2 || Math.abs(tdy) > h / 2) {
+          tdx = 0;
+          tdy = 0;
+        }
+        // Smoothed, so the trail's length does not jitter frame to frame.
+        star.sdx += (tdx / dtc - star.sdx) * smooth;
+        star.sdy += (tdy / dtc - star.sdy) * smooth;
+      }
       star.px = x;
       star.py = y;
-      if (Math.abs(tdx) > w / 2 || Math.abs(tdy) > h / 2) {
-        tdx = 0;
-        tdy = 0;
-      }
-      // Smoothed, so the trail's length does not jitter frame to frame.
-      star.sdx = star.sdx * 0.55 + tdx * 0.45;
-      star.sdy = star.sdy * 0.55 + tdy * 0.45;
-      const step = Math.sqrt(star.sdx * star.sdx + star.sdy * star.sdy);
+      const reborn = clamp((time - star.born) / REBORN_SECONDS, 0, 1);
+      near *= reborn;
+      const velocity = Math.sqrt(star.sdx * star.sdx + star.sdy * star.sdy);
+      // A star near the threshold no longer flips between a dot and a
+      // trail from one frame to the next: the two cross-fade around it,
+      // from 0.6 to 1.4 times the threshold.
+      const trailing =
+        voyage *
+        smoothstep(clamp((velocity / (TRAIL_FROM * dpr) - 0.6) / 0.8, 0, 1));
       const color = star.accent ? cam.accent : cam.ink;
-      if (voyaging && step > 0.45 * dpr) {
-        const qx = x - star.sdx * 9;
-        const qy = y - star.sdy * 9;
-        // The trail fades towards its tail: a trace, not a stick.
-        const gradient = ctx.createLinearGradient(x, y, qx, qy);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(0.45, color);
-        gradient.addColorStop(1, 'transparent');
-        ctx.globalAlpha = Math.min(
-          0.8,
-          (0.06 + star.a) * twinkle * near * (0.7 + 1.5 * speed),
+      if (trailing > 0.004) {
+        const qx = x - star.sdx * TRAIL_SECONDS;
+        const qy = y - star.sdy * TRAIL_SECONDS;
+        this.strokeTrail(
+          ctx,
+          x,
+          y,
+          qx,
+          qy,
+          color,
+          Math.min(
+            0.8,
+            (0.06 + star.a) * twinkle * near * (0.7 + 1.5 * speed),
+          ) * trailing,
+          Math.max(0.7, r * 0.8),
         );
-        ctx.strokeStyle = gradient;
-        ctx.lineCap = 'round';
-        ctx.lineWidth = Math.max(0.7, r * 0.8);
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(qx, qy);
-        ctx.stroke();
-        continue;
+        if (trailing >= 0.996) {
+          continue;
+        }
+        near *= 1 - trailing;
       }
       // THE CURSOR'S GRAVITATIONAL LENS. The cursor is a mass: it deflects
       // the light passing near it, in 1/d, and the flux is conserved, so
@@ -266,6 +310,55 @@ export class Sky {
       );
     }
     return { panX, panY };
+  }
+
+  /**
+   * Draws every star's trail once, nobody seeing it, on the first frame,
+   * under the title card. The GPU compiles a program the first time it
+   * draws each kind of stroke: done when the run set off, it held the first
+   * frames of the trails 40 to 360 ms. The same strokes as the run's, same
+   * widths, same path through `strokeTrail`, so none is left to compile.
+   */
+  private warm(ctx: CanvasRenderingContext2D, cam: SkyCamera): void {
+    for (const star of this.stars) {
+      const r = star.r;
+      this.strokeTrail(
+        ctx,
+        star.x,
+        star.y,
+        star.x - 12 * cam.dpr,
+        star.y - 5 * cam.dpr,
+        star.accent ? cam.accent : cam.ink,
+        0.004,
+        Math.max(0.7, r * 0.8),
+      );
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /** A trail that fades towards its tail: a trace, not a stick. */
+  private strokeTrail(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    qx: number,
+    qy: number,
+    color: string,
+    alpha: number,
+    width: number,
+  ): void {
+    const gradient = ctx.createLinearGradient(x, y, qx, qy);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(0.45, color);
+    gradient.addColorStop(1, 'transparent');
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = gradient;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(qx, qy);
+    ctx.stroke();
   }
 
   private build(w: number, h: number, dpr: number): void {
@@ -311,6 +404,7 @@ export class Sky {
         py: Number.NaN,
         sdx: 0,
         sdy: 0,
+        born: Number.NEGATIVE_INFINITY,
       });
     }
     this.stars = stars;

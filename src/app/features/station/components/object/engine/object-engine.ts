@@ -11,7 +11,7 @@ import {
   referenceRadius,
   sheetFrame,
 } from './camera';
-import { drawComets } from './comets';
+import { COMETS, drawComets } from './comets';
 import { CONSTELLATIONS, drawConstellations } from './constellations';
 import {
   clamp,
@@ -284,6 +284,11 @@ export class ObjectEngine {
       this.entry = inputs.reduced ? 1 : 0;
       this.openT = inputs.preview >= 0 ? 1 : 0;
       this.started = true;
+    } else if (previous.reduced && !inputs.reduced) {
+      // Motion switched back on: the crossing was already skipped, it is not
+      // replayed from the start. Its clock stood still at 0 meanwhile, which
+      // drew the object as a point.
+      this.time = Math.max(this.time, TRAVELING_END);
     }
     this.request();
   }
@@ -460,6 +465,18 @@ export class ObjectEngine {
     return { angle: Math.atan2(y, x), radius: Math.hypot(x, y) };
   }
 
+  /** The orbits fitted to the room: see `fitOrbits`. */
+  private fitOrbits(): void {
+    fitOrbits(
+      this.orbits,
+      this.w,
+      this.h,
+      this.home,
+      this.measure?.freeHalf ?? null,
+      this.dpr,
+    );
+  }
+
   /** Draws once more, and runs the loop if it rested. */
   public request(): void {
     this.needsDraw = true;
@@ -512,6 +529,10 @@ export class ObjectEngine {
     if (this.entry < 1) {
       this.entry = Math.min(1, this.entry + dt / (reduced ? 0.001 : 6.2));
     }
+    // Fitted before the camera reads them: its aim, the sheet's and the
+    // preview's frames and the hand's share of a turn all read the orbits'
+    // radii, which used to be the last frame's (1.6 at the first).
+    this.fitOrbits();
     let target = this.target();
     if (!isFiniteFrame(target)) {
       target = this.home;
@@ -710,11 +731,12 @@ export class ObjectEngine {
     const elev = this.home.ev;
     const p = positionOrbit(orbit, this.phase, elev, az, { x: 0, y: 0, z: 0 });
     return rollFlatten(
-      p.x,
-      p.y,
-      flattening(elev),
-      Math.cos(this.home.i),
-      Math.sin(this.home.i),
+      p,
+      {
+        flatten: flattening(elev),
+        cr: Math.cos(this.home.i),
+        sr: Math.sin(this.home.i),
+      },
       { nx: 0, ny: 0 },
     );
   }
@@ -739,6 +761,7 @@ export class ObjectEngine {
   }
 
   private draw(): void {
+    this.fitOrbits();
     const ctx = this.ctx;
     const w = this.w;
     const h = this.h;
@@ -999,7 +1022,7 @@ export class ObjectEngine {
         accent,
         entry: e,
         shown: about,
-        part: clamp(inputs.part, 0, 3),
+        part: clamp(inputs.part, 0, COMETS.length - 1),
         labels: inputs.partLabels,
         veil,
       });
@@ -1077,8 +1100,8 @@ export class ObjectEngine {
 
     // Positions first, drawing next: in between, a repulsion pass
     // guarantees a minimal on-screen gap.
-    fitOrbits(orbits, w, h, this.home, this.measure?.freeHalf ?? null, dpr);
     const rolled = this.rolledScratch;
+    const plane = { flatten, cr, sr };
     const planets: PlanetOnScreen[] = orbits.map((orbit, i) => {
       const pos = positionOrbit(
         orbit,
@@ -1087,7 +1110,7 @@ export class ObjectEngine {
         azim + this.orbitTurn(i),
         this.scratch,
       );
-      const { nx, ny } = rollFlatten(pos.x, pos.y, flatten, cr, sr, rolled);
+      const { nx, ny } = rollFlatten(pos, plane, rolled);
       // A planet passing behind the shadow is hidden by it.
       const rn = Math.sqrt(nx * nx + ny * ny);
       const fR = clamp((1.16 - rn) / 0.14, 0, 1);
@@ -1137,14 +1160,7 @@ export class ObjectEngine {
             azim + this.orbitTurn(i) + phase * orbit.v * ORBIT_RATE,
             out,
           );
-          const { nx: qx2, ny: qy2 } = rollFlatten(
-            q.x,
-            q.y,
-            flatten,
-            cr,
-            sr,
-            rolled,
-          );
+          const { nx: qx2, ny: qy2 } = rollFlatten(q, plane, rolled);
           trace.push({
             x: cx + qx2 * R,
             y: cy + qy2 * R,

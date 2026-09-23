@@ -212,17 +212,9 @@ export class Turntable {
     driven.speed += (driver.speed * DRAG_RATIO - driven.speed) * drag;
     let turning = held !== null;
     for (const rotor of [driver, driven]) {
-      if (rotor === held) {
-        continue;
+      if (rotor !== held) {
+        turning = drift(rotor, dt, rotor === driver) || turning;
       }
-      rotor.angle += rotor.speed * dt;
-      if (rotor === driver) {
-        rotor.speed *= Math.pow(0.5, dt / HAND_FRICTION);
-      }
-      if (Math.abs(rotor.speed) < 0.01) {
-        rotor.speed = 0;
-      }
-      turning ||= rotor.speed !== 0;
     }
     this.share(orbits);
     return turning;
@@ -241,6 +233,25 @@ export class Turntable {
         turn * Math.pow(this.reference / orbit.rb, 1.5);
     });
   }
+}
+
+/**
+ * A free turntable for one frame: it turns at its speed, and the driver
+ * loses it to friction. Answers whether it still turns.
+ */
+function drift(
+  rotor: { angle: number; speed: number },
+  dt: number,
+  driving: boolean,
+): boolean {
+  rotor.angle += rotor.speed * dt;
+  if (driving) {
+    rotor.speed *= Math.pow(0.5, dt / HAND_FRICTION);
+  }
+  if (Math.abs(rotor.speed) < 0.01) {
+    rotor.speed = 0;
+  }
+  return rotor.speed !== 0;
 }
 
 /** The angle to follow, or `null` too near the centre to mean anything. */

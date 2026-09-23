@@ -105,13 +105,11 @@ export const drawComets = (
   },
 ): void => {
   const { phase, elev, azim, flatten, cr, sr, cx, cy, R, dpr, accent } = args;
+  const plane = { flatten, cr, sr };
   ctx.lineCap = 'round';
   COMETS.forEach((c, i) => {
     const p = positionComet(c, phase, elev, azim);
-    const { nx: rx2, ny: ry2 } = rollFlatten(p.x, p.y, flatten, cr, sr, {
-      nx: 0,
-      ny: 0,
-    });
+    const { nx: rx2, ny: ry2 } = rollFlatten(p, plane, { nx: 0, ny: 0 });
     const sx = cx + rx2 * R;
     const sy = cy + ry2 * R;
     // Behind the shadow it goes out like everything else.
@@ -132,10 +130,7 @@ export const drawComets = (
     const ux = rx2 / d0;
     const uy = ry2 / d0;
     const ahead = positionComet(c, phase + 0.6, elev, azim);
-    const next = rollFlatten(ahead.x, ahead.y, flatten, cr, sr, {
-      nx: 0,
-      ny: 0,
-    });
+    const next = rollFlatten(ahead, plane, { nx: 0, ny: 0 });
     const vx0 = next.nx - rx2;
     const vy0 = next.ny - ry2;
     const vn0 = Math.max(0.0001, Math.sqrt(vx0 * vx0 + vy0 * vy0));

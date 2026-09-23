@@ -98,7 +98,7 @@ check` passe à chaque commit. Le nettoyage (étapes 2 à 5) passe avant les
 fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
 
 - [x] **0. `docs(audit)`** : versionner ce dossier.
-- [ ] **1. `chore(lint)`** : règles de taille et de complexité (`max-lines`,
+- [x] **1. `chore(lint)`** : règles de taille et de complexité (`max-lines`,
       `complexity`, `max-depth`), `@typescript-eslint/naming-convention`,
       `prefer-on-push`, complexité des gabarits, et stylelint pour le SCSS.
       Ces règles sont d'abord en avertissement, puis passent en erreur au fil

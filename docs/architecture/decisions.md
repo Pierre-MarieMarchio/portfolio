@@ -90,3 +90,19 @@ doublés d'une copie épinglée (deux instances, état et position perdus).
 **À revoir** si `view` gagne un second écrivain, ou si le budget initial du
 bundle est dépassé : passer alors à `@defer` avec hydratation incrémentale,
 jamais à un `@defer` simple, dont le serveur ne rend que le substitut.
+
+## 2026-09-23 — La reprise de l'audit : nettoyer, puis construire, le moteur en dernier
+
+**Décision.** Le plan de `docs/audit/README.md` se suit dans l'ordre (D1) :
+l'outillage (étape 1), puis le nettoyage sans changement de rendu (étapes 2 à
+5), puis les fonctionnalités (projets, accueil, bilingue : étapes 6 à 8), et le
+moteur canvas en dernier (étape 9). Une étape, une branche, une PR. Les règles
+de taille, de complexité et de nommage entrent en avertissement à l'étape 1,
+et chaque étape passe en erreur celles qu'elle a résolues.
+
+**Raison.** On ne traduit pas du code qu'on va refaire, et un nettoyage qui ne
+change pas le rendu se vérifie en comparant le HTML prérendu avant et après.
+
+**Écarté.** Les fonctionnalités d'abord (le bilingue sur des composants de 450
+lignes, à reprendre ensuite) ; des règles d'emblée en erreur (un `check` rouge
+pendant tout le nettoyage, ou des exceptions partout).

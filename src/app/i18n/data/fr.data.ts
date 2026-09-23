@@ -88,42 +88,14 @@ export const FR: Catalog = {
     },
   },
 
-  station: {
+  desktop: {
     object: {
       select: (number, title) =>
         `Sélectionner ${number} — ${title} dans le relevé`,
       preview: (title) => `Aperçu du projet ${title}`,
       parts: ['Profil', 'Compétences', 'Méthode', 'Parcours'],
     },
-  },
-
-  pages: {
-    heads: {
-      home: {
-        title: 'Accueil',
-        description:
-          'Portfolio de Pierre-Marie Marchio, concepteur développeur d’applications.',
-      },
-      index: {
-        title: 'Projets',
-        description: 'Les projets de Pierre-Marie Marchio.',
-      },
-      about: {
-        title: 'À propos',
-        description: 'Qui est Pierre-Marie Marchio.',
-      },
-      notFound: { title: 'Adresse inconnue' },
-      sheet: { title: 'Projet' },
-    },
-    skipLink: 'Aller au contenu',
-    navigation: { home: 'Accueil', index: 'Projets', about: 'À propos' },
-    languages: { fr: 'Français', en: 'English' },
-    contact: {
-      email: 'M’écrire à pierremariemarchio.pro@gmail.com',
-      linkedin: 'Profil LinkedIn de Pierre-Marie Marchio',
-      github: 'Dépôts GitHub de Pierre-Marie Marchio',
-    },
-    station: {
+    home: {
       void: 'Refermer et revenir à la vue d’ensemble',
       name: 'Pierre-Marie Marchio',
       trade: 'Concepteur développeur d’applications',
@@ -137,6 +109,9 @@ export const FR: Catalog = {
         `L’adresse demandée ne correspond à aucune des ${count} fiches du relevé.`,
       back: 'Tous les projets →',
     },
+  },
+
+  profile: {
     about: {
       heading: 'À propos',
       label: 'Fenêtre : à propos',
@@ -231,5 +206,32 @@ export const FR: Catalog = {
         ],
       },
     },
+    contact: {
+      email: 'M’écrire à pierremariemarchio.pro@gmail.com',
+      linkedin: 'Profil LinkedIn de Pierre-Marie Marchio',
+      github: 'Dépôts GitHub de Pierre-Marie Marchio',
+    },
+  },
+  pages: {
+    heads: {
+      home: {
+        title: 'Accueil',
+        description:
+          'Portfolio de Pierre-Marie Marchio, concepteur développeur d’applications.',
+      },
+      index: {
+        title: 'Projets',
+        description: 'Les projets de Pierre-Marie Marchio.',
+      },
+      about: {
+        title: 'À propos',
+        description: 'Qui est Pierre-Marie Marchio.',
+      },
+      notFound: { title: 'Adresse inconnue' },
+      sheet: { title: 'Projet' },
+    },
+    skipLink: 'Aller au contenu',
+    navigation: { home: 'Accueil', index: 'Projets', about: 'À propos' },
+    languages: { fr: 'Français', en: 'English' },
   },
 };

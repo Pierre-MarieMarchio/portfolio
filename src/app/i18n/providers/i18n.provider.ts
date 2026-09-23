@@ -6,6 +6,7 @@ import {
   Provider,
 } from '@angular/core';
 import { LocaleService } from '@app/core/services';
+import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ILinks, LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
@@ -36,7 +37,11 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
     },
     {
       provide: DESKTOP_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().station),
+      useFactory: () => slice((catalogs) => catalogs.current().desktop),
+    },
+    {
+      provide: PROFILE_TEXTS,
+      useFactory: () => slice((catalogs) => catalogs.current().profile),
     },
     {
       provide: PAGES_TEXTS,

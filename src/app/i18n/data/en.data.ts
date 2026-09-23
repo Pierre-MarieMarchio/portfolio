@@ -105,7 +105,7 @@ export const EN: Catalog = {
     },
   },
 
-  station: {
+  desktop: {
     object: {
       select: draft(
         (number: string, title: string) =>
@@ -119,41 +119,7 @@ export const EN: Catalog = {
         draft('Path'),
       ],
     },
-  },
-
-  pages: {
-    heads: {
-      home: {
-        title: draft('Home'),
-        description: draft(
-          'Portfolio of Pierre-Marie Marchio, application designer and developer.',
-        ),
-      },
-      index: {
-        title: draft('Projects'),
-        description: draft('The projects of Pierre-Marie Marchio.'),
-      },
-      about: {
-        title: draft('About'),
-        description: draft('Who Pierre-Marie Marchio is.'),
-      },
-      notFound: { title: draft('Unknown address') },
-      sheet: { title: draft('Project') },
-    },
-    skipLink: draft('Skip to the content'),
-    navigation: {
-      home: draft('Home'),
-      index: draft('Projects'),
-      about: draft('About'),
-    },
-    // Each language named in itself: the same in both catalogues.
-    languages: { fr: 'Français', en: 'English' },
-    contact: {
-      email: draft('Write to me at pierremariemarchio.pro@gmail.com'),
-      linkedin: draft('LinkedIn profile of Pierre-Marie Marchio'),
-      github: draft('GitHub repositories of Pierre-Marie Marchio'),
-    },
-    station: {
+    home: {
       void: draft('Close and go back to the overview'),
       name: 'Pierre-Marie Marchio',
       trade: draft('Application designer and developer'),
@@ -169,6 +135,9 @@ export const EN: Catalog = {
       ),
       back: draft('All the projects →'),
     },
+  },
+
+  profile: {
     about: {
       heading: draft('About'),
       label: draft('Window: about'),
@@ -282,5 +251,38 @@ export const EN: Catalog = {
         ],
       },
     },
+    contact: {
+      email: draft('Write to me at pierremariemarchio.pro@gmail.com'),
+      linkedin: draft('LinkedIn profile of Pierre-Marie Marchio'),
+      github: draft('GitHub repositories of Pierre-Marie Marchio'),
+    },
+  },
+  pages: {
+    heads: {
+      home: {
+        title: draft('Home'),
+        description: draft(
+          'Portfolio of Pierre-Marie Marchio, application designer and developer.',
+        ),
+      },
+      index: {
+        title: draft('Projects'),
+        description: draft('The projects of Pierre-Marie Marchio.'),
+      },
+      about: {
+        title: draft('About'),
+        description: draft('Who Pierre-Marie Marchio is.'),
+      },
+      notFound: { title: draft('Unknown address') },
+      sheet: { title: draft('Project') },
+    },
+    skipLink: draft('Skip to the content'),
+    navigation: {
+      home: draft('Home'),
+      index: draft('Projects'),
+      about: draft('About'),
+    },
+    // Each language named in itself: the same in both catalogues.
+    languages: { fr: 'Français', en: 'English' },
   },
 };

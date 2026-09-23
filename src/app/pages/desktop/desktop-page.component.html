@@ -1,0 +1,143 @@
+<!-- Over everything, once per visit; nothing waits for it. -->
+<app-intro-card />
+
+<main tabindex="-1" [id]="ids.main">
+  <section
+    class="scene"
+    appHeadBottom
+    [id]="ids.home"
+    [attr.aria-labelledby]="ids.homeTitle"
+    [attr.data-arrival]="arrival()"
+  >
+    <!--
+      First, behind everything: its sky sits under the void, its planets
+      above it. Every appPanelAnchor below is text the matter gives way to.
+    -->
+    <app-space-scene
+      #object
+      [bodies]="binding.bodies()"
+      [featured]="binding.featuredCount()"
+      [view]="binding.objectView()"
+      [focus]="binding.focusRank()"
+      [chapter]="station.chapter()"
+      [part]="station.part()"
+      [preview]="binding.previewRank()"
+      [hovered]="binding.hoveredRank()"
+      [selected]="binding.selectedRank()"
+      [paused]="station.paused()"
+      [revealed]="arrival() === 'shown'"
+      (bodyClicked)="onBodyClicked($event)"
+      (bodyHovered)="onBodyHovered($event)"
+      (spun)="onSpun()"
+    />
+
+    @if (station.canStepBack()) {
+      <button
+        type="button"
+        class="void"
+        tabindex="-1"
+        [attr.aria-label]="desktopTexts().home.void"
+        (click)="onVoid()"
+      ></button>
+    }
+
+    <app-page-bar
+      appPanelAnchor="head"
+      [items]="navigationItems()"
+      [current]="currentRoute()"
+      [languages]="languages()"
+      [arrival]="arrival()"
+    />
+
+    @if (station.view() === 'home') {
+      <app-home-title appPanelAnchor [arrival]="arrival()" />
+    }
+
+    <div class="slot slot--about" appWindowSlot="about" appPanelAnchor>
+      @if (station.showsAbout()) {
+        <app-about-window
+          [pinned]="station.pins().about"
+          [part]="station.part()"
+          (partChange)="station.choosePart($event)"
+          (pinToggled)="station.togglePin('about')"
+          (closed)="station.close('about')"
+        />
+      }
+    </div>
+
+    <div class="slot slot--index" appWindowSlot="index" appPanelAnchor>
+      @if (station.showsIndex()) {
+        <app-project-list
+          [pinned]="station.pins().index"
+          [selected]="station.selection()"
+          [visited]="station.visited()"
+          [family]="binding.family()"
+          (familyChange)="station.filter($event)"
+          (selectedChange)="station.select($event)"
+          (hoveredChange)="station.hover($event)"
+          (pinToggled)="station.togglePin('index')"
+          (closed)="station.close('index')"
+        />
+      }
+    </div>
+
+    <div class="slot slot--sheet" appWindowSlot="sheet" appPanelAnchor="sheet">
+      @if (binding.isNotFound()) {
+        <app-not-found-window
+          [total]="binding.projectCount()"
+          (closed)="station.close('sheet')"
+        />
+      } @else if (binding.sheetSlug(); as slug) {
+        <app-project-detail
+          [slug]="slug"
+          [pinned]="station.pins().sheet"
+          [chapter]="station.chapter()"
+          (chapterChange)="station.chooseChapter($event)"
+          (pinToggled)="station.togglePin('sheet')"
+          (closed)="station.close('sheet')"
+        />
+      }
+    </div>
+
+    <div
+      class="slot slot--preview"
+      appWindowSlot="preview"
+      appPanelAnchor="preview"
+      [id]="ids.previewPanel"
+    >
+      @if (station.showsPreview()) {
+        @if (station.preview(); as slug) {
+          <app-project-preview
+            [slug]="slug"
+            [pinned]="station.pins().preview"
+            (chosen)="station.openPreview($event)"
+            (pinToggled)="station.togglePin('preview')"
+            (closed)="station.close('preview')"
+          />
+        }
+      }
+    </div>
+
+    @if (showsRule()) {
+      <app-featured-bar
+        appPanelAnchor="rule"
+        [bodies]="binding.featured()"
+        [controls]="ids.previewPanel"
+        [hovered]="station.hovered()"
+        [reading]="station.reading()"
+        [arrival]="arrival()"
+        (chosen)="station.openPreview($event)"
+        (hoveredChange)="onRuleHovered($event)"
+      />
+    }
+  </section>
+</main>
+
+<app-social-links
+  appPanelAnchor
+  [links]="contactLinks()"
+  [showPause]="object.animated()"
+  [paused]="station.paused()"
+  [arrival]="arrival()"
+  (pauseToggled)="station.togglePause()"
+/>

@@ -5,6 +5,7 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Arrival } from './arrival.model';
 import { NavigationItem } from './navigation-item.model';
 
 /**
@@ -14,6 +15,9 @@ import { NavigationItem } from './navigation-item.model';
  *
  * Links, not the mockup's pressed buttons: the addresses are real paths, so
  * each entry stays crawlable, prerendered and openable in a new tab.
+ *
+ * The frame and the language rise at once; the pages wait for the home
+ * page's rest (`arrival`), as in the mockup.
  */
 @Component({
   selector: 'app-page-bar',
@@ -21,6 +25,7 @@ import { NavigationItem } from './navigation-item.model';
   templateUrl: './page-bar.component.html',
   styleUrl: './page-bar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[attr.data-arrival]': 'arrival()' },
 })
 export class PageBarComponent {
   public readonly items = input.required<readonly NavigationItem[]>();
@@ -28,6 +33,7 @@ export class PageBarComponent {
   public readonly current = input<string | null>(null);
   /** The English texts were asked for: say they do not exist yet. */
   public readonly englishAsked = input(false);
+  public readonly arrival = input<Arrival>('timed');
 
   public readonly englishRequested = output();
 }

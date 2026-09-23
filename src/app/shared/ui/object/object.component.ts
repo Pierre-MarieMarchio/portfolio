@@ -27,17 +27,6 @@ import { ObjectBody, ObjectView } from './object.model';
 /** The mockup's resting density; the reserve and the screen scale it. */
 const DENSITY = 3800;
 
-/** The home page's rest arrives by itself after this, gesture or not. */
-const REVEAL_AFTER_MS = 8700;
-
-/** The gestures that tell the reader is here: the home page's rest arrives. */
-const INTENT_EVENTS = [
-  'pointerdown',
-  'keydown',
-  'wheel',
-  'touchstart',
-] as const;
-
 /**
  * The object: a black hole in two `<canvas>` layers (the sky behind, the
  * matter in front) with the projects in orbit, and a `<button>` per planet
@@ -82,6 +71,11 @@ export class ObjectComponent {
   /** Rank of the open index row, -1 for none: its planet wears the lock. */
   public readonly selected = input(-1);
   public readonly paused = input(false);
+  /**
+   * The home page's rest has arrived: its planets and orbits rise with it.
+   * The composition decides when; reduced motion shows them at once.
+   */
+  public readonly revealed = input(false);
 
   /** A planet was clicked: the composition decides what it means. */
   public readonly bodyClicked = output<number>();
@@ -135,8 +129,6 @@ export class ObjectComponent {
   private readonly labels = viewChildren<ElementRef<HTMLElement>>('label');
 
   private engine: ObjectEngine | null = null;
-  /** The home page's rest has arrived: see `reveal`. */
-  private revealed = false;
   private readonly stops: (() => void)[] = [];
   private readonly gesture: (() => void)[] = [];
 
@@ -218,7 +210,7 @@ export class ObjectComponent {
       selected: this.selected(),
       paused: this.paused(),
       reduced: this.reduced(),
-      revealed: this.revealed || this.reduced(),
+      revealed: this.revealed() || this.reduced(),
     };
   }
 
@@ -301,34 +293,7 @@ export class ObjectComponent {
       }),
     );
     this.browser.whenFontsReady(() => this.measure());
-    this.reveal();
     this.running.set(true);
-  }
-
-  /**
-   * The home page's planets and orbits rise once the reader is there: at
-   * the first gesture, and anyway after 8.7 s, when the crossing is done.
-   * Nothing important waits on an action. Reduced motion: all there at once.
-   */
-  private reveal(): void {
-    const stops: (() => void)[] = [];
-    const done = (): void => {
-      for (const stop of stops) {
-        stop();
-      }
-      if (!this.revealed) {
-        this.revealed = true;
-        this.engine?.setInputs(untracked(() => this.snapshot()));
-      }
-    };
-    const timer = setTimeout(done, REVEAL_AFTER_MS);
-    stops.push(() => {
-      clearTimeout(timer);
-    });
-    for (const type of INTENT_EVENTS) {
-      stops.push(this.browser.listen(type, done, { passive: true }));
-    }
-    this.stops.push(...stops);
   }
 
   /** Canvas size in device pixels, the ratio capped at 2. */

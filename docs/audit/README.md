@@ -174,7 +174,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - l'anglais rédigé est marqué `draft('…')`, et un spec compte les textes
     restant à relire ;
   - consigner les écarts dans `docs/maquette/README.md`.
-- [ ] **9. `refactor(object)`**, en version limitée (rapports 01 et 05) :
+- [x] **9. `refactor(object)`**, en version limitée (rapports 01 et 05) :
   - d'abord un test « golden » : un contexte canvas enregistreur, une graine
     fixe, des instants fixes ;
   - puis `constants.ts` et `projection.ts` (dont une seule portée du curseur) ;

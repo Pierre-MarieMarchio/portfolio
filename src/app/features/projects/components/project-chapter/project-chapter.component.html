@@ -1,0 +1,42 @@
+<section class="chapter">
+  <p class="chapter-title">{{ chapter().number }} · {{ chapter().heading }}</p>
+  @for (paragraph of chapter().paragraphs; track $index) {
+    <p>{{ paragraph }}</p>
+  }
+  @if (chapter().bullets; as bullets) {
+    <ul class="bullets">
+      @for (bullet of bullets; track bullet.term) {
+        <li>
+          <span class="term">{{ bullet.term }}</span
+          ><span class="quiet"> — {{ bullet.text }}</span>
+        </li>
+      }
+    </ul>
+  }
+  @if (chapter().figure; as figure) {
+    <figure>
+      @if (figure.kind === 'flow') {
+        <div class="flow">
+          @for (step of figure.steps; track $index) {
+            @if (!$first) {
+              <span class="arrow" aria-hidden="true">→</span>
+            }
+            <span class="box">{{ step }}</span>
+          }
+          <span class="arrow" aria-hidden="true">↻</span>
+          <span class="quiet data">{{ figure.loop }}</span>
+        </div>
+      } @else {
+        <div class="layers">
+          @for (layer of figure.layers; track layer.name) {
+            <div class="layer">
+              <span class="layer-name">{{ layer.name }}</span>
+              <span class="layer-projects">{{ layer.projects }}</span>
+            </div>
+          }
+        </div>
+      }
+      <figcaption>{{ figure.caption }}</figcaption>
+    </figure>
+  }
+</section>

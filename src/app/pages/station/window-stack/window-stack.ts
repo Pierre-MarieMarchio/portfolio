@@ -6,8 +6,10 @@ export type WindowSlot = 'about' | 'index' | 'sheet' | 'preview';
 
 const SLOTS: readonly WindowSlot[] = ['about', 'index', 'sheet', 'preview'];
 
-const isSlot = (name: string | null | undefined): name is WindowSlot =>
-  SLOTS.some((slot) => slot === name);
+const SLOT_NAMES: ReadonlySet<string | undefined> = new Set(SLOTS);
+
+const isSlot = (name: string | undefined): name is WindowSlot =>
+  SLOT_NAMES.has(name);
 
 /**
  * The windows' depth: the last one touched, by the pointer or by arriving on
@@ -32,7 +34,7 @@ export class WindowStack {
       (event) => {
         const slot =
           event.target instanceof Element
-            ? event.target.closest('[data-slot]')?.getAttribute('data-slot')
+            ? event.target.closest<HTMLElement>('[data-slot]')?.dataset['slot']
             : undefined;
         if (isSlot(slot)) {
           this.bringToFront(slot);

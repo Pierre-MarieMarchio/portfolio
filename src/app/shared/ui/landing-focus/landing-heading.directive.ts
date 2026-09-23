@@ -17,12 +17,12 @@ export class LandingHeadingDirective {
   constructor() {
     const heading = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const focus = inject(LandingFocus);
-    let leave: () => void = () => undefined;
+    let leave: (() => void) | undefined;
     afterNextRender(() => {
       leave = focus.add(heading);
     });
     inject(DestroyRef).onDestroy(() => {
-      leave();
+      leave?.();
     });
   }
 }

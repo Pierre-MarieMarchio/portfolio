@@ -22,23 +22,23 @@ class Page {
   public readonly role = signal<ObjectPanelRole>('rule');
 }
 
+const mount = async () => {
+  TestBed.configureTestingModule({
+    imports: [Page],
+  });
+  const fixture = TestBed.createComponent(Page);
+  await fixture.whenStable();
+  const registry = TestBed.inject(ObjectRegistry);
+  return {
+    fixture,
+    registry,
+    host: fixture.nativeElement as HTMLElement,
+    roles: () => registry.panels().map((panel) => panel.role()),
+  };
+};
+
 /** The object reads what the templates declared, and nothing else. */
 describe('ObjectRegistry', () => {
-  const mount = async () => {
-    TestBed.configureTestingModule({
-      imports: [Page],
-    });
-    const fixture = TestBed.createComponent(Page);
-    await fixture.whenStable();
-    const registry = TestBed.inject(ObjectRegistry);
-    return {
-      fixture,
-      registry,
-      host: fixture.nativeElement as HTMLElement,
-      roles: () => registry.panels().map((panel) => panel.role()),
-    };
-  };
-
   it('signs in every declared panel, in document order, with its role', async () => {
     const { roles, registry, host } = await mount();
 
@@ -54,10 +54,8 @@ describe('ObjectRegistry', () => {
   it('keeps data-panel on the element, empty for a panel with no role', async () => {
     const { host } = await mount();
 
-    expect(host.querySelector('header')?.getAttribute('data-panel')).toBe(
-      'head',
-    );
-    expect(host.querySelector('aside')?.getAttribute('data-panel')).toBe('');
+    expect(host.querySelector('header')?.dataset['panel']).toBe('head');
+    expect(host.querySelector('aside')?.dataset['panel']).toBe('');
   });
 
   it('reads a role that changes, without signing in again', async () => {

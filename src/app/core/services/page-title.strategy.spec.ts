@@ -8,6 +8,13 @@ import { PageTitleStrategy } from './page-title.strategy';
 @Component({ template: '' })
 class Blank {}
 
+const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
+
+const title = () => TestBed.inject(Title).getTitle();
+
+const tag = (selector: string) =>
+  TestBed.inject(Meta).getTag(selector)?.content ?? null;
+
 describe('PageTitleStrategy', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -26,11 +33,6 @@ describe('PageTitleStrategy', () => {
       ],
     });
   });
-
-  const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
-  const title = () => TestBed.inject(Title).getTitle();
-  const tag = (selector: string) =>
-    TestBed.inject(Meta).getTag(selector)?.content ?? null;
 
   it('appends the site name to the route title, on the tab and the card', async () => {
     await go('/described');

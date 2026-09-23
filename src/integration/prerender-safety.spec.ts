@@ -2,6 +2,12 @@ import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { BrowserEnvironment } from '@app/core/services';
 
+const on = (platform: 'browser' | 'server') => {
+  TestBed.configureTestingModule({
+    providers: [{ provide: PLATFORM_ID, useValue: platform }],
+  });
+};
+
 /**
  * The mechanism under test: the one service that touches the browser is
  * inert while prerendering. The server platform is simulated by
@@ -10,12 +16,6 @@ import { BrowserEnvironment } from '@app/core/services';
  * would see it.
  */
 describe('prerender safety', () => {
-  const on = (platform: 'browser' | 'server') => {
-    TestBed.configureTestingModule({
-      providers: [{ provide: PLATFORM_ID, useValue: platform }],
-    });
-  };
-
   it('answers the no-motion default without asking matchMedia on the server', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
@@ -23,7 +23,7 @@ describe('prerender safety', () => {
     const environment = TestBed.inject(BrowserEnvironment);
 
     expect(environment.prefersReducedMotion()).toBe(true);
-    expect(environment.watchMedia('(min-width: 1px)', () => undefined)).toEqual(
+    expect(environment.watchMedia('(min-width: 1px)', () => {})).toEqual(
       expect.any(Function),
     );
     expect(matchMedia).not.toHaveBeenCalled();
@@ -38,10 +38,10 @@ describe('prerender safety', () => {
     const environment = TestBed.inject(BrowserEnvironment);
 
     expect(environment.viewport()).toBeNull();
-    environment.listen('resize', () => undefined)();
+    environment.listen('resize', () => {})();
     expect(addEventListener).not.toHaveBeenCalled();
     const frame = vi.spyOn(window, 'requestAnimationFrame');
-    environment.nextFrame(() => undefined)();
+    environment.nextFrame(() => {})();
     expect(frame).not.toHaveBeenCalled();
     frame.mockRestore();
 
@@ -84,9 +84,9 @@ describe('prerender safety', () => {
     expect(environment.devicePixelRatio()).toBe(1);
     expect(environment.now()).toBe(0);
     expect(environment.isHidden()).toBe(true);
-    environment.watchVisibility(() => undefined)();
-    environment.observeResize(canvas, () => undefined)();
-    environment.observeIntersection(canvas, 0.01, () => undefined)();
+    environment.watchVisibility(() => {})();
+    environment.observeResize(canvas, () => {})();
+    environment.observeIntersection(canvas, 0.01, () => {})();
     expect(environment.context2d(canvas)).toBeNull();
     expect(environment.computedStyle(canvas, 'opacity')).toBe('');
     expect(environment.rootStyle('--ink')).toBe('');
@@ -126,7 +126,7 @@ describe('prerender safety', () => {
     const canvas = document.createElement('canvas');
     const heard: boolean[] = [];
 
-    environment.observeResize(canvas, () => undefined)();
+    environment.observeResize(canvas, () => {})();
     expect(observed).toEqual([canvas]);
     expect(disconnected).toEqual(['resize']);
 

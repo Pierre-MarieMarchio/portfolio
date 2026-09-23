@@ -20,28 +20,28 @@ const LINKS: readonly ContactLink[] = [
   },
 ];
 
-describe('ContactRailComponent', () => {
-  const mount = async (
-    inputs: { showPause?: boolean; paused?: boolean } = {},
-  ) => {
-    TestBed.configureTestingModule({
-      imports: [ContactRailComponent],
-      providers: [provideTexts()],
-    });
-    const fixture = TestBed.createComponent(ContactRailComponent);
-    fixture.componentRef.setInput('links', LINKS);
-    fixture.componentRef.setInput('showPause', inputs.showPause ?? false);
-    fixture.componentRef.setInput('paused', inputs.paused ?? false);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
-    return {
-      fixture,
-      host,
-      links: () => Array.from(host.querySelectorAll('a')),
-      pause: () => host.querySelector('button'),
-    };
+const mount = async (
+  inputs: { showPause?: boolean; paused?: boolean } = {},
+) => {
+  TestBed.configureTestingModule({
+    imports: [ContactRailComponent],
+    providers: [provideTexts()],
+  });
+  const fixture = TestBed.createComponent(ContactRailComponent);
+  fixture.componentRef.setInput('links', LINKS);
+  fixture.componentRef.setInput('showPause', inputs.showPause ?? false);
+  fixture.componentRef.setInput('paused', inputs.paused ?? false);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  return {
+    fixture,
+    host,
+    links: () => [...host.querySelectorAll('a')],
+    pause: () => host.querySelector('button'),
   };
+};
 
+describe('ContactRailComponent', () => {
   it('draws one named link per address, in order, with its icon', async () => {
     const { links } = await mount();
 
@@ -57,9 +57,9 @@ describe('ContactRailComponent', () => {
       'Email',
       'GitHub',
     ]);
-    links().forEach((link) => {
+    for (const link of links()) {
       expect(link.querySelector('svg path')?.getAttribute('d')).toBeTruthy();
-    });
+    }
   });
 
   /** A profile opens beside the site; a mail address opens the mail client. */

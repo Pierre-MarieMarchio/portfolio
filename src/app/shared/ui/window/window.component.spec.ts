@@ -113,39 +113,40 @@ class HostWindowRenderCount {
   }
 }
 
+const mount = async (): Promise<{
+  fixture: ComponentFixture<WindowComponent>;
+  host: HTMLElement;
+  section: HTMLElement;
+}> => {
+  TestBed.configureTestingModule({
+    imports: [WindowComponent],
+    providers: [provideTexts()],
+  });
+
+  const fixture = TestBed.createComponent(WindowComponent);
+  fixture.componentRef.setInput('heading', 'Console');
+  const host = fixture.nativeElement as HTMLElement;
+  const section = host.querySelector('.window') as HTMLElement;
+  await fixture.whenStable();
+
+  return { fixture, host, section };
+};
+
+const titlebarButtons = (host: HTMLElement): HTMLButtonElement[] => [
+  ...host.querySelectorAll<HTMLButtonElement>('.titlebar button'),
+];
+
+/** Indexed access with `noUncheckedIndexedAccess`: fail loudly, not with `undefined`. */
+const at = <T>(items: readonly T[], index: number): T => {
+  const item = items[index];
+  if (item === undefined) {
+    throw new Error(`expected an item at index ${String(index)}, found none`);
+  }
+  return item;
+};
+
 describe('WindowComponent', () => {
   const restorers: Array<() => void> = [];
-
-  const mount = async (): Promise<{
-    fixture: ComponentFixture<WindowComponent>;
-    host: HTMLElement;
-    section: HTMLElement;
-  }> => {
-    TestBed.configureTestingModule({
-      imports: [WindowComponent],
-      providers: [provideTexts()],
-    });
-
-    const fixture = TestBed.createComponent(WindowComponent);
-    fixture.componentRef.setInput('heading', 'Console');
-    const host = fixture.nativeElement as HTMLElement;
-    const section = host.querySelector('.window') as HTMLElement;
-    await fixture.whenStable();
-
-    return { fixture, host, section };
-  };
-
-  const titlebarButtons = (host: HTMLElement): HTMLButtonElement[] =>
-    Array.from(host.querySelectorAll<HTMLButtonElement>('.titlebar button'));
-
-  /** Indexed access with `noUncheckedIndexedAccess`: fail loudly, not with `undefined`. */
-  const at = <T>(items: readonly T[], index: number): T => {
-    const item = items[index];
-    if (item === undefined) {
-      throw new Error(`expected an item at index ${String(index)}, found none`);
-    }
-    return item;
-  };
 
   afterEach(() => {
     while (restorers.length > 0) {
@@ -192,7 +193,7 @@ describe('WindowComponent', () => {
     await fixture.whenStable();
 
     const titlebar = host.querySelector('.titlebar') as HTMLElement;
-    const children = Array.from(titlebar.children);
+    const children = [...titlebar.children];
     const h2Index = children.findIndex((el) => el.tagName === 'H2');
     const metaIndex = children.findIndex((el) => el.classList.contains('meta'));
     const firstButtonIndex = children.findIndex(
@@ -359,11 +360,11 @@ describe('WindowComponent', () => {
     const buttons = titlebarButtons(host);
 
     expect(buttons).toHaveLength(3);
-    buttons.forEach((button) => {
+    for (const button of buttons) {
       expect(button.tagName).toBe('BUTTON');
       expect(button.getAttribute('type')).toBe('button');
       expect(button.getAttribute('aria-label')).toBeTruthy();
-    });
+    }
   });
 
   it('projects toolbar, default, body and footer content, in that order, below the title bar', async () => {

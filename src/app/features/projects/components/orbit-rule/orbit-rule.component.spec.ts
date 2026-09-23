@@ -6,6 +6,16 @@ import { RankedProject } from '../../models';
 import { OrbitRuleComponent } from './orbit-rule.component';
 import { provideTexts } from '@testing/texts';
 
+const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
+  ...host.querySelectorAll<HTMLButtonElement>('button'),
+];
+
+/** jsdom lays nothing out: the track answers the width it is given. */
+const widen = (width: number) =>
+  vi
+    .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+    .mockReturnValue({ width } as DOMRect);
+
 describe('OrbitRuleComponent', () => {
   /** Four bodies, each with a distinct title, short, proof and role. */
   const bodies: readonly RankedProject[] = [
@@ -42,9 +52,6 @@ describe('OrbitRuleComponent', () => {
 
     return { fixture, host: fixture.nativeElement as HTMLElement };
   };
-
-  const markerButtons = (host: HTMLElement): HTMLButtonElement[] =>
-    Array.from(host.querySelectorAll<HTMLButtonElement>('button'));
 
   afterEach(() => {
     TestBed.resetTestingModule();
@@ -148,12 +155,6 @@ describe('OrbitRuleComponent', () => {
   });
 
   describe('when the names would overlap', () => {
-    /** jsdom lays nothing out: the track answers the width it is given. */
-    const widen = (width: number) =>
-      vi
-        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-        .mockReturnValue({ width } as DOMRect);
-
     afterEach(() => {
       vi.restoreAllMocks();
     });
@@ -162,37 +163,33 @@ describe('OrbitRuleComponent', () => {
       widen(700);
       const { host } = await mount({ bodies });
 
-      expect(host.getAttribute('data-crowded')).toBe('false');
+      expect(host.dataset['crowded']).toBe('false');
     });
 
     it('gives the names way to the numbers below that', async () => {
       widen(500);
       const { host } = await mount({ bodies });
 
-      expect(host.getAttribute('data-crowded')).toBe('true');
+      expect(host.dataset['crowded']).toBe('true');
     });
 
     it('says nothing is crowded where nothing is laid out', async () => {
       const { host } = await mount({ bodies });
 
-      expect(host.getAttribute('data-crowded')).not.toBe('true');
+      expect(host.dataset['crowded']).not.toBe('true');
     });
   });
 
   it('lights only the hovered marker', async () => {
     const { host } = await mount({ bodies, hovered: 'beta' });
-    const lit = markerButtons(host).map((button) =>
-      button.getAttribute('data-lit'),
-    );
+    const lit = markerButtons(host).map((button) => button.dataset['lit']);
 
     expect(lit).toEqual(['false', 'true', 'false', 'false']);
   });
 
   it('lights no marker when nothing is hovered', async () => {
     const { host } = await mount({ bodies, hovered: null });
-    const lit = markerButtons(host).map((button) =>
-      button.getAttribute('data-lit'),
-    );
+    const lit = markerButtons(host).map((button) => button.dataset['lit']);
 
     expect(lit).toEqual(['false', 'false', 'false', 'false']);
   });
@@ -235,7 +232,7 @@ describe('OrbitRuleComponent', () => {
 
   it('links to the full index', async () => {
     const { host } = await mount({ bodies });
-    const link = Array.from(host.querySelectorAll('a')).find(
+    const link = [...host.querySelectorAll('a')].find(
       (anchor) => anchor.textContent?.trim() === 'Tous les projets →',
     );
 

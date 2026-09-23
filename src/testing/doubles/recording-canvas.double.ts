@@ -4,14 +4,14 @@ export const printed = (value: unknown): string =>
     : String(value);
 
 export const fingerprintOf = (log: readonly string[]): string => {
-  let hash = 0x811c9dc5;
+  let hash = 0x81_1c_9d_c5;
   for (const line of log) {
     for (let i = 0; i < line.length; i++) {
-      hash ^= line.charCodeAt(i);
-      hash = Math.imul(hash, 0x01000193) >>> 0;
+      hash ^= line.codePointAt(i) ?? 0;
+      hash = Math.imul(hash, 0x01_00_01_93) >>> 0;
     }
     hash ^= 10;
-    hash = Math.imul(hash, 0x01000193) >>> 0;
+    hash = Math.imul(hash, 0x01_00_01_93) >>> 0;
   }
   return hash.toString(16).padStart(8, '0');
 };
@@ -23,7 +23,7 @@ export const recordingContext = (
   const gradient = (kind: string, args: readonly unknown[]) => ({
     addColorStop: (offset: number, color: string) => {
       log.push(
-        `${name}.${kind}(${args.map(printed).join(',')}).stop(${printed(offset)},${color})`,
+        `${name}.${kind}(${args.map((arg) => printed(arg)).join(',')}).stop(${printed(offset)},${color})`,
       );
     },
   });
@@ -37,7 +37,9 @@ export const recordingContext = (
       property in object
         ? object[property]
         : (...args: unknown[]) => {
-            log.push(`${name}.${property}(${args.map(printed).join(',')})`);
+            log.push(
+              `${name}.${property}(${args.map((arg) => printed(arg)).join(',')})`,
+            );
           },
     set: (_object, property: string, value: unknown) => {
       log.push(`${name}.${property}=${printed(value)}`);

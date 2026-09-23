@@ -9,42 +9,41 @@ import { provideTexts } from '@testing/texts';
  * listener side (`addEventListener`) a no-op.
  */
 const quietMedia =
-  (matches: (query: string) => boolean) => (query: string) => ({
-    matches: matches(query),
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
+  (isMatching: (query: string) => boolean) => (query: string) => ({
+    matches: isMatching(query),
+    addEventListener: () => {},
+    removeEventListener: () => {},
   });
 
-describe('IntroCardComponent', () => {
-  const mount = async (
-    options: { platform?: string; reducedMotion?: boolean } = {},
-  ) => {
-    // jsdom has no matchMedia of its own: every mount stubs it, reduced
-    // motion aside, exactly like the other components that read it through
-    // BrowserEnvironment.
-    vi.stubGlobal(
-      'matchMedia',
-      quietMedia(
-        (query) =>
-          query === '(prefers-reduced-motion: reduce)' &&
-          !!options.reducedMotion,
-      ),
-    );
-    // The global stylesheet is not loaded here: the token the card reads
-    // its length from is set by hand, as `_tokens.scss` sets it.
-    document.documentElement.style.setProperty('--intro-duration', '5600ms');
-    TestBed.configureTestingModule({
-      imports: [IntroCardComponent],
-      providers: [
-        provideTexts(),
-        { provide: PLATFORM_ID, useValue: options.platform ?? 'browser' },
-      ],
-    });
-    const fixture = TestBed.createComponent(IntroCardComponent);
-    await fixture.whenStable();
-    return { fixture, host: fixture.nativeElement as HTMLElement };
-  };
+const mount = async (
+  options: { platform?: string; reducedMotion?: boolean } = {},
+) => {
+  // jsdom has no matchMedia of its own: every mount stubs it, reduced
+  // motion aside, exactly like the other components that read it through
+  // BrowserEnvironment.
+  vi.stubGlobal(
+    'matchMedia',
+    quietMedia(
+      (query) =>
+        query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
+    ),
+  );
+  // The global stylesheet is not loaded here: the token the card reads
+  // its length from is set by hand, as `_tokens.scss` sets it.
+  document.documentElement.style.setProperty('--intro-duration', '5600ms');
+  TestBed.configureTestingModule({
+    imports: [IntroCardComponent],
+    providers: [
+      provideTexts(),
+      { provide: PLATFORM_ID, useValue: options.platform ?? 'browser' },
+    ],
+  });
+  const fixture = TestBed.createComponent(IntroCardComponent);
+  await fixture.whenStable();
+  return { fixture, host: fixture.nativeElement as HTMLElement };
+};
 
+describe('IntroCardComponent', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--intro-duration');
     TestBed.resetTestingModule();

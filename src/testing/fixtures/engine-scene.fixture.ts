@@ -71,7 +71,7 @@ const sized = (
 };
 
 const decimalsRounded = (text: string): string =>
-  text.replace(/-?\d+\.\d+/g, (n) => Number(n).toFixed(3));
+  text.replaceAll(/(?:-|(?<![\d-]))\d+\.\d+/g, (n) => Number(n).toFixed(3));
 
 export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
   const setup = { ...DEFAULT_SETUP, ...overrides };
@@ -108,7 +108,9 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
   const lines = elements(RULE_LINES);
   const labelSize = setup.labelSize;
   if (labelSize) {
-    labels.forEach((label) => sized(label, labelSize));
+    for (const label of labels) {
+      sized(label, labelSize);
+    }
   }
   engine.setNodes(buttons, labels);
   engine.setLines(lines);

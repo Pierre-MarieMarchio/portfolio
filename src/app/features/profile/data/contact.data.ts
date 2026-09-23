@@ -21,4 +21,10 @@ export const CONTACT_ADDRESSES: readonly ContactAddress[] = [
     title: 'GitHub',
     external: true,
   },
+  {
+    href: 'Pierre-Marie-Marchio-CV.pdf',
+    icon: 'cv',
+    title: 'CV',
+    external: true,
+  },
 ];

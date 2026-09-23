@@ -51,6 +51,7 @@ export interface ProfileTexts {
     readonly email: string;
     readonly linkedin: string;
     readonly github: string;
+    readonly cv: string;
   };
 }
 

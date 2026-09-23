@@ -1,18 +1,13 @@
 /*
- * Global styles only: the mockup's tokens, fonts and element defaults, each
- * in its own partial under src/assets/styles/, and the few utilities every
- * page shares.
+ * Global styles only, each in its own partial under src/assets/styles/: the
+ * mockup's tokens, fonts and element defaults, the shared entrance, and the
+ * few utilities every page shares. What components share beyond that is a
+ * mixin (src/assets/styles/mixins/), found through the include path set in
+ * angular.json.
  */
 
 @use 'assets/styles/fonts';
 @use 'assets/styles/tokens';
 @use 'assets/styles/base';
-
-.visually-hidden:not(:focus-within, :active) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
+@use 'assets/styles/motion';
+@use 'assets/styles/utilities';

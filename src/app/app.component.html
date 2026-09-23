@@ -1,4 +1,6 @@
-<a class="skip-link visually-hidden" href="#contenu">Aller au contenu</a>
+<a class="skip-link visually-hidden" [attr.href]="'#' + mainId">{{
+  texts().skipLink
+}}</a>
 <!--
   The outlet renders markers only, and comes first: a marker declares its
   view when the outlet activates it, before the station below is checked.

@@ -32,6 +32,36 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   );
 }
 
+/**
+ * The names the code base already follows, written down so a new file follows
+ * them too: camelCase for values and members, PascalCase for types and
+ * classes, SCREAMING_CASE for module constants and injection tokens. Keys that
+ * need quotes (`'data-view'`, `'--head-bottom'`) are the DOM's names, not
+ * ours, and are left alone. A leading underscore marks a parameter that is
+ * there for its position only.
+ */
+const NAMES = [
+  { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
+  { selector: 'typeLike', format: ['PascalCase'] },
+  { selector: 'enumMember', format: ['PascalCase'] },
+  {
+    selector: 'classProperty',
+    modifiers: ['static', 'readonly'],
+    format: ['camelCase', 'UPPER_CASE'],
+  },
+  {
+    selector: 'variable',
+    modifiers: ['const'],
+    format: ['camelCase', 'UPPER_CASE'],
+  },
+  { selector: 'import', format: ['camelCase', 'PascalCase'] },
+  {
+    selector: ['objectLiteralProperty', 'typeProperty'],
+    modifiers: ['requiresQuotes'],
+    format: null,
+  },
+];
+
 const SIBLING_WHY =
   'no feature imports another feature; the need descends into features/common, or is joined in pages/';
 
@@ -83,7 +113,15 @@ const ZONES = [
  */
 /** @type {Record<string, string[]>} */
 const GROUPS = {
-  core: ['@app/core', '@app/core/**', '**/core', '**/core/**'],
+  // `**/core` would catch `@angular/core` too: a port's token needs it, even
+  // in the kernel that imports nothing of this repository.
+  core: [
+    '@app/core',
+    '@app/core/**',
+    '**/core',
+    '**/core/**',
+    '!@angular/core',
+  ],
   shared: ['@shared/**', '@app/shared/**', '**/shared/**'],
   features: ['@app/features/**', '**/features/**'],
   pages: ['@app/pages/**', '**/pages/**'],
@@ -205,11 +243,92 @@ export default defineConfig(
   },
 
   {
+    // Size, shape and names, as errors: the code obeys them, and the ground
+    // won cannot be lost. The files the audit of September 23
+    // (docs/audit/README.md) has not reached yet keep them as warnings, in
+    // the block right after, each with the step that takes it on.
+    files: ['src/**/*.ts'],
+    rules: {
+      'max-lines': [
+        'error',
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+      'max-lines-per-function': [
+        'error',
+        { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      complexity: ['error', 10],
+      'max-depth': ['error', 3],
+      'max-params': ['error', 4],
+      '@typescript-eslint/prefer-readonly': 'error',
+      '@typescript-eslint/naming-convention': ['error', ...NAMES],
+      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
+      '@angular-eslint/prefer-output-readonly': 'error',
+      '@angular-eslint/prefer-signals': 'error',
+    },
+  },
+
+  {
+    // The engine's long functions, kept by D2 (a limited refactor under a
+    // golden test, docs/architecture/decisions.md): warnings for these files
+    // only. What step 9 extracted (constants, projection, turntable, labels)
+    // is held to the errors like the rest.
+    files: [
+      `${APP}/features/station/components/object/object.component.ts`,
+      ...[
+        'object-engine',
+        'sky',
+        'scene',
+        'comets',
+        'constellations',
+        'math',
+      ].map(
+        (file) => `${APP}/features/station/components/object/engine/${file}.ts`,
+      ),
+    ],
+    rules: {
+      'max-lines': [
+        'warn',
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+      'max-lines-per-function': [
+        'warn',
+        { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      complexity: ['warn', 10],
+      'max-depth': ['warn', 3],
+      'max-params': ['warn', 4],
+    },
+  },
+
+  {
+    // The canvas engine writes its physics as the formulas do: `R` a radius,
+    // `Q` a quaternion, `M0` a mean anomaly at the epoch. Spelled out, they
+    // would read worse next to the equations they come from.
+    files: [`${APP}/features/station/components/object/engine/**/*.ts`],
+    rules: {
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: ['variable', 'parameter', 'property'],
+          filter: { regex: '^[A-Z][A-Za-z]?[0-9]?$', match: true },
+          format: null,
+        },
+        ...NAMES,
+      ],
+    },
+  },
+
+  {
     // Specs build throwaway doubles; the accessibility rule aimed at the
     // application's surface only gets in the way there.
     files: ['src/**/*.spec.ts', 'src/testing/**/*.ts'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
+      // A spec is one `describe` holding its cases: its length is the number
+      // of behaviours it pins, not a function grown too big.
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
     },
   },
 
@@ -222,6 +341,18 @@ export default defineConfig(
     rules: {
       // The template's own way of writing `any`.
       '@angular-eslint/template/no-any': 'error',
+      // A template stays a view: a branch that needs more than this belongs
+      // in a `computed` of its component.
+      '@angular-eslint/template/conditional-complexity': [
+        'warn',
+        { maxComplexity: 4 },
+      ],
+      '@angular-eslint/template/cyclomatic-complexity': [
+        'warn',
+        { maxComplexity: 12 },
+      ],
+      '@angular-eslint/template/prefer-control-flow': 'error',
+      '@angular-eslint/template/prefer-self-closing-tags': 'error',
     },
   },
 
@@ -253,13 +384,12 @@ export default defineConfig(
 
   {
     // The prerender runs with no window: a direct browser global either
-    // throws at build time or ships a page that was rendered wrong. These two
-    // services are the only doors, and are inert on the server.
+    // throws at build time or ships a page that was rendered wrong. This
+    // service is the only door, and is inert on the server.
     files: [`${APP}/**/*.ts`],
     ignores: [
       `${APP}/**/*.spec.ts`,
       `${APP}/core/services/browser-environment.service.ts`,
-      `${APP}/core/services/local-storage.service.ts`,
     ],
     rules: {
       'no-restricted-globals': [
@@ -275,7 +405,7 @@ export default defineConfig(
           'cancelAnimationFrame',
         ].map((name) => ({
           name,
-          message: `${name} is not there at prerender: go through BrowserEnvironment or LocalStorageService, and extend them if they lack it.`,
+          message: `${name} is not there at prerender: go through BrowserEnvironment, and extend it if it lacks it.`,
         })),
       ],
       'no-restricted-properties': [
@@ -284,7 +414,7 @@ export default defineConfig(
           (property) => ({
             object: 'globalThis',
             property,
-            message: `globalThis.${property} dodges the same ban: go through BrowserEnvironment or LocalStorageService.`,
+            message: `globalThis.${property} dodges the same ban: go through BrowserEnvironment.`,
           }),
         ),
       ],

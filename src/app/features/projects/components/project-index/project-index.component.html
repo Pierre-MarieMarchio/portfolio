@@ -1,6 +1,6 @@
 <app-window
-  title="Projets · le relevé"
-  label="Fenêtre : relevé des projets"
+  [heading]="texts().index.heading"
+  [label]="texts().index.label"
   size="l"
   [margin]="76"
   scrollKey="index"
@@ -11,14 +11,15 @@
 >
   <app-segmented
     toolbar
-    label="Familles de projets"
+    [label]="texts().index.families.label"
     [items]="familyItems()"
-    (selected)="chooseFamily($event)"
+    (chosen)="familyChange.emit($event)"
   />
-  <h1 tabindex="-1" class="landing">{{ heading() }}</h1>
+  <h1 tabindex="-1" class="landing" appLandingHeading>{{ heading() }}</h1>
   <div class="columns" aria-hidden="true">
-    <span>Réf</span><span>Projet</span><span>Ce qu’on peut vérifier</span
-    ><span>Rôle tenu</span>
+    @for (column of texts().index.columns; track $index) {
+      <span>{{ column }}</span>
+    }
   </div>
   <ul body class="rows">
     @for (row of rows(); track row.slug) {
@@ -28,12 +29,12 @@
           class="row"
           [attr.aria-pressed]="row.isSelected"
           [attr.aria-label]="row.label"
-          [attr.data-selection]="row.isSelected"
+          [attr.data-selected]="row.isSelected"
           (click)="toggle(row.slug)"
-          (mouseenter)="hovered.emit(row.slug)"
-          (mouseleave)="hovered.emit(null)"
-          (focus)="hovered.emit(row.slug)"
-          (blur)="hovered.emit(null)"
+          (mouseenter)="hoveredChange.emit(row.slug)"
+          (mouseleave)="hoveredChange.emit(null)"
+          (focus)="hoveredChange.emit(row.slug)"
+          (blur)="hoveredChange.emit(null)"
         >
           <span
             class="number"
@@ -45,7 +46,7 @@
             <span class="title"
               ><span>{{ row.title }}</span>
               @if (row.isVisited) {
-                <span class="read">lu</span>
+                <span class="read">{{ texts().index.read }}</span>
               }
             </span>
             <span class="stack">{{ row.facts.stack }}</span>
@@ -62,9 +63,9 @@
             <span class="opened-body">
               <span class="subject">{{ row.subject }}</span>
               <span class="links">
-                <a class="to-sheet" [routerLink]="['/projet', row.slug]"
-                  >Ouvrir la fiche →</a
-                >
+                <a class="to-sheet" [routerLink]="links.sheet(row.slug)">{{
+                  texts().index.openSheet
+                }}</a>
                 @if (row.link; as link) {
                   <a
                     class="outbound"
@@ -81,5 +82,5 @@
       </li>
     }
   </ul>
-  <p footer class="state">{{ state() }}</p>
+  <p footer class="state">{{ familySummary() }}</p>
 </app-window>

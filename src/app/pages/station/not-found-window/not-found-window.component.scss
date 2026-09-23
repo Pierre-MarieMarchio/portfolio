@@ -1,0 +1,27 @@
+@use 'mixins/controls';
+
+:host {
+  display: contents;
+  --window-body-padding: var(--s3) var(--s2);
+}
+
+h1 {
+  font-size: var(--h2);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  outline: none;
+}
+
+p {
+  margin-top: var(--s2);
+  font-size: var(--p2);
+  color: var(--ink-2);
+}
+
+.grow {
+  flex: 1;
+}
+
+a {
+  @include controls.next-link;
+}

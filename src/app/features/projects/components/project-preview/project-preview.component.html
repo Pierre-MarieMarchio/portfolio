@@ -1,9 +1,9 @@
 @if (project(); as project) {
   <app-window
-    label="Fenêtre : aperçu du projet"
+    [label]="texts().preview.label"
     size="m"
     anchor="bottom"
-    [title]="project.title"
+    [heading]="project.title"
     [margin]="88"
     [meta]="meta()"
     [pinned]="pinned()"
@@ -12,32 +12,32 @@
   >
     <app-segmented
       toolbar
-      label="Corps en orbite"
-      [items]="bodies()"
-      (selected)="choose($event)"
+      [label]="texts().preview.bodies"
+      [items]="choices()"
+      (chosen)="chosen.emit($event)"
     />
     <div body>
       <p class="summary">{{ project.summary }}</p>
       <dl>
         <div>
-          <dt>Preuve</dt>
+          <dt>{{ texts().preview.terms.proof }}</dt>
           <dd class="data">{{ project.facts.proof }}</dd>
         </div>
         <div>
-          <dt>Rôle</dt>
+          <dt>{{ texts().preview.terms.role }}</dt>
           <dd class="text">{{ project.facts.role }}</dd>
         </div>
         <div>
-          <dt>Pile</dt>
+          <dt>{{ texts().preview.terms.stack }}</dt>
           <dd class="data quiet">{{ project.facts.stack }}</dd>
         </div>
       </dl>
     </div>
     <ng-container footer>
       <p class="tag">{{ project.tag }}</p>
-      <a class="to-sheet" [routerLink]="['/projet', project.slug]"
-        >Ouvrir la fiche →</a
-      >
+      <a class="to-sheet" [routerLink]="links.sheet(project.slug)">{{
+        texts().preview.openSheet
+      }}</a>
     </ng-container>
   </app-window>
 }

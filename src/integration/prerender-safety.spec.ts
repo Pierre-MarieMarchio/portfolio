@@ -1,87 +1,20 @@
-import { ErrorHandler, Injectable, PLATFORM_ID } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { BrowserEnvironment, LocalStorageService } from '@app/core/services';
-
-/** A feature's stored preference, as it would subclass the base. */
-@Injectable({ providedIn: 'root' })
-class StoredChoice extends LocalStorageService {
-  public read(): unknown {
-    return this.getItem('choice');
-  }
-
-  public write(value: unknown): void {
-    this.setItem('choice', value);
-  }
-}
+import { BrowserEnvironment } from '@app/core/services';
 
 /**
- * The mechanism under test: every service that touches the browser is inert
- * while prerendering. The server platform is simulated by `PLATFORM_ID`, while
- * jsdom still provides `localStorage` and `matchMedia`, so a service that
- * forgot its guard would reach them and this suite would see it.
+ * The mechanism under test: the one service that touches the browser is
+ * inert while prerendering. The server platform is simulated by
+ * `PLATFORM_ID`, while jsdom still provides `matchMedia`, a document and a
+ * layout, so a method that forgot its guard would reach them and this suite
+ * would see it.
  */
 describe('prerender safety', () => {
   const on = (platform: 'browser' | 'server') => {
-    const reported: unknown[] = [];
-
     TestBed.configureTestingModule({
-      providers: [
-        { provide: PLATFORM_ID, useValue: platform },
-        {
-          provide: ErrorHandler,
-          useValue: { handleError: (error: unknown) => reported.push(error) },
-        },
-      ],
+      providers: [{ provide: PLATFORM_ID, useValue: platform }],
     });
-
-    return { reported };
   };
-
-  afterEach(() => {
-    localStorage.clear();
-  });
-
-  it('never reads or writes storage on the server', () => {
-    localStorage.setItem('choice', '"kept"');
-    const setItem = vi.spyOn(Storage.prototype, 'setItem');
-    const getItem = vi.spyOn(Storage.prototype, 'getItem');
-    on('server');
-    const choice = TestBed.inject(StoredChoice);
-
-    choice.write('ignored');
-
-    expect(choice.read()).toBeNull();
-    expect(setItem).not.toHaveBeenCalled();
-    expect(getItem).not.toHaveBeenCalled();
-
-    setItem.mockRestore();
-    getItem.mockRestore();
-  });
-
-  it('round-trips a value in the browser', () => {
-    on('browser');
-    const choice = TestBed.inject(StoredChoice);
-
-    choice.write({ family: 'personal' });
-
-    expect(choice.read()).toEqual({ family: 'personal' });
-  });
-
-  /** A blocked storage throws on read, at bootstrap: it must not crash. */
-  it('turns a blocked storage into a missing value and a report', () => {
-    const { reported } = on('browser');
-    const blocked = new DOMException('blocked', 'SecurityError');
-    const getItem = vi
-      .spyOn(Storage.prototype, 'getItem')
-      .mockImplementation(() => {
-        throw blocked;
-      });
-
-    expect(TestBed.inject(StoredChoice).read()).toBeNull();
-    expect(reported).toEqual([blocked]);
-
-    getItem.mockRestore();
-  });
 
   it('answers the no-motion default without asking matchMedia on the server', () => {
     const matchMedia = vi.fn();
@@ -156,6 +89,7 @@ describe('prerender safety', () => {
     environment.observeIntersection(canvas, 0.01, () => undefined)();
     expect(environment.context2d(canvas)).toBeNull();
     expect(environment.computedStyle(canvas, 'opacity')).toBe('');
+    expect(environment.rootStyle('--ink')).toBe('');
     environment.whenFontsReady(onFonts);
 
     expect(matchMedia).not.toHaveBeenCalled();
@@ -228,5 +162,89 @@ describe('prerender safety', () => {
     stop();
     window.dispatchEvent(new Event('resize'));
     expect(heard).toEqual(['resize']);
+  });
+
+  /** The object drags the cursor: never while prerendering. */
+  it('leaves the cursor alone on the server', () => {
+    on('server');
+
+    TestBed.inject(BrowserEnvironment).setCursor('grabbing');
+
+    expect(document.body.style.cursor).toBe('');
+  });
+
+  it('sets the cursor and reads the root tokens in the browser', () => {
+    document.documentElement.style.setProperty('--ink', ' #2b2f3a ');
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+
+    environment.setCursor('grabbing');
+    expect(document.body.style.cursor).toBe('grabbing');
+    environment.setCursor('');
+    expect(document.body.style.cursor).toBe('');
+    expect(environment.rootStyle('--ink')).toBe('#2b2f3a');
+
+    document.documentElement.style.removeProperty('--ink');
+  });
+
+  /** The choreography's timing is read from the CSS, never from the server. */
+  it('reads no duration and waits for no gesture on the server', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    document.documentElement.style.setProperty('--arrival-at', '8700ms');
+    on('server');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const called = vi.fn();
+
+    expect(environment.rootDuration('--arrival-at')).toBeNull();
+    environment.firstGesture(10, called);
+    vi.advanceTimersByTime(100);
+    window.dispatchEvent(new Event('keydown'));
+
+    expect(called).not.toHaveBeenCalled();
+    document.documentElement.style.removeProperty('--arrival-at');
+    vi.useRealTimers();
+  });
+
+  it('reads a duration token in ms or s, and nothing else, in the browser', () => {
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const read = (value: string): number | null => {
+      document.documentElement.style.setProperty('--probe', value);
+      return environment.rootDuration('--probe');
+    };
+
+    expect(read('8700ms')).toBe(8700);
+    expect(read('5.6s')).toBe(5600);
+    expect(read('auto')).toBeNull();
+    document.documentElement.style.removeProperty('--probe');
+    expect(environment.rootDuration('--probe')).toBeNull();
+  });
+
+  it('calls back once, at the first gesture or the timeout, in the browser', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const byGesture = vi.fn();
+    const byTime = vi.fn();
+    const cancelled = vi.fn();
+
+    environment.firstGesture(1000, byGesture);
+    window.dispatchEvent(new Event('wheel'));
+    window.dispatchEvent(new Event('keydown'));
+    vi.advanceTimersByTime(1000);
+    expect(byGesture).toHaveBeenCalledTimes(1);
+
+    environment.firstGesture(1000, byTime);
+    vi.advanceTimersByTime(999);
+    expect(byTime).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    window.dispatchEvent(new Event('pointerdown'));
+    expect(byTime).toHaveBeenCalledTimes(1);
+
+    environment.firstGesture(1000, cancelled)();
+    vi.advanceTimersByTime(1000);
+    window.dispatchEvent(new Event('touchstart'));
+    expect(cancelled).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });

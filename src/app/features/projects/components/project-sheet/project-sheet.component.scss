@@ -1,6 +1,10 @@
+@use 'mixins/controls';
+@use 'mixins/facts';
+@use 'mixins/type';
+
 :host {
   display: contents;
-  --window-body-padding: var(--s3) var(--s2) 0 12px;
+  --window-body-padding: var(--s3) var(--s2) 0 var(--s2);
 }
 
 header {
@@ -27,32 +31,23 @@ h1 {
   flex-direction: column;
 
   > div {
-    display: flex;
-    align-items: baseline;
-    gap: var(--s3);
-    border-bottom: 1px solid var(--line);
-    padding: 9px 0;
+    @include facts.row(9px);
   }
 
   dt {
-    flex: 0 0 10ch;
-    font-family: var(--mono);
-    font-size: var(--m2);
-    letter-spacing: var(--ls-caps);
-    text-transform: uppercase;
+    @include facts.term(10ch);
+    @include type.caps(var(--m2));
+
     color: var(--ink-2);
   }
 
   dd {
-    flex: 1;
-    min-width: 0;
+    @include facts.value;
   }
 }
 
 .data {
-  font-family: var(--mono);
-  font-size: var(--m3);
-  letter-spacing: var(--ls-mono);
+  @include type.mono;
 }
 
 .text {
@@ -71,10 +66,8 @@ h1 {
 }
 
 .chapter-title {
-  font-family: var(--mono);
-  font-size: var(--m3);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
+  @include type.caps(var(--m3));
+
   color: var(--accent);
   border-bottom: 1px solid var(--line);
   padding-bottom: var(--s1);
@@ -151,11 +144,13 @@ figure {
   font-weight: 500;
 }
 
+/* `overflow-wrap: anywhere` is what the deprecated `word-break: break-word`
+   always meant: break a long name only where it would overflow. */
 .layer-projects {
   font-family: var(--mono);
   font-size: var(--m4);
   color: var(--ink-2);
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 figcaption {
@@ -173,37 +168,23 @@ figcaption {
   padding: var(--s4) 0 var(--s2);
 
   a {
-    font-family: var(--mono);
-    font-size: var(--m3);
-    letter-spacing: var(--ls-mono);
+    @include type.mono;
+
     word-break: break-all;
   }
 }
 
 .position {
+  @include type.caps;
+
   flex: 1 1 auto;
   min-width: 0;
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 
 .next {
+  @include controls.next-link($button: true);
+
   flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--accent);
-  color: var(--accent);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-mono);
   white-space: nowrap;
-  text-decoration: none;
 }

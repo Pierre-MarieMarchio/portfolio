@@ -36,7 +36,6 @@
   --m2: 12px;
   --m3: 13px;
   --m4: 14px;
-  --g: 16px;
   --p1: 14px;
   --p2: 15px;
   --p3: 16px;
@@ -44,7 +43,9 @@
   --h1: clamp(21px, 2.5vw, 34px);
   --h2: clamp(19px, 2.1vw, 27px);
 
-  /* One letter-spacing per role: capitals, mono titles, mono data. */
+  /* One letter-spacing per role: capitals, mono titles, mono data. The
+     display headings keep the export's tracking, one per heading: they are
+     drawn one by one, not read off a scale. */
   --ls-caps: 0.14em;
   --ls-title: 0.18em;
   --ls-mono: 0.04em;
@@ -53,20 +54,41 @@
   --s2: 12px;
   --s3: 20px;
   --s4: 32px;
-  /* Near-square corners: an instrument, not a consumer app. */
+  /* The page's side margin: the chrome, the rule and the windows keep to
+     it, so they line up at every width. */
+  --gutter: clamp(20px, 4vw, 44px);
+  /* The touch target, never below; the compact one is for the secondary
+     controls a keyboard doubles (the selector's tabs, the page bar). */
+  --target: 44px;
+  --target-compact: 34px;
+
+  /* Near-square corners: an instrument, not a consumer app. Figures take
+     the radius; controls, and the focus ring drawn around them, the tighter
+     one. */
   --radius: 3px;
-  --t: 180ms cubic-bezier(0.2, 0.6, 0.2, 1);
+  --radius-control: 2px;
+
+  /* The glass of the chrome (page bar, contact rail), and of the windows,
+     which the export draws a touch heavier. */
+  --glass-blur: blur(10px) saturate(1.1);
+  --glass-blur-window: blur(11px) saturate(1.08);
+
+  /* One duration, and the easing that goes with it. A tab's or a window
+     control's hover takes the duration alone, as in the export. */
+  --t-duration: 180ms;
+  --t: var(--t-duration) cubic-bezier(0.2, 0.6, 0.2, 1);
   /* The end of the opening crossing: the home page's rest arrives then, on
      its own, when no gesture brought it sooner (see `Arrival`). */
   --arrival-at: 8700ms;
+  /* The opening card's length: it fades out on its own by then. */
+  --intro-duration: 5600ms;
 
   /* Depth tiers, with gaps so that no two layers can tie: at equal z-index
      the DOM order decides, which is chance. Windows take 5 to 8, the last
-     one touched in front. */
+     one touched in front; the skip link is above everything. */
   --z-scene: 0;
   --z-scene-top: 3;
   --z-window: 5;
-  --z-window-top: 8;
   --z-chrome: 20;
   --z-intro: 45;
   --z-skip: 60;

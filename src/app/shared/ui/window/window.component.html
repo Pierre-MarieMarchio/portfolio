@@ -19,13 +19,13 @@
     (dblclick)="onBarDoubleClick($event)"
   >
     <span class="square" aria-hidden="true"></span>
-    <h2>{{ title() }}</h2>
+    <h2>{{ heading() }}</h2>
     <span class="spacer"></span>
     <p class="meta">{{ meta() }}</p>
     <button
       type="button"
       class="control pin"
-      [class.is-pinned]="pinned()"
+      [attr.data-pinned]="pinned()"
       [attr.aria-pressed]="pinned()"
       [attr.aria-label]="pinLabel()"
       [title]="pinLabel()"
@@ -47,8 +47,8 @@
       <button
         type="button"
         class="control close"
-        aria-label="Fermer la fenêtre"
-        title="Fermer la fenêtre"
+        [attr.aria-label]="texts().window.close"
+        [title]="texts().window.close"
         (click)="closed.emit()"
       >
         ✕

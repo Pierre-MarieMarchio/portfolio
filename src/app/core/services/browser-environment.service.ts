@@ -1,6 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT, inject, Injectable, PLATFORM_ID } from '@angular/core';
 
+/** What counts as the reader being there: any of these, anywhere. */
+const INTENT = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
+
 /**
  * The browser, behind one door. While prerendering there is no `window`, no
  * `matchMedia` and no layout, so every method here answers a neutral value on
@@ -11,7 +14,12 @@ import { DOCUMENT, inject, Injectable, PLATFORM_ID } from '@angular/core';
  */
 @Injectable({ providedIn: 'root' })
 export class BrowserEnvironment {
-  public readonly document = inject(DOCUMENT);
+  /**
+   * Private: a caller that held the document could reach `defaultView` and
+   * every global behind it. What the application needs of it is a method
+   * here, each with its server answer.
+   */
+  private readonly document = inject(DOCUMENT);
   public readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
@@ -213,6 +221,68 @@ export class BrowserEnvironment {
       : '';
   }
 
+  /**
+   * A custom property of the document's root (a design token), trimmed;
+   * empty on the server, where nothing is laid out.
+   */
+  public rootStyle(property: string): string {
+    return this.computedStyle(this.document.documentElement, property);
+  }
+
+  /**
+   * A duration token of the document's root (`--arrival-at: 8700ms`), in
+   * milliseconds; `null` on the server, or when the token is missing or not
+   * a duration. The CSS is the one place a choreography's timing is written:
+   * without a script it plays alone, and the script reads the same value.
+   */
+  public rootDuration(property: string): number | null {
+    const match = /^(\d+(?:\.\d+)?)(ms|s)$/.exec(this.rootStyle(property));
+    if (!match?.[1]) {
+      return null;
+    }
+    const value = Number.parseFloat(match[1]);
+    return match[2] === 's' ? value * 1000 : value;
+  }
+
+  /**
+   * Calls back once, at the reader's first gesture or after `timeoutMs`,
+   * whichever comes first, and returns the function that cancels both.
+   * Inert on the server, where no one is there.
+   */
+  public firstGesture(timeoutMs: number, callback: () => void): () => void {
+    if (!this.isBrowser) {
+      return () => undefined;
+    }
+    const stops: (() => void)[] = [];
+    const cancel = (): void => {
+      stops.splice(0).forEach((stop) => {
+        stop();
+      });
+    };
+    const once = (): void => {
+      cancel();
+      callback();
+    };
+    const timer = setTimeout(once, timeoutMs);
+    stops.push(
+      ...INTENT.map((type) => this.listen(type, once, { passive: true })),
+      () => {
+        clearTimeout(timer);
+      },
+    );
+    return cancel;
+  }
+
+  /**
+   * The cursor the whole page shows, whatever it hovers, as a drag needs;
+   * an empty string gives each element its own back. Inert on the server.
+   */
+  public setCursor(cursor: string): void {
+    if (this.isBrowser) {
+      this.document.body.style.cursor = cursor;
+    }
+  }
+
   /** Calls back once the web fonts have loaded. Inert on the server. */
   public whenFontsReady(callback: () => void): void {
     if (!this.isBrowser) {
@@ -243,9 +313,9 @@ export class BrowserEnvironment {
   }
 
   private mediaQuery(query: string): MediaQueryList | null {
-    const view = this.document.defaultView;
+    const view = this.view();
 
-    if (!this.isBrowser || typeof view?.matchMedia !== 'function') {
+    if (typeof view?.matchMedia !== 'function') {
       return null;
     }
 

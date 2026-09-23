@@ -1,10 +1,9 @@
 import { defineUpdater } from 'ngx-statewise';
 import {
   stationChapterChosen,
-  stationEnglishAsked,
   stationFiltered,
   stationHovered,
-  stationNavigated,
+  stationRouteSynced,
   stationPartChosen,
   stationPauseToggled,
   stationPinToggled,
@@ -13,12 +12,29 @@ import {
   stationSelected,
   stationWindowClosed,
 } from './station.action';
+import { StationView } from '../../models';
 import { StationState } from './station.state';
+
+/** The view and the sheet the station already shows. */
+function isWhereTheReaderIs(
+  state: StationState,
+  view: StationView,
+  slug: string | null,
+): boolean {
+  return (
+    view === state.view() && (view === 'sheet' ? slug : null) === state.slug()
+  );
+}
 
 /** The only place the station's state is written. */
 export const stationUpdater = defineUpdater(StationState, (on) => {
-  on(stationNavigated, (state, { view, slug }) => {
+  on(stationRouteSynced, (state, { view, slug }) => {
     const previous = state.slug();
+    // The same view at another address is the language switch (D3): the
+    // reader has not moved, and nothing they set up is reset.
+    if (isWhereTheReaderIs(state, view, slug)) {
+      return;
+    }
     state.view.set(view);
     state.slug.set(view === 'sheet' ? slug : null);
     // Every arrival starts a sheet from its first approach, and hovering
@@ -65,7 +81,7 @@ export const stationUpdater = defineUpdater(StationState, (on) => {
   });
 
   on(stationPartChosen, (state, part) => {
-    state.part.set(part);
+    state.part.set(Math.max(0, part));
   });
 
   on(stationPreviewOpened, (state, slug) => {
@@ -80,10 +96,6 @@ export const stationUpdater = defineUpdater(StationState, (on) => {
 
   on(stationHovered, (state, slug) => {
     state.hovered.set(slug);
-  });
-
-  on(stationEnglishAsked, (state) => {
-    state.englishAsked.set(true);
   });
 
   on(stationPauseToggled, (state) => {

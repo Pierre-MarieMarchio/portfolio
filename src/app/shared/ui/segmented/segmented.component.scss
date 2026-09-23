@@ -1,3 +1,6 @@
+@use 'mixins/controls';
+@use 'mixins/motion';
+
 :host {
   display: block;
   max-width: 100%;
@@ -21,24 +24,16 @@ li {
 }
 
 button {
+  @include controls.tab;
+
   display: flex;
-  align-items: center;
   gap: 7px;
-  min-height: 34px;
   padding: 5px 11px;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: transparent;
-  color: var(--ink-2);
   cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
   white-space: nowrap;
   transition:
-    color 180ms,
-    background 180ms;
+    color var(--t-duration),
+    background var(--t-duration);
 
   &:hover,
   &[data-active='true'] {
@@ -58,7 +53,7 @@ button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   button {
     transition: none;
   }

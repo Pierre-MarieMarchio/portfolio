@@ -24,7 +24,7 @@ class Counter {
  */
 describe('zoneless', () => {
   it('ships without zone.js', () => {
-    expect((globalThis as { Zone?: unknown }).Zone).toBeUndefined();
+    expect('Zone' in globalThis).toBe(false);
   });
 
   /** What the composition root provides, not what TestBed defaults to. */

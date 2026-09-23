@@ -1,8 +1,8 @@
 @if (sheet(); as sheet) {
   <app-window
-    label="Fenêtre : fiche de projet"
+    [label]="texts().sheet.label"
     size="l"
-    [title]="sheet.title"
+    [heading]="project()?.title ?? ''"
     [margin]="76"
     [meta]="meta()"
     [scrollKey]="scrollKey()"
@@ -12,13 +12,13 @@
   >
     <app-segmented
       toolbar
-      label="Approches de la fiche"
+      [label]="texts().sheet.approaches"
       [items]="approaches()"
-      (selected)="choose($event)"
+      (chosen)="chapterChange.emit($event)"
     />
     <div body>
       <header>
-        <h1 tabindex="-1">{{ sheet.title }}</h1>
+        <h1 tabindex="-1" appLandingHeading>{{ project()?.title }}</h1>
         @if (chapter() === 0) {
           <p class="lede">{{ sheet.lede }}</p>
         }
@@ -27,19 +27,19 @@
         @if (facts(); as facts) {
           <dl class="identity">
             <div>
-              <dt>Accès</dt>
+              <dt>{{ texts().sheet.terms.access }}</dt>
               <dd class="data">{{ facts.proof }}</dd>
             </div>
             <div>
-              <dt>Rôle</dt>
+              <dt>{{ texts().sheet.terms.role }}</dt>
               <dd class="text">{{ facts.role }}</dd>
             </div>
             <div>
-              <dt>Technique</dt>
+              <dt>{{ texts().sheet.terms.stack }}</dt>
               <dd class="data quiet">{{ facts.stack }}</dd>
             </div>
             <div>
-              <dt>Contexte</dt>
+              <dt>{{ texts().sheet.terms.context }}</dt>
               <dd class="text quiet">{{ facts.context }}</dd>
             </div>
           </dl>
@@ -63,37 +63,33 @@
               }
             </ul>
           }
-          @if (chapter.figure === 'flow') {
+          @if (chapter.figure; as figure) {
             <figure>
-              <div class="flow">
-                <span class="box">action</span>
-                <span class="arrow" aria-hidden="true">→</span>
-                <span class="box">updator</span>
-                <span class="arrow" aria-hidden="true">→</span>
-                <span class="box">effect</span>
-                <span class="arrow" aria-hidden="true">↻</span>
-                <span class="quiet data">nouvelles actions</span>
-              </div>
-              <figcaption>
-                Séquence documentée dans le dépôt. Schéma de lecture, pas une
-                capture d’application.
-              </figcaption>
-            </figure>
-          }
-          @if (chapter.figure === 'layers') {
-            <figure>
-              <div class="layers">
-                @for (layer of layers(); track layer.name) {
-                  <div class="layer">
-                    <span class="layer-name">{{ layer.name }}</span>
-                    <span class="layer-projects">{{ layer.projects }}</span>
+              @switch (figure.kind) {
+                @case ('flow') {
+                  <div class="flow">
+                    @for (step of figure.steps; track $index) {
+                      @if (!$first) {
+                        <span class="arrow" aria-hidden="true">→</span>
+                      }
+                      <span class="box">{{ step }}</span>
+                    }
+                    <span class="arrow" aria-hidden="true">↻</span>
+                    <span class="quiet data">{{ figure.loop }}</span>
                   </div>
                 }
-              </div>
-              <figcaption>
-                Arborescence réelle du dépôt : les tests d’architecture échouent
-                si un projet est ajouté sans que sa place soit décrite.
-              </figcaption>
+                @case ('layers') {
+                  <div class="layers">
+                    @for (layer of figure.layers; track layer.name) {
+                      <div class="layer">
+                        <span class="layer-name">{{ layer.name }}</span>
+                        <span class="layer-projects">{{ layer.projects }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+              <figcaption>{{ figure.caption }}</figcaption>
             </figure>
           }
         </section>
@@ -116,7 +112,7 @@
         </button>
       }
       @if (nextProject(); as next) {
-        <a class="next" [routerLink]="['/projet', next.slug]">{{
+        <a class="next" [routerLink]="links.sheet(next.slug)">{{
           next.label
         }}</a>
       }

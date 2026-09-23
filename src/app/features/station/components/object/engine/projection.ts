@@ -24,20 +24,27 @@ export const travelingElevation = (resting: number, dEv: number): number =>
   Math.max(MIN_ELEVATION, resting + (JOURNEY_ELEVATION - resting) * -dEv);
 
 /**
+ * How the plane is seen for one frame: how much of its depth is kept, and
+ * the roll's cosine and sine.
+ */
+export interface PlaneView {
+  readonly flatten: number;
+  readonly cr: number;
+  readonly sr: number;
+}
+
+/**
  * A point of the plane on screen: its depth flattened, then turned by the
- * roll (`cr`, `sr` its cosine and sine). `out` is filled, not allocated:
- * this runs for every planet and every sample of an orbit, each frame.
+ * roll. `out` is filled, not allocated: this runs for every planet and every
+ * sample of an orbit, each frame.
  */
 export function rollFlatten(
-  x: number,
-  y: number,
-  flatten: number,
-  cr: number,
-  sr: number,
+  point: { readonly x: number; readonly y: number },
+  view: PlaneView,
   out: Rolled,
 ): Rolled {
-  const py = y * flatten;
-  out.nx = x * cr - py * sr;
-  out.ny = x * sr + py * cr;
+  const py = point.y * view.flatten;
+  out.nx = point.x * view.cr - py * view.sr;
+  out.ny = point.x * view.sr + py * view.cr;
   return out;
 }

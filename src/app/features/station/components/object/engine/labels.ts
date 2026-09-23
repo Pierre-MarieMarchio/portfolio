@@ -74,22 +74,16 @@ export function placeName(
   stage: Stage,
   taken: TakenPlace[],
 ): { x: number; y: number; dir: number; free: boolean } {
-  const { x: px, y: py, radius: rBase, dpr } = planet;
+  const { x: px, y: py } = planet;
   const { w: lw, h: lh } = size;
   const stageW = stage.w;
   const stageH = stage.h;
-  let elbow = Math.max(
-    (rBase * 3.4) / dpr + 20,
-    (planet.objectRadius / dpr) * 0.5,
-  );
-  if (px + elbow + 14 + lw > stageW && px - elbow - 14 - lw < 0) {
-    elbow = (rBase * 3.4) / dpr + 12;
-  }
+  const elbow = elbowOf(planet, lw, stageW);
   const rise = (py <= stageH / 2 ? -1 : 1) * 24;
   const roomRight = px + elbow + 14 + lw <= stageW;
   const roomLeft = px - elbow - 14 - lw >= 0;
   const outward = px >= stageW / 2 ? 1 : -1;
-  let dir = (outward > 0 && roomRight) || !roomLeft ? 1 : -1;
+  const dir = (outward > 0 && roomRight) || !roomLeft ? 1 : -1;
   const placeX = (d: number): number => {
     let x2 = px + d * (elbow + 14);
     if (d < 0) {
@@ -105,30 +99,49 @@ export function placeName(
         Math.abs(q.x - x2) < (q.w + lw) / 2 - 4 &&
         Math.abs(q.y - y2) < (q.h + lh) / 2 + 4,
     );
-  let x = placeX(dir);
-  let y = boundY(py + rise);
+  const first = { x: placeX(dir), y: boundY(py + rise), dir };
   if (!planet.named) {
-    return { x, y, dir, free: true };
+    return { ...first, free: true };
   }
-  const step = lh + 8;
   const flanks = [dir, -dir].filter(
     (d) => d === dir || (d > 0 ? roomRight : roomLeft),
   );
   for (const d of flanks) {
-    const x2 = placeX(d);
-    const y2 = firstFreeRow(py + rise, step, (row) => {
+    const x = placeX(d);
+    const y = firstFreeRow(py + rise, lh + 8, (row) => {
       const at = boundY(row);
-      return overlaps(x2, at) ? null : at;
+      return overlaps(x, at) ? null : at;
     });
-    if (y2 !== null) {
-      x = x2;
-      y = y2;
-      dir = d;
+    if (y !== null) {
       taken.push({ x, y, w: lw, h: lh });
-      return { x, y, dir, free: true };
+      return { x, y, dir: d, free: true };
     }
   }
-  return { x, y, dir, free: false };
+  return { ...first, free: false };
+}
+
+/**
+ * How far the name leaves its planet, in CSS pixels: an elbow proportional
+ * to the object's radius, shortened when neither flank would hold it.
+ */
+function elbowOf(
+  planet: {
+    readonly x: number;
+    readonly radius: number;
+    readonly objectRadius: number;
+    readonly dpr: number;
+  },
+  width: number,
+  stageW: number,
+): number {
+  const { x: px, radius: rBase, dpr } = planet;
+  const elbow = Math.max(
+    (rBase * 3.4) / dpr + 20,
+    (planet.objectRadius / dpr) * 0.5,
+  );
+  return px + elbow + 14 + width > stageW && px - elbow - 14 - width < 0
+    ? (rBase * 3.4) / dpr + 12
+    : elbow;
 }
 
 /**

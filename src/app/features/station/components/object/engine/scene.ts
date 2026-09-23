@@ -292,6 +292,11 @@ export const positionOrbit = (
  * orbits against the hole. The outer orbit holds in the free band AND stays
  * out of the disk; no floor above the room, or the outer orbit would leave
  * the frame.
+ *
+ * Where there is not the room for both (a phone, some 375px wide), the frame
+ * wins: the orbits shrink with it, in the same proportions. The floor of 4.6
+ * used to hold even there, and put the outer orbit and its planet's button
+ * off the screen.
  */
 export const fitOrbits = (
   orbits: readonly Orbit[],
@@ -310,8 +315,10 @@ export const fitOrbits = (
   // The disk fades out near 2.4 radii: the orbits keep well beyond it so
   // the object has air around it. It is the radius that rises, not the
   // scale that drops.
-  const rMax = Math.max(4.6, Math.min(6.9, maxH, maxV));
-  const rMin = Math.max(4.1, Math.min(rMax * 0.74, 4.9));
+  const room = Math.min(maxH, maxV);
+  const roomy = room >= 4.6;
+  const rMax = roomy ? Math.min(6.9, room) : Math.max(0, room);
+  const rMin = roomy ? Math.max(4.1, Math.min(rMax * 0.74, 4.9)) : rMax * 0.74;
   for (const orbit of orbits) {
     orbit.rb = rMin + orbit.k * (rMax - rMin);
     orbit.v = 0.075 * Math.pow(1.3 / orbit.rb, 1.5);

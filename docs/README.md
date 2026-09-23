@@ -9,9 +9,11 @@ docs/
   architecture/
     organisation.md           la référence d'architecture : couches, loi de
                               dépendance, ngx-statewise, nomenclature, fiches
-    decisions.md              le journal des décisions (D1 à D21)
+    decisions.md              le journal des décisions (D1 à D22)
     raisons/                  le pourquoi du code, unité par unité (D21)
   contenu.md                  ajouter un projet, changer un texte : le guide
+  wording/                    le texte du site en français, et la source de
+                              chaque fait
   audit/                      l'audit du 23 septembre 2026 et le plan qui en
                               découle (README.md), avec ses rapports
   maquette/                   le design du site (« la station »), à implémenter

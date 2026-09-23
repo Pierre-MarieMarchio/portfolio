@@ -578,7 +578,8 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 - `paths.data.ts` : la table des adresses de chaque vue, par langue.
 - `paths.rules.ts` : `pathOf`, `translatePath`. La table et ses règles
   restent ici, sous `pages` : les pages et la racine les lisent.
-- `fr.data.ts`, `en.data.ts` : le contenu.
+- `fr.data.ts`, `en.data.ts` : le contenu ; la tranche `profile` a son
+  fichier à côté (`fr-profile.data.ts`, `en-profile.data.ts`, D22).
 
 Les têtes de page lisent le catalogue **de la langue visée**
 (`CatalogLoaderService.of(langOfUrl(url))`) et non la tranche courante : au
@@ -657,13 +658,13 @@ src/app/
   features/projects/components/project-list/   project-list.component
   features/projects/components/project-preview/ project-preview.component
   features/projects/data/                      projects.data
-  features/projects/data/projects/             bkone.data · ngx-statewise.data · skyted-app.data · skyted-companion.data · skyted-voice.data · speakey.data · template-dotnet.data
+  features/projects/data/projects/             bkone.data · ngx-statewise.data · skyted-app.data · skyted-companion.data · skyted-voice.data · speakey.data · template-dotnet.data · trainways.data
   features/projects/models/                    project-catalog.model · project-detail.model · project-family.model · project.model
   features/projects/ports/                     projects-texts.port
   features/projects/rules/                     project-labels.rules · ranking.rules
   features/projects/services/                  projects-repository.service
   features/projects/states/projects/           projects.action · projects.effect · projects.manager · projects.state · projects.updater
-  i18n/data/                                   en.data · fr.data · paths.data
+  i18n/data/                                   en-profile.data · en.data · fr-profile.data · fr.data · paths.data
   i18n/guards/                                 catalog.guard
   i18n/models/                                 catalog.model
   i18n/providers/                              i18n.provider
@@ -706,5 +707,5 @@ src/app/
 ## 6. Comment on en est arrivé là
 
 L'organisation a été conçue avant le code, puis construite étape par étape
-(`docs/audit/phase-3.md`, décisions D7 à D21). Ce document décrit le code
+(`docs/audit/phase-3.md`, décisions D7 à D22). Ce document décrit le code
 livré ; ce qui s'en écarte est un défaut à corriger ici ou dans le code.

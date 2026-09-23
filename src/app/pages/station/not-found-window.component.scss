@@ -1,6 +1,8 @@
+@use 'mixins/controls';
+
 :host {
   display: contents;
-  --window-body-padding: var(--s3) 12px;
+  --window-body-padding: var(--s3) var(--s2);
 }
 
 h1 {
@@ -21,12 +23,5 @@ p {
 }
 
 a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-mono);
-  text-decoration: none;
-  border-bottom: 1px solid var(--accent);
+  @include controls.next-link;
 }

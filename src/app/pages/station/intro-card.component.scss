@@ -1,3 +1,6 @@
+@use 'mixins/motion';
+@use 'mixins/type';
+
 /* The word settles (0 → 2.6s), the rule opens, the trade comes under it
    (1.5 → 3s), there is time to read, then the page rises slowly (to 5.6s)
    over the object gathering. */
@@ -16,12 +19,10 @@
 }
 
 .word {
+  @include type.caps(var(--m3), 0.24em);
+
   padding-left: 0.24em;
-  font-family: var(--mono);
-  font-size: var(--m3);
   line-height: 1;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
   color: var(--ink-2);
   animation: word 2600ms cubic-bezier(0.16, 0.72, 0.24, 1) both;
 }
@@ -46,10 +47,8 @@
 }
 
 .caps {
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-title);
-  text-transform: uppercase;
+  @include type.title(var(--m1));
+
   color: var(--ink-2);
   animation: rise 1400ms 2600ms both;
 }
@@ -59,6 +58,7 @@
   64% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
   }
@@ -70,9 +70,11 @@
     letter-spacing: 0.78em;
     transform: translateY(10px);
   }
+
   52% {
     opacity: 1;
   }
+
   100% {
     opacity: 1;
     letter-spacing: 0.3em;
@@ -85,27 +87,18 @@
     transform: scaleX(0);
     opacity: 0;
   }
+
   30% {
     opacity: 1;
   }
+
   100% {
     transform: scaleX(1);
     opacity: 1;
   }
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   .card {
     display: none;
   }

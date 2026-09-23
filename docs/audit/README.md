@@ -115,7 +115,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - déplacer `ScrollMemory` dans `shared/ui/window` ;
   - faire de `SITE_NAME` une constante et supprimer `environments/` ;
   - harmoniser les suffixes de classes.
-- [ ] **3. `refactor(styles)`** (rapport 04 §B) :
+- [x] **3. `refactor(styles)`** (rapport 04 §B) :
   - compléter les jetons (`--gutter`, `--target`, `--radius-control`,
     `--ls-display`, flou) et retirer les jetons morts ;
   - créer les partiels `_utilities`, `_motion` et `mixins/{type,controls,arrival}` ;

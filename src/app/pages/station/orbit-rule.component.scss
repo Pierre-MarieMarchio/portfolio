@@ -1,24 +1,28 @@
+@use 'mixins/arrival';
+@use 'mixins/controls';
+@use 'mixins/motion';
+@use 'mixins/type';
+
 :host {
+  @include arrival.on-its-own(1300ms, 400ms);
+
   position: absolute;
-  left: clamp(20px, 4vw, 44px);
-  right: clamp(20px, 4vw, 44px);
+  left: var(--gutter);
+  right: var(--gutter);
   bottom: clamp(78px, 10vh, 94px);
   z-index: var(--z-scene-top);
   pointer-events: none;
-  animation: rise 1300ms calc(var(--arrival-at) + 400ms) both;
 }
 
 /* Arrives with the home page's rest (see `Arrival`): on its own at the end
    of the crossing without a script, held until the reader is there with one,
    then rising from that moment. */
 :host([data-arrival='held']) {
-  animation: none;
-  opacity: 0;
-  visibility: hidden;
+  @include arrival.held;
 }
 
 :host([data-arrival='shown']) {
-  animation: rise 1300ms 400ms both;
+  @include arrival.shown(1300ms, 400ms);
 }
 
 .head {
@@ -31,17 +35,14 @@
 }
 
 .square {
+  @include controls.marker(5px, var(--ink-2));
+
   flex: 0 0 auto;
-  width: 5px;
-  height: 5px;
-  background: var(--ink-2);
 }
 
 h2 {
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-title);
-  text-transform: uppercase;
+  @include type.title;
+
   font-weight: 500;
   color: var(--ink-2);
 }
@@ -94,9 +95,7 @@ button {
 }
 
 .dot {
-  width: 5px;
-  height: 5px;
-  background: var(--accent);
+  @include controls.marker(5px);
 }
 
 .stem {
@@ -116,29 +115,26 @@ button {
 }
 
 .number {
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-mono);
+  @include type.mono(var(--m1));
+
   color: var(--ink-2);
 }
 
 .short {
-  font-family: var(--mono);
-  font-size: var(--m3);
-  letter-spacing: var(--ls-mono);
+  @include type.mono;
+
   color: currentColor;
 }
 
 .all {
+  @include type.mono(var(--m2));
+
   pointer-events: auto;
   flex: 0 0 auto;
-  margin-top: 20px;
+  margin-top: var(--s3);
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-mono);
+  min-height: var(--target-compact);
   white-space: nowrap;
   color: var(--ink-2);
   text-decoration: none;
@@ -159,9 +155,8 @@ button {
   align-items: baseline;
 
   p {
-    font-family: var(--mono);
-    font-size: var(--m3);
-    letter-spacing: var(--ls-mono);
+    @include type.mono;
+
     color: var(--ink-2);
   }
 }
@@ -184,7 +179,7 @@ button {
 /* Narrow: four titles of ~130px cannot sit on one line of 320px without
    overlapping. The numbers stay; the planets carry the names, and each
    marker keeps its full accessible name. */
-@media (max-width: 620px) {
+@media (width <= 620px) {
   .short {
     display: none;
   }
@@ -192,24 +187,13 @@ button {
 
 /* A low window keeps the markers and titles and gives back the rest: the
    page bar already leads to the seven projects. */
-@media (max-height: 640px) {
+@media (height <= 640px) {
   .reading {
     display: none;
   }
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
+@include motion.reduced {
   :host,
   :host([data-arrival]) {
     animation: none;

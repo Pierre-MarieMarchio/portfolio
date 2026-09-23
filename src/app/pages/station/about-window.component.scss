@@ -1,3 +1,7 @@
+@use 'mixins/controls';
+@use 'mixins/facts';
+@use 'mixins/type';
+
 :host {
   display: contents;
 }
@@ -28,31 +32,29 @@ dl > div {
   }
 
   dt {
-    flex: 0 0 11ch;
+    @include facts.term(11ch);
   }
 
   dd {
-    flex: 1;
-    min-width: 0;
+    @include facts.value;
+
     font-size: var(--p2);
   }
 }
 
 dt,
 .caps {
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
+  @include type.caps;
+
   color: var(--ink-2);
 }
 
 .data {
-  font-family: var(--mono);
-  font-size: var(--m3);
-  letter-spacing: var(--ls-mono);
+  @include type.mono;
 }
 
+/* Not a repeat of the rule above: a `dd.data` of the facts would otherwise
+   take `.facts dd`'s running size, which is more specific than `.data`. */
 .facts .data {
   font-size: var(--m3);
 }
@@ -89,12 +91,14 @@ dt,
 
 .domains {
   .number {
-    flex: 0 0 3ch;
+    @include facts.term(3ch);
+
     letter-spacing: normal;
   }
 
   .label {
-    flex: 0 0 9ch;
+    @include facts.term(9ch);
+
     font-family: var(--font);
     font-size: var(--p2);
     letter-spacing: normal;
@@ -103,8 +107,7 @@ dt,
   }
 
   dd {
-    flex: 1;
-    min-width: 0;
+    @include facts.value;
   }
 }
 
@@ -115,7 +118,7 @@ dt,
 
   li {
     border-bottom: 1px solid var(--line);
-    padding: 12px 0;
+    padding: var(--s2) 0;
   }
 }
 
@@ -148,42 +151,30 @@ dt,
 
 .milestones {
   dt {
-    flex: 0 0 9ch;
+    @include facts.term(9ch);
+
     font-size: var(--m2);
     letter-spacing: var(--ls-mono);
     text-transform: none;
   }
 
   dd {
-    flex: 1;
-    min-width: 0;
+    @include facts.value;
+
     font-size: var(--p2);
   }
 }
 
 .position {
+  @include type.caps;
+
   flex: 1 1 auto;
   min-width: 0;
-  font-family: var(--mono);
-  font-size: var(--m1);
-  letter-spacing: var(--ls-caps);
-  text-transform: uppercase;
   color: var(--ink-2);
 }
 
 .next {
+  @include controls.next-link($button: true);
+
   flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  min-height: 38px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--accent);
-  color: var(--accent);
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--m2);
-  letter-spacing: var(--ls-mono);
-  text-decoration: none;
 }

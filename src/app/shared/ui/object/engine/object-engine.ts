@@ -165,6 +165,14 @@ const ORBITS_FROM = 3.3;
 const DRAG_RATIO = 0.4;
 const DRAG_LAG = 0.55;
 
+/**
+ * The orbits' turntable is no plate: each orbit takes its share of a turn by
+ * Kepler, (r / radius)^1.5, the inner ones faster, the outer slower, as in
+ * their own revolution. `r` is the radius the hand took them at, so the
+ * planet under the finger follows it; dragged by the disk, a middle orbit.
+ */
+const ORBITS_REFERENCE = 5;
+
 type Rotor = 'disk' | 'orbits';
 
 /** The views where the object is seen whole, and can be turned. */
@@ -258,6 +266,12 @@ export class ObjectEngine {
   private handTrail: { t: number; a: number }[] = [];
   /** The held turntable's angle at the last frame, for its speed. */
   private heldAngle = 0;
+  /** Each orbit's share of the orbits' turn, by Kepler. */
+  private orbitTurns: number[] = [];
+  /** The orbits' turn already shared out. */
+  private orbitsShared = 0;
+  /** The radius the orbits' turn is read at: see `ORBITS_REFERENCE`. */
+  private orbitsReference = ORBITS_REFERENCE;
   /** The disk's own rotation, 0 while held, easing back once let go. */
   private idle = 1;
   /** How the disk lay on screen at the last frame: to read the hand's angle. */
@@ -451,6 +465,8 @@ export class ObjectEngine {
       rotor,
     };
     this.driver = rotor;
+    this.orbitsReference =
+      rotor === 'orbits' && under ? under.radius : ORBITS_REFERENCE;
     const held = this.rotors[rotor];
     held.speed = 0;
     this.heldAngle = held.angle;
@@ -747,7 +763,27 @@ export class ObjectEngine {
       }
       turning ||= rotor.speed !== 0;
     }
+    this.shareOrbitsTurn();
     return turning;
+  }
+
+  /** Shares out the orbits' turn since the last frame, orbit by orbit. */
+  private shareOrbitsTurn(): void {
+    const turn = this.rotors.orbits.angle - this.orbitsShared;
+    this.orbitsShared = this.rotors.orbits.angle;
+    if (turn === 0) {
+      return;
+    }
+    this.orbits.forEach((orbit, i) => {
+      this.orbitTurns[i] =
+        (this.orbitTurns[i] ?? 0) +
+        turn * Math.pow(this.orbitsReference / orbit.rb, 1.5);
+    });
+  }
+
+  /** Orbit `i`'s share of the hand's turn. */
+  private orbitTurn(i: number): number {
+    return this.orbitTurns[i] ?? 0;
   }
 
   private camSum(): number {
@@ -767,8 +803,8 @@ export class ObjectEngine {
   private target(): Frame {
     const { view, preview, focus, chapter } = this.inputs;
     const dims = this.dims();
-    // The framings aim at planets: they turn with the orbits.
-    const azim = finiteOr(this.azim, 0) + this.rotors.orbits.angle;
+    // The framings aim at a planet: it turns with its orbit.
+    const azim = finiteOr(this.azim, 0);
     switch (view) {
       case 'about':
         return ABOUT_FRAME;
@@ -784,7 +820,7 @@ export class ObjectEngine {
           orbit: this.orbits[Math.max(0, focus)] ?? null,
           panelLeft: this.layout?.sheetLeft ?? null,
           phase: this.phase,
-          azim,
+          azim: azim + this.orbitTurn(Math.max(0, focus)),
         });
       case 'home':
         if (preview < 0) {
@@ -796,7 +832,7 @@ export class ObjectEngine {
           orbit: this.orbits[preview] ?? null,
           cardLeft: this.layout?.previewLeft ?? null,
           phase: this.phase,
-          azim,
+          azim: azim + this.orbitTurn(preview),
           offset: (az) => this.offsetOrbit(preview, az),
         });
     }
@@ -876,7 +912,6 @@ export class ObjectEngine {
     const phase = this.phase;
     const azimBase = finiteOr(this.azim, 0) + trv.dAz;
     const azim = azimBase + this.rotors.disk.angle;
-    const orbitAzim = azimBase + this.rotors.orbits.angle;
     const pointer = this.pointer;
     const reach = 70 * dpr;
     // The roll straightens on arrival: under the plane, then back up.
@@ -1077,7 +1112,8 @@ export class ObjectEngine {
       cr,
       sr,
       elev,
-      azim: orbitAzim,
+      // Each orbit adds its own share of the hand's turn.
+      azim: azimBase,
       flatten,
       phase,
       time,
@@ -1182,8 +1218,14 @@ export class ObjectEngine {
     // Positions first, drawing next: in between, a repulsion pass
     // guarantees a minimal on-screen gap.
     fitOrbits(orbits, w, h, this.home, this.measure?.freeHalf ?? null, dpr);
-    const planets: PlanetOnScreen[] = orbits.map((orbit) => {
-      const pos = positionOrbit(orbit, phase, elev, azim, this.scratch);
+    const planets: PlanetOnScreen[] = orbits.map((orbit, i) => {
+      const pos = positionOrbit(
+        orbit,
+        phase,
+        elev,
+        azim + this.orbitTurn(i),
+        this.scratch,
+      );
       const npy = pos.y * flatten;
       const nx = pos.x * cr - npy * sr;
       const ny = pos.x * sr + npy * cr;
@@ -1233,7 +1275,7 @@ export class ObjectEngine {
             sample,
             0,
             elev,
-            azim + phase * orbit.v * 0.42,
+            azim + this.orbitTurn(i) + phase * orbit.v * 0.42,
             out,
           );
           const qy = q.y * flatten;

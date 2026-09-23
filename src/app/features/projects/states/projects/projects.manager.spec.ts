@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import {
+  sampleDetail,
   sampleFacts,
   sampleProject,
-  sampleSheet,
 } from '@testing/fixtures/project.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { PROJECTS } from '../../data';
-import { FEATURED_COUNT, ProjectsManager } from './projects.manager';
+import { PROJECTS_TEXTS } from '../../ports';
+import { proofLevelLabel } from '../../rules/project-labels.rules';
+import { FEATURED, ProjectsManager } from './projects.manager';
 import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
 
@@ -29,7 +31,7 @@ describe('ProjectsManager', () => {
 
   it('exposes its state read-only', () => {
     expect('set' in manager.projects).toBe(false);
-    expect('set' in manager.isLoading).toBe(false);
+    expect('set' in manager.ranked).toBe(false);
   });
 
   const SIX = ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -43,11 +45,11 @@ describe('ProjectsManager', () => {
   };
 
   /** Derived from the rank: no flag, so the selection cannot drift from it. */
-  it('features the first FEATURED_COUNT projects of the rank order', () => {
+  it('features the first FEATURED projects of the rank order', () => {
     setSix();
 
     expect(manager.featured().map((project) => project.slug)).toEqual(
-      SIX.slice(0, FEATURED_COUNT),
+      SIX.slice(0, TestBed.inject(FEATURED)),
     );
     expect(manager.isFeatured('a')).toBe(true);
     expect(manager.isFeatured('f')).toBe(false);
@@ -99,15 +101,15 @@ describe('ProjectsManager', () => {
     expect(manager.familyCounts()).toEqual({ professional: 2, personal: 1 });
   });
 
-  it('reads facts and sheets by slug, null when there is none', () => {
+  it('reads facts and details by slug, null when there is none', () => {
     state.projects.set([sampleProject({ slug: 'p' })]);
     state.facts.set({ p: sampleFacts({ role: 'Seul' }) });
-    state.sheets.set({ p: sampleSheet({ lede: 'Chapô' }) });
+    state.details.set({ p: sampleDetail({ lede: 'Chapô' }) });
 
-    expect(manager.factsOf('p')?.role).toBe('Seul');
-    expect(manager.sheetOf('p')?.lede).toBe('Chapô');
-    expect(manager.factsOf('missing')).toBeNull();
-    expect(manager.sheetOf('missing')).toBeNull();
+    expect(manager.find('p')?.facts.role).toBe('Seul');
+    expect(manager.detailOf('p')?.lede).toBe('Chapô');
+    expect(manager.find('missing')?.facts ?? null).toBeNull();
+    expect(manager.detailOf('missing')).toBeNull();
   });
 
   /** D5: both languages are in the state; the reader's is a derivation. */
@@ -118,24 +120,7 @@ describe('ProjectsManager', () => {
     state.facts.set({ p: sampleFacts({ role: { fr: 'Seul', en: 'Alone' } }) });
 
     expect(manager.find('p')?.tag).toBe('publié');
-    expect(manager.factsOf('p')?.role).toBe('Seul');
-  });
-
-  it('titles a chapter by its own title, else the default of its place', () => {
-    state.sheets.set({
-      p: sampleSheet({
-        chapters: [
-          { paragraphs: [] },
-          { title: 'Qu’est-ce qui tient ?', paragraphs: [] },
-        ],
-      }),
-    });
-
-    expect(manager.chapterTitle('p', 0)).toBe('Pourquoi ?');
-    expect(manager.chapterTitle('p', 1)).toBe('Qu’est-ce qui tient ?');
-    expect(manager.chapterTitle('p', 2)).toBe('');
-    // Past the chapters of the sheet, the defaults do not stand in.
-    expect(manager.chapterTitle('missing', 0)).toBe('');
+    expect(manager.find('p')?.facts.role).toBe('Seul');
   });
 
   /** Derived from the list, so a reload that renamed it shows through. */
@@ -154,16 +139,20 @@ describe('ProjectsManager', () => {
 
     expect(manager.projects()).toHaveLength(PROJECTS.length);
     expect(manager.ranked()).toHaveLength(PROJECTS.length);
-    expect(manager.sheetOf('skyted-voice')?.chapters.length).toBeGreaterThan(0);
-    expect(manager.proofLevelLabel('indirect')).toBe('Vérifiable, code privé');
+    expect(manager.detailOf('skyted-voice')?.chapters.length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      proofLevelLabel('indirect', TestBed.inject(PROJECTS_TEXTS)().proofLevels),
+    ).toBe('Vérifiable, code privé');
     expect(manager.find('skyted-voice')?.facts.context).toBe('Skyted');
-    expect(manager.isLoading()).toBe(false);
+    expect(state.isLoading()).toBe(false);
   });
 
   /** One cycle for the whole catalog: nothing shows before the projects do. */
-  it('has no facts and no sheet while nothing is loaded', () => {
+  it('has no facts and no detail while nothing is loaded', () => {
     expect(manager.projects()).toEqual([]);
-    expect(manager.factsOf('skyted-voice')).toBeNull();
-    expect(manager.sheetOf('skyted-voice')).toBeNull();
+    expect(manager.find('skyted-voice')?.facts ?? null).toBeNull();
+    expect(manager.detailOf('skyted-voice')).toBeNull();
   });
 });

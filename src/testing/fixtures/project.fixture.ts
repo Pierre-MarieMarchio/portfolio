@@ -4,13 +4,14 @@ import { provideStatewise } from 'ngx-statewise';
 import { Observable, of } from 'rxjs';
 import { localize } from '@app/core/rules';
 import {
+  DetailSource,
   FactsSource,
   ProjectCatalog,
   ProjectEntry,
   ProjectSource,
   RankedProject,
-  SheetSource,
 } from '@app/features/projects/models';
+import { rank } from '@app/features/projects/rules/ranking.rules';
 import { provideTexts } from './texts.fixture';
 import { ProjectsRepositoryService } from '@app/features/projects/services';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
@@ -25,7 +26,7 @@ import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
  *
  * **Managers are never doubled.** A copy of a manager's rules drifts from
  * them: the one that stood here featured `slice(0, 4)` while the manager read
- * `FEATURED_COUNT`, and ignored the default chapter titles. A spec gets the
+ * `FEATURED`, and ignored the default chapter titles. A spec gets the
  * real manager instead, fed through a double of the repository, which is the
  * seam a remote source would plug into anyway (`provideProjects`).
  */
@@ -54,40 +55,40 @@ export const sampleFacts = (
   ...overrides,
 });
 
-export const sampleSheet = (
-  overrides: Partial<SheetSource> = {},
-): SheetSource => ({
+export const sampleDetail = (
+  overrides: Partial<DetailSource> = {},
+): DetailSource => ({
   lede: 'Sample lede.',
   links: [],
   chapters: [{ paragraphs: ['Sample paragraph.'] }],
   ...overrides,
 });
 
-/** One project as its file writes it: identity, facts and sheet. */
+/** One project as its file writes it: identity, facts and detail. */
 export const sampleEntry = (
   overrides: {
     project?: Partial<ProjectSource>;
     facts?: Partial<FactsSource>;
-    sheet?: Partial<SheetSource>;
+    detail?: Partial<DetailSource>;
   } = {},
 ): ProjectEntry => ({
   project: sampleProject(overrides.project),
   facts: sampleFacts(overrides.facts),
-  sheet: sampleSheet(overrides.sheet),
+  detail: sampleDetail(overrides.detail),
 });
 
-/** A project in its place, as the manager ranks it, for a presentational spec. */
+/** Projects in their places, as the manager ranks them, for a presentational spec. */
 export const sampleRanked = (
-  entry: ProjectEntry,
-  rank: number,
-  isFeatured = true,
-): RankedProject => ({
-  ...localize(entry.project, 'fr'),
-  facts: localize(entry.facts, 'fr'),
-  rank,
-  number: String(rank + 1).padStart(2, '0'),
-  featured: isFeatured,
-});
+  entries: readonly ProjectEntry[],
+  featuredCount = entries.length,
+): RankedProject[] =>
+  rank(
+    entries.map((entry) => ({
+      ...localize(entry.project, 'fr'),
+      facts: localize(entry.facts, 'fr'),
+    })),
+    featuredCount,
+  );
 
 /** The catalog the repository answers for these entries. */
 export const catalogOf = (
@@ -97,8 +98,8 @@ export const catalogOf = (
   facts: Object.fromEntries(
     entries.map((entry) => [entry.project.slug, entry.facts]),
   ),
-  sheets: Object.fromEntries(
-    entries.map((entry) => [entry.project.slug, entry.sheet]),
+  details: Object.fromEntries(
+    entries.map((entry) => [entry.project.slug, entry.detail]),
   ),
 });
 

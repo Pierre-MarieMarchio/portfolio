@@ -16,8 +16,8 @@ function bySlug<T>(part: (entry: ProjectEntry) => T): Record<string, T> {
  * the seam a remote source would plug into, and the effect already reads it
  * that way.
  *
- * One read answers the whole catalog: projects, facts and sheets share one
- * loading cycle, so a sheet is never there while its project is not.
+ * One read answers the whole catalog: projects, facts and details share one
+ * loading cycle, so a detail is never there while its project is not.
  */
 @Injectable({ providedIn: 'root' })
 export class ProjectsRepositoryService {
@@ -25,7 +25,7 @@ export class ProjectsRepositoryService {
     return of({
       projects: PROJECTS.map((entry) => entry.project),
       facts: bySlug((entry) => entry.facts),
-      sheets: bySlug((entry) => entry.sheet),
+      details: bySlug((entry) => entry.detail),
     });
   }
 }

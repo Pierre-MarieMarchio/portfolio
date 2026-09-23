@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** ngx-statewise: identity, facts and sheet, in one place. */
+/** ngx-statewise: identity, facts and detail, in one place. */
 export const NGX_STATEWISE: ProjectEntry = {
   project: {
     slug: 'ngx-statewise',
@@ -27,7 +27,7 @@ export const NGX_STATEWISE: ProjectEntry = {
     stack: 'Angular · signals · TypeScript',
     context: { fr: 'Personnel', en: draft('Personal') },
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'Une alternative plus légère à NgRx et NGXS pour la gestion d’état Angular, appuyée sur les signals natifs plutôt que sur un store central.',
       en: draft(

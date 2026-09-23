@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Skyted Voice: identity, facts and sheet, in one place. */
+/** Skyted Voice: identity, facts and detail, in one place. */
 export const SKYTED_VOICE: ProjectEntry = {
   project: {
     slug: 'skyted-voice',
@@ -36,7 +36,7 @@ export const SKYTED_VOICE: ProjectEntry = {
     },
     context: 'Skyted',
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'Une application d’amplification vocale pour celles et ceux à qui l’on demande sans cesse de répéter.',
       en: draft(

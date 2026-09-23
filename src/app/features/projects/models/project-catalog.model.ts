@@ -1,5 +1,5 @@
 import { FactsSource, ProjectSource } from './project.model';
-import { SheetSource } from './project-sheet.model';
+import { DetailSource } from './project-detail.model';
 
 /**
  * Everything the projects feature ships, read in one go by the repository:
@@ -11,5 +11,5 @@ export interface ProjectCatalog {
   /** In rank order, which is the distance from the centre in the mockup. */
   readonly projects: readonly ProjectSource[];
   readonly facts: Readonly<Record<string, FactsSource>>;
-  readonly sheets: Readonly<Record<string, SheetSource>>;
+  readonly details: Readonly<Record<string, DetailSource>>;
 }

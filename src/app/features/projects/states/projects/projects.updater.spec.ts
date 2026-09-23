@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
 import { catalogOf, sampleEntry } from '@testing/fixtures/project.fixture';
-import { getProjectsActions, projectsReset } from './projects.action';
+import { getProjectsActions } from './projects.action';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';
 
@@ -37,14 +37,14 @@ describe('projectsUpdater', () => {
     expect(state.isError()).toBe(false);
   });
 
-  /** One catalog, one write: facts and sheets never lag behind the projects. */
+  /** One catalog, one write: facts and details never lag behind the projects. */
   it('fills the whole catalog and stops loading on success', () => {
     statewise.dispatch(getProjectsActions.request());
     statewise.dispatch(getProjectsActions.success(CATALOG));
 
     expect(state.projects()).toEqual(CATALOG.projects);
     expect(state.facts()).toEqual(CATALOG.facts);
-    expect(state.sheets()).toEqual(CATALOG.sheets);
+    expect(state.details()).toEqual(CATALOG.details);
     expect(state.isLoading()).toBe(false);
   });
 
@@ -54,17 +54,5 @@ describe('projectsUpdater', () => {
 
     expect(state.isError()).toBe(true);
     expect(state.isLoading()).toBe(false);
-  });
-
-  it('empties everything on reset', () => {
-    statewise.dispatch(getProjectsActions.success(CATALOG));
-    statewise.dispatch(getProjectsActions.failure());
-
-    statewise.dispatch(projectsReset());
-
-    expect(state.projects()).toEqual([]);
-    expect(state.facts()).toEqual({});
-    expect(state.sheets()).toEqual({});
-    expect(state.isError()).toBe(false);
   });
 });

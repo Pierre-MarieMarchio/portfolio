@@ -21,8 +21,11 @@ export class CatalogLoaderService {
   private readonly loaded = signal<Partial<Record<Lang, Catalog>>>({});
   private readonly pending = new Map<Lang, Promise<void>>();
 
-  public readonly current = computed<Catalog>(() => {
-    const lang = this.locale.lang();
+  public readonly current = computed<Catalog>(() =>
+    this.of(this.locale.lang()),
+  );
+
+  public of(lang: Lang): Catalog {
     const catalog = this.loaded()[lang];
     if (!catalog) {
       throw new Error(
@@ -30,7 +33,7 @@ export class CatalogLoaderService {
       );
     }
     return catalog;
-  });
+  }
 
   public ensure(lang: Lang): Promise<void> {
     if (this.loaded()[lang]) {

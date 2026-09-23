@@ -24,7 +24,7 @@ npm start          # http://localhost:4200
 | `npm run build`        | build de production + prérendu de toutes les routes     |
 | `npm run serve:static` | sert `dist/portfolio/browser` comme un hébergeur static |
 | `npm test`             | Vitest + jsdom, une passe                               |
-| `npm run lint`         | ESLint, dont la loi de dépendance                       |
+| `npm run lint`         | ESLint, dont la loi de dépendance, puis Stylelint       |
 | `npm run check`        | format:check → typecheck:tools → lint → test → build    |
 
 Les messages de commit suivent les Conventional Commits (Husky + commitlint).
@@ -126,3 +126,11 @@ Composants standalone, `OnPush`, `templateUrl` + `styleUrl`, `inject()`,
 toujours écrite (vérifiée par le lint), sélecteurs préfixés `app-`. Les
 commentaires, en anglais, disent le _pourquoi_ ; chaque affirmation est tenue
 par un spec.
+
+Le lint borne aussi la taille et la forme du code : 300 lignes par fichier,
+60 par fonction, complexité 10, profondeur 3, 4 paramètres, et, dans les
+gabarits, une complexité conditionnelle de 4 et cyclomatique de 12. Les noms
+suivent `NAMES` (`eslint.config.js`). Stylelint (`stylelint.config.mjs`) vérifie
+les `.scss`, et laisse la mise en forme à Prettier. Une règle que le code
+enfreint encore est un avertissement : l'étape du plan d'audit qui la résout la
+passe en erreur.

@@ -1,5 +1,5 @@
 /*
- * The repository's own JavaScript (lint and commit configs), type-checked as
+ * The repository's own JavaScript (lint, style and commit configs), type-checked as
  * strictly as the application: `any` is banned there too, and the editor and
  * `npm run check` must agree on what counts as an error.
  */
@@ -16,5 +16,9 @@
     "moduleResolution": "nodenext",
     "types": ["node"]
   },
-  "include": ["eslint.config.js", "commitlint.config.js"]
+  "include": [
+    "eslint.config.js",
+    "commitlint.config.js",
+    "stylelint.config.mjs"
+  ]
 }

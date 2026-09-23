@@ -32,6 +32,36 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   );
 }
 
+/**
+ * The names the code base already follows, written down so a new file follows
+ * them too: camelCase for values and members, PascalCase for types and
+ * classes, SCREAMING_CASE for module constants and injection tokens. Keys that
+ * need quotes (`'data-view'`, `'--head-bottom'`) are the DOM's names, not
+ * ours, and are left alone. A leading underscore marks a parameter that is
+ * there for its position only.
+ */
+const NAMES = [
+  { selector: 'default', format: ['camelCase'], leadingUnderscore: 'allow' },
+  { selector: 'typeLike', format: ['PascalCase'] },
+  { selector: 'enumMember', format: ['PascalCase'] },
+  {
+    selector: 'classProperty',
+    modifiers: ['static', 'readonly'],
+    format: ['camelCase', 'UPPER_CASE'],
+  },
+  {
+    selector: 'variable',
+    modifiers: ['const'],
+    format: ['camelCase', 'UPPER_CASE'],
+  },
+  { selector: 'import', format: ['camelCase', 'PascalCase'] },
+  {
+    selector: ['objectLiteralProperty', 'typeProperty'],
+    modifiers: ['requiresQuotes'],
+    format: null,
+  },
+];
+
 const SIBLING_WHY =
   'no feature imports another feature; the need descends into features/common, or is joined in pages/';
 
@@ -205,11 +235,62 @@ export default defineConfig(
   },
 
   {
+    // Size, shape and names. Part of this block starts as a warning: the
+    // audit of September 23 (docs/audit/README.md) plans the refactors that
+    // bring the code under each ceiling, and each step turns its rules into
+    // errors once nothing trips them any more. A rule the code already obeys
+    // is an error from the start, so the ground won cannot be lost.
+    files: ['src/**/*.ts'],
+    rules: {
+      'max-lines': [
+        'warn',
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+      'max-lines-per-function': [
+        'warn',
+        { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      complexity: ['warn', 10],
+      'max-depth': ['warn', 3],
+      'max-params': ['warn', 4],
+      '@typescript-eslint/prefer-readonly': 'warn',
+      '@typescript-eslint/naming-convention': ['warn', ...NAMES],
+      '@angular-eslint/prefer-on-push-component-change-detection': 'error',
+      '@angular-eslint/prefer-output-readonly': 'error',
+      '@angular-eslint/prefer-signals': 'error',
+    },
+  },
+
+  {
+    // The canvas engine writes its physics as the formulas do: `R` a radius,
+    // `Q` a quaternion, `M0` a mean anomaly at the epoch. Spelled out, they
+    // would read worse next to the equations they come from. The engine is
+    // also where the size and complexity warnings live; step 9 of the plan
+    // takes them on, within the limits decided there (D2).
+    files: [`${APP}/shared/ui/object/engine/**/*.ts`],
+    rules: {
+      '@typescript-eslint/naming-convention': [
+        'error',
+        {
+          selector: ['variable', 'parameter', 'property'],
+          filter: { regex: '^[A-Z][A-Za-z]?[0-9]?$', match: true },
+          format: null,
+        },
+        ...NAMES,
+      ],
+    },
+  },
+
+  {
     // Specs build throwaway doubles; the accessibility rule aimed at the
     // application's surface only gets in the way there.
     files: ['src/**/*.spec.ts', 'src/testing/**/*.ts'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
+      // A spec is one `describe` holding its cases: its length is the number
+      // of behaviours it pins, not a function grown too big.
+      'max-lines': 'off',
+      'max-lines-per-function': 'off',
     },
   },
 
@@ -222,6 +303,18 @@ export default defineConfig(
     rules: {
       // The template's own way of writing `any`.
       '@angular-eslint/template/no-any': 'error',
+      // A template stays a view: a branch that needs more than this belongs
+      // in a `computed` of its component.
+      '@angular-eslint/template/conditional-complexity': [
+        'warn',
+        { maxComplexity: 4 },
+      ],
+      '@angular-eslint/template/cyclomatic-complexity': [
+        'warn',
+        { maxComplexity: 12 },
+      ],
+      '@angular-eslint/template/prefer-control-flow': 'error',
+      '@angular-eslint/template/prefer-self-closing-tags': 'error',
     },
   },
 

@@ -24,6 +24,7 @@ import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
 import { navigationItems } from '../../app.navigation';
 import { AboutWindowComponent } from './about-window.component';
 import { ContactRailComponent } from './contact-rail.component';
+import { IntroCardComponent } from './intro-card.component';
 import { NotFoundWindowComponent } from './not-found-window.component';
 import { OrbitRuleComponent } from './orbit-rule.component';
 
@@ -56,6 +57,7 @@ const FOCUS_DEADLINE_MS = 2500;
   imports: [
     AboutWindowComponent,
     ContactRailComponent,
+    IntroCardComponent,
     NotFoundWindowComponent,
     OrbitRuleComponent,
     ObjectComponent,
@@ -210,6 +212,29 @@ export class StationComponent {
     // Browser only, and never with reduced motion: on the server there is
     // no one to show it to, and the prerendered page must be still.
     afterNextRender(() => {
+      // The name and the pages can take two lines (a phone, enlarged text):
+      // the windows start under their real height, never under a guessed
+      // one, or a window covers the buttons. Written as a CSS variable, so
+      // measuring schedules no render.
+      const scene = this.scene().nativeElement;
+      const head = scene.querySelector<HTMLElement>('app-page-bar');
+      const measure = (): void => {
+        if (!head) {
+          return;
+        }
+        const bottom =
+          head.getBoundingClientRect().bottom -
+          scene.getBoundingClientRect().top;
+        scene.style.setProperty(
+          '--head-bottom',
+          `${String(Math.round(bottom))}px`,
+        );
+      };
+      measure();
+      if (head) {
+        stops.push(this.browser.observeResize(head, measure));
+      }
+
       if (!this.browser.prefersReducedMotion()) {
         const stop = this.playCurtain();
         stops.push(stop);

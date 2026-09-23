@@ -1,5 +1,5 @@
 import { InjectionToken, Signal } from '@angular/core';
-import { ProjectsTexts } from '@app/features/projects/i18n';
+import { ProjectsTexts } from '@app/features/projects/ports';
 import { DesktopTexts } from '@app/features/desktop/ports';
 import { SharedTexts } from '@shared/ui/ports';
 

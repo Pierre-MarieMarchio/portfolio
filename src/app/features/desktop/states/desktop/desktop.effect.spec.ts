@@ -14,7 +14,7 @@ import {
 import { DesktopEffect } from './desktop.effect';
 import { DesktopState } from './desktop.state';
 import { desktopUpdater } from './desktop.updater';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 describe('StationEffect', () => {
   let navigated: string[];

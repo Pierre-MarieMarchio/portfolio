@@ -4,7 +4,7 @@ import {
   loadProjects,
   provideProjects,
   sampleEntry,
-} from '@testing/fake-managers';
+} from '@testing/fixtures/project.fixture';
 import { FEATURED_COUNT } from '@app/features/projects/states';
 import { ProjectPreviewComponent } from './project-preview.component';
 

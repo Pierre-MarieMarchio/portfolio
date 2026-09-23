@@ -4,10 +4,10 @@ import {
   loadProjects,
   provideProjects,
   sampleEntry,
-} from '@testing/fake-managers';
+} from '@testing/fixtures/project.fixture';
 import { ProjectEntry, SheetSource } from '@app/features/projects/models';
 import { FEATURED_COUNT } from '@app/features/projects/states';
-import { ProjectIndexComponent } from './project-index.component';
+import { ProjectListComponent } from './project-list.component';
 
 const rows = (host: HTMLElement) => [
   ...host.querySelectorAll<HTMLButtonElement>('button.row'),
@@ -57,12 +57,12 @@ describe('ProjectIndexComponent', () => {
     entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
     TestBed.configureTestingModule({
-      imports: [ProjectIndexComponent],
+      imports: [ProjectListComponent],
       providers: [provideRouter([]), provideProjects(entries)],
     });
     const manager = await loadProjects();
 
-    const fixture = TestBed.createComponent(ProjectIndexComponent);
+    const fixture = TestBed.createComponent(ProjectListComponent);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
     fixture.componentRef.setInput('selected', inputs.selected ?? null);
     fixture.componentRef.setInput('visited', inputs.visited ?? []);

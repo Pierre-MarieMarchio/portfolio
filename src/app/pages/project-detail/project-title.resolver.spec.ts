@@ -6,7 +6,7 @@ import {
   loadProjects,
   provideProjects,
   sampleEntry,
-} from '@testing/fake-managers';
+} from '@testing/fixtures/project.fixture';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { SITE_NAME } from '@app/core/services';
 import { projectTitle } from './project-title.resolver';

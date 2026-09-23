@@ -5,7 +5,7 @@ import {
   loadProjects,
   provideProjects,
   sampleEntry,
-} from '@testing/fake-managers';
+} from '@testing/fixtures/project.fixture';
 import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED, FEATURED_COUNT } from '@app/features/projects/states';
 import { SpaceSceneComponent } from '@app/features/desktop/components';
@@ -51,7 +51,7 @@ const mount = async (featured: number, total: number) => {
     host,
     object,
     station: TestBed.inject(DesktopManager),
-    markers: () => host.querySelectorAll('app-orbit-rule li').length,
+    markers: () => host.querySelectorAll('app-featured-bar li').length,
     choices: () =>
       host.querySelectorAll('[aria-label="Corps en orbite"] button').length,
   };

@@ -15,10 +15,10 @@ import { LANGS } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
 import { BrowserEnvironmentService } from '@app/core/services';
 import {
-  OrbitRuleComponent,
-  ProjectIndexComponent,
+  FeaturedBarComponent,
+  ProjectListComponent,
   ProjectPreviewComponent,
-  ProjectSheetComponent,
+  ProjectDetailComponent,
 } from '@app/features/projects/components';
 import { SpaceSceneComponent } from '@app/features/desktop/components';
 import { DesktopView } from '@app/features/desktop/models';
@@ -64,11 +64,11 @@ import { WindowSlot, WindowStack } from './window-stack/window-stack';
     NotFoundWindowComponent,
     SpaceSceneComponent,
     PanelAnchorDirective,
-    OrbitRuleComponent,
+    FeaturedBarComponent,
     PageBarComponent,
-    ProjectIndexComponent,
+    ProjectListComponent,
     ProjectPreviewComponent,
-    ProjectSheetComponent,
+    ProjectDetailComponent,
     WindowSlotDirective,
   ],
   providers: [ArrivalController, Curtain, StationProjectsBinding, WindowStack],

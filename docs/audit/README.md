@@ -8,6 +8,7 @@ ici, les décisions prises s'ajoutent à `docs/architecture/decisions.md`.
 ```
 docs/audit/
   README.md                         ce fichier : méthode, synthèse, plan, décisions
+  phase-3.md                        second audit (après la PR #26) et son plan
   rapports/
     00-premiere-passe.md            projets, FEATURED_COUNT, textes, bilingue (essais compris)
     01-moteur-bugs.md               moteur canvas : bugs, fuites, cohérence des entrées
@@ -16,6 +17,7 @@ docs/audit/
     04-shared-design-system.md      découpage de shared/, jetons, primitives
     05-moteur-structure.md          moteur canvas : god class, clean code, découpage
     06-nommage-tests-outillage.md   nommage, clean code, tests, lint, CI
+    07-moteur-contraintes.md        moteur : ce qui contraint son découpage (phase 3)
 ```
 
 ## Méthode

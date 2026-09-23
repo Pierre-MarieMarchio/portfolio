@@ -1,3 +1,4 @@
+import { DebugElement } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
@@ -26,7 +27,17 @@ describe('StationComponent', () => {
     return manager;
   };
 
-  const mount = async () => {
+  const mount = async (options: { reducedMotion?: boolean } = {}) => {
+    // jsdom has no matchMedia: without it the station reads reduced motion,
+    // like the prerender. A static answer is enough here.
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches:
+        query === '(prefers-reduced-motion: reduce)'
+          ? (options.reducedMotion ?? true)
+          : false,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    }));
     // jsdom has no 2D context: the object takes its no-canvas fallback, which
     // is what these specs need, without jsdom logging "not implemented".
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
@@ -55,7 +66,71 @@ describe('StationComponent', () => {
     // that beyond one spec, but destroying the fixture keeps every spec
     // starting from a station with no listener left behind.
     TestBed.resetTestingModule();
+    vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  describe('the arrival of the home page', () => {
+    const arrivals = (host: HTMLElement) =>
+      ['#accueil', 'app-page-bar', 'app-orbit-rule', 'app-contact-rail'].map(
+        (selector) =>
+          host.querySelector(selector)?.getAttribute('data-arrival') ?? null,
+      );
+    const revealed = (fixture: { debugElement: DebugElement }): boolean =>
+      (
+        fixture.debugElement.query(
+          (node) => node.componentInstance instanceof ObjectComponent,
+        ).componentInstance as ObjectComponent
+      ).revealed();
+
+    it('holds the rest during the crossing, and lets it in at 8700 ms', async () => {
+      // setTimeout only: the zoneless scheduler runs on microtasks.
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host } = await mount({ reducedMotion: false });
+
+      expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
+      expect(revealed(fixture)).toBe(false);
+
+      vi.advanceTimersByTime(8699);
+      await fixture.whenStable();
+      expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
+
+      vi.advanceTimersByTime(1);
+      await fixture.whenStable();
+      expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
+      expect(revealed(fixture)).toBe(true);
+    });
+
+    it.each(['pointerdown', 'keydown', 'wheel', 'touchstart'])(
+      'lets the rest in at the first %s',
+      async (type) => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+        const { fixture, host } = await mount({ reducedMotion: false });
+
+        window.dispatchEvent(new Event(type));
+        await fixture.whenStable();
+        expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
+      },
+    );
+
+    it('lets the rest in when the reader leaves the home page', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, station, host } = await mount({ reducedMotion: false });
+
+      station.navigated('index');
+      await fixture.whenStable();
+      expect(
+        host.querySelector('app-page-bar')?.getAttribute('data-arrival'),
+      ).toBe('shown');
+    });
+
+    it('shows everything at once with reduced motion', async () => {
+      const { fixture, host } = await mount({ reducedMotion: true });
+
+      expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
+      expect(revealed(fixture)).toBe(true);
+    });
   });
 
   it('renders the page bar and the contact rail, with no pause button for now', async () => {

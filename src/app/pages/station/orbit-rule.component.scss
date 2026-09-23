@@ -5,6 +5,19 @@
   bottom: clamp(78px, 10vh, 94px);
   z-index: var(--z-scene-top);
   pointer-events: none;
+  animation: rise 1300ms calc(var(--arrival-at) + 400ms) both;
+}
+
+/* Arrives with the home page's rest (see `Arrival`): on its own at the end
+   of the crossing without a script, held until the reader is there with one,
+   then rising from that moment. */
+:host([data-arrival='held']) {
+  animation: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+:host([data-arrival='shown']) {
   animation: rise 1300ms 400ms both;
 }
 
@@ -197,7 +210,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :host {
+  :host,
+  :host([data-arrival]) {
     animation: none;
   }
 

@@ -130,6 +130,10 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   délai de l'export. Sans script, le CSS seul les amène à 8,7 s. Comme dans
   l'export, quitter l'accueil ou arriver sur une autre adresse montre tout
   d'emblée, et les planètes suivent le même signal.
+- **Le rail de contact porte des icônes Material Symbols.** L'export y écrit
+  « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG (contour,
+  graisse 400) : `mail`, puis `work` pour LinkedIn et `code` pour GitHub,
+  Material n'ayant pas de logos de marque. Les noms accessibles ne changent pas.
 - **Le carton s'efface sans JavaScript.** Il est prérendu et son fondu est en
   CSS (`animation … both`) : sans script, il disparaît seul à 5,6 s ; le script
   ne fait que le retirer au premier geste.

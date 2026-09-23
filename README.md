@@ -34,46 +34,44 @@ Les messages de commit suivent les Conventional Commits (Husky + commitlint).
 
 ```
 src/app/
-  app.config.ts          racine de composition : statewise, ports, initializer
-  app.routes.ts          lazy partout, un title par route (+ data.description)
+  app.config.ts          racine de composition : statewise, i18n, initializer
+  app.routes.ts          chaque vue dans les deux langues, sa vue en data, sa
+                         tête par le resolver page-head
   app.routes.server.ts   prérendu, une page par projet via getPrerenderParams
-  app.navigation.ts      les entrées du menu
-  app.contact.ts         les adresses du rail de contact
-  i18n/                  les textes : fr.ts, en.ts (un Catalog chacun), la
-                         table des adresses (paths.ts), provideI18n
+  i18n/                  les catalogues (data/fr.data.ts, en.data.ts, un
+                         Catalog chacun), la table des adresses
+                         (data/paths.data.ts), provideI18n, la garde
   app.component.*        compose le shell et le <router-outlet>
 
   core/                  infrastructure, aucun concept métier
-    i18n/                Lang, Locale (la langue lue dans l'adresse),
-                         Localized / Text / resolve, draft
-    error-handling/      AppErrorHandler
-    services/            BrowserEnvironment, PageHead (et SITE_NAME),
-                         PageTitleStrategy
-    utils/               fonctions pures (pas de barrel)
-  shared/ui/             composants présentationnels (inputs/outputs seulement)
-    arrival/             le modèle de l'arrivée du reste de l'accueil
-    contact-rail/        le rail de contact (ses liens en entrée)
-    object-marks/        panneaux et lignes que l'objet lit (directives + registre)
-    landing-focus/       le titre où le focus arrive après une navigation
-    page-bar/ segmented/ window/
+    services/            le navigateur (un service par sujet), la présence
+                         du lecteur, le <head>, la langue, les erreurs
+    strategies/          la tête de chaque route (RouteHeadStrategy)
+    models/ rules/       la langue et la localisation
+    helpers/             petites fonctions pures, sans domaine
+  shared/                trois librairies, qui n'importent que core (D20)
+    ui/                  les composants d'interface sans métier
+    windows/             la fenêtre, son glissement, sa pile
+    space-scene/         la scène canvas : moteur, règles, composant
   features/
-    common/              noyau partagé : des ports, rien d'autre (vide pour l'instant)
+    common/              les contrats de deux features : LINKS, SceneAnchorKind
     projects/
-      components/        relevé, aperçu, fiche, règle d'orbite
-      data/              le contenu : un fichier par projet (data/projects/),
-                         leur ordre (projects.data.ts), les libellés
-      models/ services/ states/projects/
-    station/
-      components/object/ l'objet canvas et son moteur
-      models/ states/station/
-  pages/                 composition : une page par route, peut tout importer
-    view-marker/         le marqueur de route de chaque vue (data.view)
-    project-detail/      le marqueur d'une fiche et le resolver de son titre
-    station/             la station, composition seule ; ses vues (un dossier
-                         par composant), l'arrivée et le rideau (arrival/), la
-                         pile des fenêtres (window-stack/), la mesure de la
-                         barre (head-bottom/), la jonction avec les projets
-src/testing/             doubles partagés (fake-managers.ts)
+      components/        barre vedettes, liste, aperçu, fiche
+      data/              contenu : un fichier par projet, leur ordre, libellés
+      models/ services/ ports/ rules/ states/
+    desktop/
+      components/        la scène du bureau, la carte d'ouverture, le titre,
+                         la fenêtre « adresse inconnue », la pause
+      services/          la révélation de l'accueil, le tour des vedettes
+      models/ ports/ rules/ states/desktop/ states/animation/
+    profile/
+      components/        la fenêtre « à propos »
+      data/ models/ ports/
+  pages/                 composition : un dossier par écran
+    desktop/             l'écran-bureau et sa feuille de route
+    workbench/           l'atelier des composants, en développement
+    resolvers/           les têtes de page, dans la langue visée
+src/testing/             fixtures/ et doubles/ des specs
 src/integration/         suites qui testent un mécanisme, pas un composant
 ```
 
@@ -84,30 +82,34 @@ site ; seul le repository le lit. **Ajouter ou changer un projet** : voir
 
 ## La loi de dépendance
 
-`pages → features → shared/ui → core`, jamais sur le côté, jamais vers le haut.
+`racine → pages → i18n → features → features/common → shared/<lib> → core`,
+jamais sur le côté, jamais vers le haut.
 
-| Zone              | Peut importer                         | Ne doit jamais importer                 |
-| ----------------- | ------------------------------------- | --------------------------------------- |
-| `pages/`          | tout                                  | —                                       |
-| `features/<x>/`   | `core/`, `shared/`, `features/common` | `pages/`, **une autre feature**         |
-| `features/common` | rien du dépôt                         | `core`, `shared`, les features, `pages` |
-| `shared/ui/`      | `core/`                               | `features/`, `pages/`                   |
-| `core/`           | rien d'autre sous `app/`              | `features/`, `shared/`, `pages/`        |
+| Zone              | Peut importer                         | Ne doit jamais importer                              |
+| ----------------- | ------------------------------------- | ---------------------------------------------------- |
+| racine `app.*.ts` | tout                                  | —                                                    |
+| `pages/`          | tout, sauf la racine                  | la racine                                            |
+| `i18n/`           | les features, `shared/`, `core/`      | `pages/`, la racine                                  |
+| `features/<x>/`   | `core/`, `shared/`, `features/common` | une autre feature, `i18n/`, `pages/`, la racine      |
+| `features/common` | rien du dépôt                         | `core`, `shared`, les features, `pages`              |
+| `shared/<lib>/`   | `core/`                               | une autre librairie, les features, `i18n/`, `pages/` |
+| `core/`           | rien d'autre sous `app/`              | tout le reste                                        |
 
-Quand deux features ont besoin l'une de l'autre, le besoin **descend** dans un
-port (interface + `InjectionToken`, sans factory par défaut) :
+Quand deux features ont besoin d'un même contrat, il **descend** dans un port
+(interface + `InjectionToken`, sans factory par défaut) :
 
 - dans `features/common` si les trois conditions sont réunies (deux
   consommateurs au moins, besoin né hors d'une composition, port réduit à ce
   qui est appelé) ;
-- sinon dans `features/<consommateur>/ports/`, avec la jonction dans
-  `pages/<x>.provider.ts`.
+- sinon dans `features/<consommateur>/ports/`, et la composition y répond
+  (`provideI18n` pour les tranches de textes).
 
-La loi est dans `eslint.config.js` (`zoneLaws()`). **Ajouter une feature**,
-c'est ajouter son nom à `FEATURES` : le lint refuse de tourner tant que la liste
-et `src/app/features/` ne concordent pas. Les imports qui traversent une zone
-passent par un alias (`@app/*`, `@shared/*`, `@assets/*`, `@testing/*`) ; les
-imports relatifs restent à l'intérieur d'une feature.
+La loi est dans `eslint.config.js` (`zoneLaws()`). **Ajouter une feature** ou
+**une librairie**, c'est ajouter son nom à `FEATURES` ou à `SHARED_LIBS` : le
+lint refuse de tourner tant que la liste et le disque ne concordent pas. Les
+imports qui traversent une zone passent par un alias (`@app/*`, `@shared/*`,
+`@assets/*`, `@testing/*`) et le barrel du dossier ; les imports relatifs
+restent à l'intérieur d'une zone.
 
 ## L'état
 
@@ -116,9 +118,10 @@ effect (asynchrone) → éventuellement d'autres actions. Les composants et les
 pages ne parlent qu'aux **managers**. Un concept d'état = cinq fichiers dans
 `states/<concept>/` : `.action`, `.state`, `.updater`, `.effect`, `.manager`.
 
-On dérive plutôt que de stocker : une page garde un **slug** et en dérive le
-projet (`manager.find(slug)`), jamais une copie. L'état d'écran (filtre, onglet)
-reste en signals locaux dans la page.
+On dérive plutôt que de stocker : l'état garde un **slug** et l'écran en dérive
+le projet (`manager.find(slug)`), jamais une copie. Ce que le lecteur regarde
+et désigne (vue, fiche, épingles, sélection, filtre) est l'état `desktop` ; la
+pause, l'état `animation` (D14).
 
 ## SSR et prérendu
 
@@ -131,9 +134,9 @@ reste en signals locaux dans la page.
   l'hébergeur doit servir `index.csr.html` (le rendu se fait alors côté
   client, jusqu'à la page « Adresse inconnue ») : c'est le réglage « SPA
   fallback » de la plupart des hébergeurs statiques.
-- Aucun code ne touche `window`, `localStorage` ou `matchMedia` en direct :
-  tout passe par `BrowserEnvironment`, inerte au prérendu, qui garde le
-  `document` pour lui. `src/integration/prerender-safety.spec.ts` le vérifie.
+- Aucun code ne touche `window`, `localStorage`, `matchMedia` ou `canvas` en
+  direct : tout passe par les services de `core/services/`, inertes au
+  prérendu. `src/integration/prerender-safety.spec.ts` le vérifie.
 
 ## Conventions
 
@@ -144,15 +147,15 @@ dans les templates, et les fichiers JS de configuration sont type-checkés en
 strict (`tsconfig.tools.json`). Ce qui n'est pas encore connu est `unknown`,
 et se restreint avant d'être utilisé.
 
-Composants standalone, `OnPush`, `templateUrl` + `styleUrl`, `inject()`,
+Composants standalone, `OnPush` (le défaut d'Angular 22), `templateUrl` + `styleUrl`, `inject()`,
 `input()`/`output()`, control flow `@if`/`@for`, accessibilité des membres
 toujours écrite (vérifiée par le lint), sélecteurs préfixés `app-`. Une classe
-injectable porte le nom de ce qu'elle est (`PageHead`, `ProjectsRepository`,
-`BrowserEnvironment`), sans suffixe `Service` : le suffixe est dans le nom du
-fichier (`.service.ts`), avec `.strategy.ts` et `.resolver.ts` pour ce que le
-routeur appelle.
+porte le suffixe de son fichier (D7) : `document-head.service.ts` /
+`DocumentHeadService`, `route-head.strategy.ts` / `RouteHeadStrategy`. La
+liste des suffixes et des dossiers de rôle est dans
+`docs/architecture/organisation.md` §3, et `check-structure.mjs` la tient.
 
-Chaque composant a son dossier, à son nom (`orbit-rule/orbit-rule.component.*`).
+Chaque composant a son dossier, à son nom (`featured-bar/featured-bar.component.*`).
 Une entrée et la sortie qui la change forment une paire `x` / `xChange`
 (`selected` / `selectedChange`, `hovered` / `hoveredChange`) ; un événement sans
 état est un participe passé (`closed`, `chosen`, `pinToggled`, `spun`). Les

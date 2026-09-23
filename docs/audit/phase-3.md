@@ -38,14 +38,14 @@ fonctionnels). Ce qui reste :
 
 ## Décisions
 
-| #   | Question                       | Décision                                                                                     |
-| --- | ------------------------------ | -------------------------------------------------------------------------------------------- |
-| D7  | Nommage des fichiers           | on garde les suffixes (`.component.ts`, `WindowComponent`) ; `angular.json` fixe `type`      |
-| D8  | Ce qui sort de `pages/station` | une feature `profile` ; le reste dans `features/desktop` et `shared/ui` (tableau ci-dessous) |
-| D9  | Avertissements                 | zéro à la fin, `--max-warnings 0` ; un `eslint-disable` restant porte sa raison              |
-| D10 | Commentaires                   | le code se lit seul ; un commentaire ne garde qu'un « pourquoi » qu'aucun nom ne peut porter |
-| D11 | Moteur (remplace D2)           | découpage objet, SOLID avec SRP et KISS d'abord, sous le golden étendu                       |
-| D12 | Noms venus de la maquette      | un nom se comprend sans la maquette : `station` → `desktop`, `object` → `space-scene`        |
+| #   | Question                       | Décision                                                                                                                 |
+| --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| D7  | Nommage des fichiers           | on garde les suffixes (`.component.ts`, `WindowComponent`) ; `angular.json` fixe `type`                                  |
+| D8  | Ce qui sort de `pages/station` | une feature `profile` ; le reste dans `features/desktop` et `shared/ui` (tableau ci-dessous)                             |
+| D9  | Avertissements                 | zéro à la fin, `--max-warnings 0` ; aucun `eslint-disable`, une exception va dans la config et sa raison dans le journal |
+| D10 | Commentaires                   | aucun dans le code, ni pourquoi ni trace du chantier ; les raisons vont dans le journal des décisions                    |
+| D11 | Moteur (remplace D2)           | découpage objet, SOLID avec SRP et KISS d'abord, sous le golden étendu                                                   |
+| D12 | Noms venus de la maquette      | un nom se comprend sans la maquette : `station` → `desktop`, `object` → `space-scene`                                    |
 
 ## Destinations de `pages/`
 
@@ -86,7 +86,7 @@ commit.
     racine au lieu des chemins relatifs ;
   - un garde « `pages/` ne contient que `*-page.component.*`,
     `*.component.*` routés, `*.provider.ts`, `*.resolver.ts` » ;
-  - `--max-warnings 0` ; `eslint-comments/require-description` ;
+  - `--max-warnings 0` ; `eslint-comments/no-use` (aucun `eslint-disable`) ;
   - règles choisies de `eslint-plugin-sonarjs` et `eslint-plugin-unicorn`
     (cognitive-complexity 15, prefer-includes, dom-node-dataset,
     no-negated-condition, prefer-modern-math-apis, no-for-each…), le moteur
@@ -110,8 +110,9 @@ commit.
   - `Locale` dérivé de `router.lastSuccessfulNavigation()` ;
   - les scrolls « remonter en haut » en `afterRenderEffect`, écrits une fois.
 - [ ] **4. `refactor(clean)`**, hors moteur :
-  - commentaires : supprimer ceux qui paraphrasent, corriger les faux,
-    renommer ou découper ce qui en avait besoin (D10) ;
+  - commentaires : tous retirés (D10) ; ce qui en avait besoin est renommé
+    ou découpé, et un pourquoi qui vaut d'être gardé part dans le journal
+    des décisions ;
   - code mort : chaîne `reset`, `isLoading`/`isError`, `factsOf`,
     `data-object-line`, `?? 'profile'`, relais purs du binding ;
   - doublons : table vue → fenêtre (un type, une fonction), `twoDigits`,

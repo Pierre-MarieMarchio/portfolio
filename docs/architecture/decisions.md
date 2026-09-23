@@ -254,8 +254,10 @@ sous-composants n'y vivent plus.
 
 **Décision.** Le lint tourne avec `--max-warnings 0`. Les règles de
 `eslint-plugin-sonarjs` et `eslint-plugin-unicorn` qui correspondent à ce que
-montre SonarLint sont choisies une par une et passent en erreur. Un
-`eslint-disable` qui reste porte sa raison, et le lint l'exige.
+montre SonarLint sont choisies une par une et passent en erreur. Aucun
+`eslint-disable` dans le code : une exception qui résiste se déclare dans
+`eslint.config.js` pour le fichier concerné, et sa raison s'écrit dans ce
+journal.
 
 **Raison.** Une règle en avertissement n'est tenue par rien : la CI passait
 avec 43 avertissements.
@@ -264,15 +266,21 @@ avec 43 avertissements.
 contraires aux choix du projet : `no-null`, `globalThis.window`, noms de
 fichiers).
 
-## 2026-09-23 — Le code se lit seul (D10)
+## 2026-09-23 — Pas de commentaire dans le code (D10)
 
-**Décision.** Un nom juste plutôt qu'un commentaire. Une fonction qui a besoin
-d'un commentaire pour être comprise est renommée ou découpée. Un commentaire
-ne garde qu'un « pourquoi » qu'aucun nom ne peut porter (un contournement de
-navigateur, une contrainte extérieure), en une ligne.
+**Décision.** Le code ne porte pas de commentaire. Un nom juste dit ce que
+fait le code ; une fonction qui a besoin d'être expliquée est renommée ou
+découpée. Aucune trace du chantier non plus : ni étape, ni date, ni « on a
+d'abord fait… ». Le pourquoi d'une contrainte (une valeur réglée à l'œil, un
+contournement de navigateur, une limite à ne pas dépasser) va dans ce journal
+ou dans un document d'architecture, jamais sur la ligne concernée.
 
-**Raison.** Un commentaire qui paraphrase se lit deux fois et vieillit seul :
-plusieurs étaient devenus faux.
+**Raison.** Un commentaire paraphrase le code ou raconte son histoire ; dans
+les deux cas il se lit deux fois et vieillit seul, et plusieurs étaient devenus
+faux. On ne laisse pas l'échafaudage sur la maison : l'épaisseur des
+fondations se justifie dans les plans, pas sur la chape.
+
+**Écarté.** Garder les commentaires de « pourquoi » dans le code.
 
 ## 2026-09-23 — Le moteur de l'objet devient des objets (D11)
 

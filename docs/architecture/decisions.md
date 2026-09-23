@@ -217,3 +217,87 @@ dans un code que personne d'autre ne touche. Les avertissements de taille et
 de complexité qui restent sur `object-engine.ts`, `sky.ts`, `scene.ts`,
 `comets.ts`, `constellations.ts`, `math.ts` et `object.component.ts` sont ce
 prix : la règle les garde en avertissement pour ces fichiers seulement.
+
+## 2026-09-23 — Les fichiers gardent leur suffixe (D7)
+
+**Décision.** Les fichiers et les classes gardent leur suffixe de rôle :
+`window.component.ts` / `WindowComponent`, `page-head.service.ts`,
+`*.directive.ts`, `*.resolver.ts`, `*.provider.ts`. `angular.json` fixe `type`
+pour chaque schematic, afin que `ng generate` produise la même forme.
+
+**Raison.** Le suffixe dit le rôle avant d'ouvrir le fichier, et une recherche
+par rôle (`*.service.ts`) range le dépôt d'un coup d'œil.
+
+**Écarté.** La convention du style guide Angular depuis la v20
+(`window.ts` / `Window`), que `ng generate` suit par défaut en v22.
+
+## 2026-09-23 — `pages/` ne contient que des pages (D8)
+
+**Décision.** `pages/` ne garde que les composants routés, la composition de
+l'écran, les `*.provider.ts` qui joignent deux features et les
+`*.resolver.ts` de route. Un garde le vérifie. Le reste descend : le contenu
+de profil (fenêtre « à propos », liens de contact) dans une feature
+`profile`, les composants de l'écran dans `features/desktop`, ce qui n'a
+aucun métier (pile des fenêtres, bas de l'en-tête, arrivée) dans `shared/ui`.
+Le tableau des destinations est dans `docs/audit/phase-3.md`.
+
+**Raison.** La référence définit `pages/` comme la couche de composition ;
+dix-sept fichiers y avaient glissé sans qu'aucune règle ne le voie.
+
+**Écarté.** Tout ranger dans `features/desktop` : plus simple, mais la
+feature mêlerait le profil et la navigation.
+
+**Remplace** l'entrée « Les fenêtres vivent à la station » sur un point : les
+sous-composants n'y vivent plus.
+
+## 2026-09-23 — Zéro avertissement (D9)
+
+**Décision.** Le lint tourne avec `--max-warnings 0`. Les règles de
+`eslint-plugin-sonarjs` et `eslint-plugin-unicorn` qui correspondent à ce que
+montre SonarLint sont choisies une par une et passent en erreur. Un
+`eslint-disable` qui reste porte sa raison, et le lint l'exige.
+
+**Raison.** Une règle en avertissement n'est tenue par rien : la CI passait
+avec 43 avertissements.
+
+**Écarté.** Les presets complets (environ 1 300 constats, dont beaucoup
+contraires aux choix du projet : `no-null`, `globalThis.window`, noms de
+fichiers).
+
+## 2026-09-23 — Le code se lit seul (D10)
+
+**Décision.** Un nom juste plutôt qu'un commentaire. Une fonction qui a besoin
+d'un commentaire pour être comprise est renommée ou découpée. Un commentaire
+ne garde qu'un « pourquoi » qu'aucun nom ne peut porter (un contournement de
+navigateur, une contrainte extérieure), en une ligne.
+
+**Raison.** Un commentaire qui paraphrase se lit deux fois et vieillit seul :
+plusieurs étaient devenus faux.
+
+## 2026-09-23 — Le moteur de l'objet devient des objets (D11)
+
+**Décision.** D2 est remplacée. Le moteur est découpé en classes à
+responsabilité unique : un renderer par couche dessinée derrière une
+interface étroite, la caméra, l'entrée et l'état de scène à part, les
+dépendances passées au constructeur. SRP et KISS d'abord : pas d'abstraction
+sans deux utilisateurs. Le golden reste la preuve ; il est d'abord étendu
+(comètes, `dpr` 2, téléphone, libellés mesurés, mouvement réduit) dans un
+fichier à part dont les empreintes sont prises avant toute extraction. Aucune
+allocation dans la boucle des grains. L'exemption du moteur disparaît du lint
+à la fin.
+
+**Raison.** Le moteur est le seul code qui échappe aux règles du projet, et
+le seul qu'on ne peut pas lire sans la maquette.
+
+**Écarté.** Garder D2 et ses avertissements permanents.
+
+## 2026-09-23 — Des noms qui se comprennent sans la maquette (D12)
+
+**Décision.** Un nom se comprend sans avoir lu la maquette. La feature et la
+page `station` deviennent `desktop` (l'écran se comporte comme un bureau à
+fenêtres), le composant `object` devient `space-scene` (la scène spatiale en
+canvas), `shared/ui/object-marks` devient `shared/ui/scene-anchors`. Les
+autres noms du même genre sont revus avec le même critère.
+
+**Raison.** « la station » et « l'objet » sont des mots de la maquette ; un
+lecteur du code n'a aucun moyen de les deviner.

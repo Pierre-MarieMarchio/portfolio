@@ -25,7 +25,6 @@ import {
   TAU,
 } from './math';
 import {
-  buildScene,
   fitOrbits,
   Grain,
   opening,
@@ -36,12 +35,14 @@ import {
   Projected,
 } from './scene';
 import { Sky } from './sky';
+import { buildScene } from '../../../rules/scene/grain-reserve.rules';
 import { Traveling, traveling, TRAVELING_END } from './traveling';
 import { CURSOR_REACH, ORBIT_RATE, SHADOW_EDGE } from './constants';
 import {
   flattening,
   Rolled,
   rollFlatten,
+  ScreenHole,
   travelingElevation,
 } from './projection';
 import { Turntable } from './turntable';
@@ -241,7 +242,7 @@ export class ObjectEngine {
   private visible = true;
   private started = false;
 
-  private hole: { cx: number; cy: number; R: number } | null = null;
+  private hole: ScreenHole | null = null;
   private pointer: { x: number; y: number } | null = null;
 
   private cancelFrame: (() => void) | null = null;
@@ -469,11 +470,9 @@ export class ObjectEngine {
   private fitOrbits(): void {
     fitOrbits(
       this.orbits,
-      this.w,
-      this.h,
+      { w: this.w, h: this.h, dpr: this.dpr },
       this.home,
       this.measure?.freeHalf ?? null,
-      this.dpr,
     );
   }
 
@@ -729,7 +728,11 @@ export class ObjectEngine {
       return { nx: 0, ny: 0 };
     }
     const elev = this.home.ev;
-    const p = positionOrbit(orbit, this.phase, elev, az, { x: 0, y: 0, z: 0 });
+    const p = positionOrbit(
+      orbit,
+      { phase: this.phase, elev, azim: az },
+      { x: 0, y: 0, z: 0 },
+    );
     return rollFlatten(
       p,
       {
@@ -800,7 +803,7 @@ export class ObjectEngine {
     const roll = finiteOr(this.roll, -0.33) + trv.dRoll;
     const cr = Math.cos(roll);
     const sr = Math.sin(roll);
-    this.hole = { cx, cy, R };
+    this.hole = { cx, cy, radius: R };
     this.disk = { cx, cy, R, cr, sr, squash: opening(elev) * flatten };
     const hot = '#ffe6c2';
     // Doppler ramps, from approach (blue) to recession (amber): five steps,
@@ -840,6 +843,7 @@ export class ObjectEngine {
     const shareZoom = Math.min(1, this.partBase * (0.62 + 0.38 * zoom * zoom));
     const share = Math.min(shareZoom, 0.03 + 1.7 * trv.grow);
     const pos = this.scratch;
+    const pose = { phase, entry: e, elev, azim };
     const edgeMargin = 0.06 * Math.min(w, h);
     for (let i = 0; i < this.grains.length; i++) {
       const lit = litAmount(i, share);
@@ -850,7 +854,7 @@ export class ObjectEngine {
       if (!p) {
         continue;
       }
-      placeGrain(p, phase, e, elev, azim, pos);
+      placeGrain(p, pose, pos);
       // The sphere and its ring stay perfectly round; the flattening only
       // takes the outer parts of the disk.
       const py0 =
@@ -1017,7 +1021,7 @@ export class ObjectEngine {
         sr,
         cx,
         cy,
-        R,
+        radius: R,
         dpr,
         accent,
         entry: e,
@@ -1105,9 +1109,7 @@ export class ObjectEngine {
     const planets: PlanetOnScreen[] = orbits.map((orbit, i) => {
       const pos = positionOrbit(
         orbit,
-        phase,
-        elev,
-        azim + this.orbitTurn(i),
+        { phase, elev, azim: azim + this.orbitTurn(i) },
         this.scratch,
       );
       const { nx, ny } = rollFlatten(pos, plane, rolled);
@@ -1149,17 +1151,16 @@ export class ObjectEngine {
           rising(i);
         const trace: { x: number; y: number; depth: number; shade: boolean }[] =
           [];
+        const pose = {
+          phase: 0,
+          elev,
+          azim: azim + this.orbitTurn(i) + phase * orbit.v * ORBIT_RATE,
+        };
         for (let k = 0; k <= N; k++) {
           sample.ang = orbit.ang + k * (TAU / N);
           sample.rb = orbit.rb;
           sample.inc = orbit.inc;
-          const q = positionOrbit(
-            sample,
-            0,
-            elev,
-            azim + this.orbitTurn(i) + phase * orbit.v * ORBIT_RATE,
-            out,
-          );
+          const q = positionOrbit(sample, pose, out);
           const { nx: qx2, ny: qy2 } = rollFlatten(q, plane, rolled);
           trace.push({
             x: cx + qx2 * R,

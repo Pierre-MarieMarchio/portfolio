@@ -1,26 +1,9 @@
-import { clamp, smoothstep, TAU } from './math';
+import { clamp, smoothstep } from './math';
 import { Traveling } from './traveling';
-import { CURSOR_REACH, SHADOW_EDGE } from './constants';
-import { travelingElevation } from './projection';
-
-interface Star {
-  x: number;
-  y: number;
-  readonly r: number;
-  readonly vx: number;
-  readonly vy: number;
-  readonly a: number;
-  readonly ph: number;
-  readonly accent: boolean;
-  /** Radial spread during the crossing, 1 at rest. */
-  ray: number;
-  /** Last drawn position, `NaN` when there is none to trail from. */
-  px: number;
-  py: number;
-  /** Smoothed velocity, in device pixels per second, for the trail. */
-  sdx: number;
-  sdy: number;
-}
+import { SHADOW_EDGE } from './constants';
+import { ScreenHole } from './projection';
+import { buildStarField, Star } from '../../../rules/scene/star-field.rules';
+import { SkyFrame, StarFlowMotion, StarPass } from './motions/star-flow.motion';
 
 /**
  * A trail is as long as the path its star travels in this time: nine frames
@@ -28,32 +11,6 @@ interface Star {
  * late neither lengthens the trails nor jolts them.
  */
 const TRAIL_SECONDS = 9 / 60;
-/**
- * How much of a star's sideways motion its trail keeps. A trail points away
- * from the vanishing point, whatever the camera does: in the turns the whole
- * field slides sideways, and trails that followed it turned into parallel
- * hatching, the tunnel gone. A quarter of the slide bends the tunnel into
- * the turn without breaking it.
- */
-const TRAIL_SIDEWAYS = 0.5;
-/**
- * The crossing's turn, as a hyperspace jump shows it: the tunnel stays
- * centred and BANKS into the turn, turning on itself around its vanishing
- * point, while its mouth leads a little towards where the run goes. The
- * mockup panned the whole field instead: the tunnel broke into parallel
- * hatching, and once the tunnel was kept, the turn could no longer be felt.
- */
-const BANK = 0.35;
-/** The share of the turn's pan the vanishing point keeps, as a lead. */
-const LEAD = 0.3;
-/**
- * The sky's flow once the tunnel is over, at the approach's peak speed. The
- * tunnel dies at 7.9 s while the object still comes on until 9.6 s: a sky
- * frozen under an object rushing at us read as the object flying in, not
- * as us arriving. The stars keep drifting out, slower and slower, and come
- * to rest with the landing.
- */
-const COAST = 0.15;
 /** Around this speed a star starts to trail: 0.45 px a frame at 60 Hz. */
 const TRAIL_FROM = 0.45 * 60;
 
@@ -70,11 +27,7 @@ export interface SkyCamera {
   readonly camX: number;
   readonly camY: number;
   /** The object's centre and radius on screen, `null` before its first draw. */
-  readonly hole: {
-    readonly cx: number;
-    readonly cy: number;
-    readonly R: number;
-  } | null;
+  readonly hole: ScreenHole | null;
   readonly ink: string;
   readonly accent: string;
   readonly entry: number;
@@ -86,6 +39,74 @@ export interface SkyPan {
   readonly panY: number;
 }
 
+interface TrailStroke {
+  x: number;
+  y: number;
+  qx: number;
+  qy: number;
+  color: string;
+  alpha: number;
+  width: number;
+}
+
+const twinkleOf = (star: Star, cam: SkyCamera): number =>
+  cam.reduced ? 1 : 0.72 + 0.28 * Math.sin(cam.time * 0.26 + star.phase);
+
+const colorOf = (star: Star, cam: SkyCamera): string =>
+  star.accent ? cam.accent : cam.ink;
+
+// The sky brightens near the disk.
+const holeLight = (
+  { x, y }: StarPass,
+  hole: ScreenHole | null,
+): number | null => {
+  if (!hole) {
+    return 1;
+  }
+  const reach = hole.radius * 3.2;
+  const d = Math.sqrt(
+    (x - hole.cx) * (x - hole.cx) + (y - hole.cy) * (y - hole.cy),
+  );
+  // NOTHING crosses the shadow. The sky is painted on a separate
+  // layer, under the object: without this cut, stars showed through
+  // the hole and the shadow stopped being one. The photon rim is at
+  // 0.958 radius; the cut sits just beyond so the edge stays sharp
+  // without eating the ring.
+  if (d < hole.radius * SHADOW_EDGE) {
+    return null;
+  }
+  // A short fade on the shadow's edge: a hard cut would read as a
+  // rendering defect.
+  if (d < hole.radius * 1.22) {
+    return (d - hole.radius * SHADOW_EDGE) / (hole.radius * 0.2);
+  }
+  return d < reach ? 1 + 1.15 * Math.pow(1 - d / reach, 1.8) : 1;
+};
+
+/** A trail that fades towards its tail: a trace, not a stick. */
+const strokeTrail = (
+  ctx: CanvasRenderingContext2D,
+  stroke: TrailStroke,
+): void => {
+  const gradient = ctx.createLinearGradient(
+    stroke.x,
+    stroke.y,
+    stroke.qx,
+    stroke.qy,
+  );
+  gradient.addColorStop(0, stroke.color);
+  gradient.addColorStop(0.45, stroke.color);
+  gradient.addColorStop(1, 'transparent');
+  ctx.globalAlpha = stroke.alpha;
+  ctx.strokeStyle = gradient;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = stroke.width;
+  ctx.beginPath();
+  ctx.moveTo(stroke.x, stroke.y);
+  ctx.lineTo(stroke.qx, stroke.qy);
+  ctx.stroke();
+};
+
 /**
  * The field of stars, behind the object. Not uniform: four clusters, a lot
  * of dust, rare sharp stars (6%). One star per 3600 px² divided by the dpr.
@@ -94,11 +115,27 @@ export class Sky {
   private stars: Star[] = [];
   private builtW = 0;
   private builtH = 0;
-  private flattened = false;
-  private previousTime = 0;
-  private warmed = false;
+  private isWarmed = false;
+  // Two inks only: the fill changes when the ink does, not per star.
+  private fill = '';
+  private readonly lensed = { x: 0, y: 0 };
+  private readonly stroke: TrailStroke = {
+    x: 0,
+    y: 0,
+    qx: 0,
+    qy: 0,
+    color: '',
+    alpha: 0,
+    width: 0,
+  };
 
-  constructor(private readonly rnd: () => number) {}
+  private readonly flow: StarFlowMotion;
+  private readonly pass: StarPass;
+
+  constructor(private readonly rnd: () => number) {
+    this.flow = new StarFlowMotion(rnd);
+    this.pass = this.flow.pass;
+  }
 
   /**
    * Draws the sky and answers the pan it used, so the constellations drift
@@ -114,260 +151,143 @@ export class Sky {
     if (this.builtW !== w || this.builtH !== h) {
       this.build(w, h, cam.dpr);
     }
-    if (!this.warmed) {
-      this.warmed = true;
+    if (!this.isWarmed) {
+      this.isWarmed = true;
       this.warm(ctx, cam);
     }
-    const { trv, dpr } = cam;
-    const time = cam.time;
-    const lens = cam.reduced ? null : cam.pointer;
-    // THE SAME FOOTPRINT as the disk's repulsion, 70 px: two radii for one
-    // cursor would make two cursors. The Einstein radius is the scale of
-    // the deflection, not its reach; the deflection is capped, or a star
-    // passing right under the cursor would fly off fifty pixels.
-    const rPtr = CURSOR_REACH * dpr;
-    const rE = 19 * dpr;
-    const deflMax = 26 * dpr;
-    // The sky follows the camera: without it, the eye credits the motion to
-    // the object. Each star moves by its depth; the biggest are the
-    // closest, they move most. The camera at rest pans the field; its turn
-    // during the crossing banks the tunnel and leads its mouth (BANK, LEAD).
-    const az = cam.azim;
-    const ev = cam.elev;
-    const turnEv = travelingElevation(cam.elev, trv.dEv);
-    const turnX = -trv.dAz * 0.3 * w;
-    const turnY = (turnEv - ev) * 0.85 * h;
-    // PARALLAX: during the arrival the sky spreads far more than the object
-    // grows. That ratio, not the scale, says that we move forward.
-    const scale = cam.scale * (1 + 0.55 * (1 - trv.grow));
-    const panX = cam.camX - 0.42;
-    const panY = cam.camY - 0.46;
-    // The vanishing point: the object, led a little into the turn.
-    const cx0 = (cam.hole ? cam.hole.cx : w / 2) + turnX * LEAD;
-    const cy0 = (cam.hole ? cam.hole.cy : h / 2) + turnY * LEAD;
-    // The bank: the camera's roll, and a lean into the turn.
-    const bank = trv.dRoll + BANK * trv.dAz;
-    const bankCos = Math.cos(bank);
-    const bankSin = Math.sin(bank);
-    // One profile: the speed starts from ZERO (the sky is still while the
-    // title is read), rises, then dies. The spread is its integral, hence
-    // monotonic: no star ever turns back. What dies is the speed, so the
-    // trails' length.
-    const tt = cam.reduced ? 99 : time;
-    const u = clamp((tt - 3.5) / 4.4, 0, 1);
-    const speed =
-      6 * u * (1 - u) * (1 - u) + (cam.reduced ? 0 : COAST * trv.coast);
-    // How fast a star at this depth spreads from the vanishing point, per
-    // second: its position AND its trail read it, so the two cannot part.
-    const spreadRate = (depth: number): number =>
-      speed * (0.55 + 1.25 * depth) * 1.7;
-    // The trails come and go with the run instead of switching on and off:
-    // cut at its end, a trail still long from the camera's motion vanished
-    // in one frame. The last 4% only: earlier, it dimmed the run's end.
-    const voyage = clamp(u / 0.04, 0, 1) * clamp((1 - u) / 0.04, 0, 1);
-    const dtc = clamp(time - this.previousTime, 0, 0.08);
-    this.previousTime = time;
-    // Velocity smoothing as a rate: the same lag whatever the frame rate.
-    const smooth = dtc > 0 ? 1 - Math.pow(0.55, dtc * 60) : 0;
-    const drift = cam.reduced ? 0 : time * 0.34;
-    const depthOf = (star: Star): number =>
-      0.32 + 0.68 * Math.min(1, star.r / (2.4 * dpr));
-    const slideX = (depth: number): number =>
-      (-az * 0.3 - panX * 0.55) * w * depth;
-    const slideY = (depth: number): number =>
-      ((ev - 0.18) * 0.85 - panY * 0.55) * h * depth;
-    // At the end of the run the field is flattened once and for all: the
-    // radial spread is not reversible, and without this the sky would stay
-    // empty for the whole visit.
-    // The spread applies to the star's DRAWN base, drift and slide included:
-    // folded into its position alone, every spread star jumped by its slide
-    // times its spread at the end of the run.
-    if (!this.flattened && u >= 1 && speed <= 0) {
-      this.flattened = true;
-      for (const star of this.stars) {
-        if (star.ray > 1.0005) {
-          const depth = depthOf(star);
-          const ox = star.vx * drift + slideX(depth);
-          const oy = star.vy * drift + slideY(depth);
-          star.x = cx0 + (star.x + ox - cx0) * star.ray - ox;
-          star.y = cy0 + (star.y + oy - cy0) * star.ray - oy;
-        }
-        star.ray = 1;
-        star.px = Number.NaN;
-        star.py = Number.NaN;
-        star.sdx = 0;
-        star.sdy = 0;
-      }
-    }
-    const hole = cam.hole;
-    // Two inks only: the fill changes when the ink does, not per star.
-    let fill = '';
+    const frame = this.flow.update(this.stars, w, h, cam);
+    this.fill = '';
     for (const star of this.stars) {
-      const twinkle = cam.reduced
-        ? 1
-        : 0.72 + 0.28 * Math.sin(time * 0.26 + star.ph);
-      const depth = depthOf(star);
-      const k = 1 + (scale - 1) * 0.72 * depth;
-      // RADIAL FLOW. The star leaves the vanishing point, faster and faster,
-      // and never comes back. One that leaves the frame is RECYCLED near
-      // the centre. A modulo would turn the radial flight into a
-      // translation, and stars would cross the frame diagonally.
-      if (speed > 0.0001) {
-        star.ray *= 1 + dtc * spreadRate(depth);
-      }
-      // Scaled and banked around the vanishing point.
-      const sx0 = (star.x + star.vx * drift + slideX(depth) - cx0) * k;
-      const sy0 = (star.y + star.vy * drift + slideY(depth) - cy0) * k;
-      const bx = cx0 + sx0 * bankCos - sy0 * bankSin;
-      const by = cy0 + sx0 * bankSin + sy0 * bankCos;
-      let x: number;
-      let y: number;
-      if (star.ray > 1.0005) {
-        x = cx0 + (bx - cx0) * star.ray;
-        y = cy0 + (by - cy0) * star.ray;
-        const margin = 30 * dpr;
-        if (x < -margin || x > w + margin || y < -margin || y > h + margin) {
-          // Back from afar, but spread on a real surface: too tight a disk
-          // would tie a knot at the vanishing point.
-          const angR = this.rnd() * TAU;
-          const dR = 0.02 + this.rnd() * 0.26;
-          star.x = cx0 + Math.cos(angR) * w * dR;
-          star.y = cy0 + Math.sin(angR) * h * dR;
-          star.ray = 1;
-          star.px = Number.NaN;
-          star.py = Number.NaN;
-          star.sdx = 0;
-          star.sdy = 0;
-          continue;
-        }
-      } else {
-        x = ((bx % w) + w) % w;
-        y = ((by % h) + h) % h;
-      }
-      const r = star.r * (1 + (scale - 1) * 0.42 * depth);
-      // The sky brightens near the disk.
-      let near = 1;
-      if (hole) {
-        const reach = hole.R * 3.2;
-        const d = Math.sqrt(
-          (x - hole.cx) * (x - hole.cx) + (y - hole.cy) * (y - hole.cy),
-        );
-        // NOTHING crosses the shadow. The sky is painted on a separate
-        // layer, under the object: without this cut, stars showed through
-        // the hole and the shadow stopped being one. The photon rim is at
-        // 0.958 radius; the cut sits just beyond so the edge stays sharp
-        // without eating the ring.
-        if (d < hole.R * SHADOW_EDGE) {
-          continue;
-        }
-        // A short fade on the shadow's edge: a hard cut would read as a
-        // rendering defect.
-        if (d < hole.R * 1.22) {
-          near = (d - hole.R * SHADOW_EDGE) / (hole.R * 0.2);
-        } else if (d < reach) {
-          near = 1 + 1.15 * Math.pow(1 - d / reach, 1.8);
-        }
-      }
-      // The trail is the velocity really travelled since the last frame,
-      // stretched: it cannot point where the star did not go. A wrap jump
-      // is not a displacement and leaves no trace.
-      if (dtc > 0) {
-        let tdx = Number.isNaN(star.px) ? 0 : x - star.px;
-        let tdy = Number.isNaN(star.py) ? 0 : y - star.py;
-        if (Math.abs(tdx) > w / 2 || Math.abs(tdy) > h / 2) {
-          tdx = 0;
-          tdy = 0;
-        }
-        // Smoothed, so the trail's length does not jitter frame to frame.
-        star.sdx += (tdx / dtc - star.sdx) * smooth;
-        star.sdy += (tdy / dtc - star.sdy) * smooth;
-      }
-      star.px = x;
-      star.py = y;
-      // The trail's velocity: the star's FLIGHT away from the vanishing
-      // point, which the spread gives and the camera does not touch, plus a
-      // quarter of what it slides across. Measured on screen instead, the
-      // flight of the stars the turn pushes back towards the vanishing point
-      // cancelled out, and half the tunnel went dark.
-      const ox = x - cx0;
-      const oy = y - cy0;
-      const od = Math.sqrt(ox * ox + oy * oy);
-      let tx = star.sdx;
-      let ty = star.sdy;
-      if (od > 1 && star.ray > 1.0005) {
-        const ux = ox / od;
-        const uy = oy / od;
-        const flight = od * spreadRate(depth);
-        const across = tx * -uy + ty * ux;
-        tx = ux * flight - uy * across * TRAIL_SIDEWAYS;
-        ty = uy * flight + ux * across * TRAIL_SIDEWAYS;
-      }
-      const velocity = Math.sqrt(tx * tx + ty * ty);
-      // A star near the threshold no longer flips between a dot and a
-      // trail from one frame to the next: the two cross-fade just UNDER it,
-      // from 0.7 to 1 times the threshold. Above, a trail is at full light,
-      // as in the mockup: centred on the threshold, the fade dimmed half the
-      // field and the run looked washed out.
-      const trailing =
-        voyage *
-        smoothstep(clamp((velocity / (TRAIL_FROM * dpr) - 0.7) / 0.3, 0, 1));
-      const color = star.accent ? cam.accent : cam.ink;
-      if (trailing > 0.004) {
-        const qx = x - tx * TRAIL_SECONDS;
-        const qy = y - ty * TRAIL_SECONDS;
-        this.strokeTrail(
-          ctx,
-          x,
-          y,
-          qx,
-          qy,
-          color,
-          Math.min(
-            0.8,
-            (0.06 + star.a) * twinkle * near * (0.7 + 1.5 * speed),
-          ) * trailing,
-          Math.max(0.7, r * 0.8),
-        );
-        if (trailing >= 0.996) {
-          continue;
-        }
-        near *= 1 - trailing;
-      }
-      // THE CURSOR'S GRAVITATIONAL LENS. The cursor is a mass: it deflects
-      // the light passing near it, in 1/d, and the flux is conserved, so
-      // what spreads brightens. Applied to the drawing only, never to the
-      // remembered position, or it would make false trails.
-      let lx = x;
-      let ly = y;
-      let gain = 1;
-      if (lens) {
-        const ldx = x - lens.x;
-        const ldy = y - lens.y;
-        const ld = Math.sqrt(ldx * ldx + ldy * ldy);
-        if (ld > 0.01 && ld < rPtr) {
-          const defl = Math.min(deflMax, (rE * rE) / Math.max(ld, rE * 0.5));
-          lx = x + (ldx / ld) * defl;
-          ly = y + (ldy / ld) * defl;
-          gain = 1 + 1.6 * Math.pow(rE / (ld + rE * 0.7), 2);
-        }
-      }
-      const rl = r * Math.min(2.1, Math.sqrt(gain));
-      ctx.globalAlpha = Math.min(
-        0.88,
-        star.a * twinkle * cam.entry * near * Math.min(2.5, gain),
+      this.drawStar(ctx, star, frame);
+    }
+    return { panX: frame.panX, panY: frame.panY };
+  }
+
+  private drawStar(
+    ctx: CanvasRenderingContext2D,
+    star: Star,
+    frame: SkyFrame,
+  ): void {
+    if (!this.flow.place(star, frame)) {
+      return;
+    }
+    const pass = this.pass;
+    const near = holeLight(pass, frame.cam.hole);
+    if (near === null) {
+      return;
+    }
+    pass.near = near;
+    this.flow.follow(star, frame);
+    if (this.drawTrail(ctx, star, frame)) {
+      this.drawDot(ctx, star, frame);
+    }
+  }
+
+  private drawTrail(
+    ctx: CanvasRenderingContext2D,
+    star: Star,
+    frame: SkyFrame,
+  ): boolean {
+    const pass = this.pass;
+    const velocity = Math.hypot(pass.tx, pass.ty);
+    // A star near the threshold no longer flips between a dot and a
+    // trail from one frame to the next: the two cross-fade just UNDER it,
+    // from 0.7 to 1 times the threshold. Above, a trail is at full light,
+    // as in the mockup: centred on the threshold, the fade dimmed half the
+    // field and the run looked washed out.
+    const trailing =
+      frame.voyage *
+      smoothstep(
+        clamp((velocity / (TRAIL_FROM * frame.cam.dpr) - 0.7) / 0.3, 0, 1),
       );
-      if (color !== fill) {
-        fill = color;
-        ctx.fillStyle = color;
+    if (trailing > 0.004) {
+      const stroke = this.stroke;
+      stroke.x = pass.x;
+      stroke.y = pass.y;
+      stroke.qx = pass.x - pass.tx * TRAIL_SECONDS;
+      stroke.qy = pass.y - pass.ty * TRAIL_SECONDS;
+      stroke.color = colorOf(star, frame.cam);
+      stroke.alpha =
+        Math.min(
+          0.8,
+          (0.06 + star.alpha) *
+            twinkleOf(star, frame.cam) *
+            pass.near *
+            (0.7 + 1.5 * frame.speed),
+        ) * trailing;
+      stroke.width = Math.max(0.7, this.drawnRadius(star, frame) * 0.8);
+      strokeTrail(ctx, stroke);
+      if (trailing >= 0.996) {
+        return false;
       }
-      ctx.fillRect(
-        lx - rl / 2,
-        ly - rl / 2,
-        Math.max(0.5, rl),
-        Math.max(0.5, rl),
+      pass.near *= 1 - trailing;
+    }
+    return true;
+  }
+
+  private drawDot(
+    ctx: CanvasRenderingContext2D,
+    star: Star,
+    frame: SkyFrame,
+  ): void {
+    const pass = this.pass;
+    const gain = this.bendLight(frame);
+    const size = this.drawnRadius(star, frame) * Math.min(2.1, Math.sqrt(gain));
+    ctx.globalAlpha = Math.min(
+      0.88,
+      star.alpha *
+        twinkleOf(star, frame.cam) *
+        frame.cam.entry *
+        pass.near *
+        Math.min(2.5, gain),
+    );
+    const color = colorOf(star, frame.cam);
+    if (color !== this.fill) {
+      this.fill = color;
+      ctx.fillStyle = color;
+    }
+    ctx.fillRect(
+      this.lensed.x - size / 2,
+      this.lensed.y - size / 2,
+      Math.max(0.5, size),
+      Math.max(0.5, size),
+    );
+  }
+
+  // THE CURSOR'S GRAVITATIONAL LENS. The cursor is a mass: it deflects
+  // the light passing near it, in 1/d, and the flux is conserved, so
+  // what spreads brightens. Applied to the drawing only, never to the
+  // remembered position, or it would make false trails.
+  private bendLight(frame: SkyFrame): number {
+    const { x, y } = this.pass;
+    const lensed = this.lensed;
+    const { lens, einsteinRadius } = frame;
+    lensed.x = x;
+    lensed.y = y;
+    if (!lens) {
+      return 1;
+    }
+    const ldx = x - lens.x;
+    const ldy = y - lens.y;
+    const distance = Math.hypot(ldx, ldy);
+    if (distance > 0.01 && distance < frame.lensReach) {
+      const deflection = Math.min(
+        frame.deflectionMax,
+        (einsteinRadius * einsteinRadius) /
+          Math.max(distance, einsteinRadius * 0.5),
+      );
+      lensed.x = x + (ldx / distance) * deflection;
+      lensed.y = y + (ldy / distance) * deflection;
+      return (
+        1 +
+        1.6 * Math.pow(einsteinRadius / (distance + einsteinRadius * 0.7), 2)
       );
     }
-    return { panX, panY };
+    return 1;
+  }
+
+  private drawnRadius(star: Star, frame: SkyFrame): number {
+    return star.radius * (1 + (frame.scale - 1) * 0.42 * this.pass.depth);
   }
 
   /**
@@ -378,93 +298,22 @@ export class Sky {
    * widths, same path through `strokeTrail`, so none is left to compile.
    */
   private warm(ctx: CanvasRenderingContext2D, cam: SkyCamera): void {
+    const stroke = this.stroke;
     for (const star of this.stars) {
-      const r = star.r;
-      this.strokeTrail(
-        ctx,
-        star.x,
-        star.y,
-        star.x - 12 * cam.dpr,
-        star.y - 5 * cam.dpr,
-        star.accent ? cam.accent : cam.ink,
-        0.004,
-        Math.max(0.7, r * 0.8),
-      );
+      stroke.x = star.x;
+      stroke.y = star.y;
+      stroke.qx = star.x - 12 * cam.dpr;
+      stroke.qy = star.y - 5 * cam.dpr;
+      stroke.color = colorOf(star, cam);
+      stroke.alpha = 0.004;
+      stroke.width = Math.max(0.7, star.radius * 0.8);
+      strokeTrail(ctx, stroke);
     }
     ctx.globalAlpha = 1;
   }
 
-  /** A trail that fades towards its tail: a trace, not a stick. */
-  private strokeTrail(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    qx: number,
-    qy: number,
-    color: string,
-    alpha: number,
-    width: number,
-  ): void {
-    const gradient = ctx.createLinearGradient(x, y, qx, qy);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(0.45, color);
-    gradient.addColorStop(1, 'transparent');
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = gradient;
-    ctx.lineCap = 'round';
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(qx, qy);
-    ctx.stroke();
-  }
-
   private build(w: number, h: number, dpr: number): void {
-    const rnd = this.rnd;
-    const n = Math.round((w * h) / (3600 * dpr));
-    const clusters: { x: number; y: number; r: number }[] = [];
-    for (let i = 0; i < 4; i++) {
-      clusters.push({
-        x: rnd() * w,
-        y: rnd() * h,
-        r: (0.18 + rnd() * 0.2) * Math.min(w, h),
-      });
-    }
-    const stars: Star[] = [];
-    for (let i = 0; i < n; i++) {
-      let x = rnd() * w;
-      let y = rnd() * h;
-      if (rnd() < 0.42) {
-        const cluster = clusters[Math.floor(rnd() * clusters.length)];
-        if (cluster) {
-          const t = rnd() * TAU;
-          const d = Math.pow(rnd(), 0.6) * cluster.r;
-          x = cluster.x + Math.cos(t) * d;
-          y = cluster.y + Math.sin(t) * d * 0.8;
-          if (x < 0 || x > w || y < 0 || y > h) {
-            x = rnd() * w;
-            y = rnd() * h;
-          }
-        }
-      }
-      const big = rnd() > 0.94;
-      stars.push({
-        x,
-        y,
-        r: (big ? 1.6 + rnd() * 1.0 : 0.5 + Math.pow(rnd(), 2.1) * 1.0) * dpr,
-        vx: (rnd() - 0.5) * 1.6,
-        vy: (rnd() - 0.5) * 1.1,
-        a: big ? 0.34 + rnd() * 0.26 : 0.07 + rnd() * 0.2,
-        ph: rnd() * TAU,
-        accent: rnd() < 0.1,
-        ray: 1,
-        px: Number.NaN,
-        py: Number.NaN,
-        sdx: 0,
-        sdy: 0,
-      });
-    }
-    this.stars = stars;
+    this.stars = buildStarField(w, h, dpr, this.rnd);
     this.builtW = w;
     this.builtH = h;
   }

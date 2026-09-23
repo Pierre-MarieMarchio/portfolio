@@ -98,9 +98,9 @@ describe('ProjectSheetComponent', () => {
   it('lists one toolbar button per chapter, labelled and pressed on the current one', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 1 });
     const toolbar = host.querySelector('[aria-label="Approches de la fiche"]');
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
 
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       '01',
@@ -125,9 +125,9 @@ describe('ProjectSheetComponent', () => {
     );
 
     const toolbar = host.querySelector('[aria-label="Approches de la fiche"]');
-    const buttons = Array.from(
-      toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-    );
+    const buttons = [
+      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+    ];
     buttons[2]?.click();
     await fixture.whenStable();
 
@@ -146,11 +146,11 @@ describe('ProjectSheetComponent', () => {
     expect(host.querySelector('.lede')?.textContent?.trim()).toBe(
       'A short standfirst.',
     );
-    const terms = Array.from(host.querySelectorAll('dl.identity dt')).map(
-      (dt) => dt.textContent?.trim(),
+    const terms = [...host.querySelectorAll('dl.identity dt')].map((dt) =>
+      dt.textContent?.trim(),
     );
-    const values = Array.from(host.querySelectorAll('dl.identity dd')).map(
-      (dd) => dd.textContent?.trim(),
+    const values = [...host.querySelectorAll('dl.identity dd')].map((dd) =>
+      dd.textContent?.trim(),
     );
     expect(terms).toEqual(['Accès', 'Rôle', 'Technique', 'Contexte']);
     // The identity comes from the facts table, never from the sheet's own prose.
@@ -170,14 +170,14 @@ describe('ProjectSheetComponent', () => {
     expect(host.querySelector('.chapter-title')?.textContent?.trim()).toBe(
       '02 · Comment',
     );
-    const paragraphs = Array.from(host.querySelectorAll('p')).map((p) =>
+    const paragraphs = [...host.querySelectorAll('p')].map((p) =>
       p.textContent?.trim(),
     );
     expect(paragraphs).toContain('Middle paragraph.');
     expect(paragraphs).not.toContain('First paragraph.');
 
     // Exclude the toolbar's own `<li>` items (one per chapter button).
-    const bullet = Array.from(host.querySelectorAll('li')).find(
+    const bullet = [...host.querySelectorAll('li')].find(
       (li) => !li.closest('[aria-label="Approches de la fiche"]'),
     );
     expect(bullet?.querySelector('.term')?.textContent?.trim()).toBe('Terme');
@@ -186,7 +186,7 @@ describe('ProjectSheetComponent', () => {
 
   it('draws the flow figure from its steps, loop and caption', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 1 });
-    const boxes = Array.from(host.querySelectorAll('.box')).map((box) =>
+    const boxes = [...host.querySelectorAll('.box')].map((box) =>
       box.textContent?.trim(),
     );
 
@@ -205,7 +205,7 @@ describe('ProjectSheetComponent', () => {
 
   it('draws one layer row per layer of the figure, with its caption', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 2 });
-    const layers = Array.from(host.querySelectorAll('.layer'));
+    const layers = [...host.querySelectorAll('.layer')];
 
     expect(layers).toHaveLength(2);
     expect(layers[0]?.querySelector('.layer-name')?.textContent?.trim()).toBe(

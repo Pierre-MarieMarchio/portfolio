@@ -15,26 +15,26 @@ import { WindowStack } from './window-stack';
 })
 class Slots {}
 
-describe('WindowStack', () => {
-  const mount = async () => {
-    TestBed.configureTestingModule({
-      imports: [Slots],
-    });
-    const fixture = TestBed.createComponent(Slots);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
-    const slot = (name: string) =>
-      host.querySelector<HTMLElement>(`[data-slot="${name}"]`);
-    const rank = (name: string) =>
-      slot(name)?.style.getPropertyValue('--stack') ?? '';
-    return {
-      fixture,
-      slot,
-      rank,
-      stack: fixture.debugElement.injector.get(WindowStack),
-    };
+const mount = async () => {
+  TestBed.configureTestingModule({
+    imports: [Slots],
+  });
+  const fixture = TestBed.createComponent(Slots);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  const slot = (name: string) =>
+    host.querySelector<HTMLElement>(`[data-slot="${name}"]`);
+  const rank = (name: string) =>
+    slot(name)?.style.getPropertyValue('--stack') ?? '';
+  return {
+    fixture,
+    slot,
+    rank,
+    stack: fixture.debugElement.injector.get(WindowStack),
   };
+};
 
+describe('WindowStack', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
   });
@@ -43,12 +43,9 @@ describe('WindowStack', () => {
   it('writes no rank before anything is touched', async () => {
     const { rank } = await mount();
 
-    expect(['about', 'index', 'sheet', 'preview'].map(rank)).toEqual([
-      '',
-      '',
-      '',
-      '',
-    ]);
+    expect(
+      ['about', 'index', 'sheet', 'preview'].map((name) => rank(name)),
+    ).toEqual(['', '', '', '']);
   });
 
   it('puts the window brought to the front last, the others in their order', async () => {
@@ -57,12 +54,9 @@ describe('WindowStack', () => {
     stack.bringToFront('about');
     await fixture.whenStable();
 
-    expect(['index', 'sheet', 'preview', 'about'].map(rank)).toEqual([
-      '0',
-      '1',
-      '2',
-      '3',
-    ]);
+    expect(
+      ['index', 'sheet', 'preview', 'about'].map((name) => rank(name)),
+    ).toEqual(['0', '1', '2', '3']);
   });
 
   it('raises the slot a pointerdown starts in, even from a child', async () => {

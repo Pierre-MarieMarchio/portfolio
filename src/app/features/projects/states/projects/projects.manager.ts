@@ -131,10 +131,9 @@ export class ProjectsManager {
   public nextOf(slug: string): Project | null {
     const project = this.find(slug);
     const ranked = this.ranked();
-    if (!project || ranked.length < 2) {
-      return null;
-    }
-    return ranked[(ranked.indexOf(project) + 1) % ranked.length] ?? null;
+    return !project || ranked.length < 2
+      ? null
+      : (ranked[(ranked.indexOf(project) + 1) % ranked.length] ?? null);
   }
 
   /** The facts of a project: the one table every view reads. */
@@ -161,10 +160,9 @@ export class ProjectsManager {
    */
   public chapterTitle(slug: string, index: number): string {
     const chapter = this.sheetOf(slug)?.chapters[index];
-    if (!chapter) {
-      return '';
-    }
-    return chapter.title ?? this.texts().defaultChapterTitles[index] ?? '';
+    return chapter
+      ? (chapter.title ?? this.texts().defaultChapterTitles[index] ?? '')
+      : '';
   }
 
   /** Resolves once the read and everything it cascaded into have settled. */

@@ -14,6 +14,15 @@ interface ScenarioSpec {
   readonly label: string;
 }
 
+const ROWS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+const SIZES: Readonly<Record<Scenario, WindowSize>> = {
+  index: 'l',
+  preview: 'm',
+  short: 's',
+  fixed: 'l',
+};
+
 /**
  * A development-only bench for the shared window and selector, until the
  * pages that use them show every state. Its rows are neutral placeholders:
@@ -39,7 +48,7 @@ export class WorkbenchPageComponent {
   protected readonly pinned = signal(false);
   protected readonly isClosed = signal(false);
   protected readonly family = signal('tout');
-  protected readonly rows = Array.from({ length: 12 }, (_, i) => i + 1);
+  protected readonly rows = ROWS;
 
   protected readonly scenarioItems = computed<
     readonly SegmentedItem<Scenario>[]
@@ -65,10 +74,7 @@ export class WorkbenchPageComponent {
     })),
   );
 
-  protected readonly size = computed<WindowSize>(() => {
-    const scenario = this.scenario();
-    return scenario === 'preview' ? 'm' : scenario === 'short' ? 's' : 'l';
-  });
+  protected readonly size = computed<WindowSize>(() => SIZES[this.scenario()]);
 
   protected choose(scenario: Scenario): void {
     this.scenario.set(scenario);

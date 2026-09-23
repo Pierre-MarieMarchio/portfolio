@@ -37,12 +37,12 @@ export class BrowserEnvironment {
    */
   public watchMedia(
     query: string,
-    onChange: (matches: boolean) => void,
+    onChange: (isMatching: boolean) => void,
   ): () => void {
     const list = this.mediaQuery(query);
 
     if (!list) {
-      return () => undefined;
+      return () => {};
     }
 
     const listener = (event: MediaQueryListEvent): void => {
@@ -81,7 +81,7 @@ export class BrowserEnvironment {
   ): () => void {
     const view = this.view();
     if (!view) {
-      return () => undefined;
+      return () => {};
     }
     view.addEventListener(type, listener, options);
     return () => {
@@ -97,7 +97,7 @@ export class BrowserEnvironment {
   public nextFrame(callback: (time: number) => void): () => void {
     const view = this.view();
     if (!view || typeof view.requestAnimationFrame !== 'function') {
-      return () => undefined;
+      return () => {};
     }
     const id = view.requestAnimationFrame(callback);
     return () => {
@@ -133,9 +133,9 @@ export class BrowserEnvironment {
    * Calls back when the tab is hidden or shown again, and returns the
    * function that stops listening. Inert on the server.
    */
-  public watchVisibility(onChange: (hidden: boolean) => void): () => void {
+  public watchVisibility(onChange: (isHidden: boolean) => void): () => void {
     if (!this.isBrowser) {
-      return () => undefined;
+      return () => {};
     }
     const document = this.document;
     const listener = (): void => {
@@ -154,7 +154,7 @@ export class BrowserEnvironment {
   public observeResize(element: Element, onResize: () => void): () => void {
     const view = this.globals();
     if (!view || typeof view.ResizeObserver !== 'function') {
-      return () => undefined;
+      return () => {};
     }
     const observer = new view.ResizeObserver(() => {
       onResize();
@@ -173,11 +173,11 @@ export class BrowserEnvironment {
   public observeIntersection(
     element: Element,
     threshold: number,
-    onChange: (intersecting: boolean) => void,
+    onChange: (isIntersecting: boolean) => void,
   ): () => void {
     const view = this.globals();
     if (!view || typeof view.IntersectionObserver !== 'function') {
-      return () => undefined;
+      return () => {};
     }
     const observer = new view.IntersectionObserver(
       (entries) => {
@@ -251,13 +251,13 @@ export class BrowserEnvironment {
    */
   public firstGesture(timeoutMs: number, callback: () => void): () => void {
     if (!this.isBrowser) {
-      return () => undefined;
+      return () => {};
     }
     const stops: (() => void)[] = [];
     const cancel = (): void => {
-      stops.splice(0).forEach((stop) => {
+      for (const stop of stops.splice(0)) {
         stop();
-      });
+      }
     };
     const once = (): void => {
       cancel();
@@ -308,17 +308,15 @@ export class BrowserEnvironment {
     return view ? (view as Window & typeof globalThis) : null;
   }
 
-  private matches(query: string, serverAnswer: boolean): boolean {
-    return this.mediaQuery(query)?.matches ?? serverAnswer;
+  private matches(query: string, isServerMatch: boolean): boolean {
+    return this.mediaQuery(query)?.matches ?? isServerMatch;
   }
 
   private mediaQuery(query: string): MediaQueryList | null {
     const view = this.view();
 
-    if (typeof view?.matchMedia !== 'function') {
-      return null;
-    }
-
-    return view.matchMedia(query);
+    return typeof view?.matchMedia === 'function'
+      ? view.matchMedia(query)
+      : null;
   }
 }

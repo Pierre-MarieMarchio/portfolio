@@ -129,28 +129,24 @@ describe('StationEffect', () => {
       expect(navigated).toEqual(['/projets']);
     });
 
-    it('sends the reader back to the list from a not-found sheet', async () => {
-      statewise.dispatch(stationRouteSynced({ view: 'not-found', slug: null }));
+    it.each([
+      {
+        way: 'back to the list from a not-found sheet',
+        view: 'not-found',
+        path: '/projets',
+      },
+      {
+        way: 'home from the index without a selection',
+        view: 'index',
+        path: '/',
+      },
+      { way: 'home from about', view: 'about', path: '/' },
+    ] as const)('sends the reader $way', async ({ view, path }) => {
+      statewise.dispatch(stationRouteSynced({ view, slug: null }));
 
       await statewise.dispatchAsync(stationEscaped());
 
-      expect(navigated).toEqual(['/projets']);
-    });
-
-    it('sends the reader home from the index without a selection', async () => {
-      statewise.dispatch(stationRouteSynced({ view: 'index', slug: null }));
-
-      await statewise.dispatchAsync(stationEscaped());
-
-      expect(navigated).toEqual(['/']);
-    });
-
-    it('sends the reader home from about', async () => {
-      statewise.dispatch(stationRouteSynced({ view: 'about', slug: null }));
-
-      await statewise.dispatchAsync(stationEscaped());
-
-      expect(navigated).toEqual(['/']);
+      expect(navigated).toEqual([path]);
     });
 
     it('closes an open preview on home without navigating', async () => {

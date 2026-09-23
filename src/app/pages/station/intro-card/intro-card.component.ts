@@ -28,7 +28,7 @@ export class IntroCardComponent {
 
   constructor() {
     const browser = inject(BrowserEnvironment);
-    let stop: () => void = () => undefined;
+    let stop: (() => void) | undefined;
     const leave = (): void => {
       this.gone.set(true);
     };
@@ -49,7 +49,7 @@ export class IntroCardComponent {
       stop = browser.firstGesture(duration, leave);
     });
     inject(DestroyRef).onDestroy(() => {
-      stop();
+      stop?.();
     });
   }
 }

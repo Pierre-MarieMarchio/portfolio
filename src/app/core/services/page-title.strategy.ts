@@ -31,7 +31,7 @@ export class PageTitleStrategy extends TitleStrategy {
 function deepest<T>(
   snapshot: RouterStateSnapshot,
   key: string,
-  is: (value: unknown) => value is T,
+  isShaped: (value: unknown) => value is T,
 ): T | null {
   let route = snapshot.root;
   let found: T | null = null;
@@ -39,7 +39,7 @@ function deepest<T>(
   while (route) {
     const candidate: unknown = route.data[key];
 
-    if (is(candidate)) {
+    if (isShaped(candidate)) {
       found = candidate;
     }
 

@@ -24,34 +24,35 @@ const at = <T>(items: readonly T[], index: number): T => {
   return item;
 };
 
+const mount = async (items: readonly SegmentedItem[] = ITEMS) => {
+  TestBed.configureTestingModule({
+    imports: [SegmentedComponent],
+    providers: [provideTexts()],
+  });
+
+  const fixture = TestBed.createComponent(SegmentedComponent<string>);
+  fixture.componentRef.setInput('items', items);
+  await fixture.whenStable();
+
+  return { fixture, host: fixture.nativeElement as HTMLElement };
+};
+
+const buttonsOf = (host: HTMLElement): HTMLButtonElement[] => [
+  ...host.querySelectorAll<HTMLButtonElement>('li button'),
+];
+
 describe('SegmentedComponent', () => {
-  const mount = async (items: readonly SegmentedItem[] = ITEMS) => {
-    TestBed.configureTestingModule({
-      imports: [SegmentedComponent],
-      providers: [provideTexts()],
-    });
-
-    const fixture = TestBed.createComponent(SegmentedComponent<string>);
-    fixture.componentRef.setInput('items', items);
-    await fixture.whenStable();
-
-    return { fixture, host: fixture.nativeElement as HTMLElement };
-  };
-
-  const buttonsOf = (host: HTMLElement): HTMLButtonElement[] =>
-    Array.from(host.querySelectorAll<HTMLButtonElement>('li button'));
-
   it('lists one <li><button> per item, in order, inside a group', async () => {
     const { host } = await mount();
 
     const group = host.querySelector('ul[role="group"]');
-    const items = Array.from(host.querySelectorAll('li'));
+    const items = [...host.querySelectorAll('li')];
 
     expect(group).not.toBeNull();
     expect(items).toHaveLength(3);
-    items.forEach((item) => {
+    for (const item of items) {
       expect(item.querySelector('button')).not.toBeNull();
-    });
+    }
   });
 
   it('names the group from the label input, defaulting to "Sélection"', async () => {
@@ -76,9 +77,11 @@ describe('SegmentedComponent', () => {
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
     ).toEqual(['true', 'false', 'false']);
-    expect(buttons.map((button) => button.getAttribute('data-active'))).toEqual(
-      ['true', 'false', 'false'],
-    );
+    expect(buttons.map((button) => button.dataset['active'])).toEqual([
+      'true',
+      'false',
+      'false',
+    ]);
   });
 
   it('names each button from its own aria, falling back to its own label', async () => {

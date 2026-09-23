@@ -18,6 +18,10 @@ import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../i18n';
 import { positionOf } from '../project-labels';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
+import {
+  ChapterOnShow,
+  ProjectChapterComponent,
+} from '../project-chapter/project-chapter.component';
 
 /**
  * A project's sheet: its approaches, one at a time, chosen in the toolbar;
@@ -31,6 +35,7 @@ import { LandingHeadingDirective } from '@shared/ui/landing-focus';
   selector: 'app-project-sheet',
   imports: [
     LandingHeadingDirective,
+    ProjectChapterComponent,
     RouterLink,
     SegmentedComponent,
     WindowComponent,
@@ -72,7 +77,11 @@ export class ProjectSheetComponent {
       : '';
   });
 
-  protected readonly current = computed(() => {
+  protected readonly identity = computed(() =>
+    this.chapter() === 0 ? this.facts() : null,
+  );
+
+  protected readonly current = computed<ChapterOnShow | null>(() => {
     const index = this.chapter();
     const chapter = this.sheet()?.chapters[index];
     return chapter
@@ -131,11 +140,11 @@ export class ProjectSheetComponent {
   constructor() {
     // A new approach starts at its top. The first run is skipped: arriving
     // on a sheet restores its reading position instead.
-    let first = true;
+    let isFirst = true;
     effect(() => {
       this.chapter();
-      if (first) {
-        first = false;
+      if (isFirst) {
+        isFirst = false;
         return;
       }
       untracked(() => this.window()?.scrollBodyTo(0));

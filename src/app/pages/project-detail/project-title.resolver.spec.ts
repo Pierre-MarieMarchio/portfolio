@@ -13,6 +13,10 @@ import { projectTitle } from './project-title.resolver';
 @Component({ template: '' })
 class Blank {}
 
+const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
+
+const title = () => TestBed.inject(Title).getTitle();
+
 /** The route resolves the name; the strategy writes it, alone. */
 describe('projectTitle', () => {
   beforeEach(async () => {
@@ -32,9 +36,6 @@ describe('projectTitle', () => {
     });
     await loadProjects();
   });
-
-  const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
-  const title = () => TestBed.inject(Title).getTitle();
 
   it('names the tab and the share card after the project', async () => {
     await go('/projet/ngx-statewise');

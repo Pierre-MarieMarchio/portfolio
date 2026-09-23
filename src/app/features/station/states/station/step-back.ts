@@ -28,13 +28,16 @@ export interface StepBackFrom {
 export function parentOf(view: StationView): ParentView | null {
   switch (view) {
     case 'sheet':
-    case 'not-found':
+    case 'not-found': {
       return 'index';
+    }
     case 'index':
-    case 'about':
+    case 'about': {
       return 'home';
-    case 'home':
+    }
+    case 'home': {
       return null;
+    }
   }
 }
 
@@ -55,8 +58,5 @@ export function stepBack(
   if (parent !== null && (gesture === 'escape' || view === 'sheet')) {
     return { kind: 'navigate', to: parent };
   }
-  if (preview !== null && view === 'home') {
-    return { kind: 'close-preview' };
-  }
-  return null;
+  return preview !== null && view === 'home' ? { kind: 'close-preview' } : null;
 }

@@ -3,18 +3,18 @@ import { provideRouter } from '@angular/router';
 import { NotFoundWindowComponent } from './not-found-window.component';
 import { provideTexts } from '@testing/texts';
 
-describe('NotFoundWindowComponent', () => {
-  const mount = async (total: number) => {
-    TestBed.configureTestingModule({
-      imports: [NotFoundWindowComponent],
-      providers: [provideTexts(), provideRouter([])],
-    });
-    const fixture = TestBed.createComponent(NotFoundWindowComponent);
-    fixture.componentRef.setInput('total', total);
-    await fixture.whenStable();
-    return { fixture, host: fixture.nativeElement as HTMLElement };
-  };
+const mount = async (total: number) => {
+  TestBed.configureTestingModule({
+    imports: [NotFoundWindowComponent],
+    providers: [provideTexts(), provideRouter([])],
+  });
+  const fixture = TestBed.createComponent(NotFoundWindowComponent);
+  fixture.componentRef.setInput('total', total);
+  await fixture.whenStable();
+  return { fixture, host: fixture.nativeElement as HTMLElement };
+};
 
+describe('NotFoundWindowComponent', () => {
   it('says the address names no sheet, and heads back to the index', async () => {
     const { host } = await mount(7);
 
@@ -28,8 +28,10 @@ describe('NotFoundWindowComponent', () => {
   it('counts the sheets of the index, on two digits', async () => {
     const { fixture, host } = await mount(7);
     const sentence = (): string =>
-      host.querySelector('h1 + p')?.textContent?.replace(/\s+/g, ' ').trim() ??
-      '';
+      host
+        .querySelector('h1 + p')
+        ?.textContent?.replaceAll(/\s+/g, ' ')
+        .trim() ?? '';
 
     expect(sentence()).toBe(
       'L’adresse demandée ne correspond à aucune des 07 fiches du relevé.',

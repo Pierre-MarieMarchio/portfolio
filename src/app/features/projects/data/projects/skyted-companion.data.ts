@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Skyted Companion: identity, facts and sheet, in one place. */
+/** Skyted Companion: identity, facts and detail, in one place. */
 export const SKYTED_COMPANION: ProjectEntry = {
   project: {
     slug: 'skyted-companion',
@@ -33,7 +33,7 @@ export const SKYTED_COMPANION: ProjectEntry = {
     stack: { fr: 'Natif · BLE', en: draft('Native · BLE') },
     context: 'Skyted',
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'L’application compagnon utilisée en interne autour du casque : elle sert à préparer l’appareil, le mettre à jour et vérifier son état.',
       en: draft(

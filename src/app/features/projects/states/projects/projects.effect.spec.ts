@@ -2,11 +2,11 @@ import { ErrorHandler } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
-import { NEVER, Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catalogOf, sampleEntry } from '@testing/fixtures/project.fixture';
 import { ProjectCatalog } from '../../models';
 import { ProjectsRepositoryService } from '../../services';
-import { getProjectsActions, projectsReset } from './projects.action';
+import { getProjectsActions } from './projects.action';
 import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';
@@ -49,7 +49,7 @@ describe('ProjectsEffect', () => {
 
     expect(state.projects()).toEqual(CATALOG.projects);
     expect(state.facts()).toEqual(CATALOG.facts);
-    expect(state.sheets()).toEqual(CATALOG.sheets);
+    expect(state.details()).toEqual(CATALOG.details);
     expect(state.isLoading()).toBe(false);
     expect(reported).toEqual([]);
   });
@@ -64,17 +64,5 @@ describe('ProjectsEffect', () => {
     expect(state.isError()).toBe(true);
     expect(state.isLoading()).toBe(false);
     expect(reported).toEqual([cause]);
-  });
-
-  it('abandons a read still in flight on reset', async () => {
-    source = NEVER;
-
-    statewise.dispatch(getProjectsActions.request());
-    expect(state.isLoading()).toBe(true);
-
-    await statewise.dispatchAsync(projectsReset());
-
-    expect(state.isLoading()).toBe(false);
-    expect(state.projects()).toEqual([]);
   });
 });

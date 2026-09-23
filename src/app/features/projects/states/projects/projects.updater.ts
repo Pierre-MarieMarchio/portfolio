@@ -1,5 +1,5 @@
 import { defineUpdater, requestStatus } from 'ngx-statewise';
-import { getProjectsActions, projectsReset } from './projects.action';
+import { getProjectsActions } from './projects.action';
 import { ProjectsState } from './projects.state';
 
 /** The only place the projects' state is written. */
@@ -9,20 +9,12 @@ export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
   requestStatus(on, getProjectsActions, {
     loading: (state) => state.isLoading,
     error: (state) => state.isError,
-    // The whole catalog at once: projects, facts and sheets never disagree
+    // The whole catalog at once: projects, facts and details never disagree
     // about which load they come from.
     onSuccess: (state, catalog) => {
       state.projects.set(catalog.projects);
       state.facts.set(catalog.facts);
-      state.sheets.set(catalog.sheets);
+      state.details.set(catalog.details);
     },
-  });
-
-  on(projectsReset, (state) => {
-    state.projects.set([]);
-    state.facts.set({});
-    state.sheets.set({});
-    state.isLoading.set(false);
-    state.isError.set(false);
   });
 });

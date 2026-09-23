@@ -11,18 +11,16 @@ import { twoDigits } from '@app/core/helpers';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
-import { ProjectFamily } from '../../models';
+import { FAMILIES, FamilyFilter } from '../../models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
-import { positionOf, rowLabel } from '../../rules/project-labels.rules';
+import {
+  positionOf,
+  proofLevelLabel,
+  rowLabel,
+} from '../../rules/project-labels.rules';
 import { ViewHeadingDirective } from '@shared/ui/directives';
-
-/** Which family the index shows; `all` is no filter. */
-export type FamilyFilter = ProjectFamily | 'all';
-
-/** The index's filters, in their order. */
-const FAMILIES: readonly FamilyFilter[] = ['all', 'professional', 'personal'];
 
 /**
  * The index: every project in a table whose most important column is
@@ -113,11 +111,14 @@ export class ProjectListComponent {
       .filter((project) => family === 'all' || project.family === family)
       .map((project) => ({
         ...project,
-        level: this.manager.proofLevelLabel(project.facts.proofLevel),
+        level: proofLevelLabel(
+          project.facts.proofLevel,
+          this.texts().proofLevels,
+        ),
         label: rowLabel(project),
         isSelected: project.slug === selected,
         isVisited: visited.has(project.slug),
-        link: this.manager.sheetOf(project.slug)?.links[0] ?? null,
+        link: this.manager.detailOf(project.slug)?.links[0] ?? null,
       }));
   });
 

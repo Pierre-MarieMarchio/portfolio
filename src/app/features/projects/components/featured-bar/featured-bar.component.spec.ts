@@ -18,20 +18,18 @@ const widen = (width: number) =>
 
 describe('OrbitRuleComponent', () => {
   /** Four bodies, each with a distinct title, short, proof and role. */
-  const bodies: readonly RankedProject[] = [
+  const entries = [
     ['alpha', 'Alpha', 'Alp'],
     ['beta', 'Beta', 'Bet'],
     ['gamma', 'Gamma', 'Gam'],
     ['delta', 'Delta', 'Del'],
-  ].map(([slug = '', title = '', short = ''], rank) =>
-    sampleRanked(
-      sampleEntry({
-        project: { slug, title, short },
-        facts: { proof: `Proof ${title}`, role: `Role ${title}` },
-      }),
-      rank,
-    ),
+  ].map(([slug = '', title = '', short = '']) =>
+    sampleEntry({
+      project: { slug, title, short },
+      facts: { proof: `Proof ${title}`, role: `Role ${title}` },
+    }),
   );
+  const bodies: readonly RankedProject[] = sampleRanked(entries);
 
   const mount = async (inputs: {
     bodies: readonly RankedProject[];
@@ -124,7 +122,7 @@ describe('OrbitRuleComponent', () => {
 
   /** Five featured: the gap of four is kept, and the belt widens. */
   it('keeps the gap and widens the belt for more markers', async () => {
-    const five = [...bodies, sampleRanked(sampleEntry(), 4)];
+    const five = sampleRanked([...entries, sampleEntry()]);
     const { host } = await mount({ bodies: five });
     const items = markerButtons(host).map(
       (button) => button.closest<HTMLLIElement>('li')?.style.left,
@@ -144,10 +142,9 @@ describe('OrbitRuleComponent', () => {
   });
 
   it('never runs the belt past 94% of the track, however many markers', async () => {
-    const many = Array.from({ length: 12 }, (_, rank) =>
-      sampleRanked(
+    const many = sampleRanked(
+      Array.from({ length: 12 }, (_, rank) =>
         sampleEntry({ project: { slug: `p${String(rank)}` } }),
-        rank,
       ),
     );
     const { host } = await mount({ bodies: many });

@@ -35,3 +35,31 @@ statique suffit, et celui du dépôt ne demande aucun compte de plus.
 
 **Écarté.** Un hébergeur tiers (un compte et un secret de plus) ; un dépôt privé
 sur un plan payant (un coût pour un contenu destiné à être public).
+
+## 2026-09-23 — Les projets vedettes se dérivent du rang
+
+**Décision.** Les vedettes de l'accueil sont les quatre premiers projets dans
+l'ordre de l'orbite, calculés par `ProjectsManager.featured`, jamais stockés.
+
+**Raison.** L'export (`vedettes = 4`) et la passation lient la sélection de
+l'accueil au rang : les deux applications publiées et les deux dépôts publics,
+quatre projets qu'on peut ouvrir soi-même.
+
+**Écarté.** Un booléen par projet, qui laisse le rang et la sélection diverger.
+
+**À revoir** le jour où un projet change de rang sans devoir entrer à l'accueil
+ou en sortir.
+
+## 2026-09-23 — Le catalogue des projets passe par un seul chemin
+
+**Décision.** Projets, faits et fiches, avec les libellés de niveau, les titres
+de chapitre par défaut et les couches de la figure, sont lus en une fois par
+`ProjectsRepositoryService.getCatalog()`, portés par une seule action `success`
+et tenus par le state. Les faits sont la seule table des faits, indexée par
+slug ; une fiche n'en porte aucun, et son type le refuse.
+
+**Raison.** Une seule couture pour une source distante, un seul cycle de
+chargement (une fiche n'est jamais là sans son projet), et le prérendu lit le
+même repository.
+
+**Écarté.** Des constantes importées par le manager ; une lecture par table.

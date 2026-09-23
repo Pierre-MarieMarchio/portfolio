@@ -1,6 +1,6 @@
 import { defineUpdater, requestStatus } from 'ngx-statewise';
 import { getProjectsActions, projectsReset } from './projects.action';
-import { ProjectsState } from './projects.state';
+import { NO_PROOF_LEVEL_LABELS, ProjectsState } from './projects.state';
 
 /** The only place the projects' state is written. */
 export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
@@ -9,13 +9,25 @@ export const projectsUpdater = defineUpdater(ProjectsState, (on) => {
   requestStatus(on, getProjectsActions, {
     loading: (state) => state.isLoading,
     error: (state) => state.isError,
-    onSuccess: (state, projects) => {
-      state.projects.set(projects);
+    // The whole catalog at once: projects, facts and sheets never disagree
+    // about which load they come from.
+    onSuccess: (state, catalog) => {
+      state.projects.set(catalog.projects);
+      state.facts.set(catalog.facts);
+      state.sheets.set(catalog.sheets);
+      state.proofLevelLabels.set(catalog.proofLevelLabels);
+      state.defaultChapterTitles.set(catalog.defaultChapterTitles);
+      state.layers.set(catalog.layers);
     },
   });
 
   on(projectsReset, (state) => {
     state.projects.set([]);
+    state.facts.set({});
+    state.sheets.set({});
+    state.proofLevelLabels.set(NO_PROOF_LEVEL_LABELS);
+    state.defaultChapterTitles.set([]);
+    state.layers.set([]);
     state.isLoading.set(false);
     state.isError.set(false);
   });

@@ -253,4 +253,13 @@ describe('stationUpdater', () => {
 
     expect(state.paused()).toBe(false);
   });
+  /** Closing the preview forgets what is open, not what was read. */
+  it('keeps the body last previewed as the reading, through a close', () => {
+    statewise.dispatch(stationPreviewOpened('a'));
+    statewise.dispatch(stationPreviewOpened('b'));
+    statewise.dispatch(stationPreviewClosed());
+
+    expect(state.preview()).toBeNull();
+    expect(state.reading()).toBe('b');
+  });
 });

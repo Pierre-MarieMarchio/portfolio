@@ -1,0 +1,46 @@
+<div class="head">
+  <span aria-hidden="true" class="square"></span>
+  <h2>Projets en orbite</h2>
+</div>
+<div class="row">
+  <div class="track">
+    <div aria-hidden="true" class="axis"></div>
+    <ul>
+      @for (marker of markers(); track marker.slug) {
+        <li [style.left]="marker.left">
+          <button
+            type="button"
+            aria-controls="panneau-apercu"
+            [attr.aria-label]="marker.label"
+            [attr.data-lit]="marker.lit"
+            (click)="chosen.emit(marker.slug)"
+            (mouseenter)="hoveredChange.emit(marker.slug)"
+            (mouseleave)="hoveredChange.emit(null)"
+            (focus)="hoveredChange.emit(marker.slug)"
+            (blur)="hoveredChange.emit(null)"
+          >
+            <span aria-hidden="true" class="dot"></span>
+            <span aria-hidden="true" class="stem"></span>
+            <span class="name"
+              ><span aria-hidden="true" class="number">{{ marker.number }}</span
+              ><span aria-hidden="true" class="short">{{
+                marker.short
+              }}</span></span
+            >
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+  <a routerLink="/projets" class="all">Tous les projets →</a>
+</div>
+@if (line(); as line) {
+  <div aria-live="polite" class="reading">
+    <p class="title">
+      <span class="accent">{{ line.number }}</span
+      ><span>{{ line.title }}</span>
+    </p>
+    <p>{{ line.facts.proof }}</p>
+    <p>{{ line.facts.role }}</p>
+  </div>
+}

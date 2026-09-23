@@ -57,9 +57,7 @@ describe('ProjectPreviewComponent', () => {
     const { host } = await mount({ slug: 'proj-2' });
     const windowEl = host.querySelector('.window');
 
-    expect(windowEl?.getAttribute('aria-label')).toBe(
-      'Fenêtre : aperçu du projet',
-    );
+    expect(windowEl?.getAttribute('aria-label')).toBe('Aperçu du projet');
     expect(windowEl?.querySelector('h2')?.textContent?.trim()).toBe(
       'Project Two',
     );
@@ -72,7 +70,7 @@ describe('ProjectPreviewComponent', () => {
 
   it('lists one toolbar button per featured project only, labelled and pressed on the shown one', async () => {
     const { host } = await mount({ slug: 'proj-2' });
-    const toolbar = host.querySelector('[aria-label="Corps en orbite"]');
+    const toolbar = host.querySelector('[aria-label="Projets mis en avant"]');
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -85,7 +83,7 @@ describe('ProjectPreviewComponent', () => {
     );
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(
       featured.map(
-        (name, index) => `Aperçu 0${String(index + 1)} — Project ${name}`,
+        (name, index) => `Projet 0${String(index + 1)} : Project ${name}`,
       ),
     );
     expect(
@@ -100,7 +98,7 @@ describe('ProjectPreviewComponent', () => {
       emitted.push(slug),
     );
 
-    const toolbar = host.querySelector('[aria-label="Corps en orbite"]');
+    const toolbar = host.querySelector('[aria-label="Projets mis en avant"]');
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -124,7 +122,7 @@ describe('ProjectPreviewComponent', () => {
     const values = [...host.querySelectorAll('dl dd')].map((dd) =>
       dd.textContent?.trim(),
     );
-    expect(terms).toEqual(['Preuve', 'Rôle', 'Pile']);
+    expect(terms).toEqual(['Statut', 'Rôle', 'Stack']);
     expect(values).toEqual(['Proof 2', 'Role 2', 'Stack 2']);
   });
 
@@ -133,7 +131,7 @@ describe('ProjectPreviewComponent', () => {
 
     expect(host.querySelector('.window')?.textContent).toContain('live');
     const link = [...host.querySelectorAll('a')].find(
-      (anchor) => anchor.textContent?.trim() === 'Ouvrir la fiche →',
+      (anchor) => anchor.textContent?.trim() === 'Voir le projet →',
     );
     expect(link?.getAttribute('href')).toBe('/projet/proj-2');
   });

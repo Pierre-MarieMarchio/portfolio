@@ -19,13 +19,13 @@ describe('NotFoundWindowComponent', () => {
     const { host } = await mount(7);
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'Cette réalisation n’existe pas.',
+      'Rien en orbite à cette adresse.',
     );
     expect(host.querySelector('a')?.getAttribute('href')).toBe('/projets');
   });
 
   /** Counted, not written: a project added changes the sentence by itself. */
-  it('counts the sheets of the index, on two digits', async () => {
+  it('counts the projects of the index, on two digits', async () => {
     const { fixture, host } = await mount(7);
     const sentence = (): string =>
       host
@@ -33,12 +33,10 @@ describe('NotFoundWindowComponent', () => {
         ?.textContent?.replaceAll(/\s+/g, ' ')
         .trim() ?? '';
 
-    expect(sentence()).toBe(
-      'L’adresse demandée ne correspond à aucune des 07 fiches du relevé.',
-    );
+    expect(sentence()).toBe('Aucun des 07 projets ne correspond à ce lien.');
 
     fixture.componentRef.setInput('total', 12);
     await fixture.whenStable();
-    expect(sentence()).toContain('aucune des 12 fiches');
+    expect(sentence()).toContain('Aucun des 12 projets');
   });
 });

@@ -28,7 +28,7 @@ main {
 .home-title {
   position: absolute;
   left: clamp(20px, 4vw, 44px);
-  top: clamp(64px, 10vh, 96px);
+  top: max(clamp(64px, 10vh, 96px), calc(var(--head-bottom, 0px) + 12px));
   z-index: var(--z-scene-top);
   max-width: min(27ch, 44vw);
   pointer-events: none;
@@ -69,7 +69,7 @@ h1 {
 .slot {
   position: absolute;
   right: clamp(20px, 4vw, 44px);
-  top: clamp(78px, 10.5vh, 98px);
+  top: max(clamp(78px, 10.5vh, 98px), calc(var(--head-bottom, 0px) + 14px));
   z-index: var(--z-window);
   width: min(58ch, max(52vw, 320px));
   display: flex;
@@ -91,7 +91,7 @@ h1 {
 }
 
 .slot--sheet {
-  top: clamp(96px, 13vh, 120px);
+  top: max(clamp(96px, 13vh, 120px), calc(var(--head-bottom, 0px) + 32px));
   z-index: calc(var(--z-window) + 1);
 }
 

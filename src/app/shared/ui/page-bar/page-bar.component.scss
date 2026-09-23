@@ -3,10 +3,15 @@
   right: clamp(20px, 4vw, 44px);
   top: clamp(20px, 4vh, 40px);
   z-index: var(--z-chrome);
+  /* Never past the left gutter: on a phone the bar wraps onto two lines
+     rather than cutting "FR" off the screen. */
+  max-width: calc(100% - 2 * clamp(20px, 4vw, 44px));
 }
 
 .bar {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--s2);
   padding: 3px 3px 3px 4px;

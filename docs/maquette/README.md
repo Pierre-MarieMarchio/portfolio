@@ -140,6 +140,14 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   centré : chaque traînée part du point de fuite, le tunnel tourne sur lui-même
   dans le sens du virage (le roulis, plus 0,35 de l'azimut) et sa bouche
   anticipe un peu la trajectoire (30 % du panoramique d'origine).
+- **L'objet se tourne à la main comme deux plateaux, le disque et les
+  orbites.** L'export additionne un couple : le disque glisse sous le doigt,
+  l'élan est plafonné et non mesuré, et tout tourne d'un bloc, ce qui fait
+  croire que la caméra tourne autour. Ici, le plateau saisi (le disque près
+  du trou, les orbites au-delà de 3,3 rayons) suit la main angle pour angle ;
+  lancé, il garde la vitesse du geste et la perd par friction (demi-vie
+  1,4 s) ; lâché immobile, il reste en place. L'autre est entraîné, jamais
+  engrené : il tend vers 40 % de sa vitesse, avec 0,55 s de retard.
 - **Le rail de contact porte des icônes Material Symbols.** L'export y écrit
   « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG (contour,
   graisse 400) : `mail`, puis `work` pour LinkedIn et `code` pour GitHub,

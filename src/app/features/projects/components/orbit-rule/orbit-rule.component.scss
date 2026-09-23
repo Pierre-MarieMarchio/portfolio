@@ -176,13 +176,18 @@ button {
   color: var(--accent);
 }
 
-/* Narrow: four titles of ~130px cannot sit on one line of 320px without
-   overlapping. The numbers stay; the planets carry the names, and each
-   marker keeps its full accessible name. */
+/* Narrow, or too many markers for the width: titles of ~130px cannot sit
+   side by side without overlapping. The numbers stay; the planets carry the
+   names, and each marker keeps its full accessible name. The media query
+   holds without a script; the measure (`data-crowded`) holds for any count. */
 @media (width <= 620px) {
   .short {
     display: none;
   }
+}
+
+:host([data-crowded='true']) .short {
+  display: none;
 }
 
 /* A low window keeps the markers and titles and gives back the rest: the

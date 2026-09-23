@@ -1,4 +1,4 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, InjectionToken } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
 import { twoDigits } from '@app/core/utils/format.utils';
 import {
@@ -21,11 +21,22 @@ import { projectsUpdater } from './projects.updater';
  */
 export const FEATURED_COUNT = 4;
 
+/**
+ * The count the manager reads: `FEATURED_COUNT`, unless a spec provides
+ * another to see the home page at three or five. A default, unlike a port's
+ * token: the application never provides it, the constant is the setting.
+ */
+export const FEATURED = new InjectionToken<number>('FEATURED', {
+  providedIn: 'root',
+  factory: () => FEATURED_COUNT,
+});
+
 /** The only API components and pages see of the projects. */
 @Injectable({ providedIn: 'root' })
 export class ProjectsManager {
   private readonly state = inject(ProjectsState);
   private readonly statewise = injectStatewise(projectsUpdater);
+  private readonly featuredCount = inject(FEATURED);
 
   public readonly projects = this.state.projects.asReadonly();
   public readonly isLoading = this.state.isLoading.asReadonly();
@@ -51,7 +62,7 @@ export class ProjectsManager {
               facts: found,
               rank,
               number: twoDigits(rank + 1),
-              featured: rank < FEATURED_COUNT,
+              featured: rank < this.featuredCount,
             },
           ]
         : [];

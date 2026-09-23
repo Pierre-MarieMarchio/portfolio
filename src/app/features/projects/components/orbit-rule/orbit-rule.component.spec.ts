@@ -112,6 +112,72 @@ describe('OrbitRuleComponent', () => {
     expect(items).toEqual(['2%', '58%']);
   });
 
+  /** Five featured: the gap of four is kept, and the belt widens. */
+  it('keeps the gap and widens the belt for more markers', async () => {
+    const five = [...bodies, sampleRanked(sampleEntry(), 4)];
+    const { host } = await mount({ bodies: five });
+    const items = markerButtons(host).map(
+      (button) => button.closest<HTMLLIElement>('li')?.style.left,
+    );
+
+    expect(items).toEqual(['2%', '20.7%', '39.3%', '58%', '76.7%']);
+  });
+
+  /** Three featured: the export's belt, the markers further apart. */
+  it('keeps the export belt for fewer markers', async () => {
+    const { host } = await mount({ bodies: bodies.slice(0, 3) });
+    const items = markerButtons(host).map(
+      (button) => button.closest<HTMLLIElement>('li')?.style.left,
+    );
+
+    expect(items).toEqual(['2%', '30%', '58%']);
+  });
+
+  it('never runs the belt past 94% of the track, however many markers', async () => {
+    const many = Array.from({ length: 12 }, (_, rank) =>
+      sampleRanked(
+        sampleEntry({ project: { slug: `p${String(rank)}` } }),
+        rank,
+      ),
+    );
+    const { host } = await mount({ bodies: many });
+    const last = markerButtons(host).at(-1)?.closest<HTMLLIElement>('li');
+
+    expect(last?.style.left).toBe('96%');
+  });
+
+  describe('when the names would overlap', () => {
+    /** jsdom lays nothing out: the track answers the width it is given. */
+    const widen = (width: number) =>
+      vi
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockReturnValue({ width } as DOMRect);
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('keeps the names while each marker has ~130px of its own', async () => {
+      widen(700);
+      const { host } = await mount({ bodies });
+
+      expect(host.getAttribute('data-crowded')).toBe('false');
+    });
+
+    it('gives the names way to the numbers below that', async () => {
+      widen(500);
+      const { host } = await mount({ bodies });
+
+      expect(host.getAttribute('data-crowded')).toBe('true');
+    });
+
+    it('says nothing is crowded where nothing is laid out', async () => {
+      const { host } = await mount({ bodies });
+
+      expect(host.getAttribute('data-crowded')).not.toBe('true');
+    });
+  });
+
   it('lights only the hovered marker', async () => {
     const { host } = await mount({ bodies, hovered: 'beta' });
     const lit = markerButtons(host).map((button) =>

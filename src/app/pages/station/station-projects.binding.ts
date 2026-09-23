@@ -60,8 +60,12 @@ export class StationProjectsBinding {
   );
 
   public readonly focusRank = computed(() => this.rankOf(this.sheetSlug()));
+  /**
+   * The preview belongs to the home page: pinned over another view it is a
+   * window, and the object neither slows nor frames for it there.
+   */
   public readonly previewRank = computed(() =>
-    this.rankOf(this.station.preview()),
+    this.station.view() === 'home' ? this.rankOf(this.station.preview()) : -1,
   );
   public readonly selectedRank = computed(() =>
     this.rankOf(this.station.selection()),
@@ -69,6 +73,10 @@ export class StationProjectsBinding {
   public readonly hoveredRank = computed(() =>
     this.rankOf(this.station.hovered()),
   );
+
+  public isFeatured(slug: string): boolean {
+    return this.projects.isFeatured(slug);
+  }
 
   public slugAt(rank: number): string | null {
     return this.projects.projects()[rank]?.slug ?? null;

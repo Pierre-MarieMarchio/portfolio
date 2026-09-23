@@ -191,17 +191,19 @@ export class StationComponent {
   }
 
   /**
-   * On the index a planet selects its row, a second click lets it go;
-   * anywhere else it opens or closes the preview.
+   * On the index a planet selects its row, a second click lets it go; on
+   * the home page a featured planet opens or closes the preview, the only
+   * ones the home page shows.
    */
   protected onBodyClicked(rank: number): void {
     const slug = this.binding.slugAt(rank);
     if (!slug) {
       return;
     }
-    if (this.station.view() === 'index') {
+    const view = this.station.view();
+    if (view === 'index') {
       this.station.select(this.station.selection() === slug ? null : slug);
-    } else {
+    } else if (view === 'home' && this.binding.isFeatured(slug)) {
       this.station.togglePreview(slug);
     }
   }

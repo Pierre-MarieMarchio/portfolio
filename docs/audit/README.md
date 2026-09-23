@@ -155,7 +155,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - les doubles de test sont bâtis sur le vrai manager ;
   - la phrase « sept fiches » est dérivée du nombre ;
   - écrire `docs/contenu.md`.
-- [ ] **7. `feat(home)`** (rapports 00 §3 et 01) :
+- [x] **7. `feat(home)`** (rapports 00 §3 et 01) :
   - `FEATURED_COUNT` reste la seule valeur ;
   - la règle répartit ses repères selon leur nombre et la largeur
     disponible ;

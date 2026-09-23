@@ -4,6 +4,7 @@ import {
   litAmount,
   nearestTurn,
   onCurrentTurn,
+  ORBIT_REFERENCE_COUNT,
   orbitRank,
   PLANET_GAP,
   repel,
@@ -45,6 +46,38 @@ describe('object math', () => {
 
     it('answers 0 for a lone body rather than dividing by nothing', () => {
       expect(orbitRank(0, 1)).toBe(0);
+    });
+
+    /** The mockup's system, kept exactly: its seven orbits are the export's. */
+    it('spreads three bodies from the first orbit to the last, as few as they are', () => {
+      expect([0, 1, 2].map((i) => orbitRank(i, 3))).toEqual([
+        0,
+        expect.closeTo(0.54, 2),
+        1,
+      ]);
+    });
+
+    /** Twelve used to stack the featured four within 5% of the first orbit. */
+    it('keeps the featured orbits where they are, however many bodies follow', () => {
+      const firstFour = (count: number) =>
+        [0, 1, 2, 3].map((i) => orbitRank(i, count));
+
+      expect(firstFour(12)).toEqual(firstFour(ORBIT_REFERENCE_COUNT));
+      expect(firstFour(20)).toEqual(firstFour(ORBIT_REFERENCE_COUNT));
+    });
+
+    it('shares the outer band among the bodies past the reference, out to the edge', () => {
+      const twelve = Array.from({ length: 12 }, (_, i) => orbitRank(i, 12));
+
+      for (let i = 1; i < twelve.length; i++) {
+        expect(twelve[i]).toBeGreaterThan(twelve[i - 1] ?? Infinity);
+      }
+      expect(twelve.at(-1)).toBeCloseTo(1, 10);
+      const outer = twelve.slice(5);
+      const gaps = outer.slice(1).map((rank, i) => rank - (outer[i] ?? 0));
+      gaps.forEach((gap) => {
+        expect(gap).toBeCloseTo(gaps[0] ?? 0, 10);
+      });
     });
   });
 

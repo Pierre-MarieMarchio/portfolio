@@ -1,0 +1,19 @@
+<ul role="group" [attr.aria-label]="label()">
+  @for (item of items(); track item.label) {
+    <li>
+      <button
+        type="button"
+        [attr.aria-pressed]="item.active"
+        [attr.data-active]="item.active"
+        [attr.aria-label]="item.aria ?? item.label"
+        [title]="item.aria ?? item.label"
+        (click)="selected.emit(item)"
+      >
+        <span>{{ item.label }}</span>
+        @if (item.count) {
+          <span class="count" aria-hidden="true">{{ item.count }}</span>
+        }
+      </button>
+    </li>
+  }
+</ul>

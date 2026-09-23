@@ -97,4 +97,35 @@ describe('prerender safety', () => {
 
     vi.unstubAllGlobals();
   });
+
+  /** A window that drags or measures itself must render on the server too. */
+  it('answers no viewport and listens to nothing on the server', () => {
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    on('server');
+    const environment = TestBed.inject(BrowserEnvironment);
+
+    expect(environment.viewport()).toBeNull();
+    environment.listen('resize', () => undefined)();
+    expect(addEventListener).not.toHaveBeenCalled();
+
+    addEventListener.mockRestore();
+  });
+
+  it('reads the viewport and stops listening when asked, in the browser', () => {
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+    const heard: string[] = [];
+
+    expect(environment.viewport()).toEqual({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+    const stop = environment.listen('resize', (event) =>
+      heard.push(event.type),
+    );
+    window.dispatchEvent(new Event('resize'));
+    stop();
+    window.dispatchEvent(new Event('resize'));
+    expect(heard).toEqual(['resize']);
+  });
 });

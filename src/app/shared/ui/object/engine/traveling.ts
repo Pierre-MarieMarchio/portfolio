@@ -18,6 +18,11 @@ export interface Traveling {
   readonly light: number;
   /** Rotation speed multiplier: the disk spins faster from afar. */
   readonly spin: number;
+  /**
+   * How fast the approach goes, 0 to 1 at its peak: the sky keeps flowing
+   * with it after the tunnel, and comes to rest when the object has landed.
+   */
+  readonly coast: number;
 }
 
 /** Reduced motion: the object sits at its final state, no crossing. */
@@ -31,10 +36,32 @@ export const ARRIVED: Traveling = {
   matter: 1,
   light: 1,
   spin: 1,
+  coast: 0,
 };
 
+/** The approach, from afar to the object's place. */
+const APPROACH_FROM = 4.2;
+const APPROACH_TO = 9.6;
+
 /** When the crossing is over and the loop may rest. */
-export const TRAVELING_END = 9.2;
+export const TRAVELING_END = 9.7;
+
+/**
+ * The approach's easing: the integral of a Beta(5, 4) bell, in closed form.
+ * A slow rise, while the object is still a dot, then a long landing. The
+ * cubic ease-in-out it replaces packed the whole arrival into a third of a
+ * second: seen as a size, 1 / distance, the object grew fastest at 8.45 s
+ * and all but stopped by 8.8 s, a braking jolt. Here the growth dies over
+ * more than a second, and up to 8 s the sizes are the old ones.
+ */
+const approach = (p: number): number => {
+  const q = 1 - p;
+  return p ** 5 * (56 * q ** 3 + 28 * p * q ** 2 + 8 * p ** 2 * q + p ** 3);
+};
+
+/** The approach's speed, its bell, 1 at its peak (p = 4/7). */
+const approachSpeed = (p: number): number =>
+  (p ** 4 * (1 - p) ** 3) / ((4 / 7) ** 4 * (3 / 7) ** 3);
 
 export const traveling = (time: number, reduced: boolean): Traveling => {
   if (reduced) {
@@ -47,9 +74,12 @@ export const traveling = (time: number, reduced: boolean): Traveling => {
   // the size instead grows fast then slow, exactly the opposite of an
   // approach, hence an image that seems to pop up in front of us. Here the
   // object stays a dot for seconds, then unfolds at the end of the run.
+  // The distance falls on a LOG scale, 58 radii to 1: the eye reads a
+  // zoom in ratios, so an even fall of the log is an even approach, and
+  // the landing is the easing's alone.
+  const pA = progress(t, APPROACH_FROM, APPROACH_TO);
+  const distance = Math.pow(58, 1 - approach(pA));
   const pD = progress(t, 4.2, 8.8);
-  const march = pD < 0.5 ? 4 * pD * pD * pD : 1 - Math.pow(-2 * pD + 2, 3) / 2;
-  const distance = 1 + 57 * (1 - march);
   const qI = smoothstep(progress(t, 5.4, 8.8));
   const qO = smoothstep(progress(t, 6.0, 8.8));
   const pC = progress(t, 5.6, 8.8);
@@ -79,5 +109,6 @@ export const traveling = (time: number, reduced: boolean): Traveling => {
     spin: 1 + 4.2 * (1 - smoothstep(pD)),
     matter: Math.pow(smoothstep(mA), 1.8),
     light: Math.pow(1 / distance, 0.95),
+    coast: approachSpeed(pA),
   };
 };

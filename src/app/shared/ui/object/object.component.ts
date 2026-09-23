@@ -235,7 +235,6 @@ export class ObjectComponent {
     }
     const skyCtx = this.browser.context2d(this.sky().nativeElement);
     this.reduced.set(this.browser.prefersReducedMotion());
-    const root = this.browser.document.documentElement;
     const viewport = this.browser.viewport() ?? { width: 1280, height: 800 };
     const engine = new ObjectEngine(
       {
@@ -249,8 +248,8 @@ export class ObjectComponent {
         rnd: Math.random,
         density: DENSITY,
         aboutBodies: 'constellations',
-        ink: this.browser.computedStyle(root, '--ink') || '#2b2f3a',
-        accent: this.browser.computedStyle(root, '--accent') || '#3b62c4',
+        ink: this.browser.rootStyle('--ink') || '#2b2f3a',
+        accent: this.browser.rootStyle('--accent') || '#3b62c4',
       },
       viewport.width * viewport.height,
     );
@@ -349,9 +348,7 @@ export class ObjectComponent {
     let ruleHeight: number | null = null;
     let sheetLeft: number | null = null;
     let previewLeft: number | null = null;
-    const elements =
-      this.browser.document.querySelectorAll<HTMLElement>('[data-panel]');
-    for (const element of Array.from(elements)) {
+    for (const element of this.browser.queryAll('[data-panel]')) {
       // A panel held out of sight (the home page's rest, during the
       // crossing) is not there yet: the mockup mounts it later. Measured,
       // the run was framed for a rule that did not show.
@@ -385,13 +382,7 @@ export class ObjectComponent {
           break;
       }
     }
-    engine.setLines(
-      Array.from(
-        this.browser.document.querySelectorAll<HTMLElement>(
-          '[data-object-line]',
-        ),
-      ),
-    );
+    engine.setLines(this.browser.queryAll('[data-object-line]'));
     engine.measureLabels();
     const viewport = this.browser.viewport() ?? { width: 1200, height: 800 };
     const layout: Layout = {
@@ -427,7 +418,7 @@ export class ObjectComponent {
       return;
     }
     this.endGesture();
-    this.browser.document.body.style.cursor = 'grabbing';
+    this.browser.setCursor('grabbing');
     this.gesture.push(
       this.browser.listen(
         'pointermove',
@@ -454,7 +445,7 @@ export class ObjectComponent {
   private endGesture(): void {
     for (const stop of this.gesture.splice(0)) {
       stop();
-      this.browser.document.body.style.cursor = '';
+      this.browser.setCursor('');
     }
   }
 }

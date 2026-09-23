@@ -3,6 +3,7 @@ import { AboutPageComponent } from './pages/about/about-page.component';
 import { HomePageComponent } from './pages/home/home-page.component';
 import { NotFoundPageComponent } from './pages/not-found/not-found-page.component';
 import { ProjectDetailPageComponent } from './pages/project-detail/project-detail-page.component';
+import { projectTitle } from './pages/project-detail/project-title.resolver';
 import { ProjectsPageComponent } from './pages/projects/projects-page.component';
 
 /**
@@ -36,7 +37,7 @@ export const routes: Routes = [
   {
     path: 'projet/:slug',
     component: ProjectDetailPageComponent,
-    title: 'Projet',
+    title: projectTitle,
   },
   {
     path: 'a-propos',

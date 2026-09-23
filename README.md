@@ -40,9 +40,9 @@ src/app/
   app.component.*        compose le shell et le <router-outlet>
 
   core/                  infrastructure, aucun concept métier
-    error-handling/      AppErrorHandler, refusalReason
-    services/            BrowserEnvironment, LocalStorageService, ReportedErrors,
-                         SeoService, PageTitleStrategy
+    error-handling/      AppErrorHandler
+    services/            BrowserEnvironment, PageHead (et SITE_NAME),
+                         PageTitleStrategy
     utils/               fonctions pures (pas de barrel)
   shared/ui/             composants présentationnels (inputs/outputs seulement)
     nav-shell/
@@ -109,8 +109,8 @@ reste en signals locaux dans la page.
   client, jusqu'à la page « Adresse inconnue ») : c'est le réglage « SPA
   fallback » de la plupart des hébergeurs statiques.
 - Aucun code ne touche `window`, `localStorage` ou `matchMedia` en direct :
-  tout passe par `BrowserEnvironment` et `LocalStorageService`, inertes au
-  prérendu. `src/integration/prerender-safety.spec.ts` le vérifie.
+  tout passe par `BrowserEnvironment`, inerte au prérendu, qui garde le
+  `document` pour lui. `src/integration/prerender-safety.spec.ts` le vérifie.
 
 ## Conventions
 
@@ -123,7 +123,11 @@ et se restreint avant d'être utilisé.
 
 Composants standalone, `OnPush`, `templateUrl` + `styleUrl`, `inject()`,
 `input()`/`output()`, control flow `@if`/`@for`, accessibilité des membres
-toujours écrite (vérifiée par le lint), sélecteurs préfixés `app-`. Les
+toujours écrite (vérifiée par le lint), sélecteurs préfixés `app-`. Une classe
+injectable porte le nom de ce qu'elle est (`PageHead`, `ProjectsRepository`,
+`BrowserEnvironment`), sans suffixe `Service` : le suffixe est dans le nom du
+fichier (`.service.ts`), avec `.strategy.ts` et `.resolver.ts` pour ce que le
+routeur appelle. Les
 commentaires, en anglais, disent le _pourquoi_ ; chaque affirmation est tenue
 par un spec.
 

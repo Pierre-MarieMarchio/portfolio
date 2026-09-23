@@ -54,7 +54,7 @@ ou en sortir.
 
 **Décision.** Projets, faits et fiches, avec les libellés de niveau, les titres
 de chapitre par défaut et les couches de la figure, sont lus en une fois par
-`ProjectsRepositoryService.getCatalog()`, portés par une seule action `success`
+`ProjectsRepository.getCatalog()`, portés par une seule action `success`
 et tenus par le state. Les faits sont la seule table des faits, indexée par
 slug ; une fiche n'en porte aucun, et son type le refuse.
 

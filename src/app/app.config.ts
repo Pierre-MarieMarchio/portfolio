@@ -35,8 +35,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
-    // Every reported failure becomes state rather than a console line nobody
-    // reads on a deployed page.
+    // The one channel every failure reaches, the library's included.
     { provide: ErrorHandler, useClass: AppErrorHandler },
     provideRouter(
       routes,

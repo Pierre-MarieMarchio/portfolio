@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta, Title } from '@angular/platform-browser';
 import { provideRouter, Router, TitleStrategy } from '@angular/router';
+import { SITE_NAME } from './page-head.service';
 import { PageTitleStrategy } from './page-title.strategy';
 
 @Component({ template: '' })
@@ -34,8 +35,8 @@ describe('PageTitleStrategy', () => {
   it('appends the site name to the route title, on the tab and the card', async () => {
     await go('/described');
 
-    expect(title()).toBe('Projets · Pierre-Marie Marchio');
-    expect(tag('property="og:title"')).toBe('Projets · Pierre-Marie Marchio');
+    expect(title()).toBe(`Projets · ${SITE_NAME}`);
+    expect(tag('property="og:title"')).toBe(`Projets · ${SITE_NAME}`);
   });
 
   it('turns data.description into the meta description', async () => {
@@ -57,6 +58,6 @@ describe('PageTitleStrategy', () => {
   it('falls back to the site name alone on a route without a title', async () => {
     await go('/untitled');
 
-    expect(title()).toBe('Pierre-Marie Marchio');
+    expect(title()).toBe(SITE_NAME);
   });
 });

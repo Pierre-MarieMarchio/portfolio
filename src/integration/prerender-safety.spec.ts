@@ -1,87 +1,20 @@
-import { ErrorHandler, Injectable, PLATFORM_ID } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { BrowserEnvironment, LocalStorageService } from '@app/core/services';
-
-/** A feature's stored preference, as it would subclass the base. */
-@Injectable({ providedIn: 'root' })
-class StoredChoice extends LocalStorageService {
-  public read(): unknown {
-    return this.getItem('choice');
-  }
-
-  public write(value: unknown): void {
-    this.setItem('choice', value);
-  }
-}
+import { BrowserEnvironment } from '@app/core/services';
 
 /**
- * The mechanism under test: every service that touches the browser is inert
- * while prerendering. The server platform is simulated by `PLATFORM_ID`, while
- * jsdom still provides `localStorage` and `matchMedia`, so a service that
- * forgot its guard would reach them and this suite would see it.
+ * The mechanism under test: the one service that touches the browser is
+ * inert while prerendering. The server platform is simulated by
+ * `PLATFORM_ID`, while jsdom still provides `matchMedia`, a document and a
+ * layout, so a method that forgot its guard would reach them and this suite
+ * would see it.
  */
 describe('prerender safety', () => {
   const on = (platform: 'browser' | 'server') => {
-    const reported: unknown[] = [];
-
     TestBed.configureTestingModule({
-      providers: [
-        { provide: PLATFORM_ID, useValue: platform },
-        {
-          provide: ErrorHandler,
-          useValue: { handleError: (error: unknown) => reported.push(error) },
-        },
-      ],
+      providers: [{ provide: PLATFORM_ID, useValue: platform }],
     });
-
-    return { reported };
   };
-
-  afterEach(() => {
-    localStorage.clear();
-  });
-
-  it('never reads or writes storage on the server', () => {
-    localStorage.setItem('choice', '"kept"');
-    const setItem = vi.spyOn(Storage.prototype, 'setItem');
-    const getItem = vi.spyOn(Storage.prototype, 'getItem');
-    on('server');
-    const choice = TestBed.inject(StoredChoice);
-
-    choice.write('ignored');
-
-    expect(choice.read()).toBeNull();
-    expect(setItem).not.toHaveBeenCalled();
-    expect(getItem).not.toHaveBeenCalled();
-
-    setItem.mockRestore();
-    getItem.mockRestore();
-  });
-
-  it('round-trips a value in the browser', () => {
-    on('browser');
-    const choice = TestBed.inject(StoredChoice);
-
-    choice.write({ family: 'personal' });
-
-    expect(choice.read()).toEqual({ family: 'personal' });
-  });
-
-  /** A blocked storage throws on read, at bootstrap: it must not crash. */
-  it('turns a blocked storage into a missing value and a report', () => {
-    const { reported } = on('browser');
-    const blocked = new DOMException('blocked', 'SecurityError');
-    const getItem = vi
-      .spyOn(Storage.prototype, 'getItem')
-      .mockImplementation(() => {
-        throw blocked;
-      });
-
-    expect(TestBed.inject(StoredChoice).read()).toBeNull();
-    expect(reported).toEqual([blocked]);
-
-    getItem.mockRestore();
-  });
 
   it('answers the no-motion default without asking matchMedia on the server', () => {
     const matchMedia = vi.fn();
@@ -156,6 +89,7 @@ describe('prerender safety', () => {
     environment.observeIntersection(canvas, 0.01, () => undefined)();
     expect(environment.context2d(canvas)).toBeNull();
     expect(environment.computedStyle(canvas, 'opacity')).toBe('');
+    expect(environment.rootStyle('--ink')).toBe('');
     environment.whenFontsReady(onFonts);
 
     expect(matchMedia).not.toHaveBeenCalled();
@@ -228,5 +162,38 @@ describe('prerender safety', () => {
     stop();
     window.dispatchEvent(new Event('resize'));
     expect(heard).toEqual(['resize']);
+  });
+
+  /** The object measures panels and drags the cursor: never while prerendering. */
+  it('finds no element and leaves the cursor alone on the server', () => {
+    document.body.innerHTML = '<div data-panel="head"></div>';
+    on('server');
+    const environment = TestBed.inject(BrowserEnvironment);
+
+    expect(environment.queryAll('[data-panel]')).toEqual([]);
+    environment.setCursor('grabbing');
+    expect(document.body.style.cursor).toBe('');
+
+    document.body.innerHTML = '';
+  });
+
+  it('finds elements, sets the cursor and reads the root tokens in the browser', () => {
+    document.body.innerHTML =
+      '<div data-panel="head"></div><div data-panel="rule"></div>';
+    document.documentElement.style.setProperty('--ink', ' #2b2f3a ');
+    on('browser');
+    const environment = TestBed.inject(BrowserEnvironment);
+
+    expect(
+      environment.queryAll('[data-panel]').map((each) => each.dataset['panel']),
+    ).toEqual(['head', 'rule']);
+    environment.setCursor('grabbing');
+    expect(document.body.style.cursor).toBe('grabbing');
+    environment.setCursor('');
+    expect(document.body.style.cursor).toBe('');
+    expect(environment.rootStyle('--ink')).toBe('#2b2f3a');
+
+    document.documentElement.style.removeProperty('--ink');
+    document.body.innerHTML = '';
   });
 });

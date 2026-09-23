@@ -11,7 +11,12 @@ import { DOCUMENT, inject, Injectable, PLATFORM_ID } from '@angular/core';
  */
 @Injectable({ providedIn: 'root' })
 export class BrowserEnvironment {
-  public readonly document = inject(DOCUMENT);
+  /**
+   * Private: a caller that held the document could reach `defaultView` and
+   * every global behind it. What the application needs of it is a method
+   * here, each with its server answer.
+   */
+  private readonly document = inject(DOCUMENT);
   public readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /**
@@ -213,6 +218,34 @@ export class BrowserEnvironment {
       : '';
   }
 
+  /**
+   * A custom property of the document's root (a design token), trimmed;
+   * empty on the server, where nothing is laid out.
+   */
+  public rootStyle(property: string): string {
+    return this.computedStyle(this.document.documentElement, property);
+  }
+
+  /**
+   * Every element of the page that matches a selector, in document order;
+   * none on the server, where nothing is laid out to measure.
+   */
+  public queryAll<E extends Element = HTMLElement>(selector: string): E[] {
+    return this.isBrowser
+      ? Array.from(this.document.querySelectorAll<E>(selector))
+      : [];
+  }
+
+  /**
+   * The cursor the whole page shows, whatever it hovers, as a drag needs;
+   * an empty string gives each element its own back. Inert on the server.
+   */
+  public setCursor(cursor: string): void {
+    if (this.isBrowser) {
+      this.document.body.style.cursor = cursor;
+    }
+  }
+
   /** Calls back once the web fonts have loaded. Inert on the server. */
   public whenFontsReady(callback: () => void): void {
     if (!this.isBrowser) {
@@ -243,9 +276,9 @@ export class BrowserEnvironment {
   }
 
   private mediaQuery(query: string): MediaQueryList | null {
-    const view = this.document.defaultView;
+    const view = this.view();
 
-    if (!this.isBrowser || typeof view?.matchMedia !== 'function') {
+    if (typeof view?.matchMedia !== 'function') {
       return null;
     }
 

@@ -103,7 +103,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
       `prefer-on-push`, complexité des gabarits, et stylelint pour le SCSS.
       Ces règles sont d'abord en avertissement, puis passent en erreur au fil
       des étapes (rapport 06 §4).
-- [ ] **2. `refactor(core)`** (rapport 03) :
+- [x] **2. `refactor(core)`** (rapport 03) :
   - supprimer le code mort : `LocalStorageService`, `json.utils`,
     `refusalReason`, la branche HTTP de `ReportedErrors` ;
   - `ReportedErrors` : lui donner un lecteur, ou le réduire ;

@@ -20,7 +20,7 @@ import { ProjectCatalog } from '../models';
  * loading cycle, so a sheet is never there while its project is not.
  */
 @Injectable({ providedIn: 'root' })
-export class ProjectsRepositoryService {
+export class ProjectsRepository {
   public getCatalog(): Observable<ProjectCatalog> {
     return of({
       projects: PROJECTS,

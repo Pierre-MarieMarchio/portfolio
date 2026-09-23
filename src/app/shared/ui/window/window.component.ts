@@ -11,7 +11,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { BrowserEnvironment, ScrollMemory } from '@app/core/services';
+import { BrowserEnvironment } from '@app/core/services';
+import { ScrollMemory } from './scroll-memory.service';
 import { WindowAnchor, WindowSize } from './window.model';
 
 /** Ceilings in pixels; the real one is the smaller of this and the room left. */

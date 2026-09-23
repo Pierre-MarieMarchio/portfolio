@@ -346,13 +346,12 @@ export default defineConfig(
 
   {
     // The prerender runs with no window: a direct browser global either
-    // throws at build time or ships a page that was rendered wrong. These two
-    // services are the only doors, and are inert on the server.
+    // throws at build time or ships a page that was rendered wrong. This
+    // service is the only door, and is inert on the server.
     files: [`${APP}/**/*.ts`],
     ignores: [
       `${APP}/**/*.spec.ts`,
       `${APP}/core/services/browser-environment.service.ts`,
-      `${APP}/core/services/local-storage.service.ts`,
     ],
     rules: {
       'no-restricted-globals': [
@@ -368,7 +367,7 @@ export default defineConfig(
           'cancelAnimationFrame',
         ].map((name) => ({
           name,
-          message: `${name} is not there at prerender: go through BrowserEnvironment or LocalStorageService, and extend them if they lack it.`,
+          message: `${name} is not there at prerender: go through BrowserEnvironment, and extend it if it lacks it.`,
         })),
       ],
       'no-restricted-properties': [
@@ -377,7 +376,7 @@ export default defineConfig(
           (property) => ({
             object: 'globalThis',
             property,
-            message: `globalThis.${property} dodges the same ban: go through BrowserEnvironment or LocalStorageService.`,
+            message: `globalThis.${property} dodges the same ban: go through BrowserEnvironment.`,
           }),
         ),
       ],

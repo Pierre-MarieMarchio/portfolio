@@ -6,7 +6,7 @@ import {
   input,
   output,
 } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { MediaPreferencesService } from '@app/core/services';
 import { twoDigits } from '@app/core/helpers';
 import { SceneTargetDirective } from '@shared/space-scene/directives';
 import { DESKTOP_TEXTS } from '../../ports';
@@ -20,7 +20,7 @@ import { DesktopView, Planet } from '../../models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlanetButtonsComponent {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly media = inject(MediaPreferencesService);
   private readonly texts = inject(DESKTOP_TEXTS);
 
   public readonly bodies = input<readonly Planet[]>([]);
@@ -62,7 +62,7 @@ export class PlanetButtonsComponent {
   private needsRevealFirst(slug: string): boolean {
     return (
       this.view() !== 'index' &&
-      this.browser.cannotHover() &&
+      this.media.cannotHover() &&
       this.hovered() !== slug &&
       this.preview() !== slug
     );

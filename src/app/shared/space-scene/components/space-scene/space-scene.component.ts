@@ -14,7 +14,7 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { AnimatedCanvasService } from '../../services/animated-canvas.service';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
 import { SpaceSceneEngine } from '../../engine/space-scene.engine';
 import {
@@ -39,7 +39,7 @@ const DENSITY = 3800;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpaceSceneComponent {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly canvas = inject(AnimatedCanvasService);
   private readonly surroundings = inject(SCENE_SURROUNDINGS);
   private readonly targets = inject(SceneTargetsService);
 
@@ -129,13 +129,13 @@ export class SpaceSceneComponent {
 
   private boot(): void {
     const matter = this.matter().nativeElement;
-    const ctx = this.browser.context2d(matter);
+    const ctx = this.canvas.context2d(matter);
     if (!ctx) {
       this.failed.set(true);
       return;
     }
-    const skyCtx = this.browser.context2d(this.sky().nativeElement);
-    this.reduced.set(this.browser.prefersReducedMotion());
+    const skyCtx = this.canvas.context2d(this.sky().nativeElement);
+    this.reduced.set(this.canvas.reducedMotion());
     const engine = this.createEngine(ctx, skyCtx);
     this.engine.set(engine);
     engine.setInputs(untracked(() => this.snapshot()));
@@ -143,7 +143,7 @@ export class SpaceSceneComponent {
     this.resize();
     this.measure();
     this.watch(engine, matter);
-    this.browser.whenFontsReady(() => this.measure());
+    this.canvas.fontsReady(() => this.measure());
     this.running.set(true);
   }
 
@@ -151,20 +151,20 @@ export class SpaceSceneComponent {
     ctx: CanvasRenderingContext2D,
     skyCtx: CanvasRenderingContext2D | null,
   ): SpaceSceneEngine {
-    const viewport = this.browser.viewport() ?? { width: 1280, height: 800 };
+    const viewport = this.canvas.windowSize() ?? { width: 1280, height: 800 };
     return new SpaceSceneEngine(
       {
-        frame: (callback) => this.browser.nextFrame(callback),
-        now: () => this.browser.now(),
-        hidden: () => this.browser.isHidden(),
+        frame: (callback) => this.canvas.nextFrame(callback),
+        now: () => this.canvas.now(),
+        hidden: () => this.canvas.isHidden(),
       },
       { matter: ctx, sky: skyCtx },
       {
         rnd: Math.random,
         density: DENSITY,
         figures: 'constellations',
-        ink: this.browser.rootStyle('--ink') || '#2b2f3a',
-        accent: this.browser.rootStyle('--accent') || '#3b62c4',
+        ink: this.canvas.token('--ink') || '#2b2f3a',
+        accent: this.canvas.token('--accent') || '#3b62c4',
       },
       viewport.width * viewport.height,
     );
@@ -172,32 +172,34 @@ export class SpaceSceneComponent {
 
   private watch(engine: SpaceSceneEngine, matter: HTMLCanvasElement): void {
     this.stops.push(
-      this.browser.observeResize(matter, () => {
+      this.canvas.onResize(matter, () => {
         this.resize();
         this.measure();
       }),
-      this.browser.observeIntersection(matter, 0.01, (visible) => {
+      this.canvas.onVisible(matter, 0.01, (visible) => {
         engine.setVisible(visible);
       }),
-      this.browser.watchVisibility((hidden) => {
+      this.canvas.watchHidden((hidden) => {
         if (hidden) {
           engine.stop();
         } else {
           engine.request();
         }
       }),
-      this.browser.watchMedia('(prefers-reduced-motion: reduce)', (reduce) => {
+      this.canvas.watchMedia('(prefers-reduced-motion: reduce)', (reduce) => {
         this.reduced.set(reduce);
       }),
-      this.browser.listen('resize', () => this.measure(), { passive: true }),
-      this.browser.listen('pointerup', () => this.measure(), { passive: true }),
-      this.browser.listen('animationend', () => this.measure(), {
+      this.canvas.onWindow('resize', () => this.measure(), { passive: true }),
+      this.canvas.onWindow('pointerup', () => this.measure(), {
+        passive: true,
+      }),
+      this.canvas.onWindow('animationend', () => this.measure(), {
         capture: true,
       }),
-      this.browser.listen('transitionend', () => this.measure(), {
+      this.canvas.onWindow('transitionend', () => this.measure(), {
         capture: true,
       }),
-      this.browser.listen(
+      this.canvas.onWindow(
         'pointermove',
         (event) => {
           if (event.pointerType !== 'touch') {
@@ -218,7 +220,7 @@ export class SpaceSceneComponent {
     const sky = this.sky().nativeElement;
     const { width, height, pixelRatio } = canvasResolution(
       matter.getBoundingClientRect(),
-      this.browser.devicePixelRatio(),
+      this.canvas.pixelRatio(),
     );
     for (const canvas of [matter, sky]) {
       if (canvas.width !== width || canvas.height !== height) {
@@ -237,18 +239,18 @@ export class SpaceSceneComponent {
     const canvas = this.matter().nativeElement.getBoundingClientRect();
     const anchors: PanelAnchor[] = [];
     for (const { element, role } of this.surroundings.panels()) {
-      if (this.browser.computedStyle(element, 'visibility') === 'hidden') {
+      if (this.canvas.token('visibility', element) === 'hidden') {
         continue;
       }
       anchors.push({
         rect: element.getBoundingClientRect(),
-        opacity: this.browser.computedStyle(element, 'opacity'),
+        opacity: this.canvas.token('opacity', element),
         role,
       });
     }
     engine.setLines(this.surroundings.lines());
     engine.measureLabels();
-    const viewport = this.browser.viewport() ?? { width: 1200, height: 800 };
+    const viewport = this.canvas.windowSize() ?? { width: 1200, height: 800 };
     engine.setLayout(sceneLayout(canvas, viewport, anchors));
   }
 }

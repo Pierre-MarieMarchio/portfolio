@@ -429,9 +429,9 @@ sa raison :
   refuse une valeur (`projects.data.spec.ts`).
 - **`states/`** : seul le manager importe le state et l'updater ; les autres
   zones passent par le manager.
-- **`browser-environment.service.ts`** : la seule porte vers les globales du
-  navigateur, qui sont interdites partout ailleurs parce qu'elles n'existent
-  pas au prérendu.
+- **`core/services/browser/`** : le seul dossier qui touche les globales du
+  navigateur, une unité par sujet, qui sont interdites partout ailleurs parce
+  qu'elles n'existent pas au prérendu.
 - **`features/common/`** : n'importe rien du dépôt ; `../../` en sort
   toujours, et `@testing` n'a rien à y faire.
 - **`_tokens.scss`** (Stylelint) : là où s'écrivent les valeurs que

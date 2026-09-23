@@ -217,3 +217,171 @@ dans un code que personne d'autre ne touche. Les avertissements de taille et
 de complexité qui restent sur `object-engine.ts`, `sky.ts`, `scene.ts`,
 `comets.ts`, `constellations.ts`, `math.ts` et `object.component.ts` sont ce
 prix : la règle les garde en avertissement pour ces fichiers seulement.
+
+## 2026-09-23 — Les fichiers gardent leur suffixe (D7)
+
+**Décision.** Les fichiers et les classes gardent leur suffixe de rôle, les
+services compris : `window.component.ts` / `WindowComponent`,
+`clock.service.ts` / `ClockService`. La liste des suffixes est fermée
+(`organisation.md` §3). `angular.json` fixe `type`
+pour chaque schematic, afin que `ng generate` produise la même forme.
+
+**Raison.** Le suffixe dit le rôle avant d'ouvrir le fichier, et une recherche
+par rôle (`*.service.ts`) range le dépôt d'un coup d'œil.
+
+**Écarté.** La convention du style guide Angular depuis la v20
+(`window.ts` / `Window`), que `ng generate` suit par défaut en v22.
+
+## 2026-09-23 — `pages/` ne contient que des pages (D8)
+
+**Décision.** `pages/` ne garde que les composants routés, la composition de
+l'écran, les `*.provider.ts` qui joignent deux features et les
+`*.resolver.ts` de route. Un garde le vérifie. Le reste descend : le contenu
+de profil (fenêtre « à propos », liens de contact) dans une feature
+`profile`, les composants de l'écran dans `features/desktop`, ce qui n'a
+aucun métier (pile des fenêtres, bas de l'en-tête, arrivée) dans `shared/ui`.
+Les destinations sont dans `docs/architecture/organisation.md`.
+
+**Raison.** La référence définit `pages/` comme la couche de composition ;
+dix-sept fichiers y avaient glissé sans qu'aucune règle ne le voie.
+
+**Écarté.** Tout ranger dans `features/desktop` : plus simple, mais la
+feature mêlerait le profil et la navigation.
+
+**Remplace** l'entrée « Les fenêtres vivent à la station » sur un point : les
+sous-composants n'y vivent plus.
+
+## 2026-09-23 — Zéro avertissement (D9)
+
+**Décision.** Le lint tourne avec `--max-warnings 0`. Les règles de
+`eslint-plugin-sonarjs` et `eslint-plugin-unicorn` qui correspondent à ce que
+montre SonarLint sont choisies une par une et passent en erreur. Aucune
+exception : ni `eslint-disable` dans le code, ni règle levée pour un fichier
+dans la config. Une règle qui gêne se règle en corrigeant le code. Seuls
+restent les réglages par catégorie de fichiers (les specs, par exemple), qui
+sont la règle de cette catégorie et non une exception ; chacun a sa raison
+dans ce journal.
+
+**Raison.** Une règle en avertissement n'est tenue par rien : la CI passait
+avec 43 avertissements.
+
+**Écarté.** Les presets complets (environ 1 300 constats, dont beaucoup
+contraires aux choix du projet : `no-null`, `globalThis.window`, noms de
+fichiers).
+
+## 2026-09-23 — Pas de commentaire dans le code (D10)
+
+**Décision.** Le code ne porte pas de commentaire. Un nom juste dit ce que
+fait le code ; une fonction qui a besoin d'être expliquée est renommée ou
+découpée. Aucune trace du chantier non plus : ni étape, ni date, ni « on a
+d'abord fait… ». Le pourquoi d'une contrainte (une valeur réglée à l'œil, un
+contournement de navigateur, une limite à ne pas dépasser) va dans ce journal
+ou dans un document d'architecture, jamais sur la ligne concernée.
+
+**Raison.** Un commentaire paraphrase le code ou raconte son histoire ; dans
+les deux cas il se lit deux fois et vieillit seul, et plusieurs étaient devenus
+faux. On ne laisse pas l'échafaudage sur la maison : l'épaisseur des
+fondations se justifie dans les plans, pas sur la chape.
+
+**Écarté.** Garder les commentaires de « pourquoi » dans le code.
+
+## 2026-09-23 — Le moteur de l'objet devient des objets (D11)
+
+**Décision.** D2 est remplacée. Le moteur est découpé en classes à
+responsabilité unique : un renderer par couche dessinée derrière une
+interface étroite, la caméra, l'entrée et l'état de scène à part, les
+dépendances passées au constructeur. SRP et KISS d'abord : pas d'abstraction
+sans deux utilisateurs. Le golden reste la preuve ; il est d'abord étendu
+(comètes, `dpr` 2, téléphone, libellés mesurés, mouvement réduit) dans un
+fichier à part dont les empreintes sont prises avant toute extraction. Aucune
+allocation dans la boucle des grains. L'exemption du moteur disparaît du lint
+à la fin.
+
+**Raison.** Le moteur est le seul code qui échappe aux règles du projet, et
+le seul qu'on ne peut pas lire sans la maquette.
+
+**Écarté.** Garder D2 et ses avertissements permanents.
+
+## 2026-09-23 — Des noms qui se comprennent sans la maquette (D12)
+
+**Décision.** Un nom se comprend sans avoir lu la maquette. La feature et la
+page `station` deviennent `desktop` (l'écran se comporte comme un bureau à
+fenêtres), le composant `object` devient `space-scene` (la scène spatiale en
+canvas), `shared/ui/object-marks` devient `shared/ui/layout-anchors` : dans
+`shared/ui`, un nom ne connaît pas son lecteur. Le vocabulaire des ancres,
+partagé par la barre des vedettes et la scène, est un type de
+`features/common/scene-anchors`. Les
+autres noms du même genre sont revus avec le même critère.
+
+**Raison.** « la station » et « l'objet » sont des mots de la maquette ; un
+lecteur du code n'a aucun moyen de les deviner.
+
+## 2026-09-23 — Une nomenclature précise et modulaire (D13)
+
+**Décision.** `docs/architecture/organisation.md` fait foi pour
+l'arborescence. Chaque unité y est conçue depuis son but, sa responsabilité,
+son contrat et son rôle, puis reçoit sa forme, son nom et son dossier. Une
+seule structure partout : zone → dossier de rôle → sous-dossier de concept →
+fichiers. Un fichier porte le suffixe de son rôle et va dans le dossier de ce
+rôle, qui n'accepte que ce suffixe ; un fichier par sujet, au plus 8 fichiers
+source par dossier, un sous-dossier par concept au-delà.
+`scripts/check-structure.mjs` le vérifie dans `npm run check`.
+
+**Raison.** Un fichier générique finit n'importe où, et un dossier de
+cinquante fichiers ne se lit pas : le moteur en avait treize à plat. Une
+règle vérifiée ne s'érode pas.
+
+**Écarté.** Ranger les morceaux à côté de leur premier utilisateur : il
+faudrait les déplacer au second. Un dossier `utils/` sans définition, qui
+accepte tout. Une règle écrite sans script.
+
+## 2026-09-23 — L'état du bureau se découpe selon ses actions (D14)
+
+**Décision.** Un état est un ensemble de signaux qu'aucune action ne
+traverse. Le bureau a deux états : `desktop` (la vue, la fiche, le chapitre,
+les fenêtres, la sélection, le survol, le filtre) et `animation` (la pause).
+
+**Raison.** Arriver sur une vue change à la fois la vue, l'aperçu selon les
+épingles et le survol. Découpés par concept nommé, ces signaux obligeraient
+une règle métier à se disperser en chaînes d'effets entre managers.
+
+**Écarté.** Un état par concept (`location`, `windows`, `selection`).
+
+## 2026-09-23 — Le composant de route déclare la vue, la langue se dérive du routeur
+
+**Décision.** Un seul composant de route, vide (`desktop-route.component`),
+sert toutes les vues, fiche comprise : à son activation, il dit au bureau
+quelle vue son adresse montre. La langue se dérive de
+`Router.lastSuccessfulNavigation` ; la garde ne fait que charger le
+catalogue ; les têtes de page lisent le catalogue de la langue visée. Amende
+D3.
+
+**Raison.** Un seul point d'écriture de la vue, porté par l'unité dont c'est
+le rôle ; une seule source de la langue.
+
+**Écarté.** Un resolver qui écrit la vue : un resolver calcule une donnée, il
+n'écrit pas un état, et son nom mentirait sur son rôle. Deux composants
+marqueurs (un par forme de route). Dériver la langue de la navigation en
+cours (le catalogue serait lu avant d'être chargé).
+
+## 2026-09-23 — Les suffixes disent comment on se sert du fichier (D15)
+
+**Décision.** Le suffixe d'un fichier dit comment on s'en sert : placé dans
+un gabarit (`.component`, `.directive`), injecté (`.service`, `.manager` et
+les pièces d'ngx-statewise, `.port`), déclaré dans une configuration
+(`.provider`, `.guard`, `.resolver`, `.strategy`), appelé (`.rules`,
+`.helper`, `.signal`), importé (`.model`, `.data`), instancié dans la scène
+(`.engine`, `.motion`, `.renderer`). `.helper` remplace `.utils`. `.port`
+réunit un contrat et son jeton, tranches de textes comprises. Les concepts
+d'Angular (`.pipe`, `.interceptor`, `.validator`…) sont dans la liste
+d'office : on construit avec le framework, pas contre lui. Seul un rôle
+qu'Angular ne connaît pas demande une entrée de ce journal.
+
+Chaque fichier va, dès sa création, dans le dossier de son rôle
+(`helpers/`, `directives/`…), jamais à côté de son utilisateur : rien n'est
+à déplacer le jour où un second utilisateur arrive. Un dossier de rôle reste
+lisible : un fichier par sujet, au plus 8, un sous-dossier par concept
+au-delà.
+
+**Raison.** En créant ou en lisant un fichier, on sait tout de suite son rôle,
+qui s'en sert et dans quel contexte.

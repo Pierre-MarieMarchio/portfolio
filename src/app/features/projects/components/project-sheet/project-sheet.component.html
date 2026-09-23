@@ -1,0 +1,125 @@
+@if (sheet(); as sheet) {
+  <app-window
+    label="Fenêtre : fiche de projet"
+    size="l"
+    [title]="sheet.title"
+    [margin]="76"
+    [meta]="meta()"
+    [scrollKey]="scrollKey()"
+    [pinned]="pinned()"
+    (pinToggled)="pinToggled.emit()"
+    (closed)="closed.emit()"
+  >
+    <app-segmented
+      toolbar
+      label="Approches de la fiche"
+      [items]="approaches()"
+      (selected)="choose($event)"
+    />
+    <div body>
+      <header>
+        <h1 tabindex="-1">{{ sheet.title }}</h1>
+        @if (chapter() === 0) {
+          <p class="lede">{{ sheet.lede }}</p>
+        }
+      </header>
+      @if (chapter() === 0) {
+        @if (facts(); as facts) {
+          <dl class="identity">
+            <div>
+              <dt>Accès</dt>
+              <dd class="data">{{ facts.proof }}</dd>
+            </div>
+            <div>
+              <dt>Rôle</dt>
+              <dd class="text">{{ facts.role }}</dd>
+            </div>
+            <div>
+              <dt>Technique</dt>
+              <dd class="data quiet">{{ facts.stack }}</dd>
+            </div>
+            <div>
+              <dt>Contexte</dt>
+              <dd class="text quiet">{{ facts.context }}</dd>
+            </div>
+          </dl>
+        }
+      }
+      @if (current(); as chapter) {
+        <section class="chapter">
+          <p class="chapter-title">
+            {{ chapter.number }} · {{ chapter.heading }}
+          </p>
+          @for (paragraph of chapter.paragraphs; track $index) {
+            <p>{{ paragraph }}</p>
+          }
+          @if (chapter.bullets; as bullets) {
+            <ul class="bullets">
+              @for (bullet of bullets; track bullet.term) {
+                <li>
+                  <span class="term">{{ bullet.term }}</span
+                  ><span class="quiet"> — {{ bullet.text }}</span>
+                </li>
+              }
+            </ul>
+          }
+          @if (chapter.figure === 'flow') {
+            <figure>
+              <div class="flow">
+                <span class="box">action</span>
+                <span class="arrow" aria-hidden="true">→</span>
+                <span class="box">updator</span>
+                <span class="arrow" aria-hidden="true">→</span>
+                <span class="box">effect</span>
+                <span class="arrow" aria-hidden="true">↻</span>
+                <span class="quiet data">nouvelles actions</span>
+              </div>
+              <figcaption>
+                Séquence documentée dans le dépôt. Schéma de lecture, pas une
+                capture d’application.
+              </figcaption>
+            </figure>
+          }
+          @if (chapter.figure === 'layers') {
+            <figure>
+              <div class="layers">
+                @for (layer of layers(); track layer.name) {
+                  <div class="layer">
+                    <span class="layer-name">{{ layer.name }}</span>
+                    <span class="layer-projects">{{ layer.projects }}</span>
+                  </div>
+                }
+              </div>
+              <figcaption>
+                Arborescence réelle du dépôt : les tests d’architecture échouent
+                si un projet est ajouté sans que sa place soit décrite.
+              </figcaption>
+            </figure>
+          }
+        </section>
+      }
+      @if (sheet.links.length > 0) {
+        <p class="links">
+          @for (link of sheet.links; track link.href) {
+            <a [href]="link.href" target="_blank" rel="noopener"
+              >{{ link.label }} ↗</a
+            >
+          }
+        </p>
+      }
+    </div>
+    <ng-container footer>
+      <p class="position">{{ current()?.heading }}</p>
+      @if (nextApproach(); as label) {
+        <button type="button" class="next" (click)="advance()">
+          {{ label }}
+        </button>
+      }
+      @if (nextProject(); as next) {
+        <a class="next" [routerLink]="['/projet', next.slug]">{{
+          next.label
+        }}</a>
+      }
+    </ng-container>
+  </app-window>
+}

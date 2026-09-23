@@ -109,3 +109,15 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   fenêtre**, pas répétées par chaque appelant. Le rembourrage du corps, qui
   diffère d'une vue à l'autre, reste à l'appelant
   (`--window-body-padding`).
+- **La barre de pages est faite de liens, pas de boutons pressés.** Les adresses
+  sont de vrais chemins : chaque entrée reste explorable, prérendue et ouvrable
+  dans un nouvel onglet. L'entrée courante porte `aria-current="page"` ; son
+  dessin est celui de l'export.
+- **Les liens d'une fiche sont espacés.** L'export les met côte à côte sans rien
+  entre eux (fiche Bk-ONE : « … produit ↗numerilis.com ↗ »).
+- **La fiche épinglée ne se montre que sur une adresse de fiche**, comme dans
+  l'export (`ouvreFiche` exige une fiche courante) : son épingle n'a d'effet
+  qu'entre deux fiches. Comportement de l'export conservé, pas une décision.
+- **Le filtre du relevé lit `family`**, comme le code de l'export. Le texte de la
+  passation parle du champ « contexte » : les deux partitions coïncident
+  (contexte `Personnel` ⇔ famille personnelle).

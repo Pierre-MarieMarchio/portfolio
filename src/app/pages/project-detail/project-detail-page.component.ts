@@ -5,16 +5,21 @@ import {
   effect,
   inject,
   input,
+  untracked,
 } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { SeoService } from '@app/core/services';
 import { ProjectsManager } from '@app/features/projects/states';
+import { StationManager } from '@app/features/station/states';
 
+/**
+ * The address of a sheet. The sheet itself is rendered by the station; this
+ * marker says which one, and names the tab after the project.
+ */
 @Component({
   selector: 'app-project-detail-page',
-  imports: [RouterLink],
   templateUrl: './project-detail-page.component.html',
   styleUrl: './project-detail-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,8 +35,27 @@ export class ProjectDetailPageComponent {
   protected readonly project = computed(() => this.manager.find(this.slug()));
 
   constructor() {
+    const station = inject(StationManager);
     const title = inject(Title);
     const seo = inject(SeoService);
+
+    // Declared at once, before the station's view is checked: inputs are not
+    // bound yet, the snapshot already holds the slug.
+    station.navigated(
+      'sheet',
+      inject(ActivatedRoute).snapshot.paramMap.get('slug'),
+    );
+
+    // From one sheet to the next the outlet keeps this component: the slug
+    // input is what changes then.
+    effect(() => {
+      const slug = this.slug();
+      untracked(() => {
+        if (station.view() !== 'sheet' || station.slug() !== slug) {
+          station.navigated('sheet', slug);
+        }
+      });
+    });
 
     // The route can only say "Projet"; the project's own name is known here.
     // Both the tab and the share card are renamed, or they would disagree.

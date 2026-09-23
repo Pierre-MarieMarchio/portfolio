@@ -11,7 +11,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { BrowserEnvironment } from '@app/core/services';
+import { BrowserEnvironment, ScrollMemory } from '@app/core/services';
 import { WindowAnchor, WindowSize } from './window.model';
 
 /** Ceilings in pixels; the real one is the smaller of this and the room left. */
@@ -62,6 +62,7 @@ interface Grip {
 })
 export class WindowComponent {
   private readonly browser = inject(BrowserEnvironment);
+  private readonly memory = inject(ScrollMemory);
 
   public readonly title = input.required<string>();
   public readonly meta = input('');
@@ -77,6 +78,12 @@ export class WindowComponent {
   public readonly closable = input(true);
   /** The section's accessible name; the title when left empty. */
   public readonly label = input('');
+  /**
+   * The name its reading position is remembered under, for the visit: the
+   * body is put back where it was left when a window with this key opens
+   * again. Empty keeps no memory.
+   */
+  public readonly scrollKey = input('');
 
   public readonly pinToggled = output();
   public readonly closed = output();
@@ -94,6 +101,12 @@ export class WindowComponent {
 
   private readonly root = viewChild.required<ElementRef<HTMLElement>>('root');
   private readonly bar = viewChild.required<ElementRef<HTMLElement>>('bar');
+  /** Absent while collapsed. */
+  private readonly body = viewChild<ElementRef<HTMLElement>>('body');
+
+  /** The body and key the memory was last restored for. */
+  private remembered: { body: HTMLElement; key: string } | null = null;
+  private stopRemembering: (() => void) | null = null;
 
   private dx = 0;
   private dy = 0;
@@ -103,7 +116,12 @@ export class WindowComponent {
   constructor() {
     // After every render, like the export after every update: the room left
     // depends on where the page put the window, which only layout knows.
-    afterEveryRender({ write: () => this.fitHeight() });
+    afterEveryRender({
+      write: () => {
+        this.fitHeight();
+        this.restoreScroll();
+      },
+    });
 
     const stopResize = this.browser.listen('resize', () => this.fitHeight(), {
       passive: true,
@@ -111,7 +129,50 @@ export class WindowComponent {
     inject(DestroyRef).onDestroy(() => {
       stopResize();
       this.endDrag();
+      this.stopRemembering?.();
     });
+  }
+
+  /**
+   * Where the body is scrolled to. The caller owns what it means (a chapter
+   * starting at the top, a position restored on the way back): the window
+   * only knows its own scroller. 0 while collapsed.
+   */
+  public bodyScrollTop(): number {
+    return this.body()?.nativeElement.scrollTop ?? 0;
+  }
+
+  public scrollBodyTo(top: number): void {
+    const body = this.body()?.nativeElement;
+    if (body) {
+      body.scrollTop = top;
+    }
+  }
+
+  /**
+   * Once per body and key: a body recreated by unfolding, or a key changed
+   * by the caller, is put back where it was left. The scroll listener is
+   * imperative, so reading never schedules a render.
+   */
+  private restoreScroll(): void {
+    const body = this.body()?.nativeElement ?? null;
+    const key = this.scrollKey();
+    if (!body || !key) {
+      return;
+    }
+    if (this.remembered?.body === body && this.remembered.key === key) {
+      return;
+    }
+    this.stopRemembering?.();
+    body.scrollTop = this.memory.read(key);
+    const onScroll = (): void => {
+      this.memory.write(key, body.scrollTop);
+    };
+    body.addEventListener('scroll', onScroll, { passive: true });
+    this.stopRemembering = () => {
+      body.removeEventListener('scroll', onScroll);
+    };
+    this.remembered = { body, key };
   }
 
   protected onLanded(): void {

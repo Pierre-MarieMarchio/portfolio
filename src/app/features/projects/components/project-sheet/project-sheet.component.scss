@@ -1,0 +1,209 @@
+:host {
+  display: contents;
+  --window-body-padding: var(--s3) var(--s2) 0 12px;
+}
+
+header {
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: var(--s2);
+}
+
+h1 {
+  font-size: var(--h2);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+  outline: none;
+}
+
+.lede {
+  margin-top: var(--s2);
+  font-size: var(--p3);
+  color: var(--ink-2);
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+    border-bottom: 1px solid var(--line);
+    padding: 9px 0;
+  }
+
+  dt {
+    flex: 0 0 10ch;
+    font-family: var(--mono);
+    font-size: var(--m2);
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  dd {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.data {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  letter-spacing: var(--ls-mono);
+}
+
+.text {
+  font-size: var(--p1);
+}
+
+.quiet {
+  color: var(--ink-2);
+}
+
+.chapter {
+  padding-top: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.chapter-title {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--s1);
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  border-left: 1px solid var(--line);
+  padding-left: var(--s3);
+
+  li {
+    font-size: var(--p2);
+  }
+}
+
+.term {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  color: var(--ink);
+}
+
+/* Reading diagrams, never screenshots presented as proof. */
+figure {
+  margin: 0;
+}
+
+.flow,
+.layers {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+  background: var(--paper-2);
+}
+
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s1) var(--s2);
+}
+
+.box {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  border: 1px solid var(--ink-2);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+}
+
+.arrow {
+  color: var(--accent);
+}
+
+.layers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.layer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  gap: 0 var(--s3);
+  align-items: baseline;
+  border-left: 2px solid var(--accent);
+  padding-left: var(--s2);
+}
+
+.layer-name {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  font-weight: 500;
+}
+
+.layer-projects {
+  font-family: var(--mono);
+  font-size: var(--m4);
+  color: var(--ink-2);
+  word-break: break-word;
+}
+
+figcaption {
+  margin-top: var(--s2);
+  font-size: var(--p1);
+  color: var(--ink-2);
+}
+
+/* The mockup set its links side by side with nothing between them; they
+   wrap apart here. */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s3);
+  padding: var(--s4) 0 var(--s2);
+
+  a {
+    font-family: var(--mono);
+    font-size: var(--m3);
+    letter-spacing: var(--ls-mono);
+    word-break: break-all;
+  }
+}
+
+.position {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: var(--m1);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.next {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: var(--m2);
+  letter-spacing: var(--ls-mono);
+  white-space: nowrap;
+  text-decoration: none;
+}

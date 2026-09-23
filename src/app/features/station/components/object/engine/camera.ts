@@ -182,21 +182,21 @@ export const sheetFrame = (args: {
   if (!d || !orbit) {
     return frame;
   }
-  const Rb = Math.min(d.w / 6.6, d.h / 3.2);
+  const baseRadius = Math.min(d.w / 6.6, d.h / 3.2);
   const cxPx = approach.x * d.w;
   const edge =
-    args.panelLeft !== null ? (args.panelLeft - 96) * d.dpr : d.w * 0.54;
+    args.panelLeft === null ? d.w * 0.54 : (args.panelLeft - 96) * d.dpr;
   const room = Math.max(150, edge - cxPx);
-  let R = Rb * sc;
-  if (2.9 * R > room) {
-    sc = room / (2.9 * Rb);
-    R = Rb * sc;
+  let radius = baseRadius * sc;
+  if (2.9 * radius > room) {
+    sc = room / (2.9 * baseRadius);
+    radius = baseRadius * sc;
     frame.s = sc;
   }
   const cosMin = Math.min(0.985, 2.9 / orbit.rb);
   const cosA = Math.max(
     cosMin,
-    Math.min(0.985, Math.min(room / (orbit.rb * R), approach.cos)),
+    Math.min(0.985, Math.min(room / (orbit.rb * radius), approach.cos)),
   );
   // sin > 0: the body passes IN FRONT of the disk, never in its shadow.
   const angle = Math.acos(cosA);
@@ -238,18 +238,18 @@ export const previewFrame = (args: {
     args.azim,
   );
   frame.az = az;
-  const Rb = Math.min(d.w / 6.6, d.h / 3.2);
+  const baseRadius = Math.min(d.w / 6.6, d.h / 3.2);
   const edge =
-    args.cardLeft !== null ? (args.cardLeft - 22) * d.dpr : d.w * 0.6;
+    args.cardLeft === null ? d.w * 0.6 : (args.cardLeft - 22) * d.dpr;
   const useful = Math.max(200 * d.dpr, edge - 20 * d.dpr);
   const gap = Math.abs(Math.cos(aim.angle)) * (orbit.rb || 4.5) + 2.3;
-  const sMax = useful / (Rb * gap);
+  const sMax = useful / (baseRadius * gap);
   const sc = Math.max(c.s * 1.25, Math.min(aim.s, sMax));
   frame.s = sc;
-  const R = Rb * sc;
+  const radius = baseRadius * sc;
   const o = args.offset(az);
-  frame.x = clamp(aim.x - (o.nx * R) / d.w, -1.2, 2.2);
-  frame.y = clamp(aim.y - (o.ny * R) / d.h, -1.2, 2.2);
+  frame.x = clamp(aim.x - (o.nx * radius) / d.w, -1.2, 2.2);
+  frame.y = clamp(aim.y - (o.ny * radius) / d.h, -1.2, 2.2);
   return frame;
 };
 

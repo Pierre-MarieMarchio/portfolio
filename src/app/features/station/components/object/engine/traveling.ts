@@ -63,8 +63,8 @@ const approach = (p: number): number => {
 const approachSpeed = (p: number): number =>
   (p ** 4 * (1 - p) ** 3) / ((4 / 7) ** 4 * (3 / 7) ** 3);
 
-export const traveling = (time: number, reduced: boolean): Traveling => {
-  if (reduced) {
+export const traveling = (time: number, isReduced: boolean): Traveling => {
+  if (isReduced) {
     return ARRIVED;
   }
   const t = Number.isFinite(time) ? time : 0;
@@ -81,7 +81,7 @@ export const traveling = (time: number, reduced: boolean): Traveling => {
   const distance = Math.pow(58, 1 - approach(pA));
   const pD = progress(t, 4.2, 8.8);
   const qI = smoothstep(progress(t, 5.4, 8.8));
-  const qO = smoothstep(progress(t, 6.0, 8.8));
+  const qO = smoothstep(progress(t, 6, 8.8));
   const pC = progress(t, 5.6, 8.8);
   const back = 1 + 1.32 * Math.pow(qI - 1, 3) + 0.32 * Math.pow(qI - 1, 2);
   const outQ = 1 - Math.pow(1 - qO, 4);
@@ -90,7 +90,7 @@ export const traveling = (time: number, reduced: boolean): Traveling => {
   // crushes its start: at fifty radii the points pile up on a few pixels
   // without their drawn size shrinking, so they add up, and a far object at
   // full light would shine brighter than its arrival.
-  const mA = progress(t, 3.8, 8.0);
+  const mA = progress(t, 3.8, 8);
   // DRIFT. A real camera is never perfectly servoed: three slow
   // oscillations of mutually prime periods add to the four motions and die
   // with them. Without them the curves are right and the result is a

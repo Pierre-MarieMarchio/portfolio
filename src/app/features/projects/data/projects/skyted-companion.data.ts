@@ -24,13 +24,13 @@ export const SKYTED_COMPANION: ProjectEntry = {
       fr: 'En développement · code privé',
       en: draft('In development · private code'),
     },
-    proofLevel: 'none',
     role: {
       fr: 'Seul, de la conception au code',
       en: draft('Alone, from design to code'),
     },
     stack: '.NET · Avalonia · Bluetooth',
     context: 'Skyted',
+    period: '2025 – 2026',
   },
   detail: {
     lede: {

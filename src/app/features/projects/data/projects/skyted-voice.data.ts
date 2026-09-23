@@ -21,7 +21,6 @@ export const SKYTED_VOICE: ProjectEntry = {
   },
   facts: {
     proof: { fr: 'Sur Google Play', en: draft('On Google Play') },
-    proofLevel: 'public',
     role: {
       fr: 'Conception, développement et publication',
       en: draft('Design, development and release'),
@@ -31,6 +30,7 @@ export const SKYTED_VOICE: ProjectEntry = {
       en: draft('.NET · Avalonia · real-time audio'),
     },
     context: 'Skyted',
+    period: '2025 – 2026',
   },
   detail: {
     lede: {

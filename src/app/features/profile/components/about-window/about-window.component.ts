@@ -2,13 +2,14 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
+import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
-const PARTS = ['profile', 'skills', 'method', 'path'] as const;
+const PARTS = ['profile', 'skills', 'path', 'method'] as const;
 
 @Component({
   selector: 'app-about-window',
@@ -31,6 +32,8 @@ export class AboutWindowComponent {
 
   protected readonly texts = inject(PROFILE_TEXTS);
   protected readonly links = inject(LINKS);
+  protected readonly email = CONTACT_EMAIL;
+  protected readonly mailto = `mailto:${CONTACT_EMAIL}`;
 
   protected readonly about = computed(() => this.texts().about);
   protected readonly domains = computed(() =>

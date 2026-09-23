@@ -1,8 +1,7 @@
 import { InjectionToken, Signal } from '@angular/core';
-import { ProjectFamily, ProofLevel } from '../models';
+import { ProjectFamily } from '../models';
 
 export interface ProjectsTexts {
-  readonly proofLevels: Readonly<Record<ProofLevel, string>>;
   readonly defaultChapterTitles: readonly string[];
   readonly index: {
     readonly heading: string;
@@ -40,6 +39,7 @@ export interface ProjectsTexts {
       readonly role: string;
       readonly stack: string;
       readonly context: string;
+      readonly period: string;
     };
     readonly nextApproach: (title: string) => string;
     readonly nextProject: (short: string) => string;

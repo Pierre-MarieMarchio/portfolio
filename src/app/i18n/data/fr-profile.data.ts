@@ -91,12 +91,12 @@ export const FR_PROFILE: ProfileTexts = {
         'Une équipe où quelqu’un relit mon code. J’ai beaucoup appris en travaillant seul, mais j’ai fait le tour de ce que ça m’apporte.',
         'Je reste ouvert à un CDI ou à une mission freelance, selon le projet.',
       ],
+      contact: 'Pour en parler, écrivez-moi à',
     },
     path: {
       label: 'Parcours',
       title: 'Parcours',
       heading: 'Étapes',
-      missing: '',
       milestones: [
         {
           year: '2016 – 2021',

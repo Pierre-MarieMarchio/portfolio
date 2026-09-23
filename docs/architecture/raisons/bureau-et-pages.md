@@ -98,7 +98,9 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 ## `features/profile/components/about-window/`
 
 - Quatre parties, dans l'ordre des questions d'un recruteur : qui est la
-  personne, ce qu'elle sait faire, comment elle travaille, d'où elle vient.
+  personne, ce qu'elle sait faire, d'où elle vient, ce qu'elle cherche.
+  La partie `method` s'affiche « Et après » et finit sur l'adresse e-mail,
+  lue dans `CONTACT_EMAIL` : une seule source pour elle et pour le rail.
 - « À propos » se lit une partie à la fois, comme les approches d'une fiche :
   le même sélecteur en haut, le même pied qui fait avancer la lecture. Le
   lecteur apprend la fenêtre une fois.

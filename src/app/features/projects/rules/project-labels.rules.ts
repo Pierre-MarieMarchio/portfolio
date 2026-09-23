@@ -1,5 +1,5 @@
 import { twoDigits } from '@app/core/helpers';
-import { ProjectDetail, ProofLevel, RankedProject } from '../models';
+import { ProjectDetail, RankedProject } from '../models';
 
 export function rowLabel(project: RankedProject): string {
   return `${project.number} — ${project.title} · ${project.facts.proof}`;
@@ -7,13 +7,6 @@ export function rowLabel(project: RankedProject): string {
 
 export function positionOf(place: number, total: number): string {
   return `${twoDigits(place)} / ${twoDigits(total)}`;
-}
-
-export function proofLevelLabel(
-  level: ProofLevel,
-  labels: Readonly<Record<ProofLevel, string>>,
-): string {
-  return labels[level];
 }
 
 export function chapterTitle(

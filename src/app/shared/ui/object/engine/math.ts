@@ -44,12 +44,15 @@ export const orbitRank = (index: number, count: number): number => {
 };
 
 /**
- * Whether point `index` of the reserve is lit when `share` of it is drawn.
- * Deterministic on purpose: a lit point stays lit as long as the camera does
- * not back off. A random draw would make the whole population flicker.
+ * How lit point `index` of the reserve is when `share` of it is drawn, 0 to
+ * 1. Deterministic on purpose: a lit point stays lit as long as the camera
+ * does not back off. A random draw would make the whole population flicker.
+ * Each point fades in over the last 2% of the share instead of switching on:
+ * during the approach the share rises and some fifteen points a frame came
+ * on at once, a sparkle on the disk.
  */
-export const isLit = (index: number, share: number): boolean =>
-  share >= 1 || (index * 7919) % 1000 < share * 1000;
+export const litAmount = (index: number, share: number): number =>
+  share >= 1 ? 1 : clamp((share * 1000 - ((index * 7919) % 1000)) / 20, 0, 1);
 
 /**
  * Brings an azimuth to within half a turn of `reference`, so the camera

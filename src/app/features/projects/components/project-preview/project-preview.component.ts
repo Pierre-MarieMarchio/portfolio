@@ -15,7 +15,8 @@ import { positionOf } from '../project-labels';
 /**
  * The home preview: a small window anchored bottom right, over the object,
  * with what a recruiter asks first (proof, role, stack) and the way to the
- * sheet. Its selector changes the body in place among the featured ones.
+ * sheet. Its selector changes the body in place among the featured ones,
+ * and it shows no other: a body outside them would read "05 / 04".
  */
 @Component({
   selector: 'app-project-preview',
@@ -35,7 +36,11 @@ export class ProjectPreviewComponent {
   /** Another featured body chosen in the selector. */
   public readonly chosen = output<string>();
 
-  protected readonly project = computed(() => this.manager.find(this.slug()));
+  /** Only a featured project has a place among the preview's bodies. */
+  protected readonly project = computed(() => {
+    const project = this.manager.find(this.slug());
+    return project?.featured ? project : null;
+  });
 
   /** The badge names what the window shows, not the last body hovered. */
   protected readonly meta = computed(() => {

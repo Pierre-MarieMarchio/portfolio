@@ -30,6 +30,7 @@ export class StationManager {
   public readonly slug = this.state.slug.asReadonly();
   public readonly pins = this.state.pins.asReadonly();
   public readonly preview = this.state.preview.asReadonly();
+  public readonly reading = this.state.reading.asReadonly();
   public readonly selection = this.state.selection.asReadonly();
   public readonly visited = this.state.visited.asReadonly();
   public readonly family = this.state.family.asReadonly();

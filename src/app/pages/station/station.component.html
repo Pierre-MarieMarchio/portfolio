@@ -90,6 +90,36 @@
         />
       }
     </div>
+
+    <div
+      id="panneau-apercu"
+      class="slot slot--preview"
+      data-slot="preview"
+      data-panel="preview"
+    >
+      @if (station.showsPreview()) {
+        @if (station.preview(); as slug) {
+          <app-project-preview
+            [slug]="slug"
+            [pinned]="station.pins().preview"
+            (chosen)="station.showPreview($event)"
+            (pinToggled)="station.togglePin('preview')"
+            (closed)="station.close('preview')"
+          />
+        }
+      }
+    </div>
+
+    @if (showsRule()) {
+      <app-orbit-rule
+        data-panel="rule"
+        [bodies]="featuredRows()"
+        [hovered]="station.hovered()"
+        [reading]="station.reading()"
+        (chosen)="station.showPreview($event)"
+        (hoveredChange)="onRuleHovered($event)"
+      />
+    }
   </section>
 </main>
 

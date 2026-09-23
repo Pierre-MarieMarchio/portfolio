@@ -132,20 +132,6 @@ dt,
   font-size: var(--p2);
 }
 
-.steps-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s2);
-}
-
-.grow {
-  flex: 1;
-}
-
-.missing {
-  color: var(--sig);
-}
-
 .milestones {
   dt {
     @include facts.term(9ch);

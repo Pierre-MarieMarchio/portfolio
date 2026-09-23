@@ -54,6 +54,7 @@ describe('ProjectSheetComponent', () => {
         role: `Role ${letter.toUpperCase()}`,
         stack: `Stack ${letter.toUpperCase()}`,
         context: `Context ${letter.toUpperCase()}`,
+        period: `Period ${letter.toUpperCase()}`,
       },
       detail,
     }),
@@ -154,9 +155,15 @@ describe('ProjectSheetComponent', () => {
     const values = [...host.querySelectorAll('dl.identity dd')].map((dd) =>
       dd.textContent?.trim(),
     );
-    expect(terms).toEqual(['Statut', 'Rôle', 'Stack', 'Contexte']);
+    expect(terms).toEqual(['Statut', 'Rôle', 'Stack', 'Contexte', 'Période']);
     // The identity comes from the facts table, never from the sheet's own prose.
-    expect(values).toEqual(['Proof B', 'Role B', 'Stack B', 'Context B']);
+    expect(values).toEqual([
+      'Proof B',
+      'Role B',
+      'Stack B',
+      'Context B',
+      'Period B',
+    ]);
   });
 
   it('has no lede and no identity list past the first chapter', async () => {

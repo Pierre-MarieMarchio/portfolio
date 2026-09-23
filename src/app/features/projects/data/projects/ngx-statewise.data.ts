@@ -24,10 +24,10 @@ export const NGX_STATEWISE: ProjectEntry = {
       fr: 'Sur npm · code public',
       en: draft('On npm · public code'),
     },
-    proofLevel: 'public',
     role: { fr: 'Seul', en: draft('Alone') },
     stack: 'Angular · signals · TypeScript',
     context: { fr: 'Personnel', en: draft('Personal') },
+    period: { fr: 'depuis 2025', en: draft('since 2025') },
   },
   detail: {
     lede: {

@@ -8,11 +8,7 @@ import { FAMILIES, FamilyFilter } from '../../models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
-import {
-  positionOf,
-  proofLevelLabel,
-  rowLabel,
-} from '../../rules/project-labels.rules';
+import { positionOf, rowLabel } from '../../rules/project-labels.rules';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
 @Component({
@@ -87,10 +83,6 @@ export class ProjectListComponent {
       .filter((project) => family === 'all' || project.family === family)
       .map((project) => ({
         ...project,
-        level: proofLevelLabel(
-          project.facts.proofLevel,
-          this.texts().proofLevels,
-        ),
         label: rowLabel(project),
         isSelected: project.slug === selected,
         isVisited: visited.has(project.slug),

@@ -51,6 +51,12 @@ h1 {
   outline: none;
 }
 
+.status {
+  margin-top: var(--s2);
+  font-size: var(--p2);
+  color: var(--ink-2);
+}
+
 @include motion.reduced {
   :host,
   :host([data-arrival]) {

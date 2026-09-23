@@ -24,13 +24,13 @@ export const SKYTED_APP: ProjectEntry = {
       fr: 'Sur Google Play et l’App Store',
       en: draft('On Google Play and the App Store'),
     },
-    proofLevel: 'public',
     role: {
       fr: 'En binôme : correctifs, Bluetooth, back-end',
       en: draft('In a pair: fixes, Bluetooth, back end'),
     },
     stack: 'Kotlin · Swift · BLE · Firebase',
     context: 'Skyted',
+    period: '2025 – 2026',
   },
   detail: {
     lede: {

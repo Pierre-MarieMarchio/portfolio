@@ -14,6 +14,7 @@ export interface DesktopTexts {
     readonly void: string;
     readonly name: string;
     readonly trade: string;
+    readonly status: string;
     readonly brand: string;
   };
   readonly notFound: {

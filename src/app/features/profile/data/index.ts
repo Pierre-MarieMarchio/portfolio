@@ -1,1 +1,1 @@
-export { CONTACT_ADDRESSES } from './contact.data';
+export { CONTACT_ADDRESSES, CONTACT_EMAIL } from './contact.data';

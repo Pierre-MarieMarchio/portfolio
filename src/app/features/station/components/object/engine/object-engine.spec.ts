@@ -1,4 +1,5 @@
 import { EngineInputs, ObjectEngine } from './object-engine';
+import { Turntable } from './turntable';
 import { opening } from './scene';
 
 /** A 2D context that accepts every call: the drawing is not under test. */
@@ -40,11 +41,7 @@ const INPUTS: EngineInputs = {
 /** What the spec reads of the hand, behind the class's back. */
 interface HandView {
   readonly orbits: readonly { readonly rb: number }[];
-  readonly orbitTurns: readonly number[];
-  readonly rotors: Record<
-    'disk' | 'orbits',
-    { readonly angle: number; readonly speed: number }
-  >;
+  readonly turntable: Turntable;
   readonly disk: {
     cx: number;
     cy: number;
@@ -144,12 +141,18 @@ describe('ObjectEngine, turned by hand', () => {
 
   it('follows the hand angle for angle while held', () => {
     const { engine, view, drag, grab } = mount();
-    const before = view().rotors.disk.angle;
+    const before = view().turntable.rotor('disk').angle;
     grab(0.2);
     drag(0.2, 0.2 + Math.PI / 2, 400);
-    expect(view().rotors.disk.angle - before).toBeCloseTo(Math.PI / 2, 2);
+    expect(view().turntable.rotor('disk').angle - before).toBeCloseTo(
+      Math.PI / 2,
+      2,
+    );
     drag(0.2 + Math.PI / 2, 0.2 + Math.PI / 4, 300);
-    expect(view().rotors.disk.angle - before).toBeCloseTo(Math.PI / 4, 2);
+    expect(view().turntable.rotor('disk').angle - before).toBeCloseTo(
+      Math.PI / 4,
+      2,
+    );
     engine.release();
   });
 
@@ -159,15 +162,15 @@ describe('ObjectEngine, turned by hand', () => {
     // A quarter turn in 150 ms: about 10.5 rad/s.
     drag(0, Math.PI / 2, 150);
     expect(engine.release()).toBe(true);
-    expect(view().rotors.disk.speed).toBeGreaterThan(8);
-    expect(view().rotors.disk.speed).toBeLessThan(13);
-    const thrownAt = view().rotors.disk.angle;
+    expect(view().turntable.rotor('disk').speed).toBeGreaterThan(8);
+    expect(view().turntable.rotor('disk').speed).toBeLessThan(13);
+    const thrownAt = view().turntable.rotor('disk').angle;
     step(1400);
     // One half-life of friction.
-    expect(view().rotors.disk.speed).toBeLessThan(6.5);
-    expect(view().rotors.disk.angle - thrownAt).toBeGreaterThan(5);
+    expect(view().turntable.rotor('disk').speed).toBeLessThan(6.5);
+    expect(view().turntable.rotor('disk').angle - thrownAt).toBeGreaterThan(5);
     step(15_000);
-    expect(view().rotors.disk.speed).toBe(0);
+    expect(view().turntable.rotor('disk').speed).toBe(0);
   });
 
   it('stays put when let go still', () => {
@@ -177,10 +180,10 @@ describe('ObjectEngine, turned by hand', () => {
     // The hand stops, then lets go.
     step(120);
     engine.release();
-    expect(view().rotors.disk.speed).toBe(0);
-    const letGo = view().rotors.disk.angle;
+    expect(view().turntable.rotor('disk').speed).toBe(0);
+    const letGo = view().turntable.rotor('disk').angle;
     step(2000);
-    expect(view().rotors.disk.angle).toBe(letGo);
+    expect(view().turntable.rotor('disk').angle).toBe(letGo);
   });
 
   it('stops a spinning disk when grabbed', () => {
@@ -189,9 +192,9 @@ describe('ObjectEngine, turned by hand', () => {
     drag(0, Math.PI / 2, 150);
     engine.release();
     step(300);
-    expect(view().rotors.disk.speed).not.toBe(0);
+    expect(view().turntable.rotor('disk').speed).not.toBe(0);
     grab(1);
-    expect(view().rotors.disk.speed).toBe(0);
+    expect(view().turntable.rotor('disk').speed).toBe(0);
     engine.release();
   });
 
@@ -200,11 +203,14 @@ describe('ObjectEngine, turned by hand', () => {
     grab(0);
     drag(0, Math.PI / 2, 150);
     engine.release();
-    const thrown = view().rotors.disk.speed;
+    const thrown = view().turntable.rotor('disk').speed;
     // At once, the orbits have not caught up yet: a drag, not a gear.
-    expect(Math.abs(view().rotors.orbits.speed)).toBeLessThan(0.4 * thrown);
+    expect(Math.abs(view().turntable.rotor('orbits').speed)).toBeLessThan(
+      0.4 * thrown,
+    );
     step(600);
-    const { disk, orbits } = view().rotors;
+    const disk = view().turntable.rotor('disk');
+    const orbits = view().turntable.rotor('orbits');
     expect(orbits.speed).toBeGreaterThan(0);
     expect(orbits.speed).toBeLessThan(0.5 * disk.speed);
     expect(orbits.angle).toBeLessThan(disk.angle);
@@ -212,15 +218,15 @@ describe('ObjectEngine, turned by hand', () => {
 
   it('takes the orbits rather than the disk far from the hole', () => {
     const { engine, step, view, drag, grab } = mount();
-    const disk = view().rotors.disk.angle;
+    const disk = view().turntable.rotor('disk').angle;
     grab(0, 5);
     drag(0, 1, 300, 5);
-    expect(view().rotors.orbits.angle).toBeCloseTo(1, 2);
+    expect(view().turntable.rotor('orbits').angle).toBeCloseTo(1, 2);
     engine.release();
     step(600);
     // The disk is dragged by the orbits in turn, less than they turned.
-    expect(view().rotors.disk.angle - disk).toBeGreaterThan(0);
-    expect(view().rotors.disk.angle - disk).toBeLessThan(1);
+    expect(view().turntable.rotor('disk').angle - disk).toBeGreaterThan(0);
+    expect(view().turntable.rotor('disk').angle - disk).toBeLessThan(1);
   });
 
   it.each(['index', 'about'] as const)(
@@ -229,10 +235,10 @@ describe('ObjectEngine, turned by hand', () => {
       const { engine, step, view: read, drag, grab } = mount();
       engine.setInputs({ ...INPUTS, view });
       step(3000);
-      const before = read().rotors.disk.angle;
+      const before = read().turntable.rotor('disk').angle;
       grab(0.2);
       drag(0.2, 1.2, 300);
-      expect(read().rotors.disk.angle - before).toBeCloseTo(1, 2);
+      expect(read().turntable.rotor('disk').angle - before).toBeCloseTo(1, 2);
       engine.release();
     },
   );
@@ -256,7 +262,7 @@ describe('ObjectEngine, turned by hand', () => {
     drag(0, 1, 300, held.rb);
     // Read while held: the frame shares the turn out.
     step(16);
-    const turns = [...view().orbitTurns];
+    const turns = [...view().turntable.turns()];
     engine.release();
     // The planet under the finger follows it.
     expect(turns[held.i]).toBeCloseTo(1, 1);

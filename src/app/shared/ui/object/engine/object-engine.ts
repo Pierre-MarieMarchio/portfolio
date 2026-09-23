@@ -17,7 +17,7 @@ import {
   clamp,
   easeOut,
   halfLifeStep,
-  isLit,
+  litAmount,
   onCurrentTurn,
   PLANET_GAP,
   repel,
@@ -439,7 +439,9 @@ export class ObjectEngine {
     this.cancelFrame = null;
     const inputs = this.inputs;
     const reduced = inputs.reduced;
-    const dt = Math.min(60, now - this.last) / 1000;
+    // A frame's timestamp can precede the `now` read when the loop started:
+    // never a step back in time.
+    const dt = clamp(now - this.last, 0, 60) / 1000;
     this.last = now;
     const open = inputs.preview >= 0;
     const openTarget = open ? 1 : 0;
@@ -747,7 +749,8 @@ export class ObjectEngine {
     const pos = this.scratch;
     const edgeMargin = 0.06 * Math.min(w, h);
     for (let i = 0; i < this.grains.length; i++) {
-      if (!isLit(i, share)) {
+      const lit = litAmount(i, share);
+      if (lit <= 0) {
         continue;
       }
       const p = this.grains[i];
@@ -793,7 +796,15 @@ export class ObjectEngine {
       const dopN = clamp(rx * 0.8, -1, 1);
       const dop = 1 - 0.33 * dopN;
       let alpha =
-        p.alpha0 * p.grain * dop * twinkle * e * arrival * trv.light * 1.75;
+        p.alpha0 *
+        p.grain *
+        dop *
+        twinkle *
+        e *
+        arrival *
+        trv.light *
+        lit *
+        1.75;
       if (p.fam !== 0) {
         alpha *= 1 - 0.32 * t;
       }

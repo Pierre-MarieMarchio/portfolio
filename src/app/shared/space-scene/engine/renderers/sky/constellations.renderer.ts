@@ -1,13 +1,18 @@
 import type { SkyPan } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
 import { TAU } from '@app/core/helpers';
-import { ScreenHole } from '../../../rules/camera/projection.rules';
+import {
+  holeDistance,
+  ScreenHole,
+} from '../../../rules/camera/projection.rules';
 import {
   CONSTELLATIONS,
   Figure,
 } from '../../../rules/sky/constellations.rules';
+import { figureLabelFont } from '../../../rules/sky/figure-label.rules';
+import { PAN_PARALLAX, SKY_DRIFT } from '../../../models/scene-constants.model';
 
-export interface ConstellationsArgs {
+interface ConstellationsArgs {
   readonly dpr: number;
   readonly accent: string;
   readonly entry: number;
@@ -51,7 +56,7 @@ const drawConstellations = (
     w,
     h,
     args,
-    drift: args.time * 0.34 * FIGURE_DEPTH * 6,
+    drift: args.time * SKY_DRIFT * FIGURE_DEPTH * 6,
   };
   ctx.lineCap = 'round';
   for (const [k, figure] of CONSTELLATIONS.entries()) {
@@ -90,8 +95,9 @@ const figurePoints = (
 ): FigurePoint[] => {
   const { w, h, args } = layer;
   const size = Math.min(w, h) * figure.t;
-  const ox = w * figure.x - args.panX * 0.55 * w * FIGURE_DEPTH + layer.drift;
-  const oy = h * figure.y - args.panY * 0.55 * h * FIGURE_DEPTH;
+  const ox =
+    w * figure.x - args.panX * PAN_PARALLAX * w * FIGURE_DEPTH + layer.drift;
+  const oy = h * figure.y - args.panY * PAN_PARALLAX * h * FIGURE_DEPTH;
   return figure.pts.map(
     ([px, py]) => [ox + (px - 0.5) * size, oy + (py - 0.5) * size] as const,
   );
@@ -161,7 +167,7 @@ const nameFigure = (
   const left = Math.min(...points.map((p) => p[0]));
   ctx.globalAlpha = on * args.shown * 0.9 * args.entry;
   ctx.fillStyle = '#ffffff';
-  ctx.font = `500 ${String(Math.round(11 * args.dpr))}px "IBM Plex Mono", ui-monospace, monospace`;
+  ctx.font = figureLabelFont(args.dpr);
   ctx.textBaseline = 'bottom';
   ctx.letterSpacing = '0.14em';
   ctx.fillText(label.toUpperCase(), left, top - 16 * args.dpr);
@@ -170,11 +176,7 @@ const nameFigure = (
 
 const isHidden = (layer: ConstellationsLayer, [x, y]: FigurePoint): boolean => {
   const hole = layer.args.hole;
-  return (
-    hole !== null &&
-    Math.sqrt((x - hole.cx) * (x - hole.cx) + (y - hole.cy) * (y - hole.cy)) <
-      hole.radius * 1.05
-  );
+  return hole !== null && holeDistance(x, y, hole) < hole.radius * 1.05;
 };
 
 export class ConstellationsRenderer {

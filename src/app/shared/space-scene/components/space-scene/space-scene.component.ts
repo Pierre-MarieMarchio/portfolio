@@ -26,6 +26,10 @@ import { SCENE_SURROUNDINGS } from '../../ports/scene-surroundings.port';
 import { canvasResolution } from '../../rules/canvas-resolution.rules';
 import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
 import { SceneTargetsService } from '../../services/scene-targets.service';
+import {
+  FALLBACK_VIEWPORT,
+  REFERENCE_VIEWPORT,
+} from '../../models/scene-constants.model';
 
 const DENSITY = 3800;
 
@@ -149,7 +153,7 @@ export class SpaceSceneComponent {
     ctx: CanvasRenderingContext2D,
     skyCtx: CanvasRenderingContext2D | null,
   ): SpaceSceneEngine {
-    const viewport = this.canvas.windowSize() ?? { width: 1280, height: 800 };
+    const viewport = this.canvas.windowSize() ?? REFERENCE_VIEWPORT;
     return new SpaceSceneEngine(
       {
         frame: (callback) => this.canvas.nextFrame(callback),
@@ -248,7 +252,7 @@ export class SpaceSceneComponent {
     }
     engine.setLines(this.surroundings.lines());
     engine.measureLabels();
-    const viewport = this.canvas.windowSize() ?? { width: 1200, height: 800 };
+    const viewport = this.canvas.windowSize() ?? FALLBACK_VIEWPORT;
     engine.setLayout(sceneLayout(canvas, viewport, anchors));
   }
 }

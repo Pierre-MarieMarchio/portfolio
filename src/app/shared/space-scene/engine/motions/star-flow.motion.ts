@@ -1,5 +1,10 @@
 import { clamp, TAU } from '@app/core/helpers';
-import { CURSOR_REACH } from '../../models/scene-constants.model';
+import {
+  CURSOR_REACH,
+  PAN_PARALLAX,
+  SKY_DRIFT,
+  SKY_NEUTRAL,
+} from '../../models/scene-constants.model';
 import { travelingElevation } from '../../rules/camera/projection.rules';
 import type { SkyCamera, SkyPan } from '../renderers/sky/star-sky.renderer';
 import { forgetTrail, Star } from '../../rules/sky/star-field.rules';
@@ -60,8 +65,8 @@ const skyFrame = (
     einsteinRadius: 19 * dpr,
     deflectionMax: 26 * dpr,
     scale: cam.scale * (1 + 0.55 * (1 - trv.grow)),
-    panX: cam.camX - 0.42,
-    panY: cam.camY - 0.46,
+    panX: cam.camX - SKY_NEUTRAL.camX,
+    panY: cam.camY - SKY_NEUTRAL.camY,
     cx0: (cam.hole ? cam.hole.cx : w / 2) + turnX * LEAD,
     cy0: (cam.hole ? cam.hole.cy : h / 2) + turnY * LEAD,
     bankCos: Math.cos(bank),
@@ -72,7 +77,7 @@ const skyFrame = (
     voyage: clamp(run / 0.04, 0, 1) * clamp((1 - run) / 0.04, 0, 1),
     dtc,
     smooth: dtc > 0 ? 1 - Math.pow(0.55, dtc * 60) : 0,
-    drift: cam.reduced ? 0 : cam.time * 0.34,
+    drift: cam.reduced ? 0 : cam.time * SKY_DRIFT,
   };
 };
 
@@ -83,10 +88,12 @@ const depthOf = (star: Star, dpr: number): number =>
   0.32 + 0.68 * Math.min(1, star.radius / (2.4 * dpr));
 
 const slideX = (frame: SkyFrame, depth: number): number =>
-  (-frame.cam.azim * 0.3 - frame.panX * 0.55) * frame.w * depth;
+  (-frame.cam.azim * 0.3 - frame.panX * PAN_PARALLAX) * frame.w * depth;
 
 const slideY = (frame: SkyFrame, depth: number): number =>
-  ((frame.cam.elev - 0.18) * 0.85 - frame.panY * 0.55) * frame.h * depth;
+  ((frame.cam.elev - SKY_NEUTRAL.elev) * 0.85 - frame.panY * PAN_PARALLAX) *
+  frame.h *
+  depth;
 
 export class StarFlowMotion {
   public readonly pass: StarPass = {

@@ -1,13 +1,13 @@
 import { PlanePoint, TurntableMotion } from './turntable.motion';
+import { FRAME_MS } from '@testing/doubles/driven-host.double';
 
 const at = (angle: number, radius = 1.6): PlanePoint => ({ angle, radius });
 const ORBITS = [4.1, 5, 6.9].map((rb) => ({ rb }));
 
-/** Frames at 60 fps, for `ms`, the clock kept by the spec. */
 const run = (turntable: TurntableMotion, from: number, ms: number): number => {
   let now = from;
   while (now < from + ms) {
-    now += 1000 / 60;
+    now += FRAME_MS;
     turntable.step(1 / 60, false, ORBITS);
   }
   return now;
@@ -34,8 +34,8 @@ describe('Turntable', () => {
     turntable.grab(0, 0, at(3), 0);
     turntable.turn(1, 0, at(-3), 16);
 
-    // From 3 to -3 rad is 0.28 rad across ±π, not 6 rad back.
-    expect(turntable.rotor('disk').angle).toBeCloseTo(2 * Math.PI - 6, 4);
+    const acrossPi = 2 * Math.PI - 6;
+    expect(turntable.rotor('disk').angle).toBeCloseTo(acrossPi, 4);
   });
 
   it('ignores the angle too near the centre, where it means nothing', () => {
@@ -81,7 +81,6 @@ describe('Turntable', () => {
     expect(new TurntableMotion().release(0)).toBe(false);
   });
 
-  /** Dragged, not geared: it follows the driver's slowing, with a lag. */
   it('drags the other turntable after the driver, never ahead of it', () => {
     const turntable = new TurntableMotion();
     turntable.grab(0, 0, at(0), 0);
@@ -106,7 +105,6 @@ describe('Turntable', () => {
     }
   });
 
-  /** By Kepler: the inner orbits take more of the turn, the outer less. */
   it('shares the orbits turn out by Kepler, from the radius taken', () => {
     const turntable = new TurntableMotion();
     turntable.grab(0, 0, at(0, 5), 0);

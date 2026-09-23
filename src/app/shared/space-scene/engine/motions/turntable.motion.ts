@@ -11,14 +11,14 @@ const DRAG_LAG = 0.55;
 
 const ORBITS_REFERENCE = 5;
 
-export type Rotor = 'disk' | 'orbits';
+type Rotor = 'disk' | 'orbits';
 
 export interface PlanePoint {
   readonly angle: number;
   readonly radius: number;
 }
 
-export interface RotorState {
+interface RotorState {
   readonly angle: number;
   readonly speed: number;
 }

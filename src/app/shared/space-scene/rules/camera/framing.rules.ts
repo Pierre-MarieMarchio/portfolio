@@ -7,6 +7,7 @@ import {
   OVERVIEW_FRAME,
 } from './camera-frames.rules';
 import type { SceneLayout } from '../../models/scene-layout.model';
+import { FALLBACK_VIEWPORT } from '../../models/scene-constants.model';
 import type { SceneState } from '../scene-state.rules';
 import { Orbit, positionOrbit } from '../scene-bodies.rules';
 import { flattening, rollFlatten } from './projection.rules';
@@ -59,7 +60,7 @@ const approachFraming = (state: SceneState, scene: FramingScene): Frame => {
   return approachFrame({
     step: state.step,
     rest: scene.rest,
-    viewportWidth: scene.layout?.viewport.width ?? 1200,
+    viewportWidth: scene.layout?.viewport.width ?? FALLBACK_VIEWPORT.width,
     dims: scene.dims,
     orbit: scene.orbits[framed] ?? null,
     panelLeft: scene.layout?.approachEdge ?? null,

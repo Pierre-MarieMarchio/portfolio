@@ -1,7 +1,10 @@
 import { clamp, smoothstep } from '@app/core/helpers';
 import { Traveling } from '../../../rules/camera/traveling.rules';
 import { SHADOW_EDGE } from '../../../models/scene-constants.model';
-import { ScreenHole } from '../../../rules/camera/projection.rules';
+import {
+  holeDistance,
+  ScreenHole,
+} from '../../../rules/camera/projection.rules';
 import { buildStarField, Star } from '../../../rules/sky/star-field.rules';
 import {
   SkyFrame,
@@ -58,9 +61,7 @@ const holeLight = (
     return 1;
   }
   const reach = hole.radius * 3.2;
-  const d = Math.sqrt(
-    (x - hole.cx) * (x - hole.cx) + (y - hole.cy) * (y - hole.cy),
-  );
+  const d = holeDistance(x, y, hole);
   if (d < hole.radius * SHADOW_EDGE) {
     return null;
   }

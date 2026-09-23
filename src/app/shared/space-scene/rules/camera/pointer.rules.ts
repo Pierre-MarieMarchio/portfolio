@@ -1,5 +1,5 @@
 import type { Dims } from './camera-frames.rules';
-import { opening } from '../scene-bodies.rules';
+import { opening } from './projection.rules';
 import type { PlanePoint } from '../../engine/motions/turntable.motion';
 import type { SceneFrame } from '../scene-frame.rules';
 

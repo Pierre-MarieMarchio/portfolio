@@ -9,6 +9,7 @@ import {
   SceneInputs,
 } from '@shared/space-scene/models/scene.model';
 import { SceneLayout } from '@shared/space-scene/models/scene-layout.model';
+import { drivenHost } from '../doubles/driven-host.double';
 import { recordingContext } from '../doubles/recording-canvas.double';
 import { seededRandom } from '../doubles/seeded-random.double';
 
@@ -89,19 +90,9 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
   const setup = { ...DEFAULT_SETUP, ...overrides };
   const { width, height } = setup.layout.viewport;
   const log: string[] = [];
-  let clock = 0;
-  let pending: ((time: number) => void) | null = null;
+  const { host, step, isScheduled } = drivenHost();
   const engine = new SpaceSceneEngine(
-    {
-      frame: (callback) => {
-        pending = callback;
-        return () => {
-          pending = null;
-        };
-      },
-      now: () => clock,
-      hidden: () => false,
-    },
+    host,
     {
       matter: recordingContext('matter', log),
       sky: setup.withSky ? recordingContext('sky', log) : null,
@@ -137,13 +128,7 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
   const nodes = [...buttons, ...labels, ...lines];
   const run = (ms: number): string[] => {
     log.length = 0;
-    const end = clock + ms;
-    while (clock < end) {
-      clock = Math.min(end, clock + 1000 / 60);
-      const callback = pending;
-      pending = null;
-      callback?.(clock);
-    }
+    step(ms);
     return [...log];
   };
   const styles = (): string[] =>
@@ -163,6 +148,6 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
     styles,
     attributes,
     set,
-    scheduled: () => pending !== null,
+    scheduled: isScheduled,
   };
 };

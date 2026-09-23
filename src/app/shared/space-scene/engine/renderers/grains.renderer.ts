@@ -1,9 +1,8 @@
 import { clamp } from '@app/core/helpers';
-import { litAmount } from '../../rules/matter/grain-reserve.rules';
 import { CameraMotion } from '../motions/camera.motion';
 import { GrainsMotion } from '../motions/grains.motion';
 import { Grain, GrainPose, placeGrain } from '../../rules/scene-bodies.rules';
-import { litShare } from '../../rules/matter/grain-reserve.rules';
+import { litAmount, litShare } from '../../rules/matter/grain-reserve.rules';
 import {
   flattenedHeight,
   GrainSpot,

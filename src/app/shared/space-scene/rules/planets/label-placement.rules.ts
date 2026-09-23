@@ -1,5 +1,8 @@
 import { clamp } from '@app/core/helpers';
 
+export const LEADER_START = 3.4;
+const ELBOW_GAP = 14;
+
 export interface TakenPlace {
   readonly x: number;
   readonly y: number;
@@ -53,12 +56,12 @@ export function placeName(
   const stageH = stage.h;
   const elbow = elbowOf(planet, lw, stageW);
   const rise = (py <= stageH / 2 ? -1 : 1) * 24;
-  const hasRoomRight = px + elbow + 14 + lw <= stageW;
-  const hasRoomLeft = px - elbow - 14 - lw >= 0;
+  const hasRoomRight = px + elbow + ELBOW_GAP + lw <= stageW;
+  const hasRoomLeft = px - elbow - ELBOW_GAP - lw >= 0;
   const outward = px >= stageW / 2 ? 1 : -1;
   const dir = (outward > 0 && hasRoomRight) || !hasRoomLeft ? 1 : -1;
   const placeX = (d: number): number => {
-    let x2 = px + d * (elbow + 14);
+    let x2 = px + d * (elbow + ELBOW_GAP);
     if (d < 0) {
       x2 -= lw;
     }
@@ -105,11 +108,12 @@ function elbowOf(
 ): number {
   const { x: px, radius: rBase, dpr } = planet;
   const elbow = Math.max(
-    (rBase * 3.4) / dpr + 20,
+    (rBase * LEADER_START) / dpr + 20,
     (planet.objectRadius / dpr) * 0.5,
   );
-  return px + elbow + 14 + width > stageW && px - elbow - 14 - width < 0
-    ? (rBase * 3.4) / dpr + 12
+  return px + elbow + ELBOW_GAP + width > stageW &&
+    px - elbow - ELBOW_GAP - width < 0
+    ? (rBase * LEADER_START) / dpr + 12
     : elbow;
 }
 

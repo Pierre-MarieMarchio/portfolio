@@ -1,10 +1,12 @@
 import {
   Dims,
   Frame,
+  orbitAngle,
   referenceRadius,
   verticalFactor,
 } from './camera/camera-frames.rules';
-import { ORBIT_RATE } from '../models/scene-constants.model';
+import { DISK_LIFT, ORBIT_RATE } from '../models/scene-constants.model';
+import { opening } from './camera/projection.rules';
 
 export interface Grain {
   readonly fam: 0 | 1 | 2 | 3 | 4 | 5;
@@ -57,9 +59,7 @@ export const placeOrbits = (n: number): Orbit[] => {
   return orbits;
 };
 
-export const opening = (elev: number): number => 0.05 + 0.62 * elev;
-
-export interface ScenePose {
+interface ScenePose {
   readonly phase: number;
   readonly elev: number;
   readonly azim: number;
@@ -125,7 +125,9 @@ const placeBand: GrainPlacer = (p, pose, out) => {
   p.behind = sinA < 0;
   out.x = Math.cos(a) * rb;
   out.y =
-    0.04 + sinA * rb * opening(pose.elev) + p.g * 0.038 * Math.exp(-u * 0.9);
+    DISK_LIFT +
+    sinA * rb * opening(pose.elev) +
+    p.g * 0.038 * Math.exp(-u * 0.9);
 };
 
 const placeArc: GrainPlacer = (p, pose, out) => {
@@ -157,12 +159,12 @@ export const positionOrbit = (
   pose: ScenePose,
   out: Projected,
 ): Projected => {
-  const a = orbit.ang + pose.phase * orbit.v * ORBIT_RATE + pose.azim;
+  const a = orbitAngle(orbit, pose.phase) + pose.azim;
   const ci = Math.cos(orbit.inc);
   const si = Math.sin(orbit.inc);
   const z = Math.sin(a) * orbit.rb * ci;
   out.x = Math.cos(a) * orbit.rb;
-  out.y = 0.04 + z * opening(pose.elev) + Math.sin(a) * orbit.rb * si;
+  out.y = DISK_LIFT + z * opening(pose.elev) + Math.sin(a) * orbit.rb * si;
   out.z = z;
   return out;
 };

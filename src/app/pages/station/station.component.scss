@@ -32,6 +32,17 @@ main {
   z-index: var(--z-scene-top);
   max-width: min(27ch, 44vw);
   pointer-events: none;
+  animation: rise 1500ms calc(var(--arrival-at) + 700ms) both;
+}
+
+/* The title arrives with the rest of the home page (see `Arrival`). Held by
+   its opacity alone: it takes no pointer, and it keeps the landing focus. */
+.scene[data-arrival='held'] .home-title {
+  animation: none;
+  opacity: 0;
+}
+
+.scene[data-arrival='shown'] .home-title {
   animation: rise 1500ms 700ms both;
 }
 
@@ -107,7 +118,8 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-title {
+  .home-title,
+  .scene[data-arrival] .home-title {
     animation: none;
   }
 }

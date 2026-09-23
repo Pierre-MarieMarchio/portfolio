@@ -105,6 +105,29 @@ a {
   }
 }
 
+/* The pages wait for the home page's rest: without a script, the CSS lets
+   them in at the end of the crossing; with one, the station holds them until
+   the reader is there. They appear, they do not rise, as in the mockup. */
+nav {
+  animation: wait 0s var(--arrival-at) backwards;
+}
+
+:host([data-arrival='held']) nav {
+  animation: none;
+  visibility: hidden;
+}
+
+:host([data-arrival='shown']) nav {
+  animation: none;
+}
+
+@keyframes wait {
+  from,
+  to {
+    visibility: hidden;
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -117,7 +140,8 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bar {
+  .bar,
+  nav {
     animation: none;
   }
 

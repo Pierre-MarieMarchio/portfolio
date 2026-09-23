@@ -6,7 +6,7 @@ import {
   ElementRef,
   inject,
 } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { ElementObserverService } from '@app/core/services';
 import { PageBarComponent } from '@shared/ui/components';
 
 /**
@@ -26,7 +26,7 @@ export class BottomEdgeVariableDirective {
   >(PageBarComponent, { read: ElementRef });
 
   constructor() {
-    const browser = inject(BrowserEnvironmentService);
+    const observer = inject(ElementObserverService);
     const scene = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     let stop: (() => void) | undefined;
     afterNextRender(() => {
@@ -41,7 +41,7 @@ export class BottomEdgeVariableDirective {
         );
       };
       measure();
-      stop = browser.observeResize(head, measure);
+      stop = observer.onResize(head, measure);
     });
     inject(DestroyRef).onDestroy(() => {
       stop?.();

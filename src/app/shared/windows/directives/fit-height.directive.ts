@@ -6,7 +6,10 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import {
+  BrowserWindowService,
+  DocumentStylesService,
+} from '@app/core/services';
 import { WindowAnchor } from '../models/window.model';
 
 const MIN_ROOM = 200;
@@ -25,7 +28,8 @@ const layoutTop = (element: HTMLElement): number => {
   host: { '(animationend)': 'fit()' },
 })
 export class FitHeightDirective {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly browserWindow = inject(BrowserWindowService);
+  private readonly styles = inject(DocumentStylesService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -34,7 +38,7 @@ export class FitHeightDirective {
 
   constructor() {
     afterEveryRender({ write: () => this.fit() });
-    const stopResize = this.browser.listen('resize', () => this.fit(), {
+    const stopResize = this.browserWindow.on('resize', () => this.fit(), {
       passive: true,
     });
     inject(DestroyRef).onDestroy(stopResize);
@@ -46,13 +50,13 @@ export class FitHeightDirective {
       this.element.style.maxHeight = '';
       return;
     }
-    const viewport = this.browser.viewport();
+    const viewport = this.browserWindow.size();
     if (!viewport) {
       return;
     }
     const top = layoutTop(this.element);
     const reserve =
-      Number.parseFloat(this.browser.computedStyle(this.element, RESERVE)) || 0;
+      Number.parseFloat(this.styles.token(RESERVE, this.element)) || 0;
     const room =
       this.anchor() === 'bottom'
         ? top + this.element.offsetHeight - reserve

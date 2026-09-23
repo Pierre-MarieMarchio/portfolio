@@ -1,5 +1,5 @@
 import { DestroyRef, Directive, inject, input } from '@angular/core';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { BrowserWindowService, CursorService } from '@app/core/services';
 import { SpaceSceneEngine } from '../engine/space-scene.engine';
 
 export type TurnableScene = Pick<SpaceSceneEngine, 'grab' | 'turn' | 'release'>;
@@ -9,7 +9,8 @@ const OWN_GESTURES =
 
 @Directive({ selector: '[appTurnGesture]' })
 export class TurnGestureDirective {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly browserWindow = inject(BrowserWindowService);
+  private readonly cursor = inject(CursorService);
 
   public readonly appTurnGesture = input<TurnableScene | null>(null);
 
@@ -17,7 +18,7 @@ export class TurnGestureDirective {
   private stopAbsorbing: () => void = () => {};
 
   constructor() {
-    const stopGrabbing = this.browser.listen(
+    const stopGrabbing = this.browserWindow.on(
       'pointerdown',
       (event) => {
         this.stopAbsorbing();
@@ -47,19 +48,19 @@ export class TurnGestureDirective {
       return;
     }
     this.endGesture();
-    this.browser.setCursor('grabbing');
+    this.cursor.set('grabbing');
     this.gesture.push(
-      this.browser.listen(
+      this.browserWindow.on(
         'pointermove',
         (move) => {
           scene.turn(move.clientX, move.clientY);
         },
         { passive: true },
       ),
-      this.browser.listen('pointerup', () => {
+      this.browserWindow.on('pointerup', () => {
         this.release(scene);
       }),
-      this.browser.listen('pointercancel', () => {
+      this.browserWindow.on('pointercancel', () => {
         this.release(scene);
       }),
     );
@@ -75,7 +76,7 @@ export class TurnGestureDirective {
 
   private absorbNextClick(): void {
     this.stopAbsorbing();
-    const stop = this.browser.listen(
+    const stop = this.browserWindow.on(
       'click',
       (click) => {
         click.stopPropagation();
@@ -93,7 +94,7 @@ export class TurnGestureDirective {
   private endGesture(): void {
     for (const stop of this.gesture.splice(0)) {
       stop();
-      this.browser.setCursor('');
+      this.cursor.set('');
     }
   }
 }

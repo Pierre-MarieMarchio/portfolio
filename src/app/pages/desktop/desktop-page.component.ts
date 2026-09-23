@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { LANGS } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
-import { BrowserEnvironmentService } from '@app/core/services';
+import { BrowserWindowService } from '@app/core/services';
 import {
   FeaturedBarComponent,
   ProjectListComponent,
@@ -85,7 +85,7 @@ import { WindowStackService } from '@shared/windows/services';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DesktopPageComponent {
-  private readonly browser = inject(BrowserEnvironmentService);
+  private readonly browserWindow = inject(BrowserWindowService);
   private readonly landing = inject(ViewFocusService);
   private readonly stack = inject(WindowStackService);
   private readonly curtain = inject(FeaturedTourService);
@@ -172,7 +172,7 @@ export class DesktopPageComponent {
   private landed = false;
 
   constructor() {
-    const stopEscape = this.browser.listen('keydown', (event) => {
+    const stopEscape = this.browserWindow.on('keydown', (event) => {
       if (event.key === 'Escape') {
         void this.station.escape();
       }

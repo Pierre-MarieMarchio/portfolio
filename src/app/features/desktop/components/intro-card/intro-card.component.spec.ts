@@ -20,7 +20,7 @@ const mount = async (
 ) => {
   // jsdom has no matchMedia of its own: every mount stubs it, reduced
   // motion aside, exactly like the other components that read it through
-  // BrowserEnvironment.
+  // MediaPreferencesService.
   vi.stubGlobal(
     'matchMedia',
     quietMedia(

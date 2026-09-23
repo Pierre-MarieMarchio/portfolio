@@ -34,7 +34,6 @@ describe('ProjectsManager', () => {
 
   const SIX = ['a', 'b', 'c', 'd', 'e', 'f'];
 
-  /** Six projects, each with its facts, as a loaded catalog holds them. */
   const setSix = (): void => {
     state.projects.set(SIX.map((slug) => sampleProject({ slug })));
     state.facts.set(
@@ -42,7 +41,6 @@ describe('ProjectsManager', () => {
     );
   };
 
-  /** Derived from the rank: no flag, so the selection cannot drift from it. */
   it('features the first FEATURED projects of the rank order', () => {
     setSix();
 
@@ -62,7 +60,6 @@ describe('ProjectsManager', () => {
     ).toEqual(SIX.map((slug, rank) => [slug, rank, `0${String(rank + 1)}`]));
   });
 
-  /** A remote catalog lacking some facts draws no blank row, and shifts none. */
   it('leaves out a project without facts, keeping the numbers of the others', () => {
     state.projects.set(['a', 'b', 'c'].map((slug) => sampleProject({ slug })));
     state.facts.set({ a: sampleFacts(), c: sampleFacts() });
@@ -110,7 +107,6 @@ describe('ProjectsManager', () => {
     expect(manager.detailOf('missing')).toBeNull();
   });
 
-  /** D5: both languages are in the state; the reader's is a derivation. */
   it('reads a text pair in the reader language', () => {
     state.projects.set([
       sampleProject({ slug: 'p', tag: { fr: 'publié', en: 'published' } }),
@@ -136,7 +132,6 @@ describe('ProjectsManager', () => {
     expect(manager.findIn('missing', 'en')).toBeNull();
   });
 
-  /** Derived from the list, so a reload that renamed it shows through. */
   it('finds a project by its slug from the current list', () => {
     state.facts.set({ p: sampleFacts() });
     state.projects.set([sampleProject({ slug: 'p', title: 'Before' })]);
@@ -159,7 +154,6 @@ describe('ProjectsManager', () => {
     expect(state.isLoading()).toBe(false);
   });
 
-  /** One cycle for the whole catalog: nothing shows before the projects do. */
   it('has no facts and no detail while nothing is loaded', () => {
     expect(manager.projects()).toEqual([]);
     expect(manager.find('skyted-voice')?.facts ?? null).toBeNull();

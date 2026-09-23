@@ -16,10 +16,6 @@ const BODIES: readonly Planet[] = [
   { slug: 'bk-one', title: 'Bk-ONE', short: 'Bk-ONE' },
 ];
 
-/**
- * A 2D context that accepts every call and answers itself, so the engine
- * runs in jsdom, which has no canvas. Its drawing is not under test here.
- */
 const callable = (): undefined => undefined;
 
 const fakeContext = (): unknown => {
@@ -31,7 +27,6 @@ const fakeContext = (): unknown => {
   return proxy;
 };
 
-/** A media query list that never matches and never changes. */
 const quietMedia =
   (isMatching: (query: string) => boolean) => (query: string) => ({
     matches: isMatching(query),
@@ -46,8 +41,7 @@ const mount = async (
     hovered?: string;
     context?: boolean;
     touch?: boolean;
-    /** Lines of the home rule signed in before the mount, as the rule's are. */
-    lines?: number;
+    ruleLines?: number;
   } = {},
 ) => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
@@ -65,7 +59,7 @@ const mount = async (
     providers: [provideTexts()],
   });
   const registry = TestBed.inject(LayoutAnchorsService);
-  const lines = Array.from({ length: options.lines ?? 0 }, () => {
+  const lines = Array.from({ length: options.ruleLines ?? 0 }, () => {
     const line = document.createElement('button');
     document.body.append(line);
     registry.register(line, 'line');
@@ -125,7 +119,7 @@ describe('DesktopSceneComponent', () => {
     });
 
     it('keeps them down and out of reach until the rest has arrived', async () => {
-      const { lines } = await mount({ lines: 2 });
+      const { lines } = await mount({ ruleLines: 2 });
       await frames();
 
       for (const line of lines) {
@@ -136,7 +130,7 @@ describe('DesktopSceneComponent', () => {
     });
 
     it('shows them risen away from the home page, where nothing is waited for', async () => {
-      const { lines } = await mount({ view: 'index', lines: 2 });
+      const { lines } = await mount({ view: 'index', ruleLines: 2 });
       await frames();
 
       for (const line of lines) {
@@ -188,7 +182,6 @@ describe('DesktopSceneComponent', () => {
   });
 
   it('keeps a body that is not placed yet out of reach', async () => {
-    // The home page's planets rise after the crossing: none is drawn yet.
     const { buttons } = await mount();
     for (const button of buttons()) {
       expect(button.getAttribute('aria-hidden')).toBe('true');
@@ -244,8 +237,6 @@ describe('DesktopSceneComponent', () => {
 
   it('absorbs the click that ends a drag of more than 6 px, not after a click', async () => {
     const { host, clicks } = await mount();
-    // jsdom has no PointerEvent constructor everywhere: a MouseEvent under
-    // the pointer's name carries the same coordinates and button.
     const pointer = (type: string, x: number, y: number): void => {
       const event = new MouseEvent(type, {
         bubbles: true,

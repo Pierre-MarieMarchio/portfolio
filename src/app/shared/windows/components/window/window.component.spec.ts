@@ -13,7 +13,6 @@ const CLOSE_LABEL = 'Fermer la fenêtre';
 
 const CAPS: Record<WindowSize, number> = { s: 300, m: 470, l: 920 };
 
-/** `window.innerWidth`/`innerHeight` are read-only getters: redefine, then restore. */
 const stubViewport = (width: number, height: number): (() => void) => {
   const widthDescriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
   const heightDescriptor = Object.getOwnPropertyDescriptor(
@@ -40,7 +39,6 @@ const stubViewport = (width: number, height: number): (() => void) => {
   };
 };
 
-/** jsdom 30 ships `PointerEvent`; fall back to `MouseEvent` if it ever does not. */
 const pointerEvent = (
   type: string,
   init: { clientX: number; clientY: number; button?: number },
@@ -98,7 +96,6 @@ const titlebarButtons = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('.titlebar button'),
 ];
 
-/** Indexed access with `noUncheckedIndexedAccess`: fail loudly, not with `undefined`. */
 const at = <T>(items: readonly T[], index: number): T => {
   const item = items[index];
   if (item === undefined) {
@@ -116,7 +113,6 @@ describe('WindowComponent', () => {
     }
   });
 
-  /** The regression `heading` exists for: `title` was a native tooltip. */
   it('writes no title attribute on its host when given a heading in a template', async () => {
     @Component({
       imports: [WindowComponent],
@@ -196,7 +192,6 @@ describe('WindowComponent', () => {
       pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await fixture.whenStable();
 
-      // A click alone never flips the glyph: only the `pinned` input does.
       expect(pin.getAttribute('aria-pressed')).toBe('false');
       expect(pin.textContent?.trim()).toBe('○');
 

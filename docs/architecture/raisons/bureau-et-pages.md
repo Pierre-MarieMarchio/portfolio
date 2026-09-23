@@ -78,11 +78,30 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Le minutage : le mot se pose (0 → 2,6 s), la règle s'ouvre, le métier vient
   dessous (1,5 → 3 s), le temps de lire, puis la page monte lentement
   (jusqu'à 5,6 s, `--intro-duration`) sur l'objet qui se rassemble.
+- Dans le spec, jsdom n'a pas de `matchMedia` : chaque montage le remplace
+  par une réponse fixe, le mouvement réduit mis à part.
+- La feuille globale n'y est pas chargée : `--intro-duration`, d'où la carte
+  lit sa durée, est posé à la main comme dans `_tokens.scss`.
+- Seuls `setTimeout` et `clearTimeout` y sont simulés : l'ordonnanceur sans
+  zone d'Angular passe par des microtâches, et `fixture.whenStable()`
+  continue de fonctionner dessous.
 
 ## `features/desktop/components/not-found-window/`
 
 - Une adresse qui ne mène nulle part, dans la plus petite fenêtre : elle le
   dit et ramène à l'index. Jamais d'impasse.
+- Le nombre de projets est compté, pas écrit : un projet ajouté change la
+  phrase de lui-même.
+
+## `features/desktop/components/desktop-scene/`
+
+- Dans le spec, jsdom n'a pas de canvas : un contexte 2D qui accepte tout
+  appel et se renvoie lui-même laisse tourner le moteur. Son dessin n'y est
+  pas testé.
+- Les lignes de la règle de l'accueil s'inscrivent avant le montage, comme
+  le fait la règle (`ruleLines`).
+- Au montage, aucune planète de l'accueil n'est encore placée : elles
+  montent après la traversée, et restent hors d'atteinte jusque-là.
 
 ## `features/desktop/states/desktop/`
 
@@ -114,6 +133,8 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   spécifique que `.data`.
 - `.missing` est un état, donc l'encre du signal : les années manquent et le
   disent.
+- Le bouton pressé ne suit que l'entrée `part` : un clic émet la partie
+  demandée, il ne bascule rien de lui-même.
 
 ## `pages/desktop/`
 
@@ -141,6 +162,18 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   rang au-dessus de `--z-window` : celui de la feuille de style par défaut
   (l'aperçu au-dessus de la fiche, au-dessus du reste), puis celui de la pile
   des fenêtres (`--stack`) dès qu'une fenêtre est touchée.
+- Dans le spec, jsdom n'a pas de `matchMedia` : sans lui la station lit le
+  mouvement réduit, comme au prérendu. Une réponse fixe suffit.
+- jsdom n'a pas de contexte 2D : l'objet prend son repli sans canvas, ce dont
+  ces specs ont besoin, sans que jsdom journalise « not implemented ».
+- La feuille globale n'est pas chargée : la durée de la traversée, que
+  l'arrivée lit dans le CSS (`--arrival-at`), est posée à la main comme dans
+  `_tokens.scss`.
+- Une route attrape-tout : les effets du pas en arrière naviguent par le vrai
+  routeur, et elle l'empêche d'échouer sur une adresse que le spec ne déclare
+  pas.
+- Seuls `setTimeout` et `clearTimeout` sont simulés : l'ordonnanceur sans
+  zone passe par des microtâches.
 
 ## `pages/resolvers/page-head.resolver.ts`
 
@@ -205,6 +238,30 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Une page par projet et par langue, lue dans le même dépôt que les pages :
   un projet ajouté aux données est prérendu dans les deux langues sans
   toucher ce fichier.
+
+## `src/integration/drafts.spec.ts`
+
+- Le compte attendu est celui des textes anglais encore à relire, mis à jour
+  à chaque relecture : un compte qui bouge sans qu'on l'ait changé trahit un
+  texte marqué ou relu par erreur.
+
+## `src/integration/featured-count.spec.ts`
+
+- Le mécanisme testé : le nombre de projets mis en avant est une seule valeur
+  (`FEATURED`), et l'accueil la suit partout, quelle que soit la taille du
+  catalogue. Le spec la fournit par le jeton que lit le manager, à trois et à
+  cinq, sur trois et douze projets en tout.
+
+## `src/integration/i18n.spec.ts`
+
+- Le mécanisme testé : l'adresse dit la langue (D3, D4), et changer de langue
+  est une navigation vers la même vue à son autre adresse. Les vraies routes,
+  les vrais catalogues chargés en morceaux, la vraie station.
+- Le critère d'acceptation : changer de langue ne perd rien de ce que le
+  lecteur a disposé.
+- Aucun texte n'est écrit dans un gabarit : chaque mot visible et chaque nom
+  accessible d'une page anglaise est anglais. Le français s'y reconnaît à ses
+  accents, qu'aucun texte anglais du site ne porte.
 
 ## `src/integration/prerender-safety.spec.ts`
 

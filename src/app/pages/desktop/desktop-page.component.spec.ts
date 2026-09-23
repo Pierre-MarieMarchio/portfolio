@@ -28,14 +28,11 @@ const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
 describe('StationComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
-  /** One project the catalog knows, with facts and a sheet to open. */
   const ENTRIES = [
     sampleEntry({ project: { slug: KNOWN_SLUG, title: 'Known project' } }),
   ];
 
   const mount = async (options: { reducedMotion?: boolean } = {}) => {
-    // jsdom has no matchMedia: without it the station reads reduced motion,
-    // like the prerender. A static answer is enough here.
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches:
         query === '(prefers-reduced-motion: reduce)'
@@ -44,18 +41,11 @@ describe('StationComponent', () => {
       addEventListener: () => {},
       removeEventListener: () => {},
     }));
-    // jsdom has no 2D context: the object takes its no-canvas fallback, which
-    // is what these specs need, without jsdom logging "not implemented".
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    // The global stylesheet is not loaded here: the crossing's length, which
-    // the arrival reads from the CSS, is set by hand as `_tokens.scss` does.
     document.documentElement.style.setProperty('--arrival-at', '8700ms');
     TestBed.configureTestingModule({
       imports: [DesktopPageComponent],
       providers: [
-        // A catch-all route: the station's step-back effects navigate
-        // through the real router, and this keeps it from throwing on an
-        // address nothing else declares in this spec.
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(ENTRIES, [DesktopEffect]),
       ],
@@ -70,10 +60,6 @@ describe('StationComponent', () => {
   };
 
   afterEach(() => {
-    // A listener added straight on `window` (Escape, pointerdown) outlives
-    // the fixture unless the component tears it down; nothing here relies on
-    // that beyond one spec, but destroying the fixture keeps every spec
-    // starting from a station with no listener left behind.
     document.documentElement.style.removeProperty('--arrival-at');
     TestBed.resetTestingModule();
     vi.useRealTimers();
@@ -83,7 +69,6 @@ describe('StationComponent', () => {
 
   describe('the arrival of the home page', () => {
     it('holds the rest during the crossing, and lets it in at 8700 ms', async () => {
-      // setTimeout only: the zoneless scheduler runs on microtasks.
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mount({ reducedMotion: false });
 
@@ -272,7 +257,6 @@ describe('StationComponent', () => {
     expect(host.querySelector('app-project-detail')).toBeNull();
   });
 
-  /** D3: the switch is a link to the same page in the other language. */
   it('offers the same view in English from the page bar', async () => {
     const { fixture, station, host } = await mount();
 
@@ -333,7 +317,6 @@ describe('StationComponent', () => {
     expect(station.selected()).toBeNull();
   });
 
-  /** D6: the first load leaves the focus where a reader expects to start. */
   it('leaves the focus alone on the first load', async () => {
     const { fixture, host } = await mount();
     document.body.append(host);
@@ -421,7 +404,6 @@ describe('StationComponent', () => {
     await fixture.whenStable();
     expect(rank('sheet')).toBeGreaterThan(rank('index'));
   });
-  /** The scene reads slugs: the page hands it the station's own. */
   it('hands the scene the planets, and the slugs of the sheet, the selection, the preview and the hovered body', async () => {
     const { fixture, station } = await mount();
     const object = (): DesktopSceneComponent => {

@@ -41,7 +41,6 @@ describe('ProjectSheetComponent', () => {
     ],
   });
 
-  /** Three ranked projects, each with its facts and the same detail. */
   const ENTRIES = ['a', 'b', 'c'].map((letter) =>
     sampleEntry({
       project: {
@@ -94,7 +93,6 @@ describe('ProjectSheetComponent', () => {
 
     expect(window?.getAttribute('aria-label')).toBe('Détail du projet');
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
-    // proj-b is the second of three in the manager's order.
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
   });
 
@@ -156,7 +154,6 @@ describe('ProjectSheetComponent', () => {
       dd.textContent?.trim(),
     );
     expect(terms).toEqual(['Statut', 'Rôle', 'Stack', 'Contexte', 'Période']);
-    // The identity comes from the facts table, never from the sheet's own prose.
     expect(values).toEqual([
       'Proof B',
       'Role B',
@@ -185,7 +182,6 @@ describe('ProjectSheetComponent', () => {
     expect(paragraphs).toContain('Middle paragraph.');
     expect(paragraphs).not.toContain('First paragraph.');
 
-    // Exclude the toolbar's own `<li>` items (one per chapter button).
     const bullet = [...host.querySelectorAll('li')].find(
       (li) => !li.closest('[aria-label="Parties"]'),
     );
@@ -272,7 +268,6 @@ describe('ProjectSheetComponent', () => {
 
     expect(host.querySelector('button.next')).toBeNull();
     const next = host.querySelector<HTMLAnchorElement>('a.next');
-    // proj-b is followed by proj-c, the last project in the manager's order.
     expect(next?.textContent?.trim()).toBe('Suivant : C →');
     expect(next?.getAttribute('href')).toBe('/projet/proj-c');
   });

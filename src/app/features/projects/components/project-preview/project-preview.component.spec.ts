@@ -12,7 +12,6 @@ describe('ProjectPreviewComponent', () => {
   const NAMES = ['One', 'Two', 'Three', 'Four', 'Five'];
   const TAGS = ['beta', 'live', 'archived', 'draft', 'wip'];
 
-  /** One more project than the home page features. */
   const ENTRIES = NAMES.map((name, index) =>
     sampleEntry({
       project: {
@@ -61,8 +60,6 @@ describe('ProjectPreviewComponent', () => {
     expect(windowEl?.querySelector('h2')?.textContent?.trim()).toBe(
       'Project Two',
     );
-    // proj-2 is the second of the featured ones, which stay FEATURED
-    // even with more projects in the catalog.
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe(
       `02 / 0${String(TestBed.inject(FEATURED))}`,
     );
@@ -106,7 +103,6 @@ describe('ProjectPreviewComponent', () => {
     await fixture.whenStable();
 
     expect(emitted).toEqual(['proj-3']);
-    // Stateless: the component only reflects what its own `slug` input says.
     expect(host.querySelector('.window h2')?.textContent?.trim()).toBe(
       'Project Two',
     );

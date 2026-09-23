@@ -2,7 +2,7 @@ import { EnvironmentProviders, Provider, signal } from '@angular/core';
 import { Lang } from '@app/core/i18n';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '@app/features/projects/i18n';
-import { STATION_TEXTS } from '@app/features/station/i18n';
+import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { Catalog, PAGES_TEXTS, pathOf } from '@app/i18n';
 import { EN } from '@app/i18n/en';
 import { FR } from '@app/i18n/fr';
@@ -22,7 +22,7 @@ export const provideTexts = (
   return [
     { provide: SHARED_TEXTS, useValue: signal(catalog.shared) },
     { provide: PROJECTS_TEXTS, useValue: signal(catalog.projects) },
-    { provide: STATION_TEXTS, useValue: signal(catalog.station) },
+    { provide: DESKTOP_TEXTS, useValue: signal(catalog.station) },
     { provide: PAGES_TEXTS, useValue: signal(catalog.pages) },
     {
       provide: LINKS,

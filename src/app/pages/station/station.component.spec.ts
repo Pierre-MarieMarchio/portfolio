@@ -6,9 +6,9 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fake-managers';
-import { StationEffect } from '@app/features/station/states';
-import { StationManager } from '@app/features/station/states';
-import { ObjectComponent } from '@app/features/station/components';
+import { DesktopEffect } from '@app/features/desktop/states';
+import { DesktopManager } from '@app/features/desktop/states';
+import { SpaceSceneComponent } from '@app/features/desktop/components';
 import { StationComponent } from './station.component';
 
 const arrivals = (host: HTMLElement) =>
@@ -20,8 +20,8 @@ const arrivals = (host: HTMLElement) =>
 const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
   (
     fixture.debugElement.query(
-      (node) => node.componentInstance instanceof ObjectComponent,
-    ).componentInstance as ObjectComponent
+      (node) => node.componentInstance instanceof SpaceSceneComponent,
+    ).componentInstance as SpaceSceneComponent
   ).revealed();
 
 describe('StationComponent', () => {
@@ -56,13 +56,13 @@ describe('StationComponent', () => {
         // through the real router, and this keeps it from throwing on an
         // address nothing else declares in this spec.
         provideRouter([{ path: '**', children: [] }]),
-        provideProjects(ENTRIES, [StationEffect]),
+        provideProjects(ENTRIES, [DesktopEffect]),
       ],
     });
     await loadProjects();
 
     const fixture = TestBed.createComponent(StationComponent);
-    const station = TestBed.inject(StationManager);
+    const station = TestBed.inject(DesktopManager);
     await fixture.whenStable();
 
     return { fixture, station, host: fixture.nativeElement as HTMLElement };
@@ -376,14 +376,14 @@ describe('StationComponent', () => {
   /** The object knows ranks, the station slugs: the composition translates. */
   it('hands the object the ranks of the sheet, the selection, the preview and the hovered body', async () => {
     const { fixture, station } = await mount();
-    const object = (): ObjectComponent => {
+    const object = (): SpaceSceneComponent => {
       const found = fixture.debugElement.query(
-        (node) => node.componentInstance instanceof ObjectComponent,
+        (node) => node.componentInstance instanceof SpaceSceneComponent,
       );
       if (!found) {
         throw new Error('expected the object to be mounted');
       }
-      return found.componentInstance as ObjectComponent;
+      return found.componentInstance as SpaceSceneComponent;
     };
 
     station.syncRoute('sheet', KNOWN_SLUG);

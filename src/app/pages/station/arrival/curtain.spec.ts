@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
-import { StationManager } from '@app/features/station/states';
+import { DesktopManager } from '@app/features/desktop/states';
 import { Curtain } from './curtain';
 
 const setUp = () => {
@@ -8,7 +8,7 @@ const setUp = () => {
   TestBed.configureTestingModule({
     providers: [provideStatewise(), Curtain],
   });
-  const station = TestBed.inject(StationManager);
+  const station = TestBed.inject(DesktopManager);
   station.syncRoute('home');
   return { station, curtain: TestBed.inject(Curtain) };
 };

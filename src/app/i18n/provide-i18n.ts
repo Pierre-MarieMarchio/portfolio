@@ -9,7 +9,7 @@ import type { CanActivateFn } from '@angular/router';
 import { langOfUrl, Locale } from '@app/core/i18n';
 import { PROJECTS_TEXTS } from '@app/features/projects/i18n';
 import { ILinks, LINKS } from '@app/features/common';
-import { STATION_TEXTS } from '@app/features/station/i18n';
+import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { SHARED_TEXTS } from '@shared/ui/texts';
 import { PAGES_TEXTS } from './catalog';
 import { Catalogs } from './catalogs.service';
@@ -52,7 +52,7 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
       useFactory: () => slice((catalogs) => catalogs.current().projects),
     },
     {
-      provide: STATION_TEXTS,
+      provide: DESKTOP_TEXTS,
       useFactory: () => slice((catalogs) => catalogs.current().station),
     },
     {

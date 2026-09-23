@@ -566,13 +566,18 @@ src/app/
       states/      desktop/ · animation/
       ports/       desktop-texts.port
       rules/       view.rules · scene-layout.rules · canvas-resolution.rules
-                   scene/  (les règles pures du moteur : projection, cadrage,
-                            orbites, libellés, traversée)
-      models/      desktop.model · scene.model
+                   scene/  scene-frame · panel-veil · scene-bodies · scene-math
+                           camera/   camera-frames · framing · pointer ·
+                                     projection · traveling
+                           matter/   grain-reserve · matter-light
+                           planets/  planet-focus · label-placement
+                           sky/      star-field · comets · constellations
+      models/      desktop.model · scene.model · scene-constants.model
       engine/      space-scene.engine
-                   motions/    camera · turntable · grains · stars
-                   renderers/  black-hole · grains · planets · planet-labels ·
-                               sky · constellations · comets
+                   motions/    camera · clock · grains · scene · star-flow ·
+                               turntable
+                   renderers/  grains · orbits · planets · planet-labels · scene
+                               sky/  sky · star-sky · constellations · comets
     profile/
       components/  about-window/
       ports/       profile-texts.port

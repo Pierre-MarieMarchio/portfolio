@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
-import { StationManager } from '@app/features/station/states';
+import { DesktopManager } from '@app/features/desktop/states';
 import { ViewMarkerComponent, ViewMarkerData } from './view-marker.component';
 
 const mount = (data: ViewMarkerData) => {
@@ -12,7 +12,7 @@ const mount = (data: ViewMarkerData) => {
       { provide: ActivatedRoute, useValue: { snapshot: { data } } },
     ],
   });
-  const station = TestBed.inject(StationManager);
+  const station = TestBed.inject(DesktopManager);
   const fixture = TestBed.createComponent(ViewMarkerComponent);
   return { station, fixture };
 };

@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
-import { StationManager } from '@app/features/station/states';
+import { DesktopManager } from '@app/features/desktop/states';
 
 /** After the rest has arrived, the curtain waits this long before it plays. */
 const CURTAIN_DELAY_MS = 4200;
@@ -18,7 +18,7 @@ const CURTAIN_STEP_MS = 900;
  */
 @Injectable()
 export class Curtain {
-  private readonly station = inject(StationManager);
+  private readonly station = inject(DesktopManager);
   private timer: ReturnType<typeof setTimeout> | undefined;
   private takenOver = false;
 

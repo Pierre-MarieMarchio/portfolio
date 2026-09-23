@@ -38,6 +38,8 @@ const INPUTS: EngineInputs = {
 
 /** What the spec reads of the hand, behind the class's back. */
 interface HandView {
+  readonly orbits: readonly { readonly rb: number }[];
+  readonly orbitTurns: readonly number[];
   readonly rotors: Record<
     'disk' | 'orbits',
     { readonly angle: number; readonly speed: number }
@@ -240,5 +242,28 @@ describe('ObjectEngine, turned by hand', () => {
     step(3000);
     const point = at(0);
     expect(engine.grab(point.x, point.y)).toBe(false);
+  });
+
+  it('turns the inner orbits faster than the outer, the one held with the hand', () => {
+    const { engine, step, view, drag, grab } = mount();
+    const orbits = view().orbits.map((orbit, i) => ({ i, rb: orbit.rb }));
+    const held = orbits[2];
+    if (!held) {
+      throw new Error('expected five orbits');
+    }
+    grab(0, held.rb);
+    drag(0, 1, 300, held.rb);
+    // Read while held: the frame shares the turn out.
+    step(16);
+    const turns = [...view().orbitTurns];
+    engine.release();
+    // The planet under the finger follows it.
+    expect(turns[held.i]).toBeCloseTo(1, 1);
+    // Kepler: the closer in, the more it turned.
+    const byRadius = [...orbits].sort((a, b) => a.rb - b.rb);
+    const shares = byRadius.map((orbit) => turns[orbit.i] ?? 0);
+    shares.slice(1).forEach((share, k) => {
+      expect(share).toBeLessThan(shares[k] ?? 0);
+    });
   });
 });

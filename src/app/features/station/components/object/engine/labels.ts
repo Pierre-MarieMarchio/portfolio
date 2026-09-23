@@ -43,10 +43,10 @@ export function placeNumber(
   const { w: lw, h: lh } = size;
   const x = clamp(planet.x + planet.gap, 2, stage.w - lw - 2);
   const y = clamp(planet.y - lh - planet.gap * 0.5, 2, stage.h - lh - 2);
-  const onText = panels.some(
+  const isOnText = panels.some(
     (z) => x + lw > z.l && x < z.r && y + lh > z.t && y < z.b,
   );
-  return { x, y, onText };
+  return { x, y, onText: isOnText };
 }
 
 /**
@@ -80,10 +80,10 @@ export function placeName(
   const stageH = stage.h;
   const elbow = elbowOf(planet, lw, stageW);
   const rise = (py <= stageH / 2 ? -1 : 1) * 24;
-  const roomRight = px + elbow + 14 + lw <= stageW;
-  const roomLeft = px - elbow - 14 - lw >= 0;
+  const hasRoomRight = px + elbow + 14 + lw <= stageW;
+  const hasRoomLeft = px - elbow - 14 - lw >= 0;
   const outward = px >= stageW / 2 ? 1 : -1;
-  const dir = (outward > 0 && roomRight) || !roomLeft ? 1 : -1;
+  const dir = (outward > 0 && hasRoomRight) || !hasRoomLeft ? 1 : -1;
   const placeX = (d: number): number => {
     let x2 = px + d * (elbow + 14);
     if (d < 0) {
@@ -93,7 +93,7 @@ export function placeName(
   };
   const boundY = (y2: number): number =>
     clamp(y2, lh / 2 + 2, stageH - lh / 2 - 2);
-  const overlaps = (x2: number, y2: number): boolean =>
+  const isTaken = (x2: number, y2: number): boolean =>
     taken.some(
       (q) =>
         Math.abs(q.x - x2) < (q.w + lw) / 2 - 4 &&
@@ -104,13 +104,13 @@ export function placeName(
     return { ...first, free: true };
   }
   const flanks = [dir, -dir].filter(
-    (d) => d === dir || (d > 0 ? roomRight : roomLeft),
+    (d) => d === dir || (d > 0 ? hasRoomRight : hasRoomLeft),
   );
   for (const d of flanks) {
     const x = placeX(d);
     const y = firstFreeRow(py + rise, lh + 8, (row) => {
       const at = boundY(row);
-      return overlaps(x, at) ? null : at;
+      return isTaken(x, at) ? null : at;
     });
     if (y !== null) {
       taken.push({ x, y, w: lw, h: lh });

@@ -3,6 +3,15 @@ import { placeName, placeNumber, TakenPlace } from './labels';
 const STAGE = { w: 1280, h: 800 };
 const SIZE = { w: 120, h: 20 };
 
+const planet = (x: number, y: number, isNamed = true) => ({
+  x,
+  y,
+  radius: 4,
+  objectRadius: 300,
+  dpr: 1,
+  named: isNamed,
+});
+
 describe('placeNumber', () => {
   it('sets the number right against its body, above and to the right', () => {
     const at = placeNumber(
@@ -41,15 +50,6 @@ describe('placeNumber', () => {
 });
 
 describe('placeName', () => {
-  const planet = (x: number, y: number, named = true) => ({
-    x,
-    y,
-    radius: 4,
-    objectRadius: 300,
-    dpr: 1,
-    named,
-  });
-
   it('leads the name towards the outside of the frame', () => {
     const right = placeName(planet(900, 300), SIZE, STAGE, []);
     const left = placeName(planet(300, 300), SIZE, STAGE, []);

@@ -5,8 +5,8 @@ import { ARRIVED, Traveling, traveling } from './traveling';
 const seeded = (seed: number): (() => number) => {
   let state = seed;
   return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
+    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return state / 4_294_967_296;
   };
 };
 
@@ -29,9 +29,9 @@ const recordingContext = () => {
     strokeStyle: '' as unknown,
     lineCap: '',
     lineWidth: 1,
-    clearRect: () => undefined,
-    fillRect: () => undefined,
-    beginPath: () => undefined,
+    clearRect: () => {},
+    fillRect: () => {},
+    beginPath: () => {},
     moveTo: (x: number, y: number) => {
       from = { x, y };
     },
@@ -47,7 +47,7 @@ const recordingContext = () => {
         alpha: ctx.globalAlpha,
       });
     },
-    createLinearGradient: () => ({ addColorStop: () => undefined }),
+    createLinearGradient: () => ({ addColorStop: () => {} }),
   };
   return { ctx: ctx as unknown as CanvasRenderingContext2D, strokes };
 };
@@ -98,6 +98,26 @@ const run = (hz: number, until: number) => {
 };
 
 const length = (s: Stroke): number => Math.hypot(s.x1 - s.x0, s.y1 - s.y0);
+const largestStep = (
+  before: readonly { x: number; y: number }[],
+  now: readonly { x: number; y: number }[],
+): number => {
+  let largest = 0;
+  for (const [k, star] of now.entries()) {
+    const was = before[k];
+    if (!was || Number.isNaN(was.x) || Number.isNaN(star.x)) {
+      continue;
+    }
+    // A star wrapped round an edge jumps by the frame's size: not
+    // a displacement.
+    const dx = Math.abs(star.x - was.x);
+    const dy = Math.abs(star.y - was.y);
+    if (dx < W / 2 && dy < H / 2) {
+      largest = Math.max(largest, Math.hypot(dx, dy));
+    }
+  }
+  return largest;
+};
 const median = (values: readonly number[]): number => {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.floor(sorted.length / 2)] ?? 0;
@@ -106,8 +126,8 @@ const median = (values: readonly number[]): number => {
 describe('Sky', () => {
   it('draws trails of the same length whatever the frame rate', () => {
     // 5.2 s: mid-run, where the stars fly fastest.
-    const fast = run(60, 5.2).strokes.map(length);
-    const slow = run(20, 5.2).strokes.map(length);
+    const fast = run(60, 5.2).strokes.map((stroke) => length(stroke));
+    const slow = run(20, 5.2).strokes.map((stroke) => length(stroke));
 
     expect(fast.length).toBeGreaterThan(20);
     expect(slow.length).toBeGreaterThan(20);
@@ -159,19 +179,7 @@ describe('Sky', () => {
         ray: star.ray,
       }));
       if (time > 7.6) {
-        now.forEach((star, k) => {
-          const was = before[k];
-          if (!was || Number.isNaN(was.x) || Number.isNaN(star.x)) {
-            return;
-          }
-          // A star wrapped round an edge jumps by the frame's size: not
-          // a displacement.
-          const dx = Math.abs(star.x - was.x);
-          const dy = Math.abs(star.y - was.y);
-          if (dx < W / 2 && dy < H / 2) {
-            worst = Math.max(worst, Math.hypot(dx, dy));
-          }
-        });
+        worst = Math.max(worst, largestStep(before, now));
       }
       before = now;
     }

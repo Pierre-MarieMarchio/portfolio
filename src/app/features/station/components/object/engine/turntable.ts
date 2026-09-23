@@ -197,7 +197,7 @@ export class Turntable {
    */
   public step(
     dt: number,
-    reduced: boolean,
+    isReduced: boolean,
     orbits: readonly { readonly rb: number }[],
   ): boolean {
     const held = this.grip ? this.rotors[this.grip.rotor] : null;
@@ -208,16 +208,17 @@ export class Turntable {
     }
     const driver = this.rotors[this.driver];
     const driven = this.rotors[this.driver === 'disk' ? 'orbits' : 'disk'];
-    const drag = reduced ? 1 : 1 - Math.exp(-dt / DRAG_LAG);
+    const drag = isReduced ? 1 : 1 - Math.exp(-dt / DRAG_LAG);
     driven.speed += (driver.speed * DRAG_RATIO - driven.speed) * drag;
-    let turning = held !== null;
+    let isTurning = held !== null;
     for (const rotor of [driver, driven]) {
       if (rotor !== held) {
-        turning = drift(rotor, dt, rotor === driver) || turning;
+        drift(rotor, dt, rotor === driver);
+        isTurning = rotor.speed !== 0 || isTurning;
       }
     }
     this.share(orbits);
-    return turning;
+    return isTurning;
   }
 
   /** Shares out the orbits' turn since the last frame, orbit by orbit. */
@@ -227,31 +228,30 @@ export class Turntable {
     if (turn === 0) {
       return;
     }
-    orbits.forEach((orbit, i) => {
+    for (const [i, orbit] of orbits.entries()) {
       this.orbitTurns[i] =
         (this.orbitTurns[i] ?? 0) +
         turn * Math.pow(this.reference / orbit.rb, 1.5);
-    });
+    }
   }
 }
 
 /**
  * A free turntable for one frame: it turns at its speed, and the driver
- * loses it to friction. Answers whether it still turns.
+ * loses it to friction.
  */
 function drift(
   rotor: { angle: number; speed: number },
   dt: number,
-  driving: boolean,
-): boolean {
+  isDriving: boolean,
+): void {
   rotor.angle += rotor.speed * dt;
-  if (driving) {
+  if (isDriving) {
     rotor.speed *= Math.pow(0.5, dt / HAND_FRICTION);
   }
   if (Math.abs(rotor.speed) < 0.01) {
     rotor.speed = 0;
   }
-  return rotor.speed !== 0;
 }
 
 /** The angle to follow, or `null` too near the centre to mean anything. */

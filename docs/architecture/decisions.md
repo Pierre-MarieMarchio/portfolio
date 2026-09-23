@@ -254,10 +254,12 @@ sous-composants n'y vivent plus.
 
 **Décision.** Le lint tourne avec `--max-warnings 0`. Les règles de
 `eslint-plugin-sonarjs` et `eslint-plugin-unicorn` qui correspondent à ce que
-montre SonarLint sont choisies une par une et passent en erreur. Aucun
-`eslint-disable` dans le code : une exception qui résiste se déclare dans
-`eslint.config.js` pour le fichier concerné, et sa raison s'écrit dans ce
-journal.
+montre SonarLint sont choisies une par une et passent en erreur. Aucune
+exception : ni `eslint-disable` dans le code, ni règle levée pour un fichier
+dans la config. Une règle qui gêne se règle en corrigeant le code. Seuls
+restent les réglages par catégorie de fichiers (les specs, par exemple), qui
+sont la règle de cette catégorie et non une exception ; chacun a sa raison
+dans ce journal.
 
 **Raison.** Une règle en avertissement n'est tenue par rien : la CI passait
 avec 43 avertissements.

@@ -86,8 +86,7 @@ d'origine. Correspondance :
 
 ## Écarts déjà décidés
 
-La base du dépôt s'écarte de la maquette sur deux points, pour des raisons
-d'architecture :
+La base du dépôt s'écarte de la maquette sur les points suivants :
 
 - **Routes en chemins (`/projets`), pas en fragments (`#/projets`).** Un
   fragment n'atteint jamais le serveur : ces pages ne pourraient être ni
@@ -96,3 +95,17 @@ d'architecture :
   `AppComponent`, au-dessus du `<router-outlet>`.
 - **Polices locales (Fontsource), pas Google Fonts** : le contenu doit
   s'afficher sans dépendre d'un CDN.
+- **La fenêtre mesure son plafond une fois posée.** L'export le mesure au
+  montage, pendant l'animation d'ouverture qui décale encore la fenêtre de
+  10 px : le plafond tombait 10 px trop court. Il est repris à la fin de
+  l'animation.
+- **Le segmenté ne déborde plus.** Sur la capture `07-releve`, « Personnels 03 »
+  passe à la ligne et recouvre l'en-tête des colonnes. Le segmenté porté grandit
+  avec ses rangées et ne recouvre rien.
+- **Un double-clic sur un bouton de la barre ne replie pas la fenêtre** : ce sont
+  deux clics sur ce bouton. L'export repliait aussi, par la même règle qui lui
+  fait ignorer la prise sur un bouton.
+- **Les bandes de la fenêtre (barre d'outils, corps, pied) sont dessinées par la
+  fenêtre**, pas répétées par chaque appelant. Le rembourrage du corps, qui
+  diffère d'une vue à l'autre, reste à l'appelant
+  (`--window-body-padding`).

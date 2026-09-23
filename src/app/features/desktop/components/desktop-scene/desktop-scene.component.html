@@ -1,0 +1,17 @@
+<app-space-scene
+  [bodies]="sceneBodies()"
+  [direction]="direction()"
+  [figureNames]="texts().object.parts"
+  [paused]="paused()"
+>
+  @if (targets()) {
+    <app-planet-buttons
+      [bodies]="bodies()"
+      [view]="view()"
+      [preview]="preview()"
+      [hovered]="hovered()"
+      (bodyClicked)="bodyClicked.emit($event)"
+      (bodyHovered)="bodyHovered.emit($event)"
+    />
+  }
+</app-space-scene>

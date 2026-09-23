@@ -99,7 +99,7 @@ const ROLES_IN = {
   pages: ['resolvers', 'guards', 'providers'],
 };
 
-const ENGINE_ZONES = new Set(['features/desktop', 'shared/space-scene']);
+const ENGINE_ZONES = new Set(['shared/space-scene']);
 
 const FILE =
   /^(?<name>[a-z0-9-]+)\.(?<suffix>[a-z]+)(?:\.golden)?(?<spec>\.spec)?\.(?<ext>ts|html|scss)$/;

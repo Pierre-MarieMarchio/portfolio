@@ -1,5 +1,6 @@
 import { Frame, referenceRadius, verticalFactor } from './camera';
 import { gaussian, orbitRank, TAU } from './math';
+import { ORBIT_RATE } from './constants';
 
 /**
  * One point of the matter. Six families: 0 the travelled sphere (volume
@@ -200,7 +201,7 @@ export const placeGrain = (
   azim: number,
   out: Projected,
 ): void => {
-  const turn = phase * p.w * 0.42 + azim;
+  const turn = phase * p.w * ORBIT_RATE + azim;
   const far = 1 + (p.depart - 1) * (1 - entry);
   if (p.fam === 0) {
     // The travelled sphere gives the hole its volume without outlining it.
@@ -275,7 +276,7 @@ export const positionOrbit = (
   azim: number,
   out: Projected,
 ): Projected => {
-  const a = orbit.ang + phase * orbit.v * 0.42 + azim;
+  const a = orbit.ang + phase * orbit.v * ORBIT_RATE + azim;
   const ci = Math.cos(orbit.inc);
   const si = Math.sin(orbit.inc);
   const z = Math.sin(a) * orbit.rb * ci;

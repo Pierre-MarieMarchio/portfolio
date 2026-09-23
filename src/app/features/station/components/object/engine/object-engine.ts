@@ -38,6 +38,13 @@ import {
 } from './scene';
 import { Sky } from './sky';
 import { Traveling, traveling, TRAVELING_END } from './traveling';
+import { CURSOR_REACH, ORBIT_RATE, SHADOW_EDGE } from './constants';
+import {
+  flattening,
+  Rolled,
+  rollFlatten,
+  travelingElevation,
+} from './projection';
 
 export type ObjectView = 'home' | 'index' | 'sheet' | 'about' | 'not-found';
 
@@ -310,6 +317,8 @@ export class ObjectEngine {
   private trv: Traveling = traveling(0, false);
 
   private readonly scratch: Projected = { x: 0, y: 0, z: 0 };
+  /** Where `rollFlatten` writes, reused: it runs for every orbit sample. */
+  private readonly rolledScratch: Rolled = { nx: 0, ny: 0 };
 
   constructor(
     private readonly host: EngineHost,
@@ -859,10 +868,14 @@ export class ObjectEngine {
     }
     const elev = this.home.ev;
     const p = positionOrbit(orbit, this.phase, elev, az, { x: 0, y: 0, z: 0 });
-    const py = p.y * (0.88 + 0.34 * elev);
-    const cr = Math.cos(this.home.i);
-    const sr = Math.sin(this.home.i);
-    return { nx: p.x * cr - py * sr, ny: p.x * sr + py * cr };
+    return rollFlatten(
+      p.x,
+      p.y,
+      flattening(elev),
+      Math.cos(this.home.i),
+      Math.sin(this.home.i),
+      { nx: 0, ny: 0 },
+    );
   }
 
   private zonesFrom(layout: Layout): void {
@@ -906,9 +919,8 @@ export class ObjectEngine {
     const cx = w * (finiteOr(this.camX, 0.44) + trv.dx);
     const cy = h * (finiteOr(this.camY, 0.5) + trv.dy);
     const elevC = finiteOr(this.elev, 0.18);
-    // 0.022: the disk is a slice during the journey, it opens on arrival.
-    const elev = Math.max(0.018, elevC + (0.022 - elevC) * -trv.dEv);
-    const flatten = 0.88 + 0.34 * elev;
+    const elev = travelingElevation(elevC, trv.dEv);
+    const flatten = flattening(elev);
     // The object grows with the approach, from afar to its place.
     const R =
       referenceRadius(w, h, finiteOr(this.scale, 1)) *
@@ -919,7 +931,7 @@ export class ObjectEngine {
     const azimBase = finiteOr(this.azim, 0) + trv.dAz;
     const azim = azimBase + this.rotors.disk.angle;
     const pointer = this.pointer;
-    const reach = 70 * dpr;
+    const reach = CURSOR_REACH * dpr;
     // The roll straightens on arrival: under the plane, then back up.
     const roll = finiteOr(this.roll, -0.33) + trv.dRoll;
     const cr = Math.cos(roll);
@@ -1225,6 +1237,7 @@ export class ObjectEngine {
     // Positions first, drawing next: in between, a repulsion pass
     // guarantees a minimal on-screen gap.
     fitOrbits(orbits, w, h, this.home, this.measure?.freeHalf ?? null, dpr);
+    const rolled = this.rolledScratch;
     const planets: PlanetOnScreen[] = orbits.map((orbit, i) => {
       const pos = positionOrbit(
         orbit,
@@ -1233,9 +1246,7 @@ export class ObjectEngine {
         azim + this.orbitTurn(i),
         this.scratch,
       );
-      const npy = pos.y * flatten;
-      const nx = pos.x * cr - npy * sr;
-      const ny = pos.x * sr + npy * cr;
+      const { nx, ny } = rollFlatten(pos.x, pos.y, flatten, cr, sr, rolled);
       // A planet passing behind the shadow is hidden by it.
       const rn = Math.sqrt(nx * nx + ny * ny);
       const fR = clamp((1.16 - rn) / 0.14, 0, 1);
@@ -1282,17 +1293,22 @@ export class ObjectEngine {
             sample,
             0,
             elev,
-            azim + this.orbitTurn(i) + phase * orbit.v * 0.42,
+            azim + this.orbitTurn(i) + phase * orbit.v * ORBIT_RATE,
             out,
           );
-          const qy = q.y * flatten;
-          const qx2 = q.x * cr - qy * sr;
-          const qy2 = q.x * sr + qy * cr;
+          const { nx: qx2, ny: qy2 } = rollFlatten(
+            q.x,
+            q.y,
+            flatten,
+            cr,
+            sr,
+            rolled,
+          );
           trace.push({
             x: cx + qx2 * R,
             y: cy + qy2 * R,
             depth: q.z / orbit.rb,
-            shade: q.z < 0 && Math.sqrt(qx2 * qx2 + qy2 * qy2) < 1.02,
+            shade: q.z < 0 && Math.sqrt(qx2 * qx2 + qy2 * qy2) < SHADOW_EDGE,
           });
         }
         for (let level = 0; level < LEVELS; level++) {

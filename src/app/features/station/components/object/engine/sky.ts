@@ -1,5 +1,7 @@
 import { clamp, smoothstep, TAU } from './math';
 import { Traveling } from './traveling';
+import { CURSOR_REACH, SHADOW_EDGE } from './constants';
+import { travelingElevation } from './projection';
 
 interface Star {
   x: number;
@@ -123,7 +125,7 @@ export class Sky {
     // cursor would make two cursors. The Einstein radius is the scale of
     // the deflection, not its reach; the deflection is capped, or a star
     // passing right under the cursor would fly off fifty pixels.
-    const rPtr = 70 * dpr;
+    const rPtr = CURSOR_REACH * dpr;
     const rE = 19 * dpr;
     const deflMax = 26 * dpr;
     // The sky follows the camera: without it, the eye credits the motion to
@@ -132,7 +134,7 @@ export class Sky {
     // during the crossing banks the tunnel and leads its mouth (BANK, LEAD).
     const az = cam.azim;
     const ev = cam.elev;
-    const turnEv = Math.max(0.018, cam.elev + (0.022 - cam.elev) * -trv.dEv);
+    const turnEv = travelingElevation(cam.elev, trv.dEv);
     const turnX = -trv.dAz * 0.3 * w;
     const turnY = (turnEv - ev) * 0.85 * h;
     // PARALLAX: during the arrival the sky spreads far more than the object
@@ -255,13 +257,13 @@ export class Sky {
         // the hole and the shadow stopped being one. The photon rim is at
         // 0.958 radius; the cut sits just beyond so the edge stays sharp
         // without eating the ring.
-        if (d < hole.R * 1.02) {
+        if (d < hole.R * SHADOW_EDGE) {
           continue;
         }
         // A short fade on the shadow's edge: a hard cut would read as a
         // rendering defect.
         if (d < hole.R * 1.22) {
-          near = (d - hole.R * 1.02) / (hole.R * 0.2);
+          near = (d - hole.R * SHADOW_EDGE) / (hole.R * 0.2);
         } else if (d < reach) {
           near = 1 + 1.15 * Math.pow(1 - d / reach, 1.8);
         }

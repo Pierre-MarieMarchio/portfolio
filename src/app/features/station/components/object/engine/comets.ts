@@ -1,4 +1,6 @@
 import { TAU } from './math';
+import { ORBIT_RATE } from './constants';
+import { rollFlatten } from './projection';
 
 /*
  * The variant of "about": four comets, one per part, kept as the
@@ -47,7 +49,7 @@ export const positionComet = (
   elev: number,
   azim: number,
 ): { x: number; y: number; z: number; r: number } => {
-  const M = c.M0 + phase * c.v * 0.42;
+  const M = c.M0 + phase * c.v * ORBIT_RATE;
   let E = M;
   for (let k = 0; k < 4; k++) {
     E -= (E - c.e * Math.sin(E) - M) / (1 - c.e * Math.cos(E));
@@ -106,9 +108,10 @@ export const drawComets = (
   ctx.lineCap = 'round';
   COMETS.forEach((c, i) => {
     const p = positionComet(c, phase, elev, azim);
-    const pyA = p.y * flatten;
-    const rx2 = p.x * cr - pyA * sr;
-    const ry2 = p.x * sr + pyA * cr;
+    const { nx: rx2, ny: ry2 } = rollFlatten(p.x, p.y, flatten, cr, sr, {
+      nx: 0,
+      ny: 0,
+    });
     const sx = cx + rx2 * R;
     const sy = cy + ry2 * R;
     // Behind the shadow it goes out like everything else.
@@ -129,9 +132,12 @@ export const drawComets = (
     const ux = rx2 / d0;
     const uy = ry2 / d0;
     const ahead = positionComet(c, phase + 0.6, elev, azim);
-    const ay2 = ahead.y * flatten;
-    const vx0 = ahead.x * cr - ay2 * sr - rx2;
-    const vy0 = ahead.x * sr + ay2 * cr - ry2;
+    const next = rollFlatten(ahead.x, ahead.y, flatten, cr, sr, {
+      nx: 0,
+      ny: 0,
+    });
+    const vx0 = next.nx - rx2;
+    const vy0 = next.ny - ry2;
     const vn0 = Math.max(0.0001, Math.sqrt(vx0 * vx0 + vy0 * vy0));
     let dx2 = ux - (0.62 * vx0) / vn0;
     let dy2 = uy - (0.62 * vy0) / vn0;

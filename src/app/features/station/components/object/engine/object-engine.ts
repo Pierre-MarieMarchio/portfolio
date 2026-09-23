@@ -18,7 +18,6 @@ import {
   easeOut,
   halfLifeStep,
   litAmount,
-  nearestTurn,
   onCurrentTurn,
   PLANET_GAP,
   repel,
@@ -46,6 +45,7 @@ import {
   travelingElevation,
 } from './projection';
 import { Turntable } from './turntable';
+import { placeName, placeNumber } from './labels';
 
 export type ObjectView = 'home' | 'index' | 'sheet' | 'about' | 'not-found';
 
@@ -1186,8 +1186,13 @@ export class ObjectEngine {
       w: (z.r - z.l) / dpr,
       h: (z.b - z.t) / dpr,
     }));
-    const stageW = w / dpr;
-    const stageH = h / dpr;
+    const stage = { w: w / dpr, h: h / dpr };
+    const panels = zones.map((z) => ({
+      l: z.l / dpr,
+      r: z.r / dpr,
+      t: z.t / dpr,
+      b: z.b / dpr,
+    }));
     for (let i = 0; i < shown; i++) {
       const planet = planets[i];
       if (!planet) {
@@ -1295,23 +1300,16 @@ export class ObjectEngine {
       // column. It sits right against its body, no elbow, no search: it is
       // the planet/project link and must never vanish.
       if (inputs.view === 'index') {
-        const lw = size?.w || 20;
-        const lh = size?.h || 16;
-        const gap = (rBase * 2.2) / dpr + 5;
-        const nx2 = clamp(px + gap, 2, stageW - lw - 2);
-        const ny2 = clamp(py - lh - gap * 0.5, 2, stageH - lh - 2);
-        // A number falling on the table goes; the body stays.
-        const onText = zones.some(
-          (z) =>
-            nx2 + lw > z.l / dpr &&
-            nx2 < z.r / dpr &&
-            ny2 + lh > z.t / dpr &&
-            ny2 < z.b / dpr,
+        const number = placeNumber(
+          { x: px, y: py, gap: (rBase * 2.2) / dpr + 5 },
+          { w: size?.w || 20, h: size?.h || 16 },
+          stage,
+          panels,
         );
         this.writeLabel(
           i,
-          `translate(${String(nx2)}px,${String(ny2)}px)`,
-          covered || onText
+          `translate(${String(number.x)}px,${String(number.y)}px)`,
+          covered || number.onText
             ? '0'
             : hovered === i || (open && active === i)
               ? '1'
@@ -1321,20 +1319,6 @@ export class ObjectEngine {
       }
       const lw = size?.w || 120;
       const lh = size?.h || 20;
-      // The label leaves the structure: an elbow proportional to the
-      // object's radius, on the side towards the outside of the frame.
-      let elbow = Math.max((rBase * 3.4) / dpr + 20, (R / dpr) * 0.5);
-      if (px + elbow + 14 + lw > stageW && px - elbow - 14 - lw < 0) {
-        elbow = (rBase * 3.4) / dpr + 12;
-      }
-      const rise = (py <= stageH / 2 ? -1 : 1) * 24;
-      const roomRight = px + elbow + 14 + lw <= stageW;
-      const roomLeft = px - elbow - 14 - lw >= 0;
-      // ALWAYS towards the outside of the frame, never over the disk. If the
-      // place is taken, the other flank is tried before giving up: a
-      // permanent label is not sacrificed to its neighbour.
-      const outward = px >= stageW / 2 ? 1 : -1;
-      let dir = (outward > 0 && roomRight) || !roomLeft ? 1 : -1;
       // Shown at rest, dimmed; hovering brings it to full. None behind the
       // shadow, and while a preview is open only the aimed body keeps its
       // name (the card already carries it).
@@ -1346,52 +1330,17 @@ export class ObjectEngine {
           : open
             ? active === i
             : !planet.shade;
-      const placeX = (d: number): number => {
-        let x2 = px + d * (elbow + 14);
-        if (d < 0) {
-          x2 -= lw;
-        }
-        return clamp(x2, 2, stageW - lw - 2);
-      };
-      const boundY = (y2: number): number =>
-        clamp(y2, lh / 2 + 2, stageH - lh / 2 - 2);
-      const overlaps = (x2: number, y2: number): boolean =>
-        places.some(
-          (q) =>
-            Math.abs(q.x - x2) < (q.w + lw) / 2 - 4 &&
-            Math.abs(q.y - y2) < (q.h + lh) / 2 + 4,
-        );
-      let lx = placeX(dir);
-      let ly = boundY(py + rise);
-      let free = true;
-      if (named) {
-        free = false;
-        const step = lh + 8;
-        const flanks = [dir, -dir].filter(
-          (d) => d === dir || (d > 0 ? roomRight : roomLeft),
-        );
-        for (const d of flanks) {
-          const x2 = placeX(d);
-          for (let k = 0; k <= 4 && !free; k++) {
-            for (const sign of k === 0 ? [1] : [-1, 1]) {
-              const y2 = boundY(py + rise + sign * k * step);
-              if (!overlaps(x2, y2)) {
-                lx = x2;
-                ly = y2;
-                dir = d;
-                free = true;
-                break;
-              }
-            }
-          }
-          if (free) {
-            break;
-          }
-        }
-        if (free) {
-          places.push({ x: lx, y: ly, w: lw, h: lh });
-        }
-      }
+      const {
+        x: lx,
+        y: ly,
+        dir,
+        free,
+      } = placeName(
+        { x: px, y: py, radius: rBase, objectRadius: R, dpr, named },
+        { w: lw, h: lh },
+        stage,
+        places,
+      );
       const visible = named && free;
       this.writeLabel(
         i,

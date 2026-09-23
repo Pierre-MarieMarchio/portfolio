@@ -44,6 +44,14 @@ const TRAIL_SIDEWAYS = 0.5;
 const BANK = 0.35;
 /** The share of the turn's pan the vanishing point keeps, as a lead. */
 const LEAD = 0.3;
+/**
+ * The sky's flow once the tunnel is over, at the approach's peak speed. The
+ * tunnel dies at 7.9 s while the object still comes on until 9.6 s: a sky
+ * frozen under an object rushing at us read as the object flying in, not
+ * as us arriving. The stars keep drifting out, slower and slower, and come
+ * to rest with the landing.
+ */
+const COAST = 0.15;
 /** Around this speed a star starts to trail: 0.45 px a frame at 60 Hz. */
 const TRAIL_FROM = 0.45 * 60;
 
@@ -145,7 +153,8 @@ export class Sky {
     // trails' length.
     const tt = cam.reduced ? 99 : time;
     const u = clamp((tt - 3.5) / 4.4, 0, 1);
-    const speed = 6 * u * (1 - u) * (1 - u);
+    const speed =
+      6 * u * (1 - u) * (1 - u) + (cam.reduced ? 0 : COAST * trv.coast);
     // How fast a star at this depth spreads from the vanishing point, per
     // second: its position AND its trail read it, so the two cannot part.
     const spreadRate = (depth: number): number =>

@@ -181,6 +181,42 @@ describe('Sky', () => {
     expect(worst).toBeLessThan(8);
   });
 
+  it('keeps the stars drifting out after the tunnel, until the object has landed', () => {
+    const hz = 60;
+    const sky = new Sky(seeded(3));
+    const { ctx } = recordingContext();
+    const snapshots = new Map<number, { x: number; y: number }[]>();
+    for (let i = 0; i <= Math.round(9.9 * hz); i++) {
+      sky.draw(ctx, W, H, camera(i / hz));
+      if ([8.4, 8.6, 9.7, 9.9].some((t) => i === Math.round(t * hz))) {
+        snapshots.set(
+          i,
+          starsOf(sky).map((star) => ({ x: star.px, y: star.py })),
+        );
+      }
+    }
+    const moved = (a: number, b: number): number => {
+      const from = snapshots.get(Math.round(a * hz)) ?? [];
+      const to = snapshots.get(Math.round(b * hz)) ?? [];
+      const steps = to
+        .map((star, k) =>
+          Math.hypot(
+            star.x - (from[k]?.x ?? NaN),
+            star.y - (from[k]?.y ?? NaN),
+          ),
+        )
+        .filter((d) => Number.isFinite(d) && d < W / 2);
+      return median(steps);
+    };
+
+    // The tunnel is over at 7.9 s; the object lands at 9.6 s. In between,
+    // the sky froze under an object rushing at us (a tenth of a pixel in
+    // 0.2 s); it now drifts out some ten pixels a second.
+    expect(moved(8.4, 8.6)).toBeGreaterThan(1);
+    // Landed: only the slow drift of the stars is left.
+    expect(moved(9.7, 9.9)).toBeLessThan(0.5);
+  });
+
   it('draws no trail at rest, once the run is over', () => {
     const sky = new Sky(seeded(3));
     const { ctx, strokes } = recordingContext();

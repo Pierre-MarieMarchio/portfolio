@@ -1,10 +1,9 @@
 # Organisation du code
 
-Ce document dit **où va chaque chose et pourquoi**. Il part des
-responsabilités, pas des formes habituelles : aucune unité n'existe parce
-qu'« on fait toujours un service » ou « un contrôleur ». Il complète
-`passation-showcase.md` (les couches et la loi de dépendance) et fait foi pour
-l'arborescence de `src/app`.
+Ce document dit **où va chaque chose et pourquoi**. Il décrit l'architecture
+du portfolio : ses quatre couches et la loi de dépendance, l'organisation des
+responsabilités, la nomenclature qui le tient, et la fiche technique de chaque
+unité. Il fait foi pour `src/app`.
 
 Il est tiré de l'inventaire du 23 septembre 2026 (phase 3,
 `docs/audit/phase-3.md`), qui a relevé pour chaque unité ce qu'elle fait,
@@ -31,7 +30,12 @@ n'existe pas (KISS). À l'inverse, deux morceaux qui partagent un état caché
 ne sont pas deux unités : on ne découpe que là où chaque morceau a sa propre
 raison de changer.
 
-## 2. Les couches : où ranger un concept
+## 2. Les couches et la loi de dépendance
+
+Chaque fichier appartient à une couche, et une couche n'importe que celles
+qui sont en dessous d'elle.
+
+### 2.1 Où ranger un concept
 
 | Question                                                                      | Couche                |
 | ----------------------------------------------------------------------------- | --------------------- |
@@ -43,13 +47,42 @@ raison de changer.
 | Compose un écran, déclare une étape de route ?                                | `pages/`              |
 | Démarre l'application : config, table des routes, réponses aux ports ?        | racine `app.*.ts`     |
 
-Sens des dépendances :
-`racine → pages → i18n → features → features/common → shared/<lib> → core`.
+**Sens des dépendances :** `racine → pages → i18n → features → features/common → shared/<lib> → core`.
 Les librairies de `shared/` (`ui`, `windows`, `space-scene`) ne s'importent
-pas entre elles.
-Un import ne remonte jamais. La racine, qui compose tout, répond aux ports de
-`features/common` : c'est son rôle, pas un import vers le haut. Le lint tient
-chaque couche, `i18n` et la racine compris.
+pas entre elles. Un import ne remonte jamais.
+
+**Trois règles qui ne se discutent pas :**
+
+1. **Une feature n'importe que `core`, les librairies de `shared/` et
+   `features/common`, jamais une autre feature.** Quand deux features ont
+   besoin d'un même contrat, il descend dans `features/common/` (un port :
+   une interface et son jeton), et la composition y répond : `provideI18n`
+   répond à `LINKS`.
+2. **Le lint tient la loi**, zone par zone (`FEATURES` et `SHARED_LIBS` dans
+   `eslint.config.js`, comparés au disque). Une violation fait échouer
+   `npm run lint`.
+3. **Un contrat n'entre dans `features/common/` que si deux features le
+   consomment**, que le besoin naît dans leurs composants ou leurs services,
+   et qu'il est réduit à ce qu'elles appellent. Sinon, le port reste dans
+   `features/<consommateur>/ports/` : c'est le cas des tranches de textes,
+   que `provideI18n` fournit.
+
+### 2.2 L'état (ngx-statewise)
+
+Un état vit dans `states/<état>/`, en cinq fichiers :
+
+- **`.action.ts`** : ses événements ;
+- **`.state.ts`** : des signaux, rien d'autre ;
+- **`.updater.ts`** : le seul qui écrit l'état, de façon synchrone ;
+- **`.effect.ts`** : l'asynchrone (lire le catalogue, par exemple), qui
+  répond par une action ;
+- **`.manager.ts`** : la seule porte des composants et des pages. Il expose
+  l'état en lecture seule, les `computed` qui s'en dérivent et les commandes.
+
+Le lint refuse qu'un fichier hors de `states/` importe un `.state` ou un
+`.updater`. Ce qui se dérive est un `computed`, jamais stocké, et l'état garde
+des identifiants (un slug), pas des copies qui vieilliraient. Un état est un
+ensemble de signaux qu'aucune action ne traverse (D14).
 
 Le portfolio a **trois concepts** :
 
@@ -84,7 +117,7 @@ s'égare fait échouer la CI.
    rien n'est à déplacer. Le dossier d'un composant ne contient que le
    composant : `.ts`, `.html`, `.scss`, `.spec.ts`.
 5. **Un dossier de rôle reste lisible** : un fichier par sujet, nommé par ce
-   sujet (`format.helper.ts`, `vector.helper.ts`), et au plus 8 fichiers
+   sujet (`format.helper.ts`, `angle.helper.ts`), et au plus 8 fichiers
    source. Au-delà, un sous-dossier par concept (`services/browser/`),
    jamais par autre chose.
 6. **Un dossier de rôle n'existe que s'il a un fichier** : pas de dossier vide
@@ -216,6 +249,24 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
 
 `pages/` est la seule zone rangée par écran : un écran est une page.
 
+### 3.5 Les tests
+
+- Un spec est à côté du fichier qu'il teste, et porte son nom
+  (`x.service.spec.ts`). Les suites qui traversent plusieurs unités (la
+  langue et les têtes de page, le prérendu, le zoneless) sont dans
+  `src/integration/`.
+- `src/testing/fixtures/` : des données d'exemple bâties avec les vraies
+  règles (`project.fixture.ts` classe par la vraie `rank()`), et les
+  fournisseurs d'un spec (`provideTexts`, `provideProjects`).
+- `src/testing/doubles/` : de fausses implémentations d'une frontière (le
+  canvas qui enregistre, le générateur à graine, l'hôte à horloge pilotée).
+- Un manager n'est jamais doublé : un spec reçoit le vrai, nourri par un
+  double du repository, la couture par laquelle arriverait une source
+  distante.
+- Le golden de la scène (`space-scene.engine.golden.spec.ts`) fige son
+  dessin, appel par appel : un changement qui déplace une empreinte change
+  le rendu.
+
 ## 4. Les fiches
 
 Chaque fiche donne : **but** · **contrat** · **rôle** · **d'où elle vient**.
@@ -255,12 +306,11 @@ services pour un seul besoin appelle une façade propre à ce besoin.
   carte d'ouverture et la révélation de l'accueil, qui écrivaient chacune la
   même séquence.
 
-#### `core/services/head/`, `core/strategies/`, `core/ports/` : le `<head>` du document
+#### `core/services/head/`, `core/strategies/` : le `<head>` du document
 
 - **`DocumentHeadService`** (ex-`PageHead`). But : écrire le titre, la
   description et les liens de langue d'une page. Contrat : `write(content)`.
-  Le nom et l'adresse du site arrivent par le jeton `SITE`
-  (`site.port.ts`, interface `SiteIdentity`), que la racine fournit.
+  Le nom et l'adresse du site sont ses constantes (`SITE_NAME`, `SITE_URL`).
 - **`RouteHeadStrategy`** (`route-head.strategy.ts`, ex-`PageTitleStrategy`).
   But : à chaque navigation, donner à `DocumentHeadService` ce que la route
   déclare. Son ancien nom ne disait que le titre.
@@ -286,10 +336,10 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 - **`format.helper.ts`** : `twoDigits`, seule numérotation à deux chiffres du
   dépôt (quatre versions aujourd'hui).
 
-### 4.2 `shared/ui/` : l'interface réutilisable
+### 4.2 Les librairies de `shared/`
 
-Aucun mot du portfolio. Ce qui en contenait remonte dans une feature ou
-devient générique.
+Aucun mot du portfolio, et aucune n'importe une autre (D20). Ce qui en
+contenait remonte dans une feature ou devient générique.
 
 #### La fenêtre : `shared/windows/` (D20)
 
@@ -314,16 +364,18 @@ devient générique.
   le bureau. La fenêtre relaie `anchor`, `scrollKey` et `scrollResetOn` à ses
   directives, qu'un appelant ne peut pas poser sur le corps qui défile.
 
-#### L'ordre des fenêtres : `services/window-stack`, `directives/stacked-window`
+#### L'ordre des fenêtres : `shared/windows/`
 
 - **`WindowStackService`** (fourni par l'écran). But : quelle fenêtre est
-  devant. Contrat : `bringToFront(id)`, `depthOf(id)`. Générique (des `id`).
+  devant. Contrat : `register(id)`, `bringToFront(id)`, `depthOf(id)`.
+  Générique (des `id`) ; le bureau garde sa liste de fenêtres et
+  `windowOf(view)`.
 - **`StackedWindowDirective`** (ex-`WindowSlotDirective`). But : inscrire un
   élément dans la pile, écrire sa profondeur, le mettre devant quand on le
   touche. Écoute sur son propre élément : l'écouteur global en capture et
   le contrat par `data-slot` disparaissent.
 
-#### Mesurer un élément : `signals/element-size`, `directives/bottom-edge-variable`
+#### Mesurer un élément : `shared/ui/`
 
 - **`elementSize(el)`** (`element-size.signal.ts`) : un signal de la taille
   d'un élément. Remplace la mesure écrite à la main dans la barre des
@@ -332,7 +384,7 @@ devient générique.
   en variable CSS jusqu'où descend l'élément qui la porte. Le nom de la
   variable est son entrée.
 
-#### Une animation d'entrée : `models/entrance`
+#### Une animation d'entrée : `shared/ui/models/entrance`
 
 - **`entrance.model.ts`** : `Entrance = 'timed' | 'held' | 'shown'`, l'état
   d'un élément qui entre en scène (ex-`Arrival`). Le vocabulaire d'une
@@ -340,31 +392,34 @@ devient générique.
   contact et la barre des vedettes peuvent le lire sans connaître le bureau,
   qui le produit.
 
-#### Les autres
+#### Les autres composants de `shared/ui/`
 
 - **`segmented/`** `SegmentedComponent` : inchangé ; sa sortie `chosen`
   devient `valueChange`.
-- **`site-nav/`** (ex-`page-bar`, deux responsabilités) :
+- **`language-switch/`, `main-nav/`** (ex-`page-bar`, deux responsabilités) :
   `LanguageSwitchComponent` (les liens de langue) et `MainNavComponent`
   (la navigation), composés par l'écran.
 - **`social-links/`** (ex-`contact-rail`) : `SocialLinksComponent`, une liste
   de liens à icône. Le bouton pause, qui commande l'animation du bureau,
   part dans `features/desktop`.
-- **`view-focus/`** (ex-`landing-focus`) : `ViewFocusService`
-  (`claim(container)`) et `ViewHeadingDirective`. But : mettre le focus sur
+- **`ViewFocusService`** (ex-`landing-focus`) :
+  `claim(container)`, avec `ViewHeadingDirective`. But : mettre le focus sur
   le titre de la vue qui vient d'apparaître.
-- **`layout-anchors/`** (ex-`object-marks`) : `LayoutAnchorsService`
-  (`register(el, kind)`, `list(kind)`) et `LayoutAnchorDirective`. But :
+- **`LayoutAnchorsService`** (ex-`object-marks`) :
+  `register(el, kind)`, `list(kind)`, avec `LayoutAnchorDirective`. But :
   dire à qui les lit où sont posés les éléments de l'écran. Un seul registre
   au lieu de deux, générique sur `kind`. `data-object-line`, sans lecteur,
   disparaît.
-- **`texts/`** `SHARED_TEXTS` : inchangé, moins les libellés de pause.
+- **`ports/shared-texts.port.ts`** `SHARED_TEXTS` : les mots de ces
+  composants ; ceux de la fenêtre sont dans `WINDOW_TEXTS`, ceux de la pause
+  dans les textes du bureau.
 
 ### 4.3 `features/common/`
 
-- **`links/`** : le port `LINKS` (inchangé). La racine y répond.
-- **`scene-anchors/`** : `SceneAnchorKind = 'head' | 'rule' | 'detail' |
-'preview' | 'line'`, en type seul. La barre des vedettes (`projects`)
+- **`ports/links.port.ts`** : `LINKS`, où est chaque vue dans la langue du
+  lecteur. `provideI18n` y répond.
+- **`models/scene-anchors.model.ts`** : `SceneAnchorKind = 'panel' | 'head'
+| 'rule' | 'detail' | 'preview' | 'line'`, en type seul. La barre des vedettes (`projects`)
   déclare ses ancres, la scène (`desktop`) les lit : ce vocabulaire est un
   contrat entre deux features, que le compilateur vérifie. Il remplit les
   trois conditions d'admission : deux features le consomment, le besoin naît
@@ -372,24 +427,27 @@ devient générique.
 
 ### 4.4 `features/projects/`
 
-| Unité                                     | But                                                                                   | D'où                                                                |
-| ----------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `data/*.project.ts`, `projects.data.ts`   | le contenu, un fichier par projet ; l'ordre est le rang                               | inchangé                                                            |
-| `models/project.model.ts`                 | les formes d'un projet                                                                | sans `ProjectWithFacts`                                             |
-| `models/project-family.model.ts`          | `ProjectFamily`, `FAMILIES`, `FamilyFilter`                                           | sorti d'un composant, typé partout                                  |
-| `models/project-detail.model.ts`          | la fiche et ses chapitres                                                             | ex-`project-sheet.model` ; « approach » devient « chapter » partout |
-| `rules/ranking.rules.ts`                  | `rank(projects, featuredCount)` : rang, numéro, vedette                               | sorti du manager ; les tests l'utilisent au lieu de le recopier     |
-| `rules/project-labels.rules.ts`           | les libellés tirés d'un projet : ligne, position, niveau de preuve, titre de chapitre | reçoit `proofLevelLabel` et `chapterTitle` du manager               |
-| `services/projects-repository.service.ts` | lire le catalogue                                                                     | inchangé                                                            |
-| `states/projects/*`                       | le catalogue dans la langue courante                                                  | sans la chaîne `reset`                                              |
-| `components/featured-bar/`                | la barre des projets vedettes sous l'accueil                                          | ex-`orbit-rule`                                                     |
-| `components/project-list/`                | la liste de tous les projets, filtrable par famille                                   | ex-`project-index`                                                  |
-| `components/project-preview/`             | l'aperçu d'un projet vedette                                                          | inchangé                                                            |
-| `components/project-detail/`              | la fiche d'un projet, chapitre par chapitre                                           | ex-`project-sheet`                                                  |
+| Unité                                         | But                                                                                   | D'où                                                                |
+| --------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `data/projects/*.data.ts`, `projects.data.ts` | le contenu, un fichier par projet ; l'ordre est le rang                               | inchangé                                                            |
+| `models/project.model.ts`                     | les formes d'un projet                                                                | sans `ProjectWithFacts`                                             |
+| `models/project-family.model.ts`              | `ProjectFamily`, `FAMILIES`, `FamilyFilter`                                           | sorti d'un composant, typé partout                                  |
+| `models/project-detail.model.ts`              | la fiche et ses chapitres                                                             | ex-`project-sheet.model` ; « approach » devient « chapter » partout |
+| `rules/ranking.rules.ts`                      | `rank(projects, featuredCount)` : rang, numéro, vedette                               | sorti du manager ; les tests l'utilisent au lieu de le recopier     |
+| `rules/project-labels.rules.ts`               | les libellés tirés d'un projet : ligne, position, niveau de preuve, titre de chapitre | reçoit `proofLevelLabel` et `chapterTitle` du manager               |
+| `services/projects-repository.service.ts`     | lire le catalogue                                                                     | inchangé                                                            |
+| `states/projects/*`                           | le catalogue dans la langue courante                                                  | sans la chaîne `reset`                                              |
+| `components/featured-bar/`                    | la barre des projets vedettes sous l'accueil                                          | ex-`orbit-rule`                                                     |
+| `components/project-list/`                    | la liste de tous les projets, filtrable par famille                                   | ex-`project-index`                                                  |
+| `components/project-preview/`                 | l'aperçu d'un projet vedette                                                          | inchangé                                                            |
+| `components/project-detail/`                  | la fiche d'un projet, chapitre par chapitre                                           | ex-`project-sheet`                                                  |
+| `components/project-chapter/`                 | un chapitre de la fiche : paragraphes, puces, figure                                  | sorti de la fiche, pour sa complexité                               |
 
 **`ProjectsManager`**. But : donner aux écrans le catalogue dans la langue
 courante. Contrat : `projects`, `ranked`, `featured`, `familyCounts`,
-`find(slug)`, `detailOf(slug)`, `nextOf(slug)`, `isFeatured(slug)`, `load()`.
+`find(slug)`, `findIn(slug, lang)`, `detailOf(slug)`, `nextOf(slug)`,
+`isFeatured(slug)`, `load()`. `findIn` sert les têtes de page, qui parlent la
+langue de l'adresse visée avant que la langue courante n'ait changé.
 Il perd le classement (une règle pure), les libellés (de la présentation),
 `factsOf`, `isLoading`, `isError`, `reset`. Le nombre de vedettes n'a plus
 qu'une source, `FEATURED`.
@@ -440,7 +498,7 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
   `PlanetButtonsComponent` (les noms accessibles portent les textes du
   bureau) sur l'accueil et l'index, et fournit `SCENE_SURROUNDINGS` avec
   `SceneSurroundingsService`, qui lit `LayoutAnchorsService` et traduit les
-  rôles d'ancre (`head`, `rule`, `sheet`, `preview`) en rôles de scène.
+  rôles d'ancre (`SceneAnchorKind`) en rôles de scène.
 
   La page fait la correspondance `Project` → `Planet` par un `computed` ; la
   traduction slug ↔ rang est interne à la scène. Le clic qui termine un
@@ -503,17 +561,18 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 - `components/about-window/` : la fenêtre « à propos », section par section
   (« part » devient « section »).
 - `data/contact.data.ts` : les liens de contact (ex-`app.contact.ts`).
-- `i18n/profile-texts.port.ts` : sa tranche de textes (sortie de `PAGES_TEXTS`).
+- `models/contact.model.ts` : la forme d'une adresse de contact.
+- `ports/profile-texts.port.ts` : sa tranche de textes (`about`, `contact`).
 
 ### 4.7 `i18n/`
 
-- `catalog.model.ts` : `Catalog`, composé des tranches des features et de
-  `AppTexts` (têtes de page, lien d'évitement, libellés de navigation).
-  `PagesTexts` disparaît : ses morceaux vont à leur feature.
+- `catalog.model.ts` : `Catalog`, composé des tranches des librairies et des
+  features, et de `PagesTexts` : les têtes de page, le lien d'évitement, la
+  navigation et les noms des langues.
 - `catalog-loader.service.ts` `CatalogLoaderService` (ex-`Catalogs`) :
   `ensure(lang)`, `current`, `of(lang)`.
 - `i18n.provider.ts` : `provideI18n()` fournit les tranches et charge le
-  premier catalogue. Il ne fournit plus `LINKS`.
+  premier catalogue ; il répond aussi à `LINKS`.
 - `catalog.guard.ts` : charge le catalogue de l'adresse visée, sans rien
   écrire d'autre.
 - `paths.data.ts` : la table des adresses de chaque vue, par langue.
@@ -537,7 +596,7 @@ français quand les resolvers tournent.
 
 - `station-projects.binding.ts` disparaît. La scène traduit elle-même slug
   et rang, le filtre est typé, les relais tombent. Il reste deux
-  correspondances, des `computed` de la page : `Project` → `SceneBody`, et
+  correspondances, des `computed` de la page : `Project` → `Planet`, et
   « l'adresse désigne-t-elle une fiche qui existe ».
 - Échap passe par un `host` de la page, plus par un écouteur global.
 - La pile des fenêtres suit la vue par un `linkedSignal` posé **dans la
@@ -549,134 +608,103 @@ dont c'est le rôle, qui déclare la vue au bureau.
 
 ### 4.9 La racine
 
-- `app.component.ts`, `app.config.ts`, `app.config.server.ts`,
-  `app.routes.ts`, `app.routes.server.ts`.
-- `app.links.ts` : `provideLinks()` répond au port `LINKS` avec
-  `i18n/paths.rules`.
-- `app.site.ts` : `provideSite()` répond au jeton `SITE`.
+`app.component.ts`, `app.config.ts`, `app.config.server.ts`, `app.routes.ts`,
+`app.routes.server.ts`. Chaque route charge `DesktopRouteComponent`, déclare
+sa vue dans `data` et ses têtes par le resolver `page-head`.
 
 ### 4.10 `src/testing/`
 
-- `provideTexts` réutilise `provideI18n` avec les catalogues chargés, et
-  `provideLinks`, au lieu de recopier leur câblage.
-- `fake-managers.ts` devient `project-fixtures.ts` : des données d'exemple
-  classées par la vraie `rank()`.
+`fixtures/` et `doubles/`, décrits au §3.5.
 
-## 5. Arborescence cible
+## 5. Arborescence
+
+Le dossier et ses fichiers source (hors specs et barrels), tels que
+`check-structure.mjs --strict` les tient.
 
 ```
 src/app/
-  app.component.ts  app.config.ts  app.config.server.ts
-  app.routes.ts  app.routes.server.ts  app.links.ts  app.site.ts
-
-  core/
-    services/
-      browser/     browser-window · media-preferences · clock · page-visibility ·
-                   element-observer · document-styles · cursor · canvas-contexts
-      head/        document-head.service
-      i18n/        locale.service
-      presence/    user-presence.service
-      errors/      console-error-handler.service
-    strategies/    route-head.strategy
-    ports/         site.port
-    models/        lang.model
-    rules/         localize.rules · draft.rules
-    helpers/       format.helper · vector.helper · easing.helper · random.helper
-
-  shared/ui/
-    components/    window/ · segmented/ · social-links/ · language-switch/ · main-nav/
-    directives/    draggable · fit-height · remember-scroll · stacked-window ·
-                   bottom-edge-variable · layout-anchor · view-heading
-    services/      scroll-memory · window-stack · layout-anchors · view-focus
-    signals/       element-size.signal
-    models/        window · segmented · social-link · site-nav · entrance
-    data/          social-icons.data
-    ports/         shared-texts.port
-
-  shared/space-scene/
-    components/    space-scene/
-    directives/    turn-gesture · scene-target
-    services/      scene-targets.service
-    ports/         scene-surroundings.port
-    models/        scene · scene-layout · scene-constants
-    rules/         scene-state · scene-frame · scene-layout · panel-veil ·
-                   scene-bodies · canvas-resolution
-                   camera/   camera-frames · framing · pointer · projection ·
-                             traveling
-                   matter/   grain-reserve · matter-light
-                   planets/  planet-focus · planet-spacing · label-placement
-                   sky/      star-field · comets · constellations
-    engine/        space-scene.engine
-                   motions/    camera · clock · grains · scene · star-flow ·
-                               turntable
-                   renderers/  grains · orbits · planets · planet-labels · scene
-                               sky/  sky · star-sky · constellations · comets
-
-  features/
-    common/
-      ports/       links.port
-      models/      scene-anchors.model
-    projects/
-      components/  featured-bar/ · project-list/ · project-preview/ · project-detail/
-      services/    projects-repository.service
-      states/      projects/
-      ports/       projects-texts.port · featured-count.port
-      rules/       ranking.rules · project-labels.rules
-      models/      project · project-family · project-detail
-      data/        projects.data · projects/<un fichier par projet>.data
-    desktop/
-      components/  desktop-scene/ · planet-buttons/ · intro-card/ · home-title/ ·
-                   not-found-window/ · animation-toggle/
-      services/    home-reveal.service · featured-tour.service ·
-                   scene-surroundings.service
-      states/      desktop/ · animation/
-      ports/       desktop-texts.port
-      rules/       view.rules · scene-direction.rules
-      models/      desktop.model
-    profile/
-      components/  about-window/
-      ports/       profile-texts.port
-      data/        contact.data
-
-  i18n/
-    services/      catalog-loader.service
-    providers/     i18n.provider
-    guards/        catalog.guard
-    models/        catalog.model
-    rules/         paths.rules
-    data/          paths.data · fr.data · en.data
-
-  pages/
-    desktop/       desktop-page.component.* · desktop-route.component.ts
-    workbench/     workbench-page.component.*
-    resolvers/     page-head.resolver
+  (racine)                                     app.component · app.config · app.config.server · app.routes · app.routes.server
+  core/helpers/                                angle.helper · easing.helper · event.helper · format.helper · number.helper · random.helper
+  core/models/                                 lang.model
+  core/rules/                                  draft.rules · localize.rules
+  core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
+  core/services/errors/                        console-error-handler.service
+  core/services/head/                          document-head.service
+  core/services/i18n/                          locale.service
+  core/services/presence/                      user-presence.service
+  core/strategies/                             route-head.strategy
+  features/common/models/                      scene-anchors.model
+  features/common/ports/                       links.port
+  features/desktop/components/animation-toggle/ animation-toggle.component
+  features/desktop/components/desktop-scene/   desktop-scene.component
+  features/desktop/components/home-title/      home-title.component
+  features/desktop/components/intro-card/      intro-card.component
+  features/desktop/components/not-found-window/ not-found-window.component
+  features/desktop/components/planet-buttons/  planet-buttons.component
+  features/desktop/models/                     desktop-ids.model · desktop.model
+  features/desktop/ports/                      desktop-texts.port
+  features/desktop/rules/                      scene-direction.rules · view.rules
+  features/desktop/services/                   featured-tour.service · home-reveal.service · scene-surroundings.service
+  features/desktop/states/animation/           animation.action · animation.manager · animation.state · animation.updater
+  features/desktop/states/desktop/             desktop.action · desktop.effect · desktop.manager · desktop.state · desktop.updater
+  features/profile/components/about-window/    about-window.component
+  features/profile/data/                       contact.data
+  features/profile/models/                     contact.model
+  features/profile/ports/                      profile-texts.port
+  features/projects/components/featured-bar/   featured-bar.component
+  features/projects/components/project-chapter/ project-chapter.component
+  features/projects/components/project-detail/ project-detail.component
+  features/projects/components/project-list/   project-list.component
+  features/projects/components/project-preview/ project-preview.component
+  features/projects/data/                      projects.data
+  features/projects/data/projects/             bkone.data · ngx-statewise.data · skyted-app.data · skyted-companion.data · skyted-voice.data · speakey.data · template-dotnet.data
+  features/projects/models/                    project-catalog.model · project-detail.model · project-family.model · project.model
+  features/projects/ports/                     projects-texts.port
+  features/projects/rules/                     project-labels.rules · ranking.rules
+  features/projects/services/                  projects-repository.service
+  features/projects/states/projects/           projects.action · projects.effect · projects.manager · projects.state · projects.updater
+  i18n/data/                                   en.data · fr.data · paths.data
+  i18n/guards/                                 catalog.guard
+  i18n/models/                                 catalog.model
+  i18n/providers/                              i18n.provider
+  i18n/rules/                                  paths.rules
+  i18n/services/                               catalog-loader.service
+  pages/desktop/                               desktop-page.component · desktop-route.component
+  pages/resolvers/                             page-head.resolver
+  pages/workbench/                             workbench-page.component
+  shared/space-scene/components/space-scene/   space-scene.component
+  shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
+  shared/space-scene/engine/                   space-scene.engine
+  shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · star-flow.motion · turntable.motion
+  shared/space-scene/engine/renderers/         grains.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
+  shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · sky.renderer · star-sky.renderer
+  shared/space-scene/models/                   scene-constants.model · scene-layout.model · scene.model
+  shared/space-scene/ports/                    scene-surroundings.port
+  shared/space-scene/rules/                    canvas-resolution.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
+  shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · pointer.rules · projection.rules · traveling.rules
+  shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
+  shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules
+  shared/space-scene/rules/sky/                comets.rules · constellations.rules · figure-label.rules · star-field.rules
+  shared/space-scene/services/                 animated-canvas.service · scene-targets.service
+  shared/ui/components/language-switch/        language-switch.component
+  shared/ui/components/main-nav/               main-nav.component
+  shared/ui/components/segmented/              segmented.component
+  shared/ui/components/social-links/           social-links.component
+  shared/ui/data/                              social-icons.data
+  shared/ui/directives/                        bottom-edge-variable.directive · layout-anchor.directive · view-heading.directive
+  shared/ui/models/                            element-size.model · entrance.model · language-item.model · navigation-item.model · segmented.model · social-link.model
+  shared/ui/ports/                             shared-texts.port
+  shared/ui/services/                          layout-anchors.service · view-focus.service
+  shared/ui/signals/                           element-size.signal
+  shared/windows/components/window/            window.component
+  shared/windows/directives/                   draggable.directive · fit-height.directive · remember-scroll.directive · stacked-window.directive
+  shared/windows/models/                       window.model
+  shared/windows/ports/                        window-texts.port
+  shared/windows/services/                     scroll-memory.service · window-stack.service
 ```
 
-Les contenus exacts du moteur (`engine/`, `rules/scene/`) se précisent
-méthode par méthode à l'étape du moteur ; leur place, elle, est fixée.
+## 6. Comment on en est arrivé là
 
-## 6. L'ordre de migration
-
-Chaque étape est une PR, `npm run check` vert à chaque commit.
-
-1. **Lint et garde-fous** (étape 1 de `phase-3.md`) : zones `i18n` et
-   racine, `--max-warnings 0`, règles Sonar, et `check-structure.mjs` qui
-   tient §3. Le script entre en mode rapport : il liste les écarts de
-   l'arborescence actuelle sans bloquer, et passe en erreur à la fin de
-   l'étape 3, quand l'arborescence est en place.
-2. **Golden étendu** (étape 5 de `phase-3.md`, avancée) : ses empreintes sont
-   prises avant tout ce qui touche la scène ou son accès au navigateur.
-3. **Arborescence et noms** : dossiers, fichiers, sélecteurs et classes, sans
-   changer aucun comportement. Dans le même commit que chaque renommage :
-   `scripts/check-prerender.mjs`, qui vérifie en plus que chaque sélecteur
-   qu'une page ne doit pas contenir apparaît sur une autre ;
-   `src/integration/*.spec.ts` ; `FEATURES` dans `eslint.config.js` ;
-   `CLAUDE.md` et le message du lint sur les globales.
-4. **Découpages** : `core/browser`, la fenêtre, la pile, la scène (hors
-   moteur), l'état du bureau, `ProjectsManager`, le binding.
-5. **Angular 22** : la langue dérivée, les têtes de page
-   dans la langue visée (avec un spec `RouterTestingHarness` : changer de
-   langue donne le titre dans la nouvelle langue).
-6. **Clean code** : commentaires, code mort, doublons, valeurs en dur.
-7. **Moteur** (D11).
-8. **Documentation** : `passation-showcase.md` rejoint ce document.
+L'organisation a été conçue avant le code, puis construite étape par étape
+(`docs/audit/phase-3.md`, décisions D7 à D21). Ce document décrit le code
+livré ; ce qui s'en écarte est un défaut à corriger ici ou dans le code.

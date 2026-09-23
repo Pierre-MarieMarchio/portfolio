@@ -80,5 +80,5 @@ commit. Ordre suivi (D16) : 0, 2, 7, 1, puis 3 à 6 et 8.
 - [ ] **6. `refactor(clean)`** : commentaires retirés (leurs raisons au
       journal), code mort, doublons, valeurs en dur.
 - [x] **7. `refactor(object)`**, en plusieurs PR (D11).
-- [ ] **8. `docs(architecture)`** : `passation-showcase.md` rejoint
+- [x] **8. `docs(architecture)`** : `passation-showcase.md` rejoint
       `organisation.md`.

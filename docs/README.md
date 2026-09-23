@@ -7,8 +7,10 @@ documents de référence dont elle découle.
 ```
 docs/
   architecture/
-    passation-showcase.md     la référence d'architecture : couches, loi de
-                              dépendance, ngx-statewise, SSR, outillage
+    organisation.md           la référence d'architecture : couches, loi de
+                              dépendance, ngx-statewise, nomenclature, fiches
+    decisions.md              le journal des décisions (D1 à D21)
+    raisons/                  le pourquoi du code, unité par unité (D21)
   contenu.md                  ajouter un projet, changer un texte : le guide
   audit/                      l'audit du 23 septembre 2026 et le plan qui en
                               découle (README.md), avec ses rapports
@@ -29,7 +31,7 @@ docs/
 
 | Question                                | Document                                                                   |
 | --------------------------------------- | -------------------------------------------------------------------------- |
-| Où ranger un fichier, qui importe quoi  | `architecture/passation-showcase.md`                                       |
+| Où ranger un fichier, qui importe quoi  | `architecture/organisation.md`                                             |
 | À quoi ressemble et se comporte le site | `maquette/passation-la-station.md`, et l'export `.dc.html` en cas de doute |
 | Dans quel ordre implémenter la maquette | `maquette/decoupage-angular.md` (§4)                                       |
 

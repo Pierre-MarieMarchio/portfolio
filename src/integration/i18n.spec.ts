@@ -58,11 +58,6 @@ const mount = async () => {
 const href = (selector: string) =>
   document.head.querySelector(selector)?.getAttribute('href');
 
-/**
- * The mechanism under test: the address says the language (D3, D4), and
- * switching is a navigation to the same view at its other address. The real
- * routes, the real catalogues loaded as chunks, the real station.
- */
 describe('i18n', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
@@ -92,7 +87,6 @@ describe('i18n', () => {
     );
   });
 
-  /** The acceptance criterion: the switch loses nothing the reader set up. */
   it('keeps the station as it was across the switch', async () => {
     const { go, station } = await mount();
     await go('/projet/ngx-statewise');
@@ -134,11 +128,6 @@ describe('i18n', () => {
     expect(href('link[hreflang="x-default"]')).toMatch(/\/a-propos$/);
   });
 
-  /**
-   * No text left written in a template: every visible word and every
-   * accessible name of an English page is English. French is recognised by
-   * its accents, the one thing no English text of the site carries.
-   */
   it.each([
     '/en',
     '/en/projects',

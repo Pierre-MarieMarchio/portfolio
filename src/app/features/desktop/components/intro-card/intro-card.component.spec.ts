@@ -3,11 +3,6 @@ import { TestBed } from '@angular/core/testing';
 import { IntroCardComponent } from './intro-card.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
-/**
- * A media query list that never changes: the reduced-motion truth is fixed
- * for the lifetime of a test, so a static answer is enough and keeps the
- * listener side (`addEventListener`) a no-op.
- */
 const quietMedia =
   (isMatching: (query: string) => boolean) => (query: string) => ({
     matches: isMatching(query),
@@ -18,9 +13,6 @@ const quietMedia =
 const mount = async (
   options: { platform?: string; reducedMotion?: boolean } = {},
 ) => {
-  // jsdom has no matchMedia of its own: every mount stubs it, reduced
-  // motion aside, exactly like the other components that read it through
-  // MediaPreferencesService.
   vi.stubGlobal(
     'matchMedia',
     quietMedia(
@@ -28,8 +20,6 @@ const mount = async (
         query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
     ),
   );
-  // The global stylesheet is not loaded here: the token the card reads
-  // its length from is set by hand, as `_tokens.scss` sets it.
   document.documentElement.style.setProperty('--intro-duration', '5600ms');
   TestBed.configureTestingModule({
     imports: [IntroCardComponent],
@@ -53,9 +43,6 @@ describe('IntroCardComponent', () => {
   });
 
   it('shows a hidden card with the identity, the role and the brand, in order', async () => {
-    // Only setTimeout/clearTimeout are faked: Angular's zoneless scheduler
-    // relies on microtasks, and requestAnimationFrame is untouched, so
-    // fixture.whenStable() keeps working normally underneath.
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const { host } = await mount();
     const card = host.querySelector('.card');

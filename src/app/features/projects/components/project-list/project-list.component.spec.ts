@@ -18,8 +18,6 @@ const rows = (host: HTMLElement) => [
 ];
 
 describe('ProjectIndexComponent', () => {
-  // Two professional, three personal, each with distinct facts so a row can
-  // be told from another by its own text.
   const FAMILIES = [
     'professional',
     'personal',
@@ -108,7 +106,6 @@ describe('ProjectIndexComponent', () => {
       'Afficher les projets faits en entreprise',
       'Afficher les projets personnels',
     ]);
-    // 'personal' is the input: only that button is pressed.
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
     ).toEqual(['false', 'false', 'true']);
@@ -129,7 +126,6 @@ describe('ProjectIndexComponent', () => {
     await fixture.whenStable();
 
     expect(emitted).toEqual(['professional']);
-    // The component does not decide its own filter: the input still says 'all'.
     const toolbarAfter = host.querySelector(
       '[aria-label="Filtrer les projets"]',
     );
@@ -185,7 +181,6 @@ describe('ProjectIndexComponent', () => {
       (row) => row.querySelector('.title')?.textContent,
     );
 
-    // proj-b, proj-d, proj-e are personal, ranked 2, 4, 5 in the full list.
     expect(numbers).toEqual(['02', '04', '05']);
     expect(
       titles?.every((title) => title && !title.includes('Project A')),
@@ -296,8 +291,6 @@ describe('ProjectIndexComponent', () => {
 
   it('counts the two families in the footer', async () => {
     const { host } = await mount();
-    // The `.window` footer slot; look up the whole host since no other
-    // element carries this exact wording.
     expect(host.textContent).toContain('02 en entreprise · 03 personnels');
   });
 

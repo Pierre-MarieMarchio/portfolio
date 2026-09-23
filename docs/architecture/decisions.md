@@ -516,3 +516,32 @@ contrôle vide sans qu'il échoue.
 
 **Raison.** L'étape 3 déplace et renomme sans changer de comportement ; ce
 qui demande un nouveau contrat attend l'étape dont c'est l'objet.
+
+## 2026-09-23 — `shared/` tient des librairies : ui, windows, space-scene (D20)
+
+**Décision.** `shared/` n'est plus un dossier d'interface : il tient des
+librairies, chacune reprenable par une autre application avec un peu de
+travail. Chacune est une zone du lint (`SHARED_LIBS`, comparé au disque comme
+`FEATURES`) qui n'importe que `core`, ni le portfolio ni une autre librairie.
+
+- `shared/ui/` : les composants d'interface sans métier.
+- `shared/windows/` : le système de fenêtres, c'est-à-dire la fenêtre, son
+  glissement, sa hauteur, sa mémoire de défilement, la pile et l'ordre des
+  fenêtres, et ses textes derrière son propre port.
+- `shared/space-scene/` : la scène spatiale en canvas, c'est-à-dire le trou
+  noir, le disque et ses grains, le ciel, la caméra, la projection et le
+  tourne-disque, avec des corps en orbite et des figures nommées. Son API
+  parle de cadrages, de corps et de mise en avant, jamais de vues du site, de
+  projets ni de chapitres.
+
+`features/desktop` garde la chorégraphie : quelle vue donne quel cadrage,
+quelles planètes sont en vedette ou visées, les textes, et les boutons des
+planètes s'ils portent du métier.
+
+**Raison.** Le moteur mêlait une scène générique et les mots du portfolio
+(`view: 'sheet'`, `featured`, `chapter`, `part`). Les séparer rend chacune
+des deux lisible sans l'autre. La fenêtre est un système complet, qui n'a rien
+à faire au milieu des petits composants d'interface.
+
+**Écarté.** Sortir aussi la mécanique i18n : elle est soudée au type
+`Catalog` de l'application, et aucun second utilisateur ne la demande.

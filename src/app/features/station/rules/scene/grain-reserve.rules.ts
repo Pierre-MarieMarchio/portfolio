@@ -1,4 +1,9 @@
-import { gaussian, TAU } from '../../components/object/engine/math';
+import {
+  clamp,
+  finiteOr,
+  gaussian,
+  TAU,
+} from '../../components/object/engine/math';
 import { Grain } from '../../components/object/engine/scene';
 
 interface GrainShape {
@@ -8,6 +13,27 @@ interface GrainShape {
   readonly w: number;
   readonly g: number;
 }
+
+/** The reserve holds 1.9 times what is shown at rest; zooming lights more. */
+export const RESERVE = 1.9;
+
+const PART_BASE = 1 / RESERVE;
+
+/**
+ * Dynamic density: closer, the same matter spreads over more pixels and
+ * the grain thins out, so more is drawn from the reserve in proportion:
+ * the APPARENT density stays constant.
+ */
+export const litShare = (
+  homeScale: number,
+  scale: number,
+  grow: number,
+): number => {
+  const s0 = homeScale || 0.42;
+  const zoom = clamp(finiteOr(scale, s0) / s0, 1, 3);
+  const shareZoom = Math.min(1, PART_BASE * (0.62 + 0.38 * zoom * zoom));
+  return Math.min(shareZoom, 0.03 + 1.7 * grow);
+};
 
 /**
  * A RESERVE of `n` points, not the final scene: the drawing takes a share

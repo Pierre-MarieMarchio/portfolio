@@ -12,8 +12,8 @@ import { TRAVELING_END } from './traveling';
 const seeded = (seed: number): (() => number) => {
   let state = seed;
   return () => {
-    state = (state * 1664525 + 1013904223) % 4294967296;
-    return state / 4294967296;
+    state = (state * 1_664_525 + 1_013_904_223) % 4_294_967_296;
+    return state / 4_294_967_296;
   };
 };
 
@@ -26,20 +26,21 @@ const homeOf = (w: number, h: number): { frame: Frame; freeHalf: number } => {
   };
 };
 
-describe('fitOrbits', () => {
-  const fitted = (w: number, h: number): number[] => {
-    const { frame, freeHalf } = homeOf(w, h);
-    const orbits = placeOrbits(7);
-    fitOrbits(orbits, { w, h, dpr: 1 }, frame, freeHalf);
-    return orbits.map((orbit) => orbit.rb);
-  };
-  /** The room the outer orbit has across, in object radii. */
-  const room = (w: number, h: number): number => {
-    const { frame } = homeOf(w, h);
-    const cx = w * frame.x;
-    return (Math.min(cx, w - cx) - 74) / referenceRadius(w, h, frame.s);
-  };
+const fitted = (w: number, h: number): number[] => {
+  const { frame, freeHalf } = homeOf(w, h);
+  const orbits = placeOrbits(7);
+  fitOrbits(orbits, { w, h, dpr: 1 }, frame, freeHalf);
+  return orbits.map((orbit) => orbit.rb);
+};
 
+/** The room the outer orbit has across, in object radii. */
+const room = (w: number, h: number): number => {
+  const { frame } = homeOf(w, h);
+  const cx = w * frame.x;
+  return (Math.min(cx, w - cx) - 74) / referenceRadius(w, h, frame.s);
+};
+
+describe('fitOrbits', () => {
   it('keeps the orbits well out of the disk where there is room', () => {
     const outer = Math.max(...fitted(1280, 800));
 
@@ -85,19 +86,23 @@ const INPUTS: EngineInputs = {
   partLabels: ['A', 'B', 'C', 'D'],
 };
 
+const ignored = (): void => {};
+
 /** A context that records what it is asked to write, and nothing else. */
 const writer = (texts: string[]): CanvasRenderingContext2D =>
   new Proxy(
     {},
     {
-      get: (_object, property: string) =>
-        property === 'fillText'
-          ? (text: string) => {
-              texts.push(text);
-            }
-          : property.startsWith('create')
-            ? () => ({ addColorStop: () => undefined })
-            : () => undefined,
+      get: (_object, property: string) => {
+        if (property === 'fillText') {
+          return (text: string) => {
+            texts.push(text);
+          };
+        }
+        return property.startsWith('create')
+          ? () => ({ addColorStop: ignored })
+          : ignored;
+      },
       set: () => true,
     },
   ) as CanvasRenderingContext2D;
@@ -120,8 +125,7 @@ const mount = (
       now: () => clock,
       hidden: () => false,
     },
-    writer(texts),
-    writer(texts),
+    { matter: writer(texts), sky: writer(texts) },
     {
       rnd: seeded(3),
       density: 100,
@@ -163,7 +167,8 @@ describe('ObjectEngine, fixed', () => {
     engine.setInputs({ ...INPUTS, reduced: false });
     step(100);
 
-    const time = (engine as unknown as { time: number }).time;
+    const time = (engine as unknown as { motion: { clock: { time: number } } })
+      .motion.clock.time;
     expect(time).toBeGreaterThanOrEqual(TRAVELING_END);
   });
 
@@ -171,7 +176,8 @@ describe('ObjectEngine, fixed', () => {
     const { engine, step } = mount();
     step(1000);
 
-    const time = (engine as unknown as { time: number }).time;
+    const time = (engine as unknown as { motion: { clock: { time: number } } })
+      .motion.clock.time;
     expect(time).toBeLessThan(TRAVELING_END);
   });
 
@@ -187,7 +193,7 @@ describe('ObjectEngine, fixed', () => {
     const before = view.orbits.at(-1)?.rb;
     const target = view.target.bind(engine);
     view.target = () => {
-      seen.push(view.orbits.at(-1)?.rb ?? Number.NaN);
+      seen.push(view.orbits.at(-1)?.rb ?? NaN);
       return target();
     };
 
@@ -205,7 +211,7 @@ describe('ObjectEngine, fixed', () => {
 
     // The aim read radii fitted to the new room, not the last frame's.
     expect(seen[0]).not.toBe(before);
-    expect(seen[0]).toBeCloseTo(view.orbits.at(-1)?.rb ?? Number.NaN, 1);
+    expect(seen[0]).toBeCloseTo(view.orbits.at(-1)?.rb ?? NaN, 1);
   });
 
   it('bounds the part by the figures there are, whatever it is asked', () => {

@@ -132,13 +132,13 @@ describe('ObjectEngine, the scenes the first golden left out', () => {
     drawn['paused'] = scene.print(2000);
     scene.engine.setVisible(false);
     drawn['hidden'] = scene.print(1000);
-    const scheduledWhileHidden = scene.scheduled();
+    const wasScheduledWhileHidden = scene.scheduled();
     scene.engine.setVisible(true);
     drawn['shown again'] = scene.print(1000);
     scene.set({ paused: false });
     drawn['resumed'] = scene.print(2000);
 
-    expect(scheduledWhileHidden).toBe(false);
+    expect(wasScheduledWhileHidden).toBe(false);
     expect(drawn).toEqual(GOLDEN.pausedAndHidden);
   }, 60_000);
 

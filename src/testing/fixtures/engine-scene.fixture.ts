@@ -90,8 +90,10 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
       now: () => clock,
       hidden: () => false,
     },
-    recordingContext('matter', log),
-    setup.withSky ? recordingContext('sky', log) : null,
+    {
+      matter: recordingContext('matter', log),
+      sky: setup.withSky ? recordingContext('sky', log) : null,
+    },
     {
       rnd: seededRandom(7),
       density: 600,

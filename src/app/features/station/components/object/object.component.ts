@@ -229,8 +229,7 @@ export class ObjectComponent {
         now: () => this.browser.now(),
         hidden: () => this.browser.isHidden(),
       },
-      ctx,
-      skyCtx,
+      { matter: ctx, sky: skyCtx },
       {
         rnd: Math.random,
         density: DENSITY,

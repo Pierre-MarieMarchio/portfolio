@@ -5,6 +5,10 @@ import { InjectionToken, Signal } from '@angular/core';
  * names it draws in the sky for the parts of "about".
  */
 export interface DesktopTexts {
+  readonly animation: {
+    readonly pause: string;
+    readonly resume: string;
+  };
   readonly object: {
     /** A planet of the index: it selects its row. */
     readonly select: (number: string, title: string) => string;

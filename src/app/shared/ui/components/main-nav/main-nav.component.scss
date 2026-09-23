@@ -1,0 +1,64 @@
+@use 'mixins/controls';
+@use 'mixins/motion';
+
+:host {
+  display: contents;
+}
+
+ul {
+  display: flex;
+  gap: 2px;
+}
+
+nav a {
+  @include controls.tab;
+
+  display: inline-flex;
+  padding: 5px var(--s2);
+  text-decoration: none;
+  transition:
+    color var(--t),
+    border-color var(--t),
+    background var(--t);
+
+  &:hover {
+    color: var(--ink);
+    background: var(--vitre-2);
+  }
+
+  &[data-active='true'] {
+    background: var(--vitre-2);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+}
+
+nav {
+  animation: wait 0s var(--arrival-at) backwards;
+}
+
+:host([data-arrival='held']) nav {
+  animation: none;
+  display: none;
+}
+
+:host([data-arrival='shown']) nav {
+  animation: none;
+}
+
+@keyframes wait {
+  from,
+  to {
+    display: none;
+  }
+}
+
+@include motion.reduced {
+  nav {
+    animation: none;
+  }
+
+  nav a {
+    transition: none;
+  }
+}

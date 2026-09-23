@@ -3,7 +3,7 @@
   <app-segmented
     label="Scénario"
     [items]="scenarioItems()"
-    (chosen)="choose($event)"
+    (valueChange)="choose($event)"
   />
 </div>
 
@@ -51,7 +51,7 @@
             toolbar
             label="Familles"
             [items]="familyItems()"
-            (chosen)="family.set($event)"
+            (valueChange)="family.set($event)"
           />
           <div class="columns" aria-hidden="true">
             <span>Réf</span><span>Colonne</span><span>Colonne</span>

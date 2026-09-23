@@ -1,88 +1,65 @@
-import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { LineAnchorDirective } from '../directives/line-anchor.directive';
-import { PanelAnchorDirective } from '../directives/panel-anchor.directive';
-import { PanelRole, LayoutAnchorsService } from './layout-anchors.service';
+import { LayoutAnchorsService } from './layout-anchors.service';
 
-@Component({
-  imports: [LineAnchorDirective, PanelAnchorDirective],
-  template: `
-    <header appPanelAnchor="head"></header>
-    @if (withRule()) {
-      <div id="rule" [appPanelAnchor]="role()">
-        <button appLineAnchor id="first">1</button>
-        <button appLineAnchor id="second">2</button>
-      </div>
-    }
-    <aside appPanelAnchor></aside>
-  `,
-})
-class Page {
-  public readonly withRule = signal(true);
-  public readonly role = signal<PanelRole>('rule');
-}
-
-const mount = async () => {
-  TestBed.configureTestingModule({
-    imports: [Page],
+const elements = (count: number): HTMLElement[] => {
+  const all = Array.from({ length: count }, (_, index) => {
+    const element = document.createElement('div');
+    element.id = `anchor-${String(index)}`;
+    return element;
   });
-  const fixture = TestBed.createComponent(Page);
-  await fixture.whenStable();
-  const registry = TestBed.inject(LayoutAnchorsService);
-  return {
-    fixture,
-    registry,
-    host: fixture.nativeElement as HTMLElement,
-    roles: () => registry.panels().map((panel) => panel.role()),
-  };
+  document.body.append(...all);
+  return all;
 };
 
-/** The object reads what the templates declared, and nothing else. */
-describe('ObjectRegistry', () => {
-  it('signs in every declared panel, in document order, with its role', async () => {
-    const { roles, registry, host } = await mount();
+const ids = (list: readonly HTMLElement[]): string[] =>
+  list.map((element) => element.id);
 
-    expect(roles()).toEqual(['head', 'rule', '']);
-    expect(registry.panels().map((panel) => panel.element)).toEqual([
-      host.querySelector('header'),
-      host.querySelector('#rule'),
-      host.querySelector('aside'),
-    ]);
+describe('LayoutAnchorsService', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    document.body.replaceChildren();
   });
 
-  /** The grab reads the attribute to leave a panel's gesture to the panel. */
-  it('keeps data-panel on the element, empty for a panel with no role', async () => {
-    const { host } = await mount();
+  it('lists the elements of one kind in document order, whatever order they signed in', () => {
+    const anchors = TestBed.inject(LayoutAnchorsService);
+    const [first, second, third] = elements(3);
+    if (!first || !second || !third) {
+      throw new Error('expected three elements');
+    }
 
-    expect(host.querySelector('header')?.dataset['panel']).toBe('head');
-    expect(host.querySelector('aside')?.dataset['panel']).toBe('');
+    anchors.register(third, 'line');
+    anchors.register(first, 'line');
+    anchors.register(second, 'line');
+
+    expect(ids(anchors.list('line'))).toEqual(ids([first, second, third]));
   });
 
-  it('reads a role that changes, without signing in again', async () => {
-    const { fixture, roles } = await mount();
+  it('keeps each kind apart', () => {
+    const anchors = TestBed.inject(LayoutAnchorsService);
+    const [head, line] = elements(2);
+    if (!head || !line) {
+      throw new Error('expected two elements');
+    }
 
-    fixture.componentInstance.role.set('preview');
-    await fixture.whenStable();
+    anchors.register(head, 'head');
+    anchors.register(line, 'line');
 
-    expect(roles()).toEqual(['head', 'preview', '']);
+    expect(ids(anchors.list('head'))).toEqual(ids([head]));
+    expect(ids(anchors.list('line'))).toEqual(ids([line]));
+    expect(anchors.list('rule')).toEqual([]);
   });
 
-  it('lists the lines in document order', async () => {
-    const { registry, host } = await mount();
+  it('forgets an element once it signs out, and only that one', () => {
+    const anchors = TestBed.inject(LayoutAnchorsService);
+    const [kept, left] = elements(2);
+    if (!kept || !left) {
+      throw new Error('expected two elements');
+    }
 
-    expect(registry.lines()).toEqual([
-      host.querySelector('#first'),
-      host.querySelector('#second'),
-    ]);
-  });
+    anchors.register(kept, 'line');
+    const leave = anchors.register(left, 'line');
+    leave();
 
-  it('forgets a panel and its lines once they leave the page', async () => {
-    const { fixture, registry, roles } = await mount();
-
-    fixture.componentInstance.withRule.set(false);
-    await fixture.whenStable();
-
-    expect(roles()).toEqual(['head', '']);
-    expect(registry.lines()).toEqual([]);
+    expect(ids(anchors.list('line'))).toEqual(ids([kept]));
   });
 });

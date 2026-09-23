@@ -14,7 +14,7 @@
       toolbar
       [label]="texts().sheet.approaches"
       [items]="chapters()"
-      (chosen)="chapterChange.emit($event)"
+      (valueChange)="chapterChange.emit($event)"
     />
     <div body>
       <header>

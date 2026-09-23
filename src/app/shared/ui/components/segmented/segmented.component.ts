@@ -26,7 +26,7 @@ export class SegmentedComponent<T> {
   /** The group's accessible name; a neutral one when the caller gives none. */
   public readonly label = input<string | null>(null);
 
-  public readonly chosen = output<T>();
+  public readonly valueChange = output<T>();
 
   private readonly texts = inject(SHARED_TEXTS);
   protected readonly name = computed(

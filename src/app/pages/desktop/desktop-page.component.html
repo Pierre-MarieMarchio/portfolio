@@ -4,14 +4,13 @@
 <main tabindex="-1" [id]="ids.main">
   <section
     class="scene"
-    appHeadBottom
     [id]="ids.home"
     [attr.aria-labelledby]="ids.homeTitle"
     [attr.data-arrival]="arrival()"
   >
     <!--
       First, behind everything: its sky sits under the void, its planets
-      above it. Every appPanelAnchor below is text the matter gives way to.
+      above it. Every layout anchor below is text the matter gives way to.
     -->
     <app-desktop-scene
       #object
@@ -40,23 +39,29 @@
       ></button>
     }
 
-    <app-page-bar
-      appPanelAnchor="head"
-      [items]="navigationItems()"
-      [current]="currentRoute()"
-      [languages]="languages()"
-      [arrival]="arrival()"
-    />
+    <div
+      class="bar"
+      appBottomEdgeVariable="--head-bottom"
+      [appLayoutAnchor]="anchor.head"
+    >
+      <app-language-switch [languages]="languages()" />
+      <span aria-hidden="true" class="rule"></span>
+      <app-main-nav
+        [items]="navigationItems()"
+        [current]="currentRoute()"
+        [arrival]="arrival()"
+      />
+    </div>
 
     @if (station.view() === 'home') {
-      <app-home-title appPanelAnchor [arrival]="arrival()" />
+      <app-home-title [appLayoutAnchor]="anchor.panel" [arrival]="arrival()" />
     }
 
     <div
       #aboutSlot
       class="slot slot--about"
       appStackedWindow="about"
-      appPanelAnchor
+      [appLayoutAnchor]="anchor.panel"
     >
       @if (station.showsAbout()) {
         <app-about-window
@@ -73,7 +78,7 @@
       #indexSlot
       class="slot slot--index"
       appStackedWindow="index"
-      appPanelAnchor
+      [appLayoutAnchor]="anchor.panel"
     >
       @if (station.showsList()) {
         <app-project-list
@@ -94,7 +99,7 @@
       #sheetSlot
       class="slot slot--sheet"
       appStackedWindow="sheet"
-      appPanelAnchor="sheet"
+      [appLayoutAnchor]="anchor.detail"
     >
       @if (isNotFound()) {
         <app-not-found-window
@@ -117,7 +122,7 @@
       #previewSlot
       class="slot slot--preview"
       appStackedWindow="preview"
-      appPanelAnchor="preview"
+      [appLayoutAnchor]="anchor.preview"
       [id]="ids.previewPanel"
     >
       @if (station.showsPreview()) {
@@ -135,7 +140,7 @@
 
     @if (showsRule()) {
       <app-featured-bar
-        appPanelAnchor="rule"
+        [appLayoutAnchor]="anchor.rule"
         [bodies]="projects.featured()"
         [controls]="ids.previewPanel"
         [hovered]="station.hovered()"
@@ -149,10 +154,11 @@
 </main>
 
 <app-social-links
-  appPanelAnchor
+  [appLayoutAnchor]="anchor.panel"
   [links]="contactLinks()"
-  [showPause]="object.animated()"
-  [paused]="animation.paused()"
   [arrival]="arrival()"
-  (pauseToggled)="animation.togglePause()"
-/>
+>
+  @if (object.animated()) {
+    <app-animation-toggle />
+  }
+</app-social-links>

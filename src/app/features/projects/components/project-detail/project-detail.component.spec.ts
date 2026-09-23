@@ -4,12 +4,13 @@ import {
   loadProjects,
   provideProjects,
   sampleEntry,
-  sampleSheet,
+  sampleDetail,
 } from '@testing/fixtures/project.fixture';
+import { ProjectEntry } from '../../models';
 import { ProjectDetailComponent } from './project-detail.component';
 
 describe('ProjectSheetComponent', () => {
-  const sheet = sampleSheet({
+  const detail = sampleDetail({
     lede: 'A short standfirst.',
     links: [{ label: 'Dépôt', href: 'https://example.test/repo' }],
     chapters: [
@@ -40,7 +41,7 @@ describe('ProjectSheetComponent', () => {
     ],
   });
 
-  /** Three ranked projects, each with its facts and the same sheet. */
+  /** Three ranked projects, each with its facts and the same detail. */
   const ENTRIES = ['a', 'b', 'c'].map((letter) =>
     sampleEntry({
       project: {
@@ -54,18 +55,21 @@ describe('ProjectSheetComponent', () => {
         stack: `Stack ${letter.toUpperCase()}`,
         context: `Context ${letter.toUpperCase()}`,
       },
-      sheet,
+      detail,
     }),
   );
 
-  const mount = async (inputs: {
-    slug: string;
-    pinned?: boolean;
-    chapter?: number;
-  }) => {
+  const mount = async (
+    inputs: {
+      slug: string;
+      pinned?: boolean;
+      chapter?: number;
+    },
+    entries: readonly ProjectEntry[] = ENTRIES,
+  ) => {
     TestBed.configureTestingModule({
       imports: [ProjectDetailComponent],
-      providers: [provideRouter([]), provideProjects(ENTRIES)],
+      providers: [provideRouter([]), provideProjects(entries)],
     });
     const manager = await loadProjects();
 
@@ -182,6 +186,19 @@ describe('ProjectSheetComponent', () => {
     );
     expect(bullet?.querySelector('.term')?.textContent?.trim()).toBe('Terme');
     expect(bullet?.textContent).toContain('Explication');
+  });
+
+  it('titles an untitled chapter with the default of its place', async () => {
+    const { host } = await mount({ slug: 'proj-a', chapter: 0 }, [
+      sampleEntry({
+        project: { slug: 'proj-a' },
+        detail: { chapters: [{ paragraphs: ['Untitled.'] }] },
+      }),
+    ]);
+
+    expect(host.querySelector('.chapter-title')?.textContent?.trim()).toBe(
+      '01 · Pourquoi ?',
+    );
   });
 
   it('draws the flow figure from its steps, loop and caption', async () => {

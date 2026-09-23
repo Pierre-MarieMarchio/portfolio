@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { SheetChapter } from '../../models';
+import { DetailChapter } from '../../models';
 
-export interface ChapterOnShow extends SheetChapter {
+export interface ChapterOnShow extends DetailChapter {
   readonly number: string;
   readonly heading: string;
 }

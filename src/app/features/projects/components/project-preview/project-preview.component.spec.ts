@@ -5,7 +5,7 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
-import { FEATURED_COUNT } from '@app/features/projects/states';
+import { FEATURED } from '@app/features/projects/states';
 import { ProjectPreviewComponent } from './project-preview.component';
 
 describe('ProjectPreviewComponent', () => {
@@ -45,7 +45,7 @@ describe('ProjectPreviewComponent', () => {
   };
 
   it('holds one more project than it features, so the limit is exercised', () => {
-    expect(ENTRIES.length).toBeGreaterThan(FEATURED_COUNT);
+    expect(ENTRIES.length).toBeGreaterThan(TestBed.inject(FEATURED));
   });
 
   it('renders nothing when the manager has no facts or project for the slug', async () => {
@@ -63,10 +63,10 @@ describe('ProjectPreviewComponent', () => {
     expect(windowEl?.querySelector('h2')?.textContent?.trim()).toBe(
       'Project Two',
     );
-    // proj-2 is the second of the featured ones, which stay FEATURED_COUNT
+    // proj-2 is the second of the featured ones, which stay FEATURED
     // even with more projects in the catalog.
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe(
-      `02 / 0${String(FEATURED_COUNT)}`,
+      `02 / 0${String(TestBed.inject(FEATURED))}`,
     );
   });
 
@@ -77,8 +77,9 @@ describe('ProjectPreviewComponent', () => {
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
 
-    const featured = NAMES.slice(0, FEATURED_COUNT);
-    expect(buttons).toHaveLength(FEATURED_COUNT);
+    const featuredCount = TestBed.inject(FEATURED);
+    const featured = NAMES.slice(0, featuredCount);
+    expect(buttons).toHaveLength(featuredCount);
     expect(buttons.map((button) => button.textContent?.trim())).toEqual(
       featured.map((_, index) => `0${String(index + 1)}`),
     );

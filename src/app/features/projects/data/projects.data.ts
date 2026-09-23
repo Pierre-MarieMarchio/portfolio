@@ -10,11 +10,11 @@ import { SPEAKEY } from './projects/speakey.data';
 /**
  * The projects, in rank order: the order is the distance from the centre in
  * the mockup, and the reading order everywhere else. Filtering never reorders.
- * The first `FEATURED_COUNT` are the featured ones.
+ * The first `FEATURED` are the featured ones.
  *
  * Each project is one file under `projects/`, holding its identity, its
- * facts and its sheet: adding one is writing that file and naming it here
- * (docs/contenu.md). Its type refuses an entry without facts or sheet.
+ * facts and its detail: adding one is writing that file and naming it here
+ * (docs/contenu.md). Its type refuses an entry without facts or detail.
  *
  * Content, not data: it ships with the site. Only the repository reads it,
  * so a remote source can replace this file without any other one noticing.

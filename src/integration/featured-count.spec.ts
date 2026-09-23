@@ -7,7 +7,7 @@ import {
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
 import { ProjectEntry } from '@app/features/projects/models';
-import { FEATURED, FEATURED_COUNT } from '@app/features/projects/states';
+import { FEATURED } from '@app/features/projects/states';
 import { DesktopSceneComponent } from '@app/features/desktop/components';
 import { SpaceSceneComponent } from '@shared/space-scene/components';
 import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
@@ -65,7 +65,7 @@ const mount = async (featured: number, total: number) => {
 
 /**
  * The mechanism under test: the number of featured projects is one value
- * (`FEATURED_COUNT`), and the home page follows it everywhere, whatever the
+ * (`FEATURED`), and the home page follows it everywhere, whatever the
  * size of the catalogue. The value is provided here through `FEATURED`,
  * the token the manager reads it from, at three and five, with three and
  * twelve projects in all.
@@ -79,7 +79,7 @@ describe('featured count', () => {
   });
 
   it('ships with four', () => {
-    expect(FEATURED_COUNT).toBe(4);
+    expect(TestBed.inject(FEATURED)).toBe(4);
   });
 
   describe.each([

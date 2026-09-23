@@ -5,8 +5,14 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
-import { ProjectEntry, SheetSource } from '@app/features/projects/models';
-import { FEATURED_COUNT } from '@app/features/projects/states';
+import {
+  DetailSource,
+  FamilyFilter,
+  ProjectEntry,
+} from '@app/features/projects/models';
+import { PROJECTS_TEXTS } from '@app/features/projects/ports';
+import { proofLevelLabel } from '@app/features/projects/rules/project-labels.rules';
+import { FEATURED } from '@app/features/projects/states';
 import { ProjectListComponent } from './project-list.component';
 
 const rows = (host: HTMLElement) => [
@@ -26,7 +32,7 @@ describe('ProjectIndexComponent', () => {
 
   const entryAt = (
     index: number,
-    sheet: Partial<SheetSource> = {},
+    detail: Partial<DetailSource> = {},
   ): ProjectEntry => {
     const slug = `proj-${'abcde'.charAt(index)}`;
     return sampleEntry({
@@ -41,7 +47,7 @@ describe('ProjectIndexComponent', () => {
         stack: `Stack ${slug}`,
         proofLevel: index % 2 === 0 ? 'public' : 'indirect',
       },
-      sheet,
+      detail,
     });
   };
 
@@ -52,7 +58,7 @@ describe('ProjectIndexComponent', () => {
       pinned?: boolean;
       selected?: string | null;
       visited?: readonly string[];
-      family?: 'all' | 'professional' | 'personal';
+      family?: FamilyFilter;
     } = {},
     entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
@@ -168,13 +174,15 @@ describe('ProjectIndexComponent', () => {
     ]);
   });
 
-  it('marks the first FEATURED_COUNT ranks as featured, and only those', async () => {
+  it('marks the first FEATURED ranks as featured, and only those', async () => {
     const { host } = await mount();
     const featured = rows(host).map((row) =>
       row.querySelector('.number')?.classList.contains('featured'),
     );
 
-    expect(featured).toEqual(ENTRIES.map((_, rank) => rank < FEATURED_COUNT));
+    expect(featured).toEqual(
+      ENTRIES.map((_, rank) => rank < TestBed.inject(FEATURED)),
+    );
   });
 
   it('filters the rows by family without renumbering them', async () => {
@@ -194,15 +202,19 @@ describe('ProjectIndexComponent', () => {
   });
 
   it('shows a row facts: stack, proof with its level label, and role', async () => {
-    const { host, manager } = await mount();
+    const { host } = await mount();
     const row = rows(host)[0];
+    const level = proofLevelLabel(
+      'public',
+      TestBed.inject(PROJECTS_TEXTS)().proofLevels,
+    );
 
     expect(row?.querySelector('.stack')?.textContent).toContain('Stack proj-a');
     const proofText = row?.querySelector('.proof')?.textContent ?? '';
     expect(proofText).toContain('Proof proj-a');
-    expect(proofText).toContain(manager.proofLevelLabel('public'));
+    expect(proofText).toContain(level);
     expect(proofText.indexOf('Proof proj-a')).toBeLessThan(
-      proofText.indexOf(manager.proofLevelLabel('public')),
+      proofText.indexOf(level),
     );
     expect(row?.querySelector('.role')?.textContent).toContain('Role proj-a');
   });

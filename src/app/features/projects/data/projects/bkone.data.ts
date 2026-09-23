@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Bk-ONE: identity, facts and sheet, in one place. */
+/** Bk-ONE: identity, facts and detail, in one place. */
 export const BKONE: ProjectEntry = {
   project: {
     slug: 'bkone',
@@ -33,7 +33,7 @@ export const BKONE: ProjectEntry = {
     stack: { fr: 'Java · flux ISO 20022', en: draft('Java · ISO 20022 flows') },
     context: 'Numerilis',
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'Un progiciel bancaire de la gamme BKLINK : il ouvre la compensation européenne aux banques sous-compensées.',
       en: draft(

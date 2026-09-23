@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Skyted App: identity, facts and sheet, in one place. */
+/** Skyted App: identity, facts and detail, in one place. */
 export const SKYTED_APP: ProjectEntry = {
   project: {
     slug: 'skyted-app',
@@ -33,7 +33,7 @@ export const SKYTED_APP: ProjectEntry = {
     stack: 'Swift · Kotlin · BLE',
     context: 'Skyted',
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'L’application compagnon du casque Skyted 320 : elle gère l’appareil, entraîne à parler bas, et affiche jusqu’où la voix porte réellement.',
       en: draft(

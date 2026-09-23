@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Template Clean Architecture .NET: identity, facts and sheet, in one place. */
+/** Template Clean Architecture .NET: identity, facts and detail, in one place. */
 export const TEMPLATE_DOTNET: ProjectEntry = {
   project: {
     slug: 'template-dotnet',
@@ -27,7 +27,7 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
     stack: '.NET 10 · EF Core · PostgreSQL',
     context: { fr: 'Personnel', en: draft('Personal') },
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'Un dépôt de départ pour une API HTTP .NET 10, pour ne pas réécrire chaque fois l’authentification, le découpage en couches et la chaîne de vérification.',
       en: draft(

@@ -55,12 +55,6 @@ import { DESKTOP_IDS } from '../../features/desktop/models/desktop-ids.model';
 import { StackedWindowDirective } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
 
-/**
- * The station: the one screen the reader never leaves. The object, the page
- * bar, the contact rail and the windows live here, above the router, which
- * only says the address. Each window shows on its own address or anywhere
- * once pinned.
- */
 @Component({
   selector: 'app-desktop-page',
   imports: [
@@ -124,7 +118,6 @@ export class DesktopPageComponent {
     },
   );
 
-  /** The same page in each language: switching is a navigation (D3). */
   protected readonly languages = computed<readonly LanguageItem[]>(() =>
     LANGS.map((lang) => ({
       code: lang.toUpperCase(),
@@ -199,7 +192,6 @@ export class DesktopPageComponent {
   private readonly previewSlot =
     viewChild.required<ElementRef<HTMLElement>>('previewSlot');
 
-  /** A sheet is a zoom of the index: "Projets" stays lit on it. */
   protected readonly currentRoute = computed(() => {
     const view = this.station.view();
     return pathOf(
@@ -208,16 +200,10 @@ export class DesktopPageComponent {
     );
   });
 
-  /** The rule gives way to the preview: one reading at a time. */
   protected readonly showsRule = computed(
     () => this.station.view() === 'home' && this.station.preview() === null,
   );
 
-  /**
-   * Set at the first render in a browser: until then the view may still
-   * change as the first address settles, and that is not a navigation.
-   * Never set on the server, where there is no focus to move.
-   */
   private landed = false;
 
   constructor() {
@@ -273,11 +259,6 @@ export class DesktopPageComponent {
     void this.station.escape();
   }
 
-  /**
-   * On the index a planet selects its row, a second click lets it go; on
-   * the home page a featured planet opens or closes the preview, the only
-   * ones the home page shows.
-   */
   protected onBodyClicked(slug: string): void {
     const view = this.station.view();
     if (view === 'index') {
@@ -287,12 +268,7 @@ export class DesktopPageComponent {
     }
   }
 
-  protected onBodyHovered(slug: string | null): void {
-    this.curtain.takeOver();
-    this.station.hover(slug);
-  }
-
-  protected onRuleHovered(slug: string | null): void {
+  protected onReaderHovered(slug: string | null): void {
     this.curtain.takeOver();
     this.station.hover(slug);
   }
@@ -301,7 +277,6 @@ export class DesktopPageComponent {
     void this.station.stepBack();
   }
 
-  /** The view's container: the home title, or the slot of its window. */
   private claimFocus(shown: DesktopWindow | null): () => void {
     return this.landing.claimWithin(() =>
       shown === null

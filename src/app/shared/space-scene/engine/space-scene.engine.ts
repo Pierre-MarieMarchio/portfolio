@@ -21,6 +21,7 @@ import { SceneFrame, sceneFrame } from '../rules/scene-frame.rules';
 import { NO_STATE, SceneState, sceneState } from '../rules/scene-state.rules';
 import type { SceneInputs, SkyFigures } from '../models/scene.model';
 import type { SceneLayout } from '../models/scene-layout.model';
+import { REFERENCE_VIEWPORT } from '../models/scene-constants.model';
 
 export interface EngineHost {
   frame(callback: (time: number) => void): () => void;
@@ -72,7 +73,11 @@ export class SpaceSceneEngine {
     options: EngineOptions,
     viewportArea: number,
   ) {
-    const factor = clamp(viewportArea / (1280 * 800), 0.42, 1);
+    const factor = clamp(
+      viewportArea / (REFERENCE_VIEWPORT.width * REFERENCE_VIEWPORT.height),
+      0.42,
+      1,
+    );
     const grains = buildScene(
       Math.round(options.density * factor * RESERVE),
       options.rnd,

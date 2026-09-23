@@ -1,4 +1,4 @@
-export const printed = (value: unknown): string =>
+const printed = (value: unknown): string =>
   typeof value === 'number' && Number.isFinite(value)
     ? value.toFixed(3)
     : String(value);

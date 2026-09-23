@@ -1,4 +1,3 @@
-<!-- Over everything, once per visit; nothing waits for it. -->
 <app-intro-card />
 
 <main tabindex="-1" [id]="ids.main">
@@ -8,10 +7,6 @@
     [attr.aria-labelledby]="ids.homeTitle"
     [attr.data-arrival]="arrival()"
   >
-    <!--
-      First, behind everything: its sky sits under the void, its planets
-      above it. Every layout anchor below is text the matter gives way to.
-    -->
     <app-desktop-scene
       #object
       [bodies]="planets()"
@@ -26,7 +21,7 @@
       [paused]="animation.paused()"
       [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
-      (bodyHovered)="onBodyHovered($event)"
+      (bodyHovered)="onReaderHovered($event)"
     />
 
     @if (station.canStepBack()) {
@@ -147,7 +142,7 @@
         [reading]="station.lastPreview()"
         [arrival]="arrival()"
         (chosen)="station.openPreview($event)"
-        (hoveredChange)="onRuleHovered($event)"
+        (hoveredChange)="onReaderHovered($event)"
       />
     }
   </section>

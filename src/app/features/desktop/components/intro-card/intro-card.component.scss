@@ -1,9 +1,6 @@
 @use 'mixins/motion';
 @use 'mixins/type';
 
-/* The word settles (0 → 2.6s), the rule opens, the trade comes under it
-   (1.5 → 3s), there is time to read, then the page rises slowly (to 5.6s)
-   over the object gathering. */
 .card {
   position: fixed;
   inset: 0;

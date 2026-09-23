@@ -37,8 +37,6 @@ main {
   @include controls.divider;
 }
 
-/* The void closes one notch back: under everything, and out of the tab
-   order, since Escape does the same from the keyboard. */
 .void {
   position: absolute;
   inset: 0;
@@ -49,14 +47,10 @@ main {
   cursor: default;
 }
 
-/* The slots place the windows; the windows take the pointer, the slots let
-   it through to the object. Their depth is a rank above --z-window: the
-   stylesheet's by default (the preview above the sheet above the rest),
-   then the window stack's (`--stack`) once a window is touched. */
 .slot {
   position: absolute;
   right: var(--gutter);
-  top: max(clamp(78px, 10.5vh, 98px), calc(var(--head-bottom, 0px) + 14px));
+  top: max(var(--window-top), calc(var(--head-bottom, 0px) + 14px));
   z-index: calc(var(--z-window) + var(--stack, 0));
   width: min(58ch, max(52vw, 320px));
   display: flex;

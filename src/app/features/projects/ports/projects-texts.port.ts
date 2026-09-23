@@ -1,20 +1,8 @@
 import { InjectionToken, Signal } from '@angular/core';
 import { ProjectFamily, ProofLevel } from '../models';
 
-/**
- * The words of the projects' views, in the reader's language: the index,
- * the preview, the sheet and the rule. What a project itself says is in its
- * own file (D5); these are the frames around it. A count or a title arrives
- * already formatted.
- */
 export interface ProjectsTexts {
-  /** The proof level said in words: it is the question a recruiter asks. */
   readonly proofLevels: Readonly<Record<ProofLevel, string>>;
-  /**
-   * The title of an untitled chapter, by position. A sheet may carry fewer
-   * chapters and name its own: three written chapters beat four with an
-   * empty one.
-   */
   readonly defaultChapterTitles: readonly string[];
   readonly index: {
     readonly heading: string;
@@ -62,7 +50,6 @@ export interface ProjectsTexts {
   };
 }
 
-/** No default: a composition that forgets it fails loudly. */
 export const PROJECTS_TEXTS = new InjectionToken<Signal<ProjectsTexts>>(
   'PROJECTS_TEXTS',
 );

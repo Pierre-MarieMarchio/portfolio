@@ -43,7 +43,6 @@ describe('resolve', () => {
     expect(localize(source, 'fr').tag).toBe('publié');
   });
 
-  /** A pair is exactly `fr` and `en`: an object with more is content. */
   it('leaves an object with other keys beside fr and en as it is', () => {
     const labels = { fr: 'Français', en: 'English', de: 'Deutsch' };
 

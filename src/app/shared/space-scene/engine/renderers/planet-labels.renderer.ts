@@ -1,4 +1,5 @@
 import {
+  LEADER_START,
   PanelEdges,
   placeName,
   placeTag,
@@ -270,7 +271,7 @@ export class PlanetLabelsRenderer {
     lw: number,
   ): void {
     const dpr = frame.dpr;
-    const l1 = body.radius * 3.4;
+    const l1 = body.radius * LEADER_START;
     const endX = (place.dir > 0 ? place.x - 6 : place.x + lw + 6) * dpr;
     const ctx = this.ctx;
     ctx.globalAlpha =

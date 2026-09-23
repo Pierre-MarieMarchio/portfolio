@@ -8,13 +8,6 @@ import {
 import { DocumentStylesService, UserPresenceService } from '@app/core/services';
 import { DESKTOP_TEXTS } from '../../ports/desktop-texts.port';
 
-/**
- * The opening card, once per visit, over everything. Nothing waits for it:
- * the content is in the document from the first frame, and the card fades
- * out on its own through CSS even without JavaScript. The script only takes
- * it away at the first gesture. Hidden entirely when the reader asked for
- * less motion.
- */
 @Component({
   selector: 'app-intro-card',
   templateUrl: './intro-card.component.html',

@@ -48,7 +48,6 @@ describe('PageTitleStrategy', () => {
     expect(tag('property="og:description"')).toBe('Les projets.');
   });
 
-  /** A stale description is worse than none. */
   it('drops the previous description on a page that has none', async () => {
     await go('/described');
     await go('/bare');

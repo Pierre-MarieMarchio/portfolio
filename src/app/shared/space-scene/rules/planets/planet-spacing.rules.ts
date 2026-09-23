@@ -3,13 +3,14 @@ export interface ScreenPoint {
   sy: number;
 }
 
+const REPEL_PASSES = 4;
+
 export const repel = (
   points: readonly ScreenPoint[],
   count: number,
   gap: number,
-  passes = 4,
 ): void => {
-  for (let pass = 0; pass < passes; pass++) {
+  for (let pass = 0; pass < REPEL_PASSES; pass++) {
     repelOnce(points, count, gap);
   }
 };

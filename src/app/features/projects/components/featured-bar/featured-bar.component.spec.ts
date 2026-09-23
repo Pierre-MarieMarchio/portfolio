@@ -10,14 +10,12 @@ const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('button'),
 ];
 
-/** jsdom lays nothing out: the track answers the width it is given. */
-const widen = (width: number) =>
+const stubTrackWidth = (width: number) =>
   vi
     .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
     .mockReturnValue({ width } as DOMRect);
 
 describe('OrbitRuleComponent', () => {
-  /** Four bodies, each with a distinct title, short, proof and role. */
   const entries = [
     ['alpha', 'Alpha', 'Alp'],
     ['beta', 'Beta', 'Bet'],
@@ -100,10 +98,6 @@ describe('OrbitRuleComponent', () => {
 
   it('spreads the markers evenly along the belt, from 2% to 58%', async () => {
     const { host } = await mount({ bodies });
-    // The percentages the truths describe as "2.0%"/"58.0%" are what the
-    // component assigns; the browser's own style serialisation (jsdom
-    // included) drops a trailing ".0" on whole numbers, so that is what a
-    // reader inspecting the rendered style sees.
     const items = markerButtons(host).map(
       (button) => button.closest<HTMLLIElement>('li')?.style.left,
     );
@@ -120,7 +114,6 @@ describe('OrbitRuleComponent', () => {
     expect(items).toEqual(['2%', '58%']);
   });
 
-  /** Five featured: the gap of four is kept, and the belt widens. */
   it('keeps the gap and widens the belt for more markers', async () => {
     const five = sampleRanked([...entries, sampleEntry()]);
     const { host } = await mount({ bodies: five });
@@ -131,7 +124,6 @@ describe('OrbitRuleComponent', () => {
     expect(items).toEqual(['2%', '20.7%', '39.3%', '58%', '76.7%']);
   });
 
-  /** Three featured: the export's belt, the markers further apart. */
   it('keeps the export belt for fewer markers', async () => {
     const { host } = await mount({ bodies: bodies.slice(0, 3) });
     const items = markerButtons(host).map(
@@ -159,14 +151,14 @@ describe('OrbitRuleComponent', () => {
     });
 
     it('keeps the names while each marker has ~130px of its own', async () => {
-      widen(700);
+      stubTrackWidth(700);
       const { host } = await mount({ bodies });
 
       expect(host.dataset['crowded']).toBe('false');
     });
 
     it('gives the names way to the numbers below that', async () => {
-      widen(500);
+      stubTrackWidth(500);
       const { host } = await mount({ bodies });
 
       expect(host.dataset['crowded']).toBe('true');

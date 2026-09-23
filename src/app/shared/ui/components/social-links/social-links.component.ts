@@ -12,7 +12,6 @@ import { SocialLink } from '../../models/social-link.model';
 })
 export class SocialLinksComponent {
   public readonly links = input.required<readonly SocialLink[]>();
-  /** Arrives with the home page's rest, at the end of the crossing. */
   public readonly arrival = input<Entrance>('timed');
 
   protected readonly icons = SOCIAL_ICONS;

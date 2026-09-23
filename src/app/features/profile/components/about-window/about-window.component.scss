@@ -53,8 +53,6 @@ dt,
   @include type.mono;
 }
 
-/* Not a repeat of the rule above: a `dd.data` of the facts would otherwise
-   take `.facts dd`'s running size, which is more specific than `.data`. */
 .facts .data {
   font-size: var(--m3);
 }
@@ -144,7 +142,6 @@ dt,
   flex: 1;
 }
 
-/* A state, so the signal ink: the years are missing and say so. */
 .missing {
   color: var(--sig);
 }

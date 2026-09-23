@@ -1,20 +1,11 @@
-/*
- * The controls and surfaces the chrome and the windows share. Each mixin
- * holds what they have in common; what one of them does differently stays in
- * its component, next to the reason.
- */
-
 @use 'type';
 
-/* A frosted surface over the object: the page bar, the contact rail, a
-   window. */
 @mixin glass($blur: var(--glass-blur)) {
   border: 1px solid var(--line);
   background: var(--vitre);
   backdrop-filter: $blur;
 }
 
-/* The hairline between two groups of a glass bar. */
 @mixin divider {
   flex: 0 0 auto;
   width: 1px;
@@ -22,14 +13,17 @@
   background: var(--line);
 }
 
-/* A square that marks a title or a point: filled, never outlined. */
 @mixin marker($size, $color: var(--accent)) {
   width: $size;
   height: $size;
   background: $color;
 }
 
-/* A borderless glyph button: a window's pin and close, the rail's buttons. */
+@mixin lit {
+  color: var(--ink);
+  background: var(--vitre-2);
+}
+
 @mixin icon-button($width, $height, $duration: var(--t)) {
   flex: 0 0 auto;
   display: flex;
@@ -51,12 +45,10 @@
     background $duration;
 
   &:hover {
-    color: var(--ink);
-    background: var(--vitre-2);
+    @include lit;
   }
 }
 
-/* A ghost tab: the selector's choices, the page bar's pages. */
 @mixin tab {
   @include type.caps(var(--m2));
 
@@ -66,11 +58,12 @@
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--ink-2);
+
+  &:hover {
+    @include lit;
+  }
 }
 
-/* The link that leads on ("Fiche complète →", "Projet suivant →"), an `<a>`
-   or a `<button>`: underlined by the accent, tall enough to touch. A button
-   loses its own face first, and takes the accent ink a link already has. */
 @mixin next-link($height: 38px, $button: false) {
   @include type.mono(var(--m2));
 

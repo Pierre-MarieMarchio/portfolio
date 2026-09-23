@@ -12,45 +12,40 @@ import { ILinks, LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { WINDOW_TEXTS } from '@shared/windows/ports';
-import { PAGES_TEXTS } from '../models/catalog.model';
+import { Catalog, PAGES_TEXTS } from '../models/catalog.model';
 import { CatalogLoaderService } from '../services/catalog-loader.service';
 import { pathOf } from '../rules/paths.rules';
 
-const slice = <T>(read: (catalogs: CatalogLoaderService) => T) => {
+const slice = <K extends keyof Catalog>(key: K) => {
   const catalogs = inject(CatalogLoaderService);
-  return computed(() => read(catalogs));
+  return computed(() => catalogs.current()[key]);
 };
 
-/**
- * The bilingual site, wired (D3): each layer's slice of the catalogue
- * answered from the reader's language, the links in it, and the catalogue
- * of the first address loaded before the first render.
- */
 export function provideI18n(): (Provider | EnvironmentProviders)[] {
   return [
     {
       provide: SHARED_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().shared),
+      useFactory: () => slice('shared'),
     },
     {
       provide: WINDOW_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().windows),
+      useFactory: () => slice('windows'),
     },
     {
       provide: PROJECTS_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().projects),
+      useFactory: () => slice('projects'),
     },
     {
       provide: DESKTOP_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().desktop),
+      useFactory: () => slice('desktop'),
     },
     {
       provide: PROFILE_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().profile),
+      useFactory: () => slice('profile'),
     },
     {
       provide: PAGES_TEXTS,
-      useFactory: () => slice((catalogs) => catalogs.current().pages),
+      useFactory: () => slice('pages'),
     },
     {
       provide: LINKS,

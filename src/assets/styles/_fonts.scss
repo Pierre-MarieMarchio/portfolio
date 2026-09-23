@@ -1,17 +1,6 @@
-/*
- * The two families, shipped with the site rather than fetched from a CDN: the
- * content must display with no third party reachable.
- *
- * The per-weight files declare every subset with its `unicode-range`, as the
- * Google Fonts stylesheet of the mockup does, so the browser only downloads
- * the subsets the text actually uses.
- */
-
-/* IBM Plex Mono: the whole interface (labels, navigation, data, counters). */
 @use '@fontsource/ibm-plex-mono/400' as *;
 @use '@fontsource/ibm-plex-mono/500' as *;
 
-/* Instrument Sans: running text only. */
 @use '@fontsource/instrument-sans/400' as *;
 @use '@fontsource/instrument-sans/500' as *;
 @use '@fontsource/instrument-sans/600' as *;

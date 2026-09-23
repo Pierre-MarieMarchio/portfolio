@@ -1,4 +1,5 @@
 import { finiteOr } from '@app/core/helpers';
+import { SKY_NEUTRAL } from '../../../models/scene-constants.model';
 import { CameraMotion } from '../../motions/camera.motion';
 import { StarSkyRenderer } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
@@ -18,8 +19,8 @@ export class SkyRenderer {
 
   public draw(frame: SceneFrame): void {
     const pose = this.camera.pose;
-    const camX = finiteOr(pose.camX, 0.42);
-    const camY = finiteOr(pose.camY, 0.46);
+    const camX = finiteOr(pose.camX, SKY_NEUTRAL.camX);
+    const camY = finiteOr(pose.camY, SKY_NEUTRAL.camY);
     const pan = this.sky.draw(this.ctx, frame.w, frame.h, {
       time: frame.time,
       reduced: frame.state.reduced,
@@ -27,7 +28,7 @@ export class SkyRenderer {
       dpr: frame.dpr,
       trv: frame.trv,
       azim: finiteOr(pose.azim, 0),
-      elev: finiteOr(pose.elev, 0.18),
+      elev: finiteOr(pose.elev, SKY_NEUTRAL.elev),
       scale: finiteOr(pose.scale, 1),
       camX,
       camY,

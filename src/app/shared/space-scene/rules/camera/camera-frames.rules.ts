@@ -1,5 +1,9 @@
 import { clamp, nearestTurn } from '@app/core/helpers';
-import { ORBIT_RATE } from '../../models/scene-constants.model';
+import {
+  FALLBACK_VIEWPORT,
+  ORBIT_RATE,
+} from '../../models/scene-constants.model';
+import { opening } from './projection.rules';
 
 export interface Frame {
   readonly i: number;
@@ -44,13 +48,15 @@ export const APPROACHES = [
   { s: 0.78, ev: 0.6, i: -0.34, x: 0.21, y: 0.44, cos: 0.66 },
 ] as const;
 
-export const CLOSE_UP_AIM = { x: 0.21, y: 0.66, s: 0.74, angle: 2.35 };
+const CLOSE_UP_AIM = { x: 0.21, y: 0.66, s: 0.74, angle: 2.35 };
+
+const unitRadius = (w: number, h: number): number => Math.min(w / 6.6, h / 3.2);
 
 export const referenceRadius = (w: number, h: number, s: number): number =>
-  Math.min(w / 6.6, h / 3.2) * s;
+  unitRadius(w, h) * s;
 
 export const verticalFactor = (ev: number, roll: number): number =>
-  0.05 + 0.62 * ev + Math.abs(Math.sin(roll));
+  opening(ev) + Math.abs(Math.sin(roll));
 
 export interface RestMeasure {
   readonly y: number;
@@ -65,8 +71,8 @@ export const measureRest = (
   headHeight: number | null,
   ruleHeight: number | null,
 ): RestMeasure => {
-  const vh = viewport.height || 800;
-  const vw = viewport.width || 1200;
+  const vh = viewport.height || FALLBACK_VIEWPORT.height;
+  const vw = viewport.width || FALLBACK_VIEWPORT.width;
   const top = (headHeight ?? 72) + Math.min(40, vh * 0.05) + 18;
   const margin = Math.max(74, Math.min(92, vh * 0.09));
   const band = (ruleHeight ?? 56) + margin;
@@ -74,22 +80,27 @@ export const measureRest = (
   const freeHalf = Math.max(26, (bottom - top) / 2);
   const y = clamp((top + bottom) / 2 / vh, 0.14, 0.72);
   const tight = clamp(1 - freeHalf / 260, 0, 1);
-  const i = -0.33 + 0.3 * tight;
-  const ev = Math.max(0.12, 0.18 - 0.16 * tight);
+  const i = REST_FRAME.i + 0.3 * tight;
+  const ev = Math.max(0.12, REST_FRAME.ev - 0.16 * tight);
   const fv = verticalFactor(ev, i);
   const s = clamp(
-    (freeHalf - 30) / (6.6 * fv) / Math.min(vw / 6.6, vh / 3.2),
+    (freeHalf - 30) / (6.6 * fv) / unitRadius(vw, vh),
     0.07,
     0.42,
   );
   return { y, s, i, ev, freeHalf };
 };
 
-export interface OrbitAim {
+interface OrbitAim {
   readonly ang: number;
   readonly v: number;
   readonly rb: number;
 }
+
+export const orbitAngle = (
+  orbit: Pick<OrbitAim, 'ang' | 'v'>,
+  phase: number,
+): number => orbit.ang + phase * orbit.v * ORBIT_RATE;
 
 export interface Dims {
   readonly w: number;
@@ -110,7 +121,11 @@ export const approachFrame = (args: {
   const approach =
     APPROACHES[clamp(args.step, 0, APPROACHES.length - 1)] ?? APPROACHES[0];
   const d = args.dims;
-  const f = clamp(((args.viewportWidth || 1200) - 240) / 1000, 0.74, 1);
+  const f = clamp(
+    ((args.viewportWidth || FALLBACK_VIEWPORT.width) - 240) / 1000,
+    0.74,
+    1,
+  );
   let sc = Math.max(0.3, approach.s * f);
   const frame = {
     i: approach.i,
@@ -124,7 +139,7 @@ export const approachFrame = (args: {
   if (!d || !orbit) {
     return frame;
   }
-  const baseRadius = Math.min(d.w / 6.6, d.h / 3.2);
+  const baseRadius = unitRadius(d.w, d.h);
   const cxPx = approach.x * d.w;
   const edge =
     args.panelLeft === null ? d.w * 0.54 : (args.panelLeft - 96) * d.dpr;
@@ -141,10 +156,7 @@ export const approachFrame = (args: {
     Math.min(0.985, Math.min(room / (orbit.rb * radius), approach.cos)),
   );
   const angle = Math.acos(cosA);
-  frame.az = nearestTurn(
-    angle - (orbit.ang + args.phase * orbit.v * ORBIT_RATE),
-    args.azim,
-  );
+  frame.az = nearestTurn(angle - orbitAngle(orbit, args.phase), args.azim);
   return frame;
 };
 
@@ -165,12 +177,9 @@ export const closeUpFrame = (args: {
   if (!d || !orbit) {
     return frame;
   }
-  const az = nearestTurn(
-    aim.angle - (orbit.ang + args.phase * orbit.v * ORBIT_RATE),
-    args.azim,
-  );
+  const az = nearestTurn(aim.angle - orbitAngle(orbit, args.phase), args.azim);
   frame.az = az;
-  const baseRadius = Math.min(d.w / 6.6, d.h / 3.2);
+  const baseRadius = unitRadius(d.w, d.h);
   const edge =
     args.panelLeft === null ? d.w * 0.6 : (args.panelLeft - 22) * d.dpr;
   const useful = Math.max(200 * d.dpr, edge - 20 * d.dpr);

@@ -1,11 +1,10 @@
-import { COMETS } from '../../../rules/sky/comets.rules';
-import { clamp } from '@app/core/helpers';
+import { clamp, TAU } from '@app/core/helpers';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
-import { TAU } from '@app/core/helpers';
 import { PlaneView, rollFlatten } from '../../../rules/camera/projection.rules';
-import { Comet, positionComet } from '../../../rules/sky/comets.rules';
+import { Comet, COMETS, positionComet } from '../../../rules/sky/comets.rules';
+import { figureLabelFont } from '../../../rules/sky/figure-label.rules';
 
-export interface CometsArgs {
+interface CometsArgs {
   readonly phase: number;
   readonly elev: number;
   readonly azim: number;
@@ -222,7 +221,7 @@ const nameComet = (
   }
   ctx.globalAlpha = alpha * (isActive ? 0.95 : 0.5);
   ctx.fillStyle = isActive ? '#ffffff' : '#cfd8e6';
-  ctx.font = `500 ${String(Math.round(11 * dpr))}px "IBM Plex Mono", ui-monospace, monospace`;
+  ctx.font = figureLabelFont(dpr);
   ctx.textAlign = ux < 0 ? 'right' : 'left';
   ctx.textBaseline = 'middle';
   ctx.fillText(

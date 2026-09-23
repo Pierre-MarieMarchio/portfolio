@@ -1,4 +1,5 @@
-import { ORBIT_RATE } from '../../models/scene-constants.model';
+import { DISK_LIFT, ORBIT_RATE } from '../../models/scene-constants.model';
+import { opening } from '../camera/projection.rules';
 
 export interface Comet {
   readonly periapsis: number;
@@ -58,7 +59,7 @@ export const positionComet = (
   const z2 = xp * sa + inPlane * ca;
   return {
     x: x2,
-    y: 0.04 + z2 * (0.05 + 0.62 * elev) + outOfPlane,
+    y: DISK_LIFT + z2 * opening(elev) + outOfPlane,
     z: z2,
     r: c.semiMajorAxis * (1 - e * cE),
   };

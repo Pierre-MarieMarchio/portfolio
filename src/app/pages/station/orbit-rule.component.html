@@ -11,6 +11,7 @@
           <button
             type="button"
             aria-controls="panneau-apercu"
+            data-object-line
             [attr.aria-label]="marker.label"
             [attr.data-lit]="marker.lit"
             (click)="chosen.emit(marker.slug)"

@@ -90,6 +90,49 @@ describe('ObjectComponent', () => {
     vi.unstubAllGlobals();
   });
 
+  describe('the lines of the home rule', () => {
+    /** Two lines in the document, as the rule puts them, before the mount. */
+    const addLines = (): HTMLElement[] =>
+      [0, 1].map(() => {
+        const line = document.createElement('button');
+        line.setAttribute('data-object-line', '');
+        document.body.append(line);
+        return line;
+      });
+    const frames = (): Promise<void> =>
+      new Promise((resolve) => setTimeout(resolve, 80));
+
+    afterEach(() => {
+      document
+        .querySelectorAll('[data-object-line]')
+        .forEach((line) => line.remove());
+    });
+
+    it('keeps them down and out of reach until the rest has arrived', async () => {
+      const lines = addLines();
+      await mount();
+      await frames();
+
+      lines.forEach((line) => {
+        expect(line.style.opacity).toBe('0');
+        expect(line.style.transform).toBe('translateY(9.0px)');
+        expect(line.style.pointerEvents).toBe('none');
+      });
+    });
+
+    it('shows them risen away from the home page, where nothing is waited for', async () => {
+      const lines = addLines();
+      await mount({ view: 'index' });
+      await frames();
+
+      lines.forEach((line) => {
+        expect(line.style.opacity).toBe('1');
+        expect(line.style.transform).toBe('none');
+        expect(line.style.pointerEvents).toBe('auto');
+      });
+    });
+  });
+
   it('draws on two canvases hidden from assistive technologies', async () => {
     const { host } = await mount();
     const canvases = Array.from(host.querySelectorAll('canvas'));

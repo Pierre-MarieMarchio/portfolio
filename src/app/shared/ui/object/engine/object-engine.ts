@@ -171,6 +171,8 @@ export class ObjectEngine {
   private labels: readonly HTMLElement[] = [];
   private buttonsWritten: Written[] = [];
   private labelsWritten: Written[] = [];
+  private lines: readonly HTMLElement[] = [];
+  private linesWritten: Written[] = [];
   private labelSizes: { w: number; h: number }[] = [];
 
   private w = 0;
@@ -266,6 +268,23 @@ export class ObjectEngine {
       this.labels = labels;
       this.labelsWritten = labels.map(written);
     }
+    this.request();
+  }
+
+  /**
+   * The home rule's lines, in rank order: each rises with its planet, on
+   * the same clock. Kept when the same elements come back in a new list,
+   * so what was written is not written again.
+   */
+  public setLines(lines: readonly HTMLElement[]): void {
+    const same =
+      lines.length === this.lines.length &&
+      lines.every((line, i) => line === this.lines[i]);
+    if (same) {
+      return;
+    }
+    this.lines = lines;
+    this.linesWritten = lines.map(written);
     this.request();
   }
 
@@ -968,6 +987,9 @@ export class ObjectEngine {
       inputs.reduced || inputs.view !== 'home' ? 99 : this.marksTime;
     const rising = (i: number): number =>
       clamp((clock - 0.15 - i * 0.42) / 0.7, 0, 1);
+    for (let i = 0; i < this.lines.length; i++) {
+      this.writeLine(i, rising(i));
+    }
 
     // Positions first, drawing next: in between, a repulsion pass
     // guarantees a minimal on-screen gap.
@@ -1357,6 +1379,31 @@ export class ObjectEngine {
     if (opacity !== last.opacity) {
       last.opacity = opacity;
       label.style.opacity = opacity;
+    }
+  }
+
+  /** A rule's line rises 9 px as it appears, and takes no click half-seen. */
+  private writeLine(i: number, rise: number): void {
+    const line = this.lines[i];
+    const last = this.linesWritten[i];
+    if (!line || !last) {
+      return;
+    }
+    const opacity = rise.toFixed(3);
+    if (opacity !== last.opacity) {
+      last.opacity = opacity;
+      line.style.opacity = opacity;
+    }
+    const transform =
+      rise < 1 ? `translateY(${((1 - rise) * 9).toFixed(1)}px)` : 'none';
+    if (transform !== last.transform) {
+      last.transform = transform;
+      line.style.transform = transform;
+    }
+    const events = rise > 0.5 ? 'auto' : 'none';
+    if (events !== last.events) {
+      last.events = events;
+      line.style.pointerEvents = events;
     }
   }
 

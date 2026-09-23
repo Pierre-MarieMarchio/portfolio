@@ -2,7 +2,13 @@
 <app-intro-card />
 
 <main id="contenu" tabindex="-1">
-  <section #scene id="accueil" class="scene" aria-labelledby="titre-accueil">
+  <section
+    #scene
+    id="accueil"
+    class="scene"
+    aria-labelledby="titre-accueil"
+    [attr.data-arrival]="arrival()"
+  >
     <!--
       First, behind everything: its sky sits under the void, its planets
       above it. Every [data-panel] below is text the matter gives way to.
@@ -19,6 +25,7 @@
       [hovered]="hoveredRank()"
       [selected]="selectedRank()"
       [paused]="station.paused()"
+      [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
       (bodyHovered)="onBodyHovered($event)"
       (spun)="onSpun()"
@@ -39,6 +46,7 @@
       [items]="navigationItems"
       [current]="currentRoute()"
       [englishAsked]="station.englishAsked()"
+      [arrival]="arrival()"
       (englishRequested)="station.askEnglish()"
     />
 
@@ -119,6 +127,7 @@
         [bodies]="featuredRows()"
         [hovered]="station.hovered()"
         [reading]="station.reading()"
+        [arrival]="arrival()"
         (chosen)="station.showPreview($event)"
         (hoveredChange)="onRuleHovered($event)"
       />
@@ -130,5 +139,6 @@
   data-panel
   [showPause]="object.animated()"
   [paused]="station.paused()"
+  [arrival]="arrival()"
   (pauseToggled)="station.togglePause()"
 />

@@ -7,6 +7,7 @@ import {
   effect,
   ElementRef,
   inject,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -20,7 +21,7 @@ import {
 import { ProjectsManager } from '@app/features/projects/states';
 import { StationManager } from '@app/features/station/states';
 import { ObjectBody, ObjectComponent, ObjectView } from '@shared/ui/object';
-import { NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
+import { Arrival, NavigationItem, PageBarComponent } from '@shared/ui/page-bar';
 import { navigationItems } from '../../app.navigation';
 import { AboutWindowComponent } from './about-window.component';
 import { ContactRailComponent } from './contact-rail.component';
@@ -31,11 +32,18 @@ import { OrbitRuleComponent } from './orbit-rule.component';
 type Slot = 'about' | 'index' | 'sheet' | 'preview';
 
 /**
- * The curtain: once the home page's rest has arrived (first gesture, or
- * 8.7 s), each marker lights with its planet, one by one, then all settles.
- * The only time the marker-planet link is shown rather than expected.
+ * Landing on the home page, the object crosses alone: the rest (the pages,
+ * the title, the rule, the contact rail, the planets) arrives at the first
+ * gesture, and anyway after 8.7 s, when the crossing is done. Nothing
+ * important waits on an action.
  */
-const REVEAL_AFTER_MS = 8700;
+const ARRIVAL_AFTER_MS = 8700;
+
+/**
+ * The curtain: once the home page's rest has arrived, each marker lights
+ * with its planet, one by one, then all settles. The only time the
+ * marker-planet link is shown rather than expected.
+ */
 const CURTAIN_DELAY_MS = 4200;
 const CURTAIN_STEP_MS = 900;
 const INTENT = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
@@ -177,6 +185,15 @@ export class StationComponent {
   /** The reader hovered something: the curtain stops for good. */
   private curtainTakenOver = false;
 
+  /**
+   * `timed` in the prerender, where the CSS alone brings the rest in; held
+   * by the browser on the home page it landed on, until the reader is there.
+   */
+  protected readonly arrival = signal<Arrival>('timed');
+
+  /** Lets the rest in; a no-op until the browser holds it. */
+  private arrive: () => void = () => undefined;
+
   constructor() {
     const stops = [
       this.browser.listen('keydown', (event) => {
@@ -235,9 +252,15 @@ export class StationComponent {
         stops.push(this.browser.observeResize(head, measure));
       }
 
-      if (!this.browser.prefersReducedMotion()) {
-        const stop = this.playCurtain();
-        stops.push(stop);
+      // Anywhere but the home page, or with reduced motion, all is there at
+      // once: only the landing crossing is waited for, as in the mockup.
+      if (
+        this.browser.prefersReducedMotion() ||
+        untracked(() => this.station.view()) !== 'home'
+      ) {
+        this.arrival.set('shown');
+      } else {
+        stops.push(this.holdArrival());
       }
     });
 
@@ -247,6 +270,10 @@ export class StationComponent {
       const view = this.station.view();
       this.station.slug();
       untracked(() => {
+        // Leaving the home page is a navigation: the reader is there.
+        if (view !== 'home') {
+          this.arrive();
+        }
         const slot = slotOf(view);
         if (slot) {
           this.bringToFront(slot);
@@ -309,10 +336,12 @@ export class StationComponent {
       : this.projects.projects().findIndex((project) => project.slug === slug);
   }
 
-  /** Returns the function that stops it wherever it is. */
-  private playCurtain(): () => void {
+  /**
+   * Holds the rest until the first gesture or the end of the crossing, then
+   * plays the curtain. Returns the function that stops it wherever it is.
+   */
+  private holdArrival(): () => void {
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let started = false;
     const quiet = (): boolean =>
       this.curtainTakenOver ||
       this.station.view() !== 'home' ||
@@ -329,24 +358,24 @@ export class StationComponent {
         }, CURTAIN_STEP_MS);
       }
     };
-    const begin = (): void => {
-      if (started) {
-        return;
-      }
-      started = true;
+    const intents = INTENT.map((type) =>
+      this.browser.listen(type, () => this.arrive(), { passive: true }),
+    );
+    this.arrive = () => {
+      this.arrive = () => undefined;
       intents.forEach((stop) => {
         stop();
       });
       clearTimeout(timer);
+      this.arrival.set('shown');
       timer = setTimeout(() => {
         step(0);
       }, CURTAIN_DELAY_MS);
     };
-    const intents = INTENT.map((type) =>
-      this.browser.listen(type, begin, { passive: true }),
-    );
-    timer = setTimeout(begin, REVEAL_AFTER_MS);
+    this.arrival.set('held');
+    timer = setTimeout(() => this.arrive(), ARRIVAL_AFTER_MS);
     return () => {
+      this.arrive = () => undefined;
       clearTimeout(timer);
       intents.forEach((stop) => {
         stop();

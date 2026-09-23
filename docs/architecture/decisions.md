@@ -190,3 +190,30 @@ montre.
 **Écarté.** `/fr/…` pour le français (toutes les adresses existantes
 changeraient) ; la langue en paramètre ou en préférence stockée (une même
 adresse montrerait deux pages, que le prérendu ne peut pas servir).
+
+## 2026-09-23 — Le moteur de l'objet : un refactor limité, sous un test « golden »
+
+**Décision (D2).** Le moteur canvas n'est pas réécrit. Il est d'abord figé par
+un test « golden » (`object-engine.golden.spec.ts`) : sur une horloge et une
+graine fixes, chaque appel aux deux canvas et chaque style écrit sur les
+planètes, les libellés et les lignes de la règle sont repliés en une empreinte
+par scène, arrondis au millième de pixel. Sous ce test, trois extractions :
+les valeurs partagées (`constants.ts` : une seule portée du curseur, le bord
+de l'ombre, la vitesse orbitale, l'élévation du voyage) et la projection du
+plan (`projection.ts`) ; le tourne-disque (`turntable.ts`) ; le placement des
+libellés (`labels.ts`). Les empreintes n'ont pas bougé. Puis quatre
+corrections du rapport 01, chacune tenue par un spec : le plancher des orbites
+sur téléphone, la traversée non rejouée à la sortie du mouvement réduit,
+`fitOrbits` avant la caméra, la partie bornée par les figures. La boucle des
+grains ne change pas.
+
+**Raison.** Le moteur est le rendu que la maquette décrit, réglé à l'œil ;
+une réécriture ne se vérifie pas sans captures. Un test qui compare le dessin
+appel par appel rend chaque extraction vérifiable sans navigateur.
+
+**Écarté.** Le découpage complet du rapport 05 (`Camera`, `DiskRenderer`,
+`PlanetsRenderer`, `StyleWriter`…) : trop de surface pour un gain de lecture,
+dans un code que personne d'autre ne touche. Les avertissements de taille et
+de complexité qui restent sur `object-engine.ts`, `sky.ts`, `scene.ts`,
+`comets.ts`, `constellations.ts`, `math.ts` et `object.component.ts` sont ce
+prix : la règle les garde en avertissement pour ces fichiers seulement.

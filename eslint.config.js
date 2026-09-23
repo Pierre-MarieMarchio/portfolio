@@ -269,9 +269,23 @@ export default defineConfig(
   },
 
   {
-    // Not reached yet: the object with its engine (step 9 of the audit plan,
-    // within the limits of D2).
-    files: [`${APP}/features/station/components/object/**/*.ts`],
+    // The engine's long functions, kept by D2 (a limited refactor under a
+    // golden test, docs/architecture/decisions.md): warnings for these files
+    // only. What step 9 extracted (constants, projection, turntable, labels)
+    // is held to the errors like the rest.
+    files: [
+      `${APP}/features/station/components/object/object.component.ts`,
+      ...[
+        'object-engine',
+        'sky',
+        'scene',
+        'comets',
+        'constellations',
+        'math',
+      ].map(
+        (file) => `${APP}/features/station/components/object/engine/${file}.ts`,
+      ),
+    ],
     rules: {
       'max-lines': [
         'warn',

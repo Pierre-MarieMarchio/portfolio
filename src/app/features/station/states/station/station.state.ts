@@ -20,6 +20,11 @@ export class StationState {
   public readonly pins = signal<StationPins>(NO_PINS);
   /** The project shown in the home preview; `null` when it is closed. */
   public readonly preview = signal<string | null>(null);
+  /**
+   * The body the preview last showed, kept once it closes: the home rule's
+   * reading line falls back on it when nothing is hovered.
+   */
+  public readonly reading = signal<string | null>(null);
   /** The open row of the index. */
   public readonly selection = signal<string | null>(null);
   /** Sheets read during the visit, marked "lu" in the index. */

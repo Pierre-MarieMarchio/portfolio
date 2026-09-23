@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -13,6 +14,7 @@ import { BrowserEnvironment } from '@app/core/services';
 import {
   FamilyFilter,
   ProjectIndexComponent,
+  ProjectPreviewComponent,
   ProjectSheetComponent,
 } from '@app/features/projects/components';
 import { ProjectsManager } from '@app/features/projects/states';
@@ -23,8 +25,19 @@ import { navigationItems } from '../../app.navigation';
 import { AboutWindowComponent } from './about-window.component';
 import { ContactRailComponent } from './contact-rail.component';
 import { NotFoundWindowComponent } from './not-found-window.component';
+import { OrbitRuleComponent } from './orbit-rule.component';
 
 type Slot = 'about' | 'index' | 'sheet' | 'preview';
+
+/**
+ * The curtain: once the home page's rest has arrived (first gesture, or
+ * 8.7 s), each marker lights with its planet, one by one, then all settles.
+ * The only time the marker-planet link is shown rather than expected.
+ */
+const REVEAL_AFTER_MS = 8700;
+const CURTAIN_DELAY_MS = 4200;
+const CURTAIN_STEP_MS = 900;
+const INTENT = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
 /** The claim on the landing heading gives up after this: never loop. */
 const FOCUS_DEADLINE_MS = 2500;
@@ -44,9 +57,11 @@ const FOCUS_DEADLINE_MS = 2500;
     AboutWindowComponent,
     ContactRailComponent,
     NotFoundWindowComponent,
+    OrbitRuleComponent,
     ObjectComponent,
     PageBarComponent,
     ProjectIndexComponent,
+    ProjectPreviewComponent,
     ProjectSheetComponent,
   ],
   templateUrl: './station.component.html',
@@ -92,6 +107,19 @@ export class StationComponent {
     const family = this.station.family();
     return family === 'professional' || family === 'personal' ? family : 'all';
   });
+
+  /** The featured projects with their facts, for the home rule. */
+  protected readonly featuredRows = computed(() => {
+    const featured = new Set(
+      this.projects.featured().map((project) => project.slug),
+    );
+    return this.projects.withFacts().filter((row) => featured.has(row.slug));
+  });
+
+  /** The rule gives way to the preview: one reading at a time. */
+  protected readonly showsRule = computed(
+    () => this.station.view() === 'home' && this.station.preview() === null,
+  );
 
   /** The void closes one notch back, where there is one to close. */
   protected readonly voidCloses = computed(() => {
@@ -144,6 +172,9 @@ export class StationComponent {
    */
   private swallowVoid = false;
 
+  /** The reader hovered something: the curtain stops for good. */
+  private curtainTakenOver = false;
+
   constructor() {
     const stops = [
       this.browser.listen('keydown', (event) => {
@@ -174,6 +205,15 @@ export class StationComponent {
         stop();
       });
       cancelClaim();
+    });
+
+    // Browser only, and never with reduced motion: on the server there is
+    // no one to show it to, and the prerendered page must be still.
+    afterNextRender(() => {
+      if (!this.browser.prefersReducedMotion()) {
+        const stop = this.playCurtain();
+        stops.push(stop);
+      }
     });
 
     // Arriving on a view: its window comes to the front of the pinned ones,
@@ -213,7 +253,13 @@ export class StationComponent {
   }
 
   protected onBodyHovered(rank: number): void {
+    this.curtainTakenOver = true;
     this.station.hover(this.slugAt(rank));
+  }
+
+  protected onRuleHovered(slug: string | null): void {
+    this.curtainTakenOver = true;
+    this.station.hover(slug);
   }
 
   protected onSpun(): void {
@@ -236,6 +282,51 @@ export class StationComponent {
     return slug === null
       ? -1
       : this.projects.projects().findIndex((project) => project.slug === slug);
+  }
+
+  /** Returns the function that stops it wherever it is. */
+  private playCurtain(): () => void {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let started = false;
+    const quiet = (): boolean =>
+      this.curtainTakenOver ||
+      this.station.view() !== 'home' ||
+      this.station.preview() !== null;
+    const step = (index: number): void => {
+      const body = this.projects.featured()[index];
+      if (quiet()) {
+        return;
+      }
+      this.station.hover(body?.slug ?? null);
+      if (body) {
+        timer = setTimeout(() => {
+          step(index + 1);
+        }, CURTAIN_STEP_MS);
+      }
+    };
+    const begin = (): void => {
+      if (started) {
+        return;
+      }
+      started = true;
+      intents.forEach((stop) => {
+        stop();
+      });
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        step(0);
+      }, CURTAIN_DELAY_MS);
+    };
+    const intents = INTENT.map((type) =>
+      this.browser.listen(type, begin, { passive: true }),
+    );
+    timer = setTimeout(begin, REVEAL_AFTER_MS);
+    return () => {
+      clearTimeout(timer);
+      intents.forEach((stop) => {
+        stop();
+      });
+    };
   }
 
   private bringToFront(slot: Slot): void {

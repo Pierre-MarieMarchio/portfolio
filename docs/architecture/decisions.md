@@ -385,3 +385,20 @@ au-delà.
 
 **Raison.** En créant ou en lisant un fichier, on sait tout de suite son rôle,
 qui s'en sert et dans quel contexte.
+
+## 2026-09-23 — Le moteur est corrigé avant le lint, sans exemption provisoire (D16)
+
+**Décision.** L'ordre du plan de phase 3 change : le golden étendu (étape 2),
+puis le moteur (étape 7), puis le lint (étape 1), puis la suite dans l'ordre.
+La PR du lint passe `--max-warnings 0` et retire le bloc du moteur d'un même
+geste : aucune règle n'y est levée, même pour un temps. Le golden étendu
+partage son banc avec le premier (`src/testing/fixtures/engine-scene.fixture.ts`,
+`src/testing/doubles/`) et ajoute à l'empreinte `aria-hidden` et `tabIndex`
+des boutons.
+
+**Raison.** D9 n'admet aucune exception ; une exemption « jusqu'à l'étape 7 »
+en serait une, et le moteur ne se corrige que sous le golden étendu.
+
+**Écarté.** Une exemption datée du moteur, retirée à l'étape 7 ; un budget
+d'avertissements qui ne fait que baisser (un second appel à eslint, une
+sortie bruyante).

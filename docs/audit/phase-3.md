@@ -57,16 +57,16 @@ relu par un architecte avant d'être retenu.
 ## Plan
 
 Une branche et une PR par étape, empilées ; `npm run check` passe à chaque
-commit.
+commit. Ordre suivi (D16) : 0, 2, 7, 1, puis 3 à 6 et 8.
 
-- [ ] **0. `docs(audit)`** : ce fichier, `organisation.md` et les décisions
+- [x] **0. `docs(audit)`** : ce fichier, `organisation.md` et les décisions
       D7 à D15.
 - [ ] **1. `chore(lint)`** : zones `i18n` et racine ; `--max-warnings 0` ;
       aucun `eslint-disable` ; revue des réglages par fichier ; règles Sonar
       choisies ; `angular.json` (`type` des schematics, `changeDetection`
       retiré) ; `scripts/check-structure.mjs` en mode rapport ; corriger ce
       que ces règles trouvent hors moteur.
-- [ ] **2. `test(object)`** : scènes golden supplémentaires (comètes,
+- [x] **2. `test(object)`** : scènes golden supplémentaires (comètes,
       `dpr` 2, téléphone, libellés mesurés, mouvement réduit), empreintes
       prises avant tout ce qui touche la scène.
 - [ ] **3. `refactor(tree)`** : dossiers, fichiers, sélecteurs et classes

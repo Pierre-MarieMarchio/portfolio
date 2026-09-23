@@ -1,5 +1,5 @@
 <app-window
-  title="Projets · le relevé"
+  heading="Projets · le relevé"
   label="Fenêtre : relevé des projets"
   size="l"
   [margin]="76"
@@ -13,7 +13,7 @@
     toolbar
     label="Familles de projets"
     [items]="familyItems()"
-    (selected)="chooseFamily($event)"
+    (chosen)="familyChange.emit($event)"
   />
   <h1 tabindex="-1" class="landing">{{ heading() }}</h1>
   <div class="columns" aria-hidden="true">
@@ -28,12 +28,12 @@
           class="row"
           [attr.aria-pressed]="row.isSelected"
           [attr.aria-label]="row.label"
-          [attr.data-selection]="row.isSelected"
+          [attr.data-selected]="row.isSelected"
           (click)="toggle(row.slug)"
-          (mouseenter)="hovered.emit(row.slug)"
-          (mouseleave)="hovered.emit(null)"
-          (focus)="hovered.emit(row.slug)"
-          (blur)="hovered.emit(null)"
+          (mouseenter)="hoveredChange.emit(row.slug)"
+          (mouseleave)="hoveredChange.emit(null)"
+          (focus)="hoveredChange.emit(row.slug)"
+          (blur)="hoveredChange.emit(null)"
         >
           <span
             class="number"
@@ -81,5 +81,5 @@
       </li>
     }
   </ul>
-  <p footer class="state">{{ state() }}</p>
+  <p footer class="state">{{ familySummary() }}</p>
 </app-window>

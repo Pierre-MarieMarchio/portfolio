@@ -254,7 +254,7 @@ export default defineConfig(
       'max-depth': ['warn', 3],
       'max-params': ['warn', 4],
       '@typescript-eslint/prefer-readonly': 'warn',
-      '@typescript-eslint/naming-convention': ['warn', ...NAMES],
+      '@typescript-eslint/naming-convention': ['error', ...NAMES],
       '@angular-eslint/prefer-on-push-component-change-detection': 'error',
       '@angular-eslint/prefer-output-readonly': 'error',
       '@angular-eslint/prefer-signals': 'error',
@@ -267,7 +267,7 @@ export default defineConfig(
     // would read worse next to the equations they come from. The engine is
     // also where the size and complexity warnings live; step 9 of the plan
     // takes them on, within the limits decided there (D2).
-    files: [`${APP}/shared/ui/object/engine/**/*.ts`],
+    files: [`${APP}/features/station/components/object/engine/**/*.ts`],
     rules: {
       '@typescript-eslint/naming-convention': [
         'error',

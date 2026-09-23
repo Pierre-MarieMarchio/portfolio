@@ -3,7 +3,7 @@
   <app-segmented
     label="Scénario"
     [items]="scenarioItems()"
-    (selected)="choose($event)"
+    (chosen)="choose($event)"
   />
 </div>
 
@@ -21,7 +21,7 @@
     @switch (scenario()) {
       @case ('short') {
         <app-window
-          title="Adresse inconnue"
+          heading="Adresse inconnue"
           meta="404"
           size="s"
           [margin]="76"
@@ -37,7 +37,9 @@
       }
       @default {
         <app-window
-          [title]="scenario() === 'preview' ? 'Aperçu' : 'Projets · le relevé'"
+          [heading]="
+            scenario() === 'preview' ? 'Aperçu' : 'Projets · le relevé'
+          "
           [meta]="pinned() ? 'épinglée' : '07 fiches'"
           [size]="size()"
           [margin]="scenario() === 'preview' ? 88 : 76"
@@ -51,7 +53,7 @@
             toolbar
             label="Familles"
             [items]="familyItems()"
-            (selected)="chooseFamily($event)"
+            (chosen)="family.set($event)"
           />
           <div class="columns" aria-hidden="true">
             <span>Réf</span><span>Colonne</span><span>Colonne</span>

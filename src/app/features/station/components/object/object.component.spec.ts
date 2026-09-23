@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectRegistry } from '@shared/ui/object-marks';
 import { ObjectComponent } from './object.component';
 import { ObjectBody, ObjectView } from './object.model';
 
@@ -40,6 +41,8 @@ describe('ObjectComponent', () => {
       hovered?: number;
       context?: boolean;
       touch?: boolean;
+      /** Lines of the home rule signed in before the mount, as the rule's are. */
+      lines?: number;
     } = {},
   ) => {
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
@@ -53,6 +56,13 @@ describe('ObjectComponent', () => {
       quietMedia((query) => query === '(hover: none)' && !!options.touch),
     );
     TestBed.configureTestingModule({ imports: [ObjectComponent] });
+    const registry = TestBed.inject(ObjectRegistry);
+    const lines = Array.from({ length: options.lines ?? 0 }, () => {
+      const line = document.createElement('button');
+      document.body.append(line);
+      registry.addLine(line);
+      return line;
+    });
     const fixture = TestBed.createComponent(ObjectComponent);
     fixture.componentRef.setInput('bodies', BODIES);
     fixture.componentRef.setInput('featured', 4);
@@ -76,6 +86,7 @@ describe('ObjectComponent', () => {
       host,
       clicked,
       hovered,
+      lines,
       spins: () => spins,
       buttons: () =>
         Array.from(
@@ -91,26 +102,15 @@ describe('ObjectComponent', () => {
   });
 
   describe('the lines of the home rule', () => {
-    /** Two lines in the document, as the rule puts them, before the mount. */
-    const addLines = (): HTMLElement[] =>
-      [0, 1].map(() => {
-        const line = document.createElement('button');
-        line.setAttribute('data-object-line', '');
-        document.body.append(line);
-        return line;
-      });
     const frames = (): Promise<void> =>
       new Promise((resolve) => setTimeout(resolve, 80));
 
     afterEach(() => {
-      document
-        .querySelectorAll('[data-object-line]')
-        .forEach((line) => line.remove());
+      document.body.replaceChildren();
     });
 
     it('keeps them down and out of reach until the rest has arrived', async () => {
-      const lines = addLines();
-      await mount();
+      const { lines } = await mount({ lines: 2 });
       await frames();
 
       lines.forEach((line) => {
@@ -121,8 +121,7 @@ describe('ObjectComponent', () => {
     });
 
     it('shows them risen away from the home page, where nothing is waited for', async () => {
-      const lines = addLines();
-      await mount({ view: 'index' });
+      const { lines } = await mount({ view: 'index', lines: 2 });
       await frames();
 
       lines.forEach((line) => {

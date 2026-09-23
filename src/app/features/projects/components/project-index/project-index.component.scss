@@ -51,13 +51,13 @@
     padding-left var(--t);
 
   &:hover,
-  &[data-selection='true'] {
+  &[data-selected='true'] {
     color: var(--accent);
     border-left-color: var(--accent);
     padding-left: var(--s2);
   }
 
-  &[data-selection='true'] {
+  &[data-selected='true'] {
     background: color-mix(in oklab, var(--accent) 8%, transparent);
   }
 }

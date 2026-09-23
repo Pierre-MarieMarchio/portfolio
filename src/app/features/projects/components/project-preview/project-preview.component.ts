@@ -47,22 +47,15 @@ export class ProjectPreviewComponent {
     return `${twoDigits(index + 1)} / ${twoDigits(this.manager.featured().length)}`;
   });
 
-  protected readonly bodies = computed<readonly SegmentedItem[]>(() =>
+  protected readonly choices = computed<readonly SegmentedItem[]>(() =>
     this.manager.featured().map((project, index) => {
       const number = twoDigits(index + 1);
       return {
+        value: project.slug,
         label: number,
         active: project.slug === this.slug(),
         aria: `Aperçu ${number} — ${project.title}`,
       };
     }),
   );
-
-  protected choose(item: SegmentedItem): void {
-    const index = this.bodies().indexOf(item);
-    const project = this.manager.featured()[index];
-    if (project) {
-      this.chosen.emit(project.slug);
-    }
-  }
 }

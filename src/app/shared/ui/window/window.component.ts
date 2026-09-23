@@ -65,7 +65,12 @@ export class WindowComponent {
   private readonly browser = inject(BrowserEnvironment);
   private readonly memory = inject(ScrollMemory);
 
-  public readonly title = input.required<string>();
+  /**
+   * The name in the title bar. Not `title`: that is an HTML attribute, and a
+   * static `title="…"` on the host landed in the DOM as a tooltip over the
+   * whole window.
+   */
+  public readonly heading = input.required<string>();
   public readonly meta = input('');
   public readonly size = input<WindowSize>('m');
   /**
@@ -77,7 +82,7 @@ export class WindowComponent {
   public readonly anchor = input<WindowAnchor>('top');
   public readonly pinned = input(false);
   public readonly closable = input(true);
-  /** The section's accessible name; the title when left empty. */
+  /** The section's accessible name; the heading when left empty. */
   public readonly label = input('');
   /**
    * The name its reading position is remembered under, for the visit: the
@@ -90,7 +95,7 @@ export class WindowComponent {
   public readonly closed = output();
 
   protected readonly collapsed = signal(false);
-  protected readonly name = computed(() => this.label() || this.title());
+  protected readonly name = computed(() => this.label() || this.heading());
   protected readonly pinLabel = computed(() =>
     this.pinned()
       ? 'Détacher : la fenêtre se refermera en changeant de page'

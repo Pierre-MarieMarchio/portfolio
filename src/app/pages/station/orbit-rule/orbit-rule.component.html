@@ -10,8 +10,8 @@
         <li [style.left]="marker.left">
           <button
             type="button"
-            aria-controls="panneau-apercu"
-            data-object-line
+            appObjectLine
+            [attr.aria-controls]="controls()"
             [attr.aria-label]="marker.label"
             [attr.data-lit]="marker.lit"
             (click)="chosen.emit(marker.slug)"

@@ -164,29 +164,20 @@ describe('prerender safety', () => {
     expect(heard).toEqual(['resize']);
   });
 
-  /** The object measures panels and drags the cursor: never while prerendering. */
-  it('finds no element and leaves the cursor alone on the server', () => {
-    document.body.innerHTML = '<div data-panel="head"></div>';
+  /** The object drags the cursor: never while prerendering. */
+  it('leaves the cursor alone on the server', () => {
     on('server');
-    const environment = TestBed.inject(BrowserEnvironment);
 
-    expect(environment.queryAll('[data-panel]')).toEqual([]);
-    environment.setCursor('grabbing');
+    TestBed.inject(BrowserEnvironment).setCursor('grabbing');
+
     expect(document.body.style.cursor).toBe('');
-
-    document.body.innerHTML = '';
   });
 
-  it('finds elements, sets the cursor and reads the root tokens in the browser', () => {
-    document.body.innerHTML =
-      '<div data-panel="head"></div><div data-panel="rule"></div>';
+  it('sets the cursor and reads the root tokens in the browser', () => {
     document.documentElement.style.setProperty('--ink', ' #2b2f3a ');
     on('browser');
     const environment = TestBed.inject(BrowserEnvironment);
 
-    expect(
-      environment.queryAll('[data-panel]').map((each) => each.dataset['panel']),
-    ).toEqual(['head', 'rule']);
     environment.setCursor('grabbing');
     expect(document.body.style.cursor).toBe('grabbing');
     environment.setCursor('');
@@ -194,6 +185,5 @@ describe('prerender safety', () => {
     expect(environment.rootStyle('--ink')).toBe('#2b2f3a');
 
     document.documentElement.style.removeProperty('--ink');
-    document.body.innerHTML = '';
   });
 });

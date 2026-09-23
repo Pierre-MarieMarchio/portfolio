@@ -125,7 +125,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   Aucun changement visuel n'est attendu : on le vérifie sur le HTML et le CSS
   prérendus.
 
-- [ ] **4. `refactor(shared)`** (rapports 02, 04 §A et 06 §1) :
+- [x] **4. `refactor(shared)`** (rapports 02, 04 §A et 06 §1) :
   - `SegmentedItem<T>` porte une `value` ;
   - l'entrée `title` de `WindowComponent` devient `heading` (✔ elle fuit
     aujourd'hui en infobulle native) ;

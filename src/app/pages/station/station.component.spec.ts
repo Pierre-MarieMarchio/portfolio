@@ -11,7 +11,7 @@ import {
 import { ProjectsManager } from '@app/features/projects/states';
 import { StationEffect } from '@app/features/station/states';
 import { StationManager } from '@app/features/station/states';
-import { ObjectComponent } from '@shared/ui/object';
+import { ObjectComponent } from '@app/features/station/components';
 import { StationComponent } from './station.component';
 
 describe('StationComponent', () => {
@@ -73,7 +73,7 @@ describe('StationComponent', () => {
 
   describe('the arrival of the home page', () => {
     const arrivals = (host: HTMLElement) =>
-      ['#accueil', 'app-page-bar', 'app-orbit-rule', 'app-contact-rail'].map(
+      ['#home', 'app-page-bar', 'app-orbit-rule', 'app-contact-rail'].map(
         (selector) =>
           host.querySelector(selector)?.getAttribute('data-arrival') ?? null,
       );
@@ -203,14 +203,14 @@ describe('StationComponent', () => {
 
   it('shows the home heading only on the home view', async () => {
     const { fixture, station, host } = await mount();
-    expect(host.querySelector('#titre-accueil')?.tagName).toBe('H1');
-    expect(host.querySelector('#titre-accueil')?.textContent?.trim()).toBe(
+    expect(host.querySelector('#home-title')?.tagName).toBe('H1');
+    expect(host.querySelector('#home-title')?.textContent?.trim()).toBe(
       'Concepteur développeur d’applications',
     );
 
     station.navigated('about');
     await fixture.whenStable();
-    expect(host.querySelector('#titre-accueil')).toBeNull();
+    expect(host.querySelector('#home-title')).toBeNull();
   });
 
   it('shows the project index on its own view, and once pinned elsewhere', async () => {
@@ -416,7 +416,7 @@ describe('StationComponent', () => {
     station.showPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
-    const slot = host.querySelector('#panneau-apercu');
+    const slot = host.querySelector('#preview-panel');
     expect(slot).not.toBeNull();
     expect(slot?.getAttribute('data-slot')).toBe('preview');
   });

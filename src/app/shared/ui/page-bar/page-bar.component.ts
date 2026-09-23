@@ -5,7 +5,7 @@ import {
   output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Arrival } from './arrival.model';
+import { Arrival } from '@shared/ui/arrival';
 import { NavigationItem } from './navigation-item.model';
 
 /**

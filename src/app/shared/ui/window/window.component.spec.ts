@@ -81,7 +81,7 @@ const pointerEvent = (
   standalone: true,
   imports: [WindowComponent],
   template: `
-    <app-window [title]="'Console'">
+    <app-window [heading]="'Console'">
       <div toolbar>TOOLBAR-MARK</div>
       <span>DEFAULT-MARK</span>
       <div body>BODY-MARK</div>
@@ -97,7 +97,7 @@ class HostWindowSlots {}
   standalone: true,
   imports: [WindowComponent],
   template: `
-    <app-window [title]="'Console'">
+    <app-window [heading]="'Console'">
       <div body>{{ renderBody() }}</div>
     </app-window>
   `,
@@ -123,7 +123,7 @@ describe('WindowComponent', () => {
     TestBed.configureTestingModule({ imports: [WindowComponent] });
 
     const fixture = TestBed.createComponent(WindowComponent);
-    fixture.componentRef.setInput('title', 'Console');
+    fixture.componentRef.setInput('heading', 'Console');
     const host = fixture.nativeElement as HTMLElement;
     const section = host.querySelector('.window') as HTMLElement;
     await fixture.whenStable();
@@ -149,7 +149,26 @@ describe('WindowComponent', () => {
     }
   });
 
-  it('names the section from the label input, falling back to the title', async () => {
+  /** The regression `heading` exists for: `title` was a native tooltip. */
+  it('writes no title attribute on its host when given a heading in a template', async () => {
+    @Component({
+      imports: [WindowComponent],
+      template: '<app-window heading="À propos" />',
+    })
+    class Host {}
+
+    TestBed.configureTestingModule({ imports: [Host] });
+    const fixture = TestBed.createComponent(Host);
+    await fixture.whenStable();
+    const element = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-window',
+    );
+
+    expect(element?.hasAttribute('title')).toBe(false);
+    expect(element?.querySelector('h2')?.textContent).toBe('À propos');
+  });
+
+  it('names the section from the label input, falling back to the heading', async () => {
     const { fixture, section } = await mount();
 
     expect(section.getAttribute('aria-label')).toBe('Console');

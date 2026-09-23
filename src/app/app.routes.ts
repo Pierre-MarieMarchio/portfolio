@@ -1,16 +1,20 @@
 import { Route, Routes } from '@angular/router';
 import { Lang, LANGS } from '@app/core/models';
 import { loadCatalog, PATHS } from '@app/i18n';
-import { ProjectDetailPageComponent } from './pages/project-detail/project-detail-page.component';
+import { ProjectDetailRouteComponent } from './pages/desktop/project-detail-route.component';
 import {
   projectDescription,
   projectTitle,
-} from './pages/project-detail/project-title.resolver';
-import { alternates, headDescription, headTitle } from './pages/view-head';
+} from './pages/resolvers/project-title.resolver';
 import {
-  ViewMarkerComponent,
+  alternates,
+  headDescription,
+  headTitle,
+} from './pages/resolvers/view-head.resolver';
+import {
+  DesktopRouteComponent,
   ViewMarkerData,
-} from './pages/view-marker/view-marker.component';
+} from './pages/desktop/desktop-route.component';
 
 /**
  * Each address names itself: the title strategy appends the site's name, and
@@ -30,7 +34,7 @@ import {
 function routesIn(lang: Lang): Route[] {
   const marked = (view: 'home' | 'index' | 'about'): Route => ({
     path: PATHS[view][lang],
-    component: ViewMarkerComponent,
+    component: DesktopRouteComponent,
     canActivate: [loadCatalog],
     title: headTitle(view),
     data: { view } satisfies ViewMarkerData,
@@ -41,7 +45,7 @@ function routesIn(lang: Lang): Route[] {
     marked('index'),
     {
       path: `${PATHS.sheet[lang]}/:slug`,
-      component: ProjectDetailPageComponent,
+      component: ProjectDetailRouteComponent,
       canActivate: [loadCatalog],
       title: projectTitle,
       resolve: { description: projectDescription, alternates },
@@ -54,7 +58,7 @@ function routesIn(lang: Lang): Route[] {
 function unknownIn(lang: Lang): Route {
   return {
     path: lang === 'en' ? 'en/**' : '**',
-    component: ViewMarkerComponent,
+    component: DesktopRouteComponent,
     canActivate: [loadCatalog],
     title: headTitle('notFound'),
     data: { view: 'not-found' } satisfies ViewMarkerData,

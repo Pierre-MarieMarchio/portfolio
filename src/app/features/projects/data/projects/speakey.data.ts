@@ -1,7 +1,7 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Speakey: identity, facts and sheet, in one place. */
+/** Speakey: identity, facts and detail, in one place. */
 export const SPEAKEY: ProjectEntry = {
   project: {
     slug: 'speakey',
@@ -30,7 +30,7 @@ export const SPEAKEY: ProjectEntry = {
     stack: { fr: 'Prototype mobile', en: draft('Mobile prototype') },
     context: { fr: 'Personnel', en: draft('Personal') },
   },
-  sheet: {
+  detail: {
     lede: {
       fr: 'Un prototype personnel, resté prototype : écrit pour apprendre, pas pour être mis en service.',
       en: draft(

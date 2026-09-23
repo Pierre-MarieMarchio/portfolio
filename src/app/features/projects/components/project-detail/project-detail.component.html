@@ -1,4 +1,4 @@
-@if (sheet(); as sheet) {
+@if (detail(); as detail) {
   <app-window
     [label]="texts().sheet.label"
     size="l"
@@ -13,14 +13,14 @@
     <app-segmented
       toolbar
       [label]="texts().sheet.approaches"
-      [items]="approaches()"
+      [items]="chapters()"
       (chosen)="chapterChange.emit($event)"
     />
     <div body>
       <header>
         <h1 tabindex="-1" appViewHeading>{{ project()?.title }}</h1>
         @if (chapter() === 0) {
-          <p class="lede">{{ sheet.lede }}</p>
+          <p class="lede">{{ detail.lede }}</p>
         }
       </header>
       @if (identity(); as facts) {
@@ -46,9 +46,9 @@
       @if (current(); as chapter) {
         <app-project-chapter [chapter]="chapter" />
       }
-      @if (sheet.links.length > 0) {
+      @if (detail.links.length > 0) {
         <p class="links">
-          @for (link of sheet.links; track link.href) {
+          @for (link of detail.links; track link.href) {
             <a [href]="link.href" target="_blank" rel="noopener"
               >{{ link.label }} ↗</a
             >
@@ -58,7 +58,7 @@
     </div>
     <ng-container footer>
       <p class="position">{{ current()?.heading }}</p>
-      @if (nextApproach(); as label) {
+      @if (nextChapter(); as label) {
         <button type="button" class="next" (click)="advance()">
           {{ label }}
         </button>

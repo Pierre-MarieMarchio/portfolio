@@ -1,4 +1,4 @@
-import { ProjectEntry, SheetSource } from '../models';
+import { DetailSource, ProjectEntry } from '../models';
 import { localize } from '@app/core/rules';
 import { PROJECTS } from './projects.data';
 
@@ -20,11 +20,13 @@ describe('shipped project content', () => {
   });
 
   it('gives every sheet at least one chapter with prose, in both languages', () => {
-    const chapters = PROJECTS.flatMap(({ sheet }) =>
-      (['fr', 'en'] as const).flatMap((lang) => localize(sheet, lang).chapters),
+    const chapters = PROJECTS.flatMap(({ detail }) =>
+      (['fr', 'en'] as const).flatMap(
+        (lang) => localize(detail, lang).chapters,
+      ),
     );
-    for (const { sheet } of PROJECTS) {
-      expect(sheet.chapters.length).toBeGreaterThan(0);
+    for (const { detail } of PROJECTS) {
+      expect(detail.chapters.length).toBeGreaterThan(0);
     }
     for (const chapter of chapters) {
       expect(chapter.paragraphs.length).toBeGreaterThan(0);
@@ -43,8 +45,8 @@ describe('shipped project content', () => {
   });
 
   it('captions every figure, and gives it something to draw', () => {
-    for (const { sheet } of PROJECTS) {
-      for (const { figure } of sheet.chapters) {
+    for (const { detail } of PROJECTS) {
+      for (const { figure } of detail.chapters) {
         if (!figure) {
           continue;
         }
@@ -65,15 +67,15 @@ describe('shipped project content', () => {
     // @ts-expect-error an entry must carry its facts
     const noFacts: ProjectEntry = {
       project: first.project,
-      sheet: first.sheet,
+      detail: first.detail,
     };
-    // @ts-expect-error an entry must carry its sheet
-    const noSheet: ProjectEntry = {
+    // @ts-expect-error an entry must carry its detail
+    const noDetail: ProjectEntry = {
       project: first.project,
       facts: first.facts,
     };
 
-    expect([noFacts, noSheet]).toHaveLength(2);
+    expect([noFacts, noDetail]).toHaveLength(2);
   });
 
   /**
@@ -81,7 +83,7 @@ describe('shipped project content', () => {
    * sheet that would, so a second table cannot come back unnoticed.
    */
   it('keeps facts out of the sheets', () => {
-    const sheet: SheetSource = {
+    const detail: DetailSource = {
       lede: 'l',
       links: [],
       chapters: [],
@@ -89,8 +91,8 @@ describe('shipped project content', () => {
       proof: 'Dépôt public',
     };
 
-    expect(Object.keys(sheet)).toContain('proof');
-    for (const { sheet: each } of PROJECTS) {
+    expect(Object.keys(detail)).toContain('proof');
+    for (const { detail: each } of PROJECTS) {
       for (const field of ['proof', 'proofLevel', 'role', 'stack', 'context']) {
         expect(Object.keys(each)).not.toContain(field);
       }

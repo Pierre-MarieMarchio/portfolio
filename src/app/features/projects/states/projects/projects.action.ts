@@ -1,9 +1,4 @@
-import {
-  defineActionsGroup,
-  defineSingleAction,
-  emptyPayload,
-  payload,
-} from 'ngx-statewise';
+import { defineActionsGroup, emptyPayload, payload } from 'ngx-statewise';
 import { ProjectCatalog } from '../../models';
 
 export const getProjectsActions = defineActionsGroup({
@@ -14,6 +9,3 @@ export const getProjectsActions = defineActionsGroup({
     failure: emptyPayload,
   },
 });
-
-/** Back to an empty list, and any read still in flight abandoned. */
-export const projectsReset = defineSingleAction('PROJECTS_RESET', emptyPayload);

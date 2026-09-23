@@ -1,11 +1,6 @@
 import { Resolved, Text } from '@app/core/rules';
-import { SheetSource } from './project-sheet.model';
-
-/**
- * Where a project was made. It is the context a reader asks about, not a
- * category invented for filtering.
- */
-export type ProjectFamily = 'professional' | 'personal';
+import { DetailSource } from './project-detail.model';
+import { ProjectFamily } from './project-family.model';
 
 /**
  * One project as the index and the home page name it, as its file writes
@@ -49,14 +44,14 @@ export interface FactsSource {
 }
 
 /**
- * A project as it is written: its identity, its facts and its sheet, in the
+ * A project as it is written: its identity, its facts and its detail, in the
  * one file of that project. Every part is required, so a project without its
- * facts or its sheet does not compile.
+ * facts or its detail does not compile.
  */
 export interface ProjectEntry {
   readonly project: ProjectSource;
   readonly facts: FactsSource;
-  readonly sheet: SheetSource;
+  readonly detail: DetailSource;
 }
 
 /** A project in the reader's language. */
@@ -65,18 +60,12 @@ export type Project = Resolved<ProjectSource>;
 /** Its facts in the reader's language. */
 export type ProjectFacts = Resolved<FactsSource>;
 
-/** A project row with its facts joined, as the index and the preview draw it. */
-export interface ProjectWithFacts extends Project {
-  readonly facts: ProjectFacts;
-}
-
-/**
- * A project in its place: its rank from 0 in the order, and the number the
- * interface prints for it ("01"). Computed once, by the manager, so the index,
- * the rule, the preview and the sheet can never number it differently.
- */
-export interface RankedProject extends ProjectWithFacts {
+export interface Ranking {
   readonly rank: number;
   readonly number: string;
   readonly featured: boolean;
+}
+
+export interface RankedProject extends Project, Ranking {
+  readonly facts: ProjectFacts;
 }

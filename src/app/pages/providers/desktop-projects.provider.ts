@@ -1,5 +1,5 @@
 import { computed, inject, Injectable } from '@angular/core';
-import { FamilyFilter } from '@app/features/projects/components';
+import { FamilyFilter } from '@app/features/projects/models';
 import { ProjectsManager } from '@app/features/projects/states';
 import { DesktopView } from '@app/features/desktop/models';
 import { DesktopManager } from '@app/features/desktop/states';

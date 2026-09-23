@@ -2,7 +2,7 @@ import { ErrorHandler, inject, Injectable } from '@angular/core';
 import { createEffect } from 'ngx-statewise';
 import { catchError, map, of } from 'rxjs';
 import { ProjectsRepositoryService } from '../../services';
-import { getProjectsActions, projectsReset } from './projects.action';
+import { getProjectsActions } from './projects.action';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectsEffect {
@@ -27,11 +27,6 @@ export class ProjectsEffect {
           return of(getProjectsActions.failure());
         }),
       ),
-    /**
-     * Two reloads racing have one useful answer between them. `mustAnswer`
-     * because every branch above produces an action: a run answering nothing
-     * would leave `isLoading` set with nothing to clear it.
-     */
-    { concurrency: 'latest', cancelOn: projectsReset, mustAnswer: true },
+    { concurrency: 'latest', mustAnswer: true },
   );
 }

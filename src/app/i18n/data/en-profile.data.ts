@@ -161,5 +161,6 @@ export const EN_PROFILE: ProfileTexts = {
     email: draft('Write to me at pierremariemarchio.pro@gmail.com'),
     linkedin: draft('LinkedIn profile of Pierre-Marie Marchio'),
     github: draft('GitHub repositories of Pierre-Marie Marchio'),
+    cv: draft('Open my CV as a PDF'),
   },
 };

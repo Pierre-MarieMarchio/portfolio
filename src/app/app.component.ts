@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PAGES_TEXTS } from './i18n';
 import { DesktopPageComponent } from './pages/desktop/desktop-page.component';
@@ -13,7 +13,6 @@ import { DESKTOP_IDS } from './features/desktop/models/desktop-ids.model';
   imports: [RouterOutlet, DesktopPageComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   /** The skip link leads to the station's content. */

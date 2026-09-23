@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
@@ -37,7 +30,6 @@ const PARTS = ['profile', 'skills', 'method', 'path'] as const;
   ],
   templateUrl: './about-window.component.html',
   styleUrl: './about-window.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutWindowComponent {
   public readonly pinned = input(false);

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 import { DesktopPins, DesktopView } from '../../models';
 
 export const NO_PINS: DesktopPins = {
@@ -8,7 +8,7 @@ export const NO_PINS: DesktopPins = {
   preview: false,
 };
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DesktopState {
   public readonly view = signal<DesktopView>('home');
   public readonly slug = signal<string | null>(null);

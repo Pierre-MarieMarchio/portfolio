@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { SHARED_TEXTS } from '../../ports';
 import { SegmentedItem } from '../../models/segmented.model';
 
@@ -19,7 +12,6 @@ import { SegmentedItem } from '../../models/segmented.model';
   selector: 'app-segmented',
   templateUrl: './segmented.component.html',
   styleUrl: './segmented.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SegmentedComponent<T> {
   public readonly items = input.required<readonly SegmentedItem<T>[]>();

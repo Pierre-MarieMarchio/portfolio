@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '../../ports/desktop-texts.port';
@@ -22,7 +15,6 @@ import { ViewHeadingDirective } from '@shared/ui/directives';
   imports: [ViewHeadingDirective, RouterLink, WindowComponent],
   templateUrl: './not-found-window.component.html',
   styleUrl: './not-found-window.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotFoundWindowComponent {
   /** How many sheets the index holds: the sentence counts them. */

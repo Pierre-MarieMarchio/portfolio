@@ -1,4 +1,4 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, inject, Service } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
 import { DesktopView, DesktopWindow } from '../../models';
 import {
@@ -19,7 +19,7 @@ import { DesktopState } from './desktop.state';
 import { desktopUpdater } from './desktop.updater';
 import { stepBack } from '../../rules/view.rules';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class DesktopManager {
   private readonly state = inject(DesktopState);
   private readonly statewise = injectStatewise(desktopUpdater);

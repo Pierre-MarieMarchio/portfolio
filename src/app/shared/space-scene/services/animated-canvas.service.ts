@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import {
   BrowserWindowService,
   CanvasContextsService,
@@ -9,7 +9,7 @@ import {
   PageVisibilityService,
 } from '@app/core/services';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AnimatedCanvasService {
   private readonly contexts = inject(CanvasContextsService);
   private readonly clock = inject(ClockService);

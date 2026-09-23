@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
@@ -26,7 +19,6 @@ import { positionOf } from '../../rules/project-labels.rules';
   imports: [RouterLink, SegmentedComponent, WindowComponent],
   templateUrl: './project-preview.component.html',
   styleUrl: './project-preview.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectPreviewComponent {
   private readonly manager = inject(ProjectsManager);

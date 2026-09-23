@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Service, signal } from '@angular/core';
 import { Lang } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
 import { Catalog } from '../models/catalog.model';
@@ -15,7 +15,7 @@ const LOADERS: Readonly<Record<Lang, () => Promise<Catalog>>> = {
  * render, and every route loads its own before it activates
  * (`loadCatalog`), so `current` is never asked for one that is not there.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CatalogLoaderService {
   private readonly locale = inject(LocaleService);
   private readonly loaded = signal<Partial<Record<Lang, Catalog>>>({});

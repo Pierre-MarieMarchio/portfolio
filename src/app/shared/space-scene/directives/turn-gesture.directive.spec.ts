@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TurnGestureDirective, TurnableScene } from './turn-gesture.directive';
 
@@ -27,7 +27,6 @@ class SceneDouble implements TurnableScene {
 @Component({
   imports: [TurnGestureDirective],
   template: `<div [appTurnGesture]="scene()"></div>`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class HostComponent {
   public readonly scene = signal<TurnableScene | null>(null);

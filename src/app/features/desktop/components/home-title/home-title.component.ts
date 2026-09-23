@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-} from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { DESKTOP_TEXTS } from '../../ports/desktop-texts.port';
 import { Entrance } from '@shared/ui/models';
 import { ViewHeadingDirective } from '@shared/ui/directives';
@@ -19,7 +14,6 @@ import { DESKTOP_IDS } from '../../models/desktop-ids.model';
   imports: [ViewHeadingDirective],
   templateUrl: './home-title.component.html',
   styleUrl: './home-title.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[attr.data-arrival]': 'arrival()' },
 })
 export class HomeTitleComponent {

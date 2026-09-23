@@ -1,0 +1,44 @@
+<div class="rail">
+  <ul aria-label="Me contacter">
+    <li>
+      <a
+        href="mailto:pierremariemarchio.pro@gmail.com"
+        aria-label="M’écrire à pierremariemarchio.pro@gmail.com"
+        title="Email"
+        class="glyph"
+        >@</a
+      >
+    </li>
+    <li>
+      <a
+        href="https://www.linkedin.com/in/pierre-marie-marchio-3a5836295/"
+        target="_blank"
+        rel="noopener"
+        aria-label="Profil LinkedIn de Pierre-Marie Marchio"
+        title="LinkedIn"
+        >in</a
+      >
+    </li>
+    <li>
+      <a
+        href="https://github.com/Pierre-MarieMarchio"
+        target="_blank"
+        rel="noopener"
+        aria-label="Dépôts GitHub de Pierre-Marie Marchio"
+        title="GitHub"
+        >gh</a
+      >
+    </li>
+  </ul>
+  @if (showPause()) {
+    <span aria-hidden="true" class="rule"></span>
+    <button
+      type="button"
+      [attr.aria-label]="pauseLabel()"
+      [title]="pauseLabel()"
+      (click)="pauseToggled.emit()"
+    >
+      {{ paused() ? '▶' : '❚❚' }}
+    </button>
+  }
+</div>

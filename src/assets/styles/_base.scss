@@ -92,3 +92,15 @@ button {
     scroll-behavior: auto;
   }
 }
+
+/* The heading a view's focus lands on when it has no visible one: hidden,
+   even focused, unlike the skip link, which shows itself when reached. */
+.landing {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  outline: none;
+}

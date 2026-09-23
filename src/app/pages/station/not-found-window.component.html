@@ -1,0 +1,17 @@
+<app-window
+  title="Adresse inconnue"
+  label="Fenêtre : adresse inconnue"
+  meta="404"
+  size="s"
+  [margin]="76"
+  (closed)="closed.emit()"
+>
+  <div body>
+    <h1 tabindex="-1">Cette réalisation n’existe pas.</h1>
+    <p>L’adresse demandée ne correspond à aucune des sept fiches du relevé.</p>
+  </div>
+  <ng-container footer>
+    <span class="grow"></span>
+    <a routerLink="/projets">Tous les projets →</a>
+  </ng-container>
+</app-window>

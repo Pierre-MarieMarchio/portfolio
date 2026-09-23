@@ -1,0 +1,189 @@
+:host {
+  display: contents;
+}
+
+.lead {
+  font-size: var(--h2);
+  line-height: 1.16;
+  letter-spacing: -0.024em;
+  font-weight: 600;
+  max-width: 24ch;
+}
+
+dl > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  border-bottom: 1px solid var(--line);
+}
+
+.facts {
+  margin-top: var(--s4);
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+
+  > div {
+    padding: 9px 0;
+  }
+
+  dt {
+    flex: 0 0 11ch;
+  }
+
+  dd {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--p2);
+  }
+}
+
+dt,
+.caps {
+  font-family: var(--mono);
+  font-size: var(--m1);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.data {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  letter-spacing: var(--ls-mono);
+}
+
+.facts .data {
+  font-size: var(--m3);
+}
+
+.quiet {
+  color: var(--ink-2);
+}
+
+.prose {
+  margin-top: var(--s2);
+  font-size: var(--p2);
+  color: var(--ink-2);
+
+  &.first {
+    margin-top: var(--s4);
+  }
+
+  &.after {
+    margin-top: var(--s3);
+  }
+}
+
+.domains,
+.milestones {
+  margin-top: var(--s2);
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line);
+
+  > div {
+    padding: 11px 0;
+  }
+}
+
+.domains {
+  .number {
+    flex: 0 0 3ch;
+    letter-spacing: normal;
+  }
+
+  .label {
+    flex: 0 0 9ch;
+    font-family: var(--font);
+    font-size: var(--p2);
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--ink);
+  }
+
+  dd {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.method {
+  margin-top: var(--s2);
+  display: flex;
+  flex-direction: column;
+
+  li {
+    border-bottom: 1px solid var(--line);
+    padding: 12px 0;
+  }
+}
+
+.step {
+  font-family: var(--mono);
+  font-size: var(--m3);
+  color: var(--accent);
+}
+
+.text {
+  display: block;
+  margin-top: 5px;
+  font-size: var(--p2);
+}
+
+.steps-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.grow {
+  flex: 1;
+}
+
+/* A state, so the signal ink: the years are missing and say so. */
+.missing {
+  color: var(--sig);
+}
+
+.milestones {
+  dt {
+    flex: 0 0 9ch;
+    font-size: var(--m2);
+    letter-spacing: var(--ls-mono);
+    text-transform: none;
+  }
+
+  dd {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--p2);
+  }
+}
+
+.position {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: var(--m1);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.next {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: var(--m2);
+  letter-spacing: var(--ls-mono);
+  text-decoration: none;
+}

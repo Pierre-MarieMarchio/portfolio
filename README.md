@@ -19,13 +19,14 @@ npm ci
 npm start          # http://localhost:4200
 ```
 
-| Script                 | Rôle                                                    |
-| ---------------------- | ------------------------------------------------------- |
-| `npm run build`        | build de production + prérendu de toutes les routes     |
-| `npm run serve:static` | sert `dist/portfolio/browser` comme un hébergeur static |
-| `npm test`             | Vitest + jsdom, une passe                               |
-| `npm run lint`         | ESLint, dont la loi de dépendance, puis Stylelint       |
-| `npm run check`        | format:check → typecheck:tools → lint → test → build    |
+| Script                    | Rôle                                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run build`           | build de production + prérendu de toutes les routes                                      |
+| `npm run serve:static`    | sert `dist/portfolio/browser` comme un hébergeur static                                  |
+| `npm test`                | Vitest + jsdom, une passe                                                                |
+| `npm run lint`            | ESLint, dont la loi de dépendance, puis Stylelint, zéro avertissement                    |
+| `npm run check:structure` | la nomenclature d'`organisation.md` §3 ; `--strict` échoue sur un écart                  |
+| `npm run check`           | format:check → typecheck:tools → lint → test → build → check:prerender → check:structure |
 
 Les messages de commit suivent les Conventional Commits (Husky + commitlint).
 

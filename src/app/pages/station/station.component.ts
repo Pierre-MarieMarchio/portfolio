@@ -31,7 +31,7 @@ import {
   PageBarComponent,
 } from '@shared/ui/page-bar';
 import { PAGES_TEXTS, pathOf, translatePath } from '@app/i18n';
-import { contactLinks } from '../../app.contact';
+import { CONTACT_ADDRESSES } from '@app/features/profile/data';
 import { AboutWindowComponent } from './about-window/about-window.component';
 import { ArrivalController } from './arrival/arrival.controller';
 import { Curtain } from './arrival/curtain';
@@ -114,7 +114,10 @@ export class StationComponent {
   );
 
   protected readonly contactLinks = computed<readonly ContactLink[]>(() =>
-    contactLinks(this.texts().contact),
+    CONTACT_ADDRESSES.map((address) => ({
+      ...address,
+      label: this.texts().contact[address.icon],
+    })),
   );
   protected readonly arrival = this.arrivalController.arrival;
 
@@ -171,9 +174,9 @@ export class StationComponent {
       ),
     ];
     inject(DestroyRef).onDestroy(() => {
-      stops.forEach((stop) => {
+      for (const stop of stops) {
         stop();
-      });
+      }
     });
 
     // Browser only: on the server there is no one to arrive, and the
@@ -199,7 +202,7 @@ export class StationComponent {
    * screen reader or a keyboard expects to start.
    */
   private followNavigations(): void {
-    let withdraw: () => void = () => undefined;
+    let withdraw: (() => void) | undefined;
     effect(() => {
       const view = this.station.view();
       this.station.slug();
@@ -212,8 +215,8 @@ export class StationComponent {
         if (slot) {
           this.stack.bringToFront(slot);
         }
-        withdraw();
-        withdraw = this.landed ? this.claimFocus(view, slot) : () => undefined;
+        withdraw?.();
+        withdraw = this.landed ? this.claimFocus(view, slot) : undefined;
       });
     });
   }
@@ -265,7 +268,9 @@ export class StationComponent {
         ? this.homeTitle()?.nativeElement
         : this.slots()
             .map((each) => each.nativeElement)
-            .find((element) => element.getAttribute('data-slot') === slot),
+            .find(
+              (element) => slot !== null && element.dataset['slot'] === slot,
+            ),
     );
   }
 }
@@ -275,11 +280,14 @@ function slotOf(view: StationView): WindowSlot | null {
   switch (view) {
     case 'index':
     case 'about':
-    case 'sheet':
+    case 'sheet': {
       return view;
-    case 'not-found':
+    }
+    case 'not-found': {
       return 'sheet';
-    case 'home':
+    }
+    case 'home': {
       return null;
+    }
   }
 }

@@ -59,7 +59,8 @@ const mount = async (featured: number, total: number) => {
     station: TestBed.inject(DesktopManager),
     markers: () => host.querySelectorAll('app-featured-bar li').length,
     choices: () =>
-      host.querySelectorAll('[aria-label="Corps en orbite"] button').length,
+      host.querySelectorAll('[aria-label="Projets mis en avant"] button')
+        .length,
   };
 };
 

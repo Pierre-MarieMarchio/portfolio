@@ -1,7 +1,6 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** ngx-statewise: identity, facts and detail, in one place. */
 export const NGX_STATEWISE: ProjectEntry = {
   project: {
     slug: 'ngx-statewise',
@@ -10,9 +9,9 @@ export const NGX_STATEWISE: ProjectEntry = {
     tag: 'open source',
     family: 'personal',
     subject: {
-      fr: 'Une bibliothèque de gestion d’état pour Angular construite sur les signals : chaque action est reliée à la mise à jour d’état qu’elle provoque, puis aux effets qui en découlent.',
+      fr: 'Une bibliothèque de gestion d’état pour Angular, construite sur les signals, qui demande moins de code d’infrastructure que NgRx.',
       en: draft(
-        'A state management library for Angular built on signals: each action is tied to the state update it causes, then to the effects that follow from it.',
+        'A state management library for Angular, built on signals, that takes less infrastructure code than NgRx.',
       ),
     },
     summary: {
@@ -21,20 +20,30 @@ export const NGX_STATEWISE: ProjectEntry = {
     },
   },
   facts: {
-    proof: { fr: 'Dépôt public · npm', en: draft('Public repository · npm') },
+    proof: {
+      fr: 'Sur npm · code public',
+      en: draft('On npm · public code'),
+    },
     proofLevel: 'public',
-    role: { fr: 'Seul, de bout en bout', en: draft('Alone, end to end') },
+    role: { fr: 'Seul', en: draft('Alone') },
     stack: 'Angular · signals · TypeScript',
     context: { fr: 'Personnel', en: draft('Personal') },
   },
   detail: {
     lede: {
-      fr: 'Une alternative plus légère à NgRx et NGXS pour la gestion d’état Angular, appuyée sur les signals natifs plutôt que sur un store central.',
+      fr: 'Publiée sur npm, avec un site de documentation en français et en anglais.',
       en: draft(
-        'A lighter alternative to NgRx and NGXS for Angular state management, resting on native signals rather than on a central store.',
+        'Published on npm, with a documentation site in French and English.',
       ),
     },
     links: [
+      {
+        label: {
+          fr: 'Site de documentation',
+          en: draft('Documentation site'),
+        },
+        href: 'https://pierre-mariemarchio.github.io/ngx-statewise/',
+      },
       {
         label: 'github.com/Pierre-MarieMarchio/ngx-statewise',
         href: 'https://github.com/Pierre-MarieMarchio/ngx-statewise',
@@ -44,15 +53,9 @@ export const NGX_STATEWISE: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'Les solutions établies de gestion d’état Angular sont construites autour d’un store central, d’actions distribuées et d’observables. Elles fonctionnent, mais demandent une quantité de code d’infrastructure importante avant d’écrire la moindre règle métier.',
+            fr: 'Avec NgRx ou NGXS, on écrit beaucoup de code d’infrastructure avant d’arriver à la première règle métier. ngx-statewise s’appuie sur les signals d’Angular pour en écrire moins.',
             en: draft(
-              'The established Angular state management solutions are built around a central store, dispatched actions and observables. They work, but ask for a large amount of infrastructure code before the first business rule is written.',
-            ),
-          },
-          {
-            fr: 'J’ai voulu une approche qui s’appuie sur les signals introduits par Angular, où la réactivité de l’interface est automatique, et où l’on écrit surtout la logique.',
-            en: draft(
-              'I wanted an approach that rests on the signals Angular introduced, where the interface’s reactivity is automatic, and where one mostly writes the logic.',
+              'With NgRx or NGXS, you write a lot of infrastructure code before reaching the first business rule. ngx-statewise builds on Angular’s signals so you write less of it.',
             ),
           },
         ],
@@ -60,46 +63,43 @@ export const NGX_STATEWISE: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'Projet personnel. J’en ai défini le modèle, écrit la bibliothèque et la documentation, et je le maintiens seul. Il est publié en open source pour être relu et utilisé.',
+            fr: 'La bibliothèque, sa documentation et son site, depuis avril 2025. Elle est couverte à 100 % par ses tests.',
             en: draft(
-              'Personal project. I defined its model, wrote the library and its documentation, and I maintain it alone. It is published as open source, to be read and used.',
+              'The library, its documentation and its site, since April 2025. Its tests cover it at 100%.',
             ),
           },
         ],
         bullets: [
           {
-            term: 'states',
-            text: {
-              fr: 'l’état, exposé en signals',
-              en: draft('the state, exposed as signals'),
-            },
-          },
-          {
             term: 'actions',
+            text: { fr: 'ce qui s’est passé', en: draft('what happened') },
+          },
+          {
+            term: 'interceptors',
             text: {
-              fr: 'événements typés, seuls ou groupés par source',
-              en: draft('typed events, alone or grouped by source'),
+              fr: 'peuvent refuser une action avant qu’elle touche l’état',
+              en: draft('can refuse an action before it reaches the state'),
             },
           },
           {
-            term: 'updators',
+            term: 'updaters',
             text: {
-              fr: 'modifient l’état, et rien d’autre',
-              en: draft('change the state, and nothing else'),
+              fr: 'appliquent l’action à l’état, de façon synchrone',
+              en: draft('apply the action to the state, synchronously'),
             },
           },
           {
             term: 'effects',
             text: {
-              fr: 'appels réseau, navigation, et nouvelles actions',
-              en: draft('network calls, navigation, and new actions'),
+              fr: 'le travail asynchrone, qui renvoie l’action suivante',
+              en: draft('the asynchronous work, which returns the next action'),
             },
           },
           {
             term: 'managers',
             text: {
-              fr: 'la façade entre les composants et cette mécanique',
-              en: draft('the facade between the components and this machinery'),
+              fr: 'la seule chose à laquelle parlent les composants',
+              en: draft('the only thing components talk to'),
             },
           },
         ],
@@ -107,42 +107,28 @@ export const NGX_STATEWISE: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'La bibliothèque impose un ordre : une action est d’abord distribuée, l’updator met l’état à jour, et seulement ensuite l’effet s’exécute. Tout effet travaille donc sur l’état le plus récent, ce qui rend le comportement prévisible et le débogage plus simple.',
+            fr: 'L’état est écrit avant que les effets tournent. Un effet travaille donc toujours sur l’état à jour, et le comportement reste prévisible. En contrepartie, on ne lance pas d’effet sans passer par une action. La documentation dit aussi dans quels cas mieux vaut prendre autre chose.',
             en: draft(
-              'The library imposes an order: an action is dispatched first, the updator updates the state, and only then does the effect run. Every effect therefore works on the most recent state, which makes the behaviour predictable and debugging simpler.',
-            ),
-          },
-          {
-            fr: 'Le compromis est réel et documenté dans le dépôt : impossible de déclencher un effet sans passer par une action, et les dérivations d’état très complexes demandent d’étendre les capacités de base. Pour qui vient d’un modèle Redux, cela demande un changement d’habitude.',
-            en: draft(
-              'The trade-off is real and documented in the repository: an effect cannot be triggered without going through an action, and very complex state derivations call for extending the base capabilities. For someone coming from a Redux model, it asks for a change of habit.',
+              'The state is written before the effects run. An effect therefore always works on the current state, and the behaviour stays predictable. In return, you cannot start an effect without going through an action. The documentation also says when something else is a better fit.',
             ),
           },
         ],
         figure: {
           kind: 'flow',
-          steps: ['action', 'updator', 'effect'],
+          steps: ['action', 'interceptor', 'updater', 'effect'],
           loop: { fr: 'nouvelles actions', en: draft('new actions') },
           caption: {
-            fr: 'Séquence documentée dans le dépôt. Schéma de lecture, pas une capture d’application.',
-            en: draft(
-              'Sequence documented in the repository. A reading diagram, not a screenshot of an application.',
-            ),
+            fr: 'Le flux décrit dans la documentation.',
+            en: draft('The flow described in the documentation.'),
           },
         },
       },
       {
         paragraphs: [
           {
-            fr: 'Ce qui existe : une bibliothèque publiée, documentée concept par concept, avec ses exemples de code et une section qui expose elle-même ses limites.',
+            fr: 'La 0.6 est la version stable, la 1.0 est en bêta depuis septembre 2026. Ce portfolio l’utilise.',
             en: draft(
-              'What exists: a published library, documented concept by concept, with its code examples and a section that sets out its own limits.',
-            ),
-          },
-          {
-            fr: 'Ce qui n’est pas démontré : aucun usage en production mesuré, aucune adoption chiffrée, aucune comparaison de performance avec NgRx ou NGXS.',
-            en: draft(
-              'What is not shown: no measured production use, no figures on adoption, no performance comparison with NgRx or NGXS.',
+              'Version 0.6 is the stable one, and 1.0 has been in beta since September 2026. This portfolio runs on it.',
             ),
           },
         ],

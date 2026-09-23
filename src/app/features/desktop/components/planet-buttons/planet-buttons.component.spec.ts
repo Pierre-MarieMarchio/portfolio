@@ -72,11 +72,11 @@ describe('PlanetButtonsComponent', () => {
     ]);
   });
 
-  it('names them as index selections on the index, with no expanded state', async () => {
+  it('names them as list selections on the index, with no expanded state', async () => {
     const { buttons } = await mount({ view: 'index' });
 
     expect(buttons()[2]?.textContent.trim()).toBe(
-      'Sélectionner 03 — Template Clean Architecture .NET dans le relevé',
+      'Afficher Template Clean Architecture .NET dans la liste',
     );
     expect(buttons()[0]?.hasAttribute('aria-expanded')).toBe(false);
   });

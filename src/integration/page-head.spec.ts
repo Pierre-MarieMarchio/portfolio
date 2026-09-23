@@ -82,6 +82,8 @@ describe('page head across a language switch', () => {
     expect(head().description).toBe(
       TestBed.inject(ProjectsManager).findIn('bkone', 'en')?.subject,
     );
-    expect(head().description).toMatch(/^A module of the BKLINK/);
+    expect(head().description).toMatch(
+      /^A banking software package from the BKLINK/,
+    );
   });
 });

@@ -1,59 +1,50 @@
 import { draft } from '@app/core/rules';
 import { ProjectEntry } from '../../models';
 
-/** Skyted Companion: identity, facts and detail, in one place. */
 export const SKYTED_COMPANION: ProjectEntry = {
   project: {
     slug: 'skyted-companion',
     title: 'Skyted Companion',
     short: 'Skyted Companion',
-    tag: { fr: 'interne', en: draft('internal') },
+    tag: { fr: 'en cours', en: draft('in progress') },
     family: 'professional',
     subject: {
-      fr: 'Application compagnon utilisée en interne autour du casque : appairage, mise à jour du micrologiciel et vérification de l’état de l’appareil.',
+      fr: 'L’application desktop du prochain casque Skyted, pour Windows, macOS et Linux, écrite en .NET avec Avalonia.',
       en: draft(
-        'A companion application used internally around the headset: pairing, firmware updates and checking the device’s status.',
+        'The desktop app for Skyted’s next headset, for Windows, macOS and Linux, written in .NET with Avalonia.',
       ),
     },
     summary: {
-      fr: 'compagnon matériel, usage interne',
-      en: draft('hardware companion, internal use'),
+      fr: 'application desktop, trois systèmes',
+      en: draft('desktop app, three systems'),
     },
   },
   facts: {
     proof: {
-      fr: 'Interne · non publiée',
-      en: draft('Internal · not published'),
+      fr: 'En développement · code privé',
+      en: draft('In development · private code'),
     },
     proofLevel: 'none',
     role: {
-      fr: 'Développement, en équipe',
-      en: draft('Development, in a team'),
+      fr: 'Seul, de la conception au code',
+      en: draft('Alone, from design to code'),
     },
-    stack: { fr: 'Natif · BLE', en: draft('Native · BLE') },
+    stack: '.NET · Avalonia · Bluetooth',
     context: 'Skyted',
   },
   detail: {
     lede: {
-      fr: 'L’application compagnon utilisée en interne autour du casque : elle sert à préparer l’appareil, le mettre à jour et vérifier son état.',
-      en: draft(
-        'The companion application used internally around the headset: it serves to prepare the device, update it and check its status.',
-      ),
+      fr: 'La version ordinateur de l’application qui pilote les casques Skyted.',
+      en: draft('The computer version of the app that drives Skyted headsets.'),
     },
     links: [],
     chapters: [
       {
         paragraphs: [
           {
-            fr: 'Un casque connecté ne se suffit pas à lui-même : il faut pouvoir l’appairer, le mettre à jour, vérifier son état et reproduire un problème signalé. Ce travail n’a pas sa place dans l’application grand public, qui doit rester simple.',
+            fr: 'L’application du casque existait sur téléphone. Pour le prochain modèle, il la fallait aussi sur ordinateur, et sur les trois systèmes.',
             en: draft(
-              'A connected headset is not enough on its own: it has to be paired, updated, its status checked and a reported problem reproduced. That work has no place in the consumer application, which must stay simple.',
-            ),
-          },
-          {
-            fr: 'C’est le rôle de cette application compagnon : donner accès à l’appareil de près, pour les personnes qui travaillent avec lui.',
-            en: draft(
-              'That is the role of this companion application: giving close access to the device, for the people who work with it.',
+              'The headset’s app existed on phones. The next model needed it on computers too, on all three systems.',
             ),
           },
         ],
@@ -61,15 +52,9 @@ export const SKYTED_COMPANION: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'J’ai développé des fonctionnalités de cette application au sein de l’équipe mobile, sur les deux plateformes, et suivi la liaison Bluetooth avec l’appareil.',
+            fr: 'Le modèle de domaine, l’interface et son design system, la persistance avec EF Core, et un installeur pour chaque système. L’application s’appuie sur le monorepo .NET de Skyted, qu’elle partage avec Skyted Voice.',
             en: draft(
-              'I developed features of this application within the mobile team, on both platforms, and followed the Bluetooth link with the device.',
-            ),
-          },
-          {
-            fr: 'Elle partage son terrain avec l’application publique — mêmes protocoles, même matériel — mais son public est interne, avec des libertés qu’un magasin n’autoriserait pas.',
-            en: draft(
-              'It shares its ground with the public application — the same protocols, the same hardware — but its audience is internal, with freedoms a store would not allow.',
+              'The domain model, the interface and its design system, persistence with EF Core, and an installer for each system. The app builds on Skyted’s .NET monorepo, which it shares with Skyted Voice.',
             ),
           },
         ],
@@ -77,15 +62,9 @@ export const SKYTED_COMPANION: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'La question était de savoir jusqu’où exposer l’appareil. Tout montrer rend l’outil puissant et illisible ; ne rien montrer le rend inutile.',
+            fr: 'Le Bluetooth ne se programme pas de la même façon sur Windows, macOS et Linux, ni en Bluetooth Classic ni en BLE. J’ai mis les trois implémentations derrière une seule interface, choisie au démarrage par injection de dépendances. Le reste de l’application ignore sur quel système elle tourne.',
             en: draft(
-              'The question was how far to expose the device. Showing everything makes the tool powerful and unreadable; showing nothing makes it useless.',
-            ),
-          },
-          {
-            fr: 'J’ai gardé une interface aussi proche que possible de celle de l’application publique, et laissé le reste à l’outillage. Le compromis : certaines opérations demandent encore de passer par un outil séparé.',
-            en: draft(
-              'I kept an interface as close as possible to the public application’s, and left the rest to the tooling. The trade-off: some operations still require going through a separate tool.',
+              'Bluetooth is not programmed the same way on Windows, macOS and Linux, neither Classic nor BLE. I put the three implementations behind a single interface, picked at startup through dependency injection. The rest of the app does not know which system it runs on.',
             ),
           },
         ],
@@ -93,15 +72,9 @@ export const SKYTED_COMPANION: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'Ce qui existe : une application en service en interne, liée au même matériel que l’application publiée.',
+            fr: 'Elle est toujours en développement. La connexion Bluetooth Classic et BLE est stable sous Windows, et la prochaine étape est l’intégration du SoundBubble.',
             en: draft(
-              'What exists: an application in service internally, tied to the same hardware as the published application.',
-            ),
-          },
-          {
-            fr: 'Ce qui ne peut pas être montré ici : elle n’est pas téléchargeable, et son contenu appartient à l’entreprise. La preuve, dans ce cas, est un récit précis plutôt qu’un lien.',
-            en: draft(
-              'What cannot be shown here: it cannot be downloaded, and its content belongs to the company. The proof, in this case, is a precise account rather than a link.',
+              'It is still in development. The Bluetooth Classic and BLE connection is stable on Windows, and the next step is integrating SoundBubble.',
             ),
           },
         ],

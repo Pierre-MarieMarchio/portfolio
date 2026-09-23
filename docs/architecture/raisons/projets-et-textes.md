@@ -186,3 +186,20 @@ break-word` déprécié : couper un nom long seulement là où il déborderait.
 - Le site bilingue est câblé ici (D3) : la tranche de chaque couche répond
   dans la langue du lecteur, les liens aussi, et le catalogue de la première
   adresse est chargé avant le premier rendu.
+
+## `features/projects/data/projects.data.ts`
+
+L'ordre de la liste est le rang : la distance au centre de l'objet, et l'ordre
+de lecture partout ailleurs. Filtrer ne réordonne jamais. Les `FEATURED`
+premiers sont mis en avant. Chaque projet est un fichier sous `projects/`
+(identité, faits, fiche) : en ajouter un, c'est écrire ce fichier et le nommer
+ici (`docs/contenu.md`). C'est du contenu livré avec le site ; seul le
+repository le lit, une source distante pourrait donc le remplacer sans
+qu'aucun autre fichier ne le sache.
+
+## `i18n/data/fr.data.ts`, `en.data.ts` et leurs tranches `*-profile.data.ts`
+
+Le texte vient de `docs/wording/fr.md`, et chaque fait de
+`docs/wording/sources.md`. La tranche de la page À propos vit à part (D22).
+L'anglais, rédigé sans relecture, est marqué `draft(…)` texte par texte ;
+`src/integration/drafts.spec.ts` compte ceux qui restent.

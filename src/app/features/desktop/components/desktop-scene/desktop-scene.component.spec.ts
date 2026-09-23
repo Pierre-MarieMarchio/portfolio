@@ -167,10 +167,10 @@ describe('DesktopSceneComponent', () => {
     ]);
   });
 
-  it('names them as index selections on the index, numbered like the REF column', async () => {
+  it('names them as list selections on the index, under numbered labels', async () => {
     const { buttons, host } = await mount({ view: 'index' });
     expect(buttons()[3]?.textContent?.trim()).toBe(
-      'Sélectionner 04 — Template Clean Architecture .NET dans le relevé',
+      'Afficher Template Clean Architecture .NET dans la liste',
     );
     expect(
       [...host.querySelectorAll('.label')].map((label) =>

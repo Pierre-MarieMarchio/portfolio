@@ -5,13 +5,13 @@ import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 type Part = 0 | 1 | 2 | 3;
 
-const TOOLBAR = '[aria-label="Parties du profil"]';
+const TOOLBAR = '[aria-label="Rubriques"]';
 
 /** The full title shown in the h1 and the footer, per part. */
 const TITLES: Record<Part, string> = {
   0: 'Profil',
-  1: 'Compétences · ce sur quoi j’ai livré',
-  2: 'Méthode de travail',
+  1: 'Compétences',
+  2: 'Et après',
   3: 'Parcours',
 };
 
@@ -40,7 +40,7 @@ describe('AboutWindowComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos — Profil',
+      'À propos : Profil',
     );
     expect(host.querySelector('button.pin')?.getAttribute('aria-pressed')).toBe(
       'false',
@@ -51,7 +51,7 @@ describe('AboutWindowComponent', () => {
     const { host } = await mount();
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe('Fenêtre : à propos');
+    expect(window?.getAttribute('aria-label')).toBe('À propos');
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('À propos');
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
@@ -66,14 +66,14 @@ describe('AboutWindowComponent', () => {
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       'Profil',
       'Compétences',
-      'Méthode',
+      'Et après',
       'Parcours',
     ]);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Aller à : Profil',
-      'Aller à : Compétences · ce sur quoi j’ai livré',
-      'Aller à : Méthode de travail',
-      'Aller à : Parcours',
+      'Aller à la rubrique Profil',
+      'Aller à la rubrique Compétences',
+      'Aller à la rubrique Et après',
+      'Aller à la rubrique Parcours',
     ]);
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
@@ -109,22 +109,22 @@ describe('AboutWindowComponent', () => {
     const h1 = host.querySelector('h1');
 
     expect(h1?.getAttribute('tabindex')).toBe('-1');
-    expect(h1?.textContent?.trim()).toBe('À propos — Profil');
+    expect(h1?.textContent?.trim()).toBe('À propos : Profil');
   });
 
   it('titles the h1 after the skills part', async () => {
     const { host } = await mount({ part: 1 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos — Compétences · ce sur quoi j’ai livré',
+      'À propos : Compétences',
     );
   });
 
-  it('titles the h1 after the method part', async () => {
+  it('titles the h1 after the "Et après" part', async () => {
     const { host } = await mount({ part: 2 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos — Méthode de travail',
+      'À propos : Et après',
     );
   });
 
@@ -132,7 +132,7 @@ describe('AboutWindowComponent', () => {
     const { host } = await mount({ part: 3 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos — Parcours',
+      'À propos : Parcours',
     );
   });
 
@@ -147,39 +147,39 @@ describe('AboutWindowComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos — Profil',
+      'À propos : Profil',
     );
   });
 
-  it('shows part 00: the archaeology sentence and the identity list, placeholders included', async () => {
+  it('shows part 00: the lead sentence and the identity list', async () => {
     const { host } = await mount({ part: 0 });
     const text = host.textContent ?? '';
 
     expect(text).toContain(
-      'Je viens de l’archéologie. J’en ai gardé une habitude : ne rien affirmer sans preuve.',
+      'Mes premières lignes de code, je les ai écrites pour modder Skyrim et Crusader Kings.',
     );
     const terms = [...host.querySelectorAll('dt')].map((dt) =>
       dt.textContent?.trim(),
     );
-    expect(terms).toEqual(['Poste', 'Pile', 'Lieu', 'Écoute']);
-    expect(text).toContain('Lorem ipsum — ville et mobilité à renseigner');
-    expect(text).toContain(
-      'Lorem ipsum — CDI, mission, freelance : à préciser',
-    );
+    expect(terms).toEqual(['Poste', 'Formation', 'Rythme', 'Lieu', 'Langues']);
+    expect(text).toContain('Toulouse, ou en télétravail');
+    expect(text).toContain('Bilingue français-anglais');
   });
 
-  it('shows part 01: the caps and five numbered rows, in order', async () => {
+  it('shows part 01: the caps and seven numbered rows, in order', async () => {
     const { host } = await mount({ part: 1 });
     const text = host.textContent ?? '';
 
-    expect(text).toContain('Ce sur quoi j’ai livré');
+    expect(text).toContain('Ce que je pratique');
 
     const rows: Array<[string, string]> = [
       ['01', 'Web'],
-      ['02', 'Mobile'],
-      ['03', 'Matériel'],
-      ['04', 'Desktop'],
-      ['05', 'Métier'],
+      ['02', 'Back'],
+      ['03', 'Desktop'],
+      ['04', 'Mobile'],
+      ['05', 'Bluetooth et audio'],
+      ['06', 'Architecture'],
+      ['07', 'Outillage'],
     ];
     let cursor = -1;
     for (const [number, label] of rows) {
@@ -191,42 +191,53 @@ describe('AboutWindowComponent', () => {
     }
   });
 
-  it('shows part 02: the caps and three numbered items, the first about seeing a project through', async () => {
+  it('shows part 02: the caps and four numbered items, the first about finishing the degree', async () => {
     const { host } = await mount({ part: 2 });
     const text = host.textContent ?? '';
 
-    expect(text).toContain('Comment je travaille');
+    expect(text).toContain('Ce que je cherche');
     expect(text).toContain(
-      'Tenir un projet jusqu’à la mise en production : c’est la seule façon d’en voir le coût réel.',
+      'Une alternance pour terminer mon titre, jusqu’en avril 2027.',
     );
 
     let cursor = -1;
-    for (const number of ['01', '02', '03']) {
+    for (const number of ['01', '02', '03', '04']) {
       const at = text.indexOf(number, cursor + 1);
       expect(at).toBeGreaterThan(cursor);
       cursor = at;
     }
   });
 
-  it('shows part 03: Étapes, five milestones with no invented date, and ordered facts', async () => {
+  it('shows part 03: Étapes, eight dated milestones, and ordered facts', async () => {
     const { host } = await mount({ part: 3 });
     const text = host.textContent ?? '';
 
     expect(text).toContain('Étapes');
-    expect(text).toContain('années à renseigner');
 
-    // Five milestones, each carrying the same never-guessed date placeholder.
-    expect((text.match(/— — — —/g) ?? []).length).toBe(5);
-    // A real year would show as four digits; none does.
-    expect(text).not.toMatch(/\b(19|20)\d{2}\b/);
+    const years = [...host.querySelectorAll('.milestones dt')].map((dt) =>
+      dt.textContent?.trim(),
+    );
+    expect(years).toEqual([
+      '2016 – 2021',
+      '2020',
+      '2021 – 2023',
+      '2023',
+      '2024',
+      '2024',
+      '2025',
+      '2025 –',
+    ]);
 
     let cursor = -1;
     for (const fact of [
-      'Archéologie',
-      'Reconversion',
-      'Formation',
+      'Archéologue',
+      'Licence d’archéologie',
+      'Autoformation',
+      'Apple Foundation Program',
+      'Titre Développeur web',
       'Numerilis',
-      'Skyted',
+      'Projets open source',
+      'Alternance chez Skyted',
     ]) {
       const at = text.indexOf(fact, cursor + 1);
       expect(at).toBeGreaterThan(cursor);
@@ -237,14 +248,14 @@ describe('AboutWindowComponent', () => {
   it('keeps only the current part’s content in the DOM when switching parts', async () => {
     const { fixture, host } = await mount({ part: 0 });
 
-    expect(host.textContent).toContain('Je viens de l’archéologie.');
-    expect(host.textContent).not.toContain('Ce sur quoi j’ai livré');
+    expect(host.textContent).toContain('Mes premières lignes de code');
+    expect(host.textContent).not.toContain('Ce que je pratique');
 
     fixture.componentRef.setInput('part', 1);
     await fixture.whenStable();
 
-    expect(host.textContent).not.toContain('Je viens de l’archéologie.');
-    expect(host.textContent).toContain('Ce sur quoi j’ai livré');
+    expect(host.textContent).not.toContain('Mes premières lignes de code');
+    expect(host.textContent).toContain('Ce que je pratique');
   });
 
   it('shows the current title in the footer and a next-part button, on part 00', async () => {
@@ -280,7 +291,7 @@ describe('AboutWindowComponent', () => {
     const next = [
       ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ].find((button) => button.textContent?.trim().startsWith('Suite'));
-    expect(next?.textContent?.trim()).toBe('Suite : Méthode →');
+    expect(next?.textContent?.trim()).toBe('Suite : Et après →');
 
     next?.click();
     await fixture.whenStable();
@@ -318,7 +329,7 @@ describe('AboutWindowComponent', () => {
     expect(next).toBeUndefined();
 
     const link = footer?.querySelector<HTMLAnchorElement>('a');
-    expect(link?.textContent?.trim()).toBe('Tous les projets →');
+    expect(link?.textContent?.trim()).toBe('Voir les projets →');
     expect(link?.getAttribute('href')).toBe('/projets');
   });
 

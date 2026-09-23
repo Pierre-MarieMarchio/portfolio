@@ -38,14 +38,14 @@ fonctionnels). Ce qui reste :
 
 ## Décisions
 
-| #   | Question                       | Décision                                                                                                                 |
-| --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| D7  | Nommage des fichiers           | on garde les suffixes (`.component.ts`, `WindowComponent`) ; `angular.json` fixe `type`                                  |
-| D8  | Ce qui sort de `pages/station` | une feature `profile` ; le reste dans `features/desktop` et `shared/ui` (tableau ci-dessous)                             |
-| D9  | Avertissements                 | zéro à la fin, `--max-warnings 0` ; aucun `eslint-disable`, une exception va dans la config et sa raison dans le journal |
-| D10 | Commentaires                   | aucun dans le code, ni pourquoi ni trace du chantier ; les raisons vont dans le journal des décisions                    |
-| D11 | Moteur (remplace D2)           | découpage objet, SOLID avec SRP et KISS d'abord, sous le golden étendu                                                   |
-| D12 | Noms venus de la maquette      | un nom se comprend sans la maquette : `station` → `desktop`, `object` → `space-scene`                                    |
+| #   | Question                       | Décision                                                                                              |
+| --- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| D7  | Nommage des fichiers           | on garde les suffixes (`.component.ts`, `WindowComponent`) ; `angular.json` fixe `type`               |
+| D8  | Ce qui sort de `pages/station` | une feature `profile` ; le reste dans `features/desktop` et `shared/ui` (tableau ci-dessous)          |
+| D9  | Avertissements                 | zéro, `--max-warnings 0` ; aucune exception, ni `eslint-disable` ni règle levée pour un fichier       |
+| D10 | Commentaires                   | aucun dans le code, ni pourquoi ni trace du chantier ; les raisons vont dans le journal des décisions |
+| D11 | Moteur (remplace D2)           | découpage objet, SOLID avec SRP et KISS d'abord, sous le golden étendu                                |
+| D12 | Noms venus de la maquette      | un nom se comprend sans la maquette : `station` → `desktop`, `object` → `space-scene`                 |
 
 ## Destinations de `pages/`
 
@@ -87,6 +87,8 @@ commit.
   - un garde « `pages/` ne contient que `*-page.component.*`,
     `*.component.*` routés, `*.provider.ts`, `*.resolver.ts` » ;
   - `--max-warnings 0` ; `eslint-comments/no-use` (aucun `eslint-disable`) ;
+    revue de chaque réglage par fichier de `eslint.config.js` : une
+    exception disparaît, un réglage de catégorie reste avec sa raison ;
   - règles choisies de `eslint-plugin-sonarjs` et `eslint-plugin-unicorn`
     (cognitive-complexity 15, prefer-includes, dom-node-dataset,
     no-negated-condition, prefer-modern-math-apis, no-for-each…), le moteur

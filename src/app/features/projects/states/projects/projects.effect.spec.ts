@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
 import { NEVER, Observable, of, throwError } from 'rxjs';
-import { sampleCatalog } from '@testing/fake-managers';
+import { catalogOf, sampleEntry } from '@testing/fake-managers';
 import { ProjectCatalog } from '../../models';
 import { ProjectsRepository } from '../../services';
 import { getProjectsActions, projectsReset } from './projects.action';
@@ -11,7 +11,7 @@ import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';
 
-const CATALOG = sampleCatalog();
+const CATALOG = catalogOf([sampleEntry()]);
 
 describe('ProjectsEffect', () => {
   let source: Observable<ProjectCatalog>;

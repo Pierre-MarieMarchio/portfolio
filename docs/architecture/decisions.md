@@ -121,3 +121,25 @@ attend de partir du début du document, là où est le lien d'évitement.
 
 **Écarté.** Le focus à chaque arrivée, premier chargement compris (il sautait
 le lien d'évitement) ; aucun focus du tout (une navigation muette).
+
+## 2026-09-23 — Un projet, un fichier : identité, faits et fiche ensemble
+
+**Décision (D5).** Chaque projet s'écrit dans un fichier à lui,
+`features/projects/data/projects/<slug>.project.ts`, typé `ProjectEntry` :
+son identité, ses faits et sa fiche, obligatoires tous les trois.
+`PROJECTS` n'est plus que la liste ordonnée de ces entrées, et le rang est sa
+position. Le repository en tire le catalogue (projets, faits et fiches par
+slug) ; rien d'autre ne lit ces fichiers. Quand le site devient bilingue
+(étape 8), les textes d'un projet restent dans son fichier, le français et
+l'anglais côte à côte.
+
+**Raison.** Ajouter un projet touchait six endroits, et un oubli passait tous
+les garde-fous : le relevé annonçait huit fiches pour sept lignes, et une
+fiche était prérendue vide. Un fichier par projet, dont le type exige chaque
+partie, rend l'oubli impossible à compiler. Les textes d'un projet côte à
+côte, dans les deux langues, se relisent ensemble et ne divergent pas.
+
+**Écarté.** Trois tables indexées par slug (l'état d'avant, où rien ne
+garantit qu'elles couvrent les mêmes projets) ; les textes des projets dans
+le catalogue de langue (une fiche éclatée entre trois fichiers, et un slug à
+recopier dans chacun).

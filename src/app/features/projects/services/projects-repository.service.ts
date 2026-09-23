@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import {
-  DEFAULT_CHAPTER_TITLES,
-  FACTS,
-  LAYERS,
-  PROJECTS,
-  PROOF_LEVEL_LABELS,
-  SHEETS,
-} from '../data';
-import { ProjectCatalog } from '../models';
+import { DEFAULT_CHAPTER_TITLES, PROJECTS, PROOF_LEVEL_LABELS } from '../data';
+import { ProjectCatalog, ProjectEntry } from '../models';
+
+/** One part of every entry, keyed by the entry's slug. */
+function bySlug<T>(part: (entry: ProjectEntry) => T): Record<string, T> {
+  return Object.fromEntries(
+    PROJECTS.map((entry) => [entry.project.slug, part(entry)]),
+  );
+}
 
 /**
  * Where the projects come from. Today the content ships with the site, so the
@@ -23,12 +23,11 @@ import { ProjectCatalog } from '../models';
 export class ProjectsRepository {
   public getCatalog(): Observable<ProjectCatalog> {
     return of({
-      projects: PROJECTS,
-      facts: FACTS,
-      sheets: SHEETS,
+      projects: PROJECTS.map((entry) => entry.project),
+      facts: bySlug((entry) => entry.facts),
+      sheets: bySlug((entry) => entry.sheet),
       proofLevelLabels: PROOF_LEVEL_LABELS,
       defaultChapterTitles: DEFAULT_CHAPTER_TITLES,
-      layers: LAYERS,
     });
   }
 }

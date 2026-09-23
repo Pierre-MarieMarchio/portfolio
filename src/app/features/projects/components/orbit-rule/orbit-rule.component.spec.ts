@@ -1,33 +1,29 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectRegistry } from '@shared/ui/object-marks';
 import { provideRouter } from '@angular/router';
-import { sampleFacts, sampleProject } from '@testing/fake-managers';
-import { ProjectWithFacts } from '@app/features/projects/models';
+import { sampleEntry, sampleRanked } from '@testing/fake-managers';
+import { RankedProject } from '../../models';
 import { OrbitRuleComponent } from './orbit-rule.component';
 
 describe('OrbitRuleComponent', () => {
   /** Four bodies, each with a distinct title, short, proof and role. */
-  const bodies: readonly ProjectWithFacts[] = [
-    {
-      ...sampleProject({ slug: 'alpha', title: 'Alpha', short: 'Alp' }),
-      facts: sampleFacts({ proof: 'Proof Alpha', role: 'Role Alpha' }),
-    },
-    {
-      ...sampleProject({ slug: 'beta', title: 'Beta', short: 'Bet' }),
-      facts: sampleFacts({ proof: 'Proof Beta', role: 'Role Beta' }),
-    },
-    {
-      ...sampleProject({ slug: 'gamma', title: 'Gamma', short: 'Gam' }),
-      facts: sampleFacts({ proof: 'Proof Gamma', role: 'Role Gamma' }),
-    },
-    {
-      ...sampleProject({ slug: 'delta', title: 'Delta', short: 'Del' }),
-      facts: sampleFacts({ proof: 'Proof Delta', role: 'Role Delta' }),
-    },
-  ];
+  const bodies: readonly RankedProject[] = [
+    ['alpha', 'Alpha', 'Alp'],
+    ['beta', 'Beta', 'Bet'],
+    ['gamma', 'Gamma', 'Gam'],
+    ['delta', 'Delta', 'Del'],
+  ].map(([slug = '', title = '', short = ''], rank) =>
+    sampleRanked(
+      sampleEntry({
+        project: { slug, title, short },
+        facts: { proof: `Proof ${title}`, role: `Role ${title}` },
+      }),
+      rank,
+    ),
+  );
 
   const mount = async (inputs: {
-    bodies: readonly ProjectWithFacts[];
+    bodies: readonly RankedProject[];
     hovered?: string | null;
     reading?: string | null;
   }) => {

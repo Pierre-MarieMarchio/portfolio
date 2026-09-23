@@ -1,11 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import {
-  Project,
-  ProjectFacts,
-  ProjectSheet,
-  ProofLevel,
-  SheetLayer,
-} from '../../models';
+import { Project, ProjectFacts, ProjectSheet, ProofLevel } from '../../models';
 
 /** Before a load and after a reset: no level has a label yet. */
 export const NO_PROOF_LEVEL_LABELS: Readonly<Record<ProofLevel, string>> = {
@@ -28,7 +22,6 @@ export class ProjectsState {
     Readonly<Record<ProofLevel, string>>
   >(NO_PROOF_LEVEL_LABELS);
   public readonly defaultChapterTitles = signal<readonly string[]>([]);
-  public readonly layers = signal<readonly SheetLayer[]>([]);
   public readonly isLoading = signal(false);
   public readonly isError = signal(false);
 }

@@ -1,14 +1,21 @@
-import { computed, signal, WritableSignal } from '@angular/core';
+import { EnvironmentProviders, Provider, Type } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideStatewise } from 'ngx-statewise';
+import { Observable, of } from 'rxjs';
+import {
+  DEFAULT_CHAPTER_TITLES,
+  PROOF_LEVEL_LABELS,
+} from '@app/features/projects/data';
 import {
   Project,
   ProjectCatalog,
+  ProjectEntry,
   ProjectFacts,
-  ProjectFamily,
   ProjectSheet,
-  ProofLevel,
-  SheetLayer,
+  RankedProject,
 } from '@app/features/projects/models';
-import type { ProjectsManager } from '@app/features/projects/states';
+import { ProjectsRepository } from '@app/features/projects/services';
+import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 
 /**
  * Two families of doubles, because the application crosses two kinds of
@@ -18,11 +25,11 @@ import type { ProjectsManager } from '@app/features/projects/states';
  * against its token. A spec that needs more than one of these offers has a
  * subject reaching too far. (None yet: `features/common` is empty.)
  *
- * **Wide doubles** stand in for a manager, provided against the class itself,
- * and used by a page. Their signals are writable and they record the calls a
- * spec asserts on. Each one is typed against its manager's public surface: a
- * member added to the manager and forgotten here fails the compilation, not a
- * page spec at run time.
+ * **Managers are never doubled.** A copy of a manager's rules drifts from
+ * them: the one that stood here featured `slice(0, 4)` while the manager read
+ * `FEATURED_COUNT`, and ignored the default chapter titles. A spec gets the
+ * real manager instead, fed through a double of the repository, which is the
+ * seam a remote source would plug into anyway (`provideProjects`).
  */
 
 export const sampleProject = (overrides: Partial<Project> = {}): Project => ({
@@ -50,97 +57,91 @@ export const sampleFacts = (
 export const sampleSheet = (
   overrides: Partial<ProjectSheet> = {},
 ): ProjectSheet => ({
-  title: 'ngx-statewise',
   lede: 'Sample lede.',
   links: [],
   chapters: [{ paragraphs: ['Sample paragraph.'] }],
   ...overrides,
 });
 
-/* --- Wide: managers -------------------------------------------------------- */
+/** One project as its file writes it: identity, facts and sheet. */
+export const sampleEntry = (
+  overrides: {
+    project?: Partial<Project>;
+    facts?: Partial<ProjectFacts>;
+    sheet?: Partial<ProjectSheet>;
+  } = {},
+): ProjectEntry => ({
+  project: sampleProject(overrides.project),
+  facts: sampleFacts(overrides.facts),
+  sheet: sampleSheet(overrides.sheet),
+});
 
-type ProjectsManagerSurface = Pick<ProjectsManager, keyof ProjectsManager>;
+/** A project in its place, as the manager ranks it, for a presentational spec. */
+export const sampleRanked = (
+  entry: ProjectEntry,
+  rank: number,
+  featured = true,
+): RankedProject => ({
+  ...entry.project,
+  facts: entry.facts,
+  rank,
+  number: String(rank + 1).padStart(2, '0'),
+  featured,
+});
 
-export interface FakeProjectsManager extends ProjectsManagerSurface {
-  projects: WritableSignal<readonly Project[]>;
-  layers: WritableSignal<readonly SheetLayer[]>;
-  isLoading: WritableSignal<boolean>;
-  isError: WritableSignal<boolean>;
-  /** Not on the manager: the double's own knobs behind its lookups. */
-  facts: WritableSignal<Readonly<Record<string, ProjectFacts>>>;
-  sheets: WritableSignal<Readonly<Record<string, ProjectSheet>>>;
-  calls: { load: number; reset: number };
+/** The catalog the repository answers for these entries, with the real labels. */
+export const catalogOf = (
+  entries: readonly ProjectEntry[],
+): ProjectCatalog => ({
+  projects: entries.map((entry) => entry.project),
+  facts: Object.fromEntries(
+    entries.map((entry) => [entry.project.slug, entry.facts]),
+  ),
+  sheets: Object.fromEntries(
+    entries.map((entry) => [entry.project.slug, entry.sheet]),
+  ),
+  proofLevelLabels: PROOF_LEVEL_LABELS,
+  defaultChapterTitles: DEFAULT_CHAPTER_TITLES,
+});
+
+/** The repository's seam, answering whatever entries the spec sets. */
+class RepositoryDouble implements Pick<ProjectsRepository, 'getCatalog'> {
+  public constructor(public entries: readonly ProjectEntry[]) {}
+
+  public getCatalog(): Observable<ProjectCatalog> {
+    return of(catalogOf(this.entries));
+  }
 }
 
-const FAKE_LEVEL_LABELS: Readonly<Record<ProofLevel, string>> = {
-  public: 'Ouvrable par vous',
-  indirect: 'Vérifiable, code privé',
-  none: 'Sur récit seulement',
-};
+/**
+ * The real `ProjectsManager` for a spec, over these entries: the
+ * statewise engine with `ProjectsEffect` (and any other effects the spec
+ * needs), and the repository answering the entries. Call `loadProjects()`
+ * before mounting.
+ */
+export const provideProjects = (
+  entries: readonly ProjectEntry[] = [sampleEntry()],
+  effects: readonly Type<unknown>[] = [],
+): (Provider | EnvironmentProviders)[] => [
+  provideStatewise({ effects: [ProjectsEffect, ...effects] }),
+  {
+    provide: ProjectsRepository,
+    useFactory: () => new RepositoryDouble(entries),
+  },
+];
 
-export const fakeProjectsManager = (
-  projects: readonly Project[] = [sampleProject()],
-): FakeProjectsManager => {
-  const list = signal(projects);
-  const facts = signal<Readonly<Record<string, ProjectFacts>>>(
-    Object.fromEntries(
-      projects.map((project) => [project.slug, sampleFacts()]),
-    ),
-  );
-  const sheets = signal<Readonly<Record<string, ProjectSheet>>>({});
-  const calls = { load: 0, reset: 0 };
-
-  return {
-    projects: list,
-    layers: signal<readonly SheetLayer[]>([]),
-    isLoading: signal(false),
-    isError: signal(false),
-    facts,
-    sheets,
-    featured: computed(() => list().slice(0, 4)),
-    withFacts: computed(() =>
-      list().flatMap((project) => {
-        const found = facts()[project.slug];
-        return found ? [{ ...project, facts: found }] : [];
-      }),
-    ),
-    familyCounts: computed(() => {
-      const counts: Record<ProjectFamily, number> = {
-        professional: 0,
-        personal: 0,
-      };
-      for (const project of list()) {
-        counts[project.family] += 1;
-      }
-      return counts;
-    }),
-    find: (slug) => list().find((project) => project.slug === slug) ?? null,
-    factsOf: (slug) => facts()[slug] ?? null,
-    sheetOf: (slug) => sheets()[slug] ?? null,
-    rankOf: (slug) => list().findIndex((project) => project.slug === slug) + 1,
-    proofLevelLabel: (level) => FAKE_LEVEL_LABELS[level],
-    chapterTitle: (slug, index) => sheets()[slug]?.chapters[index]?.title ?? '',
-    load: () => {
-      calls.load += 1;
-      return Promise.resolve();
-    },
-    reset: () => {
-      calls.reset += 1;
-      return Promise.resolve();
-    },
-    calls,
-  };
-};
-
-/** A one-project catalog, as the repository would answer it. */
-export const sampleCatalog = (): ProjectCatalog => {
-  const project = sampleProject();
-  return {
-    projects: [project],
-    facts: { [project.slug]: sampleFacts() },
-    sheets: { [project.slug]: sampleSheet() },
-    proofLevelLabels: FAKE_LEVEL_LABELS,
-    defaultChapterTitles: ['Pourquoi ?'],
-    layers: [],
-  };
+/**
+ * Loads the entries into the real manager, as the app initializer does; with
+ * `entries`, the repository answers those from now on, as after a reload.
+ */
+export const loadProjects = async (
+  entries?: readonly ProjectEntry[],
+): Promise<ProjectsManager> => {
+  const repository = TestBed.inject(ProjectsRepository);
+  if (entries && repository instanceof RepositoryDouble) {
+    repository.entries = entries;
+  }
+  const manager = TestBed.inject(ProjectsManager);
+  await manager.load();
+  return manager;
 };

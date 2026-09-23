@@ -1,94 +1,40 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import {
-  fakeProjectsManager,
-  sampleFacts,
-  sampleProject,
+  loadProjects,
+  provideProjects,
+  sampleEntry,
 } from '@testing/fake-managers';
-import { ProjectsManager } from '@app/features/projects/states';
+import { FEATURED_COUNT } from '@app/features/projects/states';
 import { ProjectPreviewComponent } from './project-preview.component';
 
 describe('ProjectPreviewComponent', () => {
-  /** Five projects: fakeProjectsManager's `featured` keeps only the first four. */
-  const projects = [
-    sampleProject({
-      slug: 'proj-1',
-      title: 'Project One',
-      tag: 'beta',
-      summary: 'Summary one',
-    }),
-    sampleProject({
-      slug: 'proj-2',
-      title: 'Project Two',
-      tag: 'live',
-      summary: 'Summary two',
-    }),
-    sampleProject({
-      slug: 'proj-3',
-      title: 'Project Three',
-      tag: 'archived',
-      summary: 'Summary three',
-    }),
-    sampleProject({
-      slug: 'proj-4',
-      title: 'Project Four',
-      tag: 'draft',
-      summary: 'Summary four',
-    }),
-    sampleProject({
-      slug: 'proj-5',
-      title: 'Project Five',
-      tag: 'wip',
-      summary: 'Summary five',
-    }),
-  ];
+  const NAMES = ['One', 'Two', 'Three', 'Four', 'Five'];
+  const TAGS = ['beta', 'live', 'archived', 'draft', 'wip'];
 
-  const facts = {
-    'proj-1': sampleFacts({
-      proof: 'Proof 1',
-      role: 'Role 1',
-      stack: 'Stack 1',
+  /** One more project than the home page features. */
+  const ENTRIES = NAMES.map((name, index) =>
+    sampleEntry({
+      project: {
+        slug: `proj-${String(index + 1)}`,
+        title: `Project ${name}`,
+        tag: TAGS[index] ?? '',
+        summary: `Summary ${name.toLowerCase()}`,
+      },
+      facts: {
+        proof: `Proof ${String(index + 1)}`,
+        role: `Role ${String(index + 1)}`,
+        stack: `Stack ${String(index + 1)}`,
+      },
     }),
-    'proj-2': sampleFacts({
-      proof: 'Proof 2',
-      role: 'Role 2',
-      stack: 'Stack 2',
-    }),
-    'proj-3': sampleFacts({
-      proof: 'Proof 3',
-      role: 'Role 3',
-      stack: 'Stack 3',
-    }),
-    'proj-4': sampleFacts({
-      proof: 'Proof 4',
-      role: 'Role 4',
-      stack: 'Stack 4',
-    }),
-    'proj-5': sampleFacts({
-      proof: 'Proof 5',
-      role: 'Role 5',
-      stack: 'Stack 5',
-    }),
-  };
+  );
 
-  /** A manager with five projects and facts for each of them. */
-  const createManager = () => {
-    const manager = fakeProjectsManager(projects);
-    manager.facts.set(facts);
-    return manager;
-  };
-
-  const mount = async (
-    inputs: { slug: string; pinned?: boolean },
-    manager = createManager(),
-  ) => {
+  const mount = async (inputs: { slug: string; pinned?: boolean }) => {
     TestBed.configureTestingModule({
       imports: [ProjectPreviewComponent],
-      providers: [
-        provideRouter([]),
-        { provide: ProjectsManager, useValue: manager },
-      ],
+      providers: [provideRouter([]), provideProjects(ENTRIES)],
     });
+    const manager = await loadProjects();
 
     const fixture = TestBed.createComponent(ProjectPreviewComponent);
     fixture.componentRef.setInput('slug', inputs.slug);
@@ -97,6 +43,10 @@ describe('ProjectPreviewComponent', () => {
 
     return { fixture, manager, host: fixture.nativeElement as HTMLElement };
   };
+
+  it('holds one more project than it features, so the limit is exercised', () => {
+    expect(ENTRIES.length).toBeGreaterThan(FEATURED_COUNT);
+  });
 
   it('renders nothing when the manager has no facts or project for the slug', async () => {
     const { host } = await mount({ slug: 'ghost-slug' });
@@ -113,9 +63,11 @@ describe('ProjectPreviewComponent', () => {
     expect(windowEl?.querySelector('h2')?.textContent?.trim()).toBe(
       'Project Two',
     );
-    // proj-2 is the second of the first four (featured), which stay four
-    // even with five projects in the catalog.
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 04');
+    // proj-2 is the second of the featured ones, which stay FEATURED_COUNT
+    // even with more projects in the catalog.
+    expect(host.querySelector('.meta')?.textContent?.trim()).toBe(
+      `02 / 0${String(FEATURED_COUNT)}`,
+    );
   });
 
   it('lists one toolbar button per featured project only, labelled and pressed on the shown one', async () => {
@@ -125,22 +77,19 @@ describe('ProjectPreviewComponent', () => {
       toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? [],
     );
 
-    expect(buttons).toHaveLength(4);
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
-      '01',
-      '02',
-      '03',
-      '04',
-    ]);
-    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Aperçu 01 — Project One',
-      'Aperçu 02 — Project Two',
-      'Aperçu 03 — Project Three',
-      'Aperçu 04 — Project Four',
-    ]);
+    const featured = NAMES.slice(0, FEATURED_COUNT);
+    expect(buttons).toHaveLength(FEATURED_COUNT);
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(
+      featured.map((_, index) => `0${String(index + 1)}`),
+    );
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(
+      featured.map(
+        (name, index) => `Aperçu 0${String(index + 1)} — Project ${name}`,
+      ),
+    );
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
-    ).toEqual(['false', 'true', 'false', 'false']);
+    ).toEqual(featured.map((_, index) => String(index === 1)));
   });
 
   it('emits chosen with the clicked project slug, without changing the shown project by itself', async () => {

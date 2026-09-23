@@ -2,9 +2,12 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta, Title } from '@angular/platform-browser';
 import { provideRouter, Router, TitleStrategy } from '@angular/router';
-import { fakeProjectsManager, sampleProject } from '@testing/fake-managers';
+import {
+  loadProjects,
+  provideProjects,
+  sampleEntry,
+} from '@testing/fake-managers';
 import { PageTitleStrategy, SITE_NAME } from '@app/core/services';
-import { ProjectsManager } from '@app/features/projects/states';
 import { projectTitle } from './project-title.resolver';
 
 @Component({ template: '' })
@@ -12,22 +15,22 @@ class Blank {}
 
 /** The route resolves the name; the strategy writes it, alone. */
 describe('projectTitle', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([
           { path: 'projet/:slug', component: Blank, title: projectTitle },
         ]),
         { provide: TitleStrategy, useClass: PageTitleStrategy },
-        {
-          provide: ProjectsManager,
-          useValue: fakeProjectsManager([
-            sampleProject({ slug: 'ngx-statewise', title: 'ngx-statewise' }),
-            sampleProject({ slug: 'speakey', title: 'Speakey' }),
-          ]),
-        },
+        provideProjects([
+          sampleEntry({
+            project: { slug: 'ngx-statewise', title: 'ngx-statewise' },
+          }),
+          sampleEntry({ project: { slug: 'speakey', title: 'Speakey' } }),
+        ]),
       ],
     });
+    await loadProjects();
   });
 
   const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);

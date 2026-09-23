@@ -14,10 +14,11 @@ import { twoDigits } from '@app/core/utils/format.utils';
 import { SegmentedComponent, SegmentedItem } from '@shared/ui/segmented';
 import { WindowComponent } from '@shared/ui/window';
 import { ProjectsManager } from '../../states';
+import { positionOf } from '../project-labels';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
 
 /**
- * A project's sheet: four approaches, one at a time, chosen in the toolbar;
+ * A project's sheet: its approaches, one at a time, chosen in the toolbar;
  * the footer says where the reader is and moves the reading on. One thing
  * steers at a time: scrolling drives nothing.
  *
@@ -58,12 +59,12 @@ export class ProjectSheetComponent {
 
   protected readonly sheet = computed(() => this.manager.sheetOf(this.slug()));
   protected readonly facts = computed(() => this.manager.factsOf(this.slug()));
-  protected readonly layers = this.manager.layers;
+  protected readonly project = computed(() => this.manager.find(this.slug()));
 
   protected readonly meta = computed(() => {
-    const rank = this.manager.rankOf(this.slug());
-    return rank > 0
-      ? `${twoDigits(rank)} / ${twoDigits(this.manager.projects().length)}`
+    const project = this.project();
+    return project
+      ? positionOf(project.rank + 1, this.manager.ranked().length)
       : '';
   });
 
@@ -112,9 +113,7 @@ export class ProjectSheetComponent {
     if (this.chapter() < this.last()) {
       return null;
     }
-    const projects = this.manager.projects();
-    const rank = this.manager.rankOf(this.slug());
-    const next = rank > 0 ? projects[rank % projects.length] : undefined;
+    const next = this.manager.nextOf(this.slug());
     return next
       ? { slug: next.slug, label: `Suivant : ${next.short} →` }
       : null;

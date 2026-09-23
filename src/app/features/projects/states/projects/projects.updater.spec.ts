@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
-import { sampleCatalog } from '@testing/fake-managers';
+import { catalogOf, sampleEntry } from '@testing/fake-managers';
 import { getProjectsActions, projectsReset } from './projects.action';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';
 
-const CATALOG = sampleCatalog();
+const CATALOG = catalogOf([sampleEntry()]);
 
 /**
  * No effects are registered, so a dispatch runs the updater and nothing else.
@@ -47,7 +47,6 @@ describe('projectsUpdater', () => {
     expect(state.sheets()).toEqual(CATALOG.sheets);
     expect(state.proofLevelLabels()).toEqual(CATALOG.proofLevelLabels);
     expect(state.defaultChapterTitles()).toEqual(CATALOG.defaultChapterTitles);
-    expect(state.layers()).toEqual(CATALOG.layers);
     expect(state.isLoading()).toBe(false);
   });
 
@@ -68,7 +67,6 @@ describe('projectsUpdater', () => {
     expect(state.projects()).toEqual([]);
     expect(state.facts()).toEqual({});
     expect(state.sheets()).toEqual({});
-    expect(state.layers()).toEqual([]);
     expect(state.isError()).toBe(false);
   });
 });

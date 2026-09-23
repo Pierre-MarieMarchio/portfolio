@@ -261,12 +261,9 @@ export default defineConfig(
   },
 
   {
-    // Not reached yet: the sheets' data (step 6 splits it per project) and
-    // the object with its engine (step 9, within the limits of D2).
-    files: [
-      `${APP}/features/projects/data/sheets.data.ts`,
-      `${APP}/features/station/components/object/**/*.ts`,
-    ],
+    // Not reached yet: the object with its engine (step 9 of the audit plan,
+    // within the limits of D2).
+    files: [`${APP}/features/station/components/object/**/*.ts`],
     rules: {
       'max-lines': [
         'warn',

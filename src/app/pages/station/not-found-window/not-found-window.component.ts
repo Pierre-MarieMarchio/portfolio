@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+  output,
+} from '@angular/core';
+import { twoDigits } from '@app/core/utils/format.utils';
 import { RouterLink } from '@angular/router';
 import { WindowComponent } from '@shared/ui/window';
 import { LandingHeadingDirective } from '@shared/ui/landing-focus';
@@ -15,5 +22,10 @@ import { LandingHeadingDirective } from '@shared/ui/landing-focus';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotFoundWindowComponent {
+  /** How many sheets the index holds: the sentence counts them. */
+  public readonly total = input.required<number>();
+
   public readonly closed = output();
+
+  protected readonly count = computed(() => twoDigits(this.total()));
 }

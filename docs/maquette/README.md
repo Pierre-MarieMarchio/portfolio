@@ -170,3 +170,7 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   règle se chevauchaient. Sous 620 px (le seuil « étroit » de l'export), les
   noms restent portés par les planètes et par le nom accessible de chaque
   repère.
+- **« aucune des 07 fiches du relevé », pas « des sept fiches ».** Le
+  nombre de la fenêtre « adresse inconnue » est compté sur le catalogue, et
+  imprimé sur deux chiffres comme partout dans l’instrument (« 07 fiches ») :
+  un projet ajouté change la phrase de lui-même.

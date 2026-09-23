@@ -145,7 +145,7 @@ fonctionnalités (6 à 8), pour ne pas traduire du code qu'on va refaire.
   - `part` devient un nombre ;
   - renommer `syncRoute`, `stepBack` et `openPreview` ;
   - écrire les specs du rideau, du focus et de `windowStack`.
-- [ ] **6. `feat(projects)`** (rapports 00 §3 et 02) :
+- [x] **6. `feat(projects)`** (rapports 00 §3 et 02) :
   - une entrée typée par projet (identité, faits, fiche, figure), et
     `PROJECTS` réduit à une liste ordonnée d'imports ;
   - un projet sans faits ou sans fiche ne compile pas ;

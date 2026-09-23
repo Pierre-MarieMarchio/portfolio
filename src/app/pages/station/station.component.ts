@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
 import {
+  OrbitRuleComponent,
   ProjectIndexComponent,
   ProjectPreviewComponent,
   ProjectSheetComponent,
@@ -33,7 +34,6 @@ import { HeadBottomDirective } from './head-bottom/head-bottom.directive';
 import { HomeTitleComponent } from './home-title/home-title.component';
 import { IntroCardComponent } from './intro-card/intro-card.component';
 import { NotFoundWindowComponent } from './not-found-window/not-found-window.component';
-import { OrbitRuleComponent } from './orbit-rule/orbit-rule.component';
 import { StationProjectsBinding } from './station-projects.binding';
 import { STATION_IDS } from './station.ids';
 import { WindowSlotDirective } from './window-stack/window-slot.directive';

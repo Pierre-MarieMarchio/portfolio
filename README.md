@@ -54,7 +54,10 @@ src/app/
   features/
     common/              noyau partagé : des ports, rien d'autre (vide pour l'instant)
     projects/
-      components/ data/ models/ services/ states/projects/
+      components/        relevé, aperçu, fiche, règle d'orbite
+      data/              le contenu : un fichier par projet (data/projects/),
+                         leur ordre (projects.data.ts), les libellés
+      models/ services/ states/projects/
     station/
       components/object/ l'objet canvas et son moteur
       models/ states/station/
@@ -71,7 +74,8 @@ src/integration/         suites qui testent un mécanisme, pas un composant
 
 Une feature ne crée un sous-dossier (`guards/`, `ports/`, `interceptors/`…)
 que lorsqu'elle a de quoi le remplir. `data/` contient le contenu livré avec le
-site ; seul le repository le lit.
+site ; seul le repository le lit. **Ajouter ou changer un projet** : voir
+[`docs/contenu.md`](docs/contenu.md).
 
 ## La loi de dépendance
 

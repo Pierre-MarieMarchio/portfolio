@@ -1,3 +1,5 @@
+import { ProjectSheet } from './project-sheet.model';
+
 /**
  * Where a project was made. It is the context a reader asks about, not a
  * category invented for filtering.
@@ -46,4 +48,26 @@ export interface ProjectFacts {
 /** A project row with its facts joined, as the index and the preview draw it. */
 export interface ProjectWithFacts extends Project {
   readonly facts: ProjectFacts;
+}
+
+/**
+ * A project as it is written: its identity, its facts and its sheet, in the
+ * one file of that project. Every part is required, so a project without its
+ * facts or its sheet does not compile.
+ */
+export interface ProjectEntry {
+  readonly project: Project;
+  readonly facts: ProjectFacts;
+  readonly sheet: ProjectSheet;
+}
+
+/**
+ * A project in its place: its rank from 0 in the order, and the number the
+ * interface prints for it ("01"). Computed once, by the manager, so the index,
+ * the rule, the preview and the sheet can never number it differently.
+ */
+export interface RankedProject extends ProjectWithFacts {
+  readonly rank: number;
+  readonly number: string;
+  readonly featured: boolean;
 }

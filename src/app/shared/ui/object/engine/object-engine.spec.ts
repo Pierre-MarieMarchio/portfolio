@@ -219,4 +219,26 @@ describe('ObjectEngine, turned by hand', () => {
     expect(view().rotors.disk.angle - disk).toBeGreaterThan(0);
     expect(view().rotors.disk.angle - disk).toBeLessThan(1);
   });
+
+  it.each(['index', 'about'] as const)(
+    'turns on the %s view too, where the object is seen whole',
+    (view) => {
+      const { engine, step, view: read, drag, grab } = mount();
+      engine.setInputs({ ...INPUTS, view });
+      step(3000);
+      const before = read().rotors.disk.angle;
+      grab(0.2);
+      drag(0.2, 1.2, 300);
+      expect(read().rotors.disk.angle - before).toBeCloseTo(1, 2);
+      engine.release();
+    },
+  );
+
+  it('does not turn on a sheet, framed on one planet', () => {
+    const { engine, step, at } = mount();
+    engine.setInputs({ ...INPUTS, view: 'sheet', focus: 0 });
+    step(3000);
+    const point = at(0);
+    expect(engine.grab(point.x, point.y)).toBe(false);
+  });
 });

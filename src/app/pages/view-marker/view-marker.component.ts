@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { StationView } from '@app/features/station/models';
-import { StationManager } from '@app/features/station/states';
+import { DesktopView } from '@app/features/desktop/models';
+import { DesktopManager } from '@app/features/desktop/states';
 
 /** What a route declares for its marker: the view it is the address of. */
 export interface ViewMarkerData {
-  readonly view: Exclude<StationView, 'sheet'>;
+  readonly view: Exclude<DesktopView, 'sheet'>;
 }
 
 /**
@@ -25,6 +25,6 @@ export interface ViewMarkerData {
 export class ViewMarkerComponent {
   constructor() {
     const { view } = inject(ActivatedRoute).snapshot.data as ViewMarkerData;
-    inject(StationManager).syncRoute(view);
+    inject(DesktopManager).syncRoute(view);
   }
 }

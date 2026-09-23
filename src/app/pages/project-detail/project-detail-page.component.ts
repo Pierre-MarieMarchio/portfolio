@@ -7,7 +7,7 @@ import {
   untracked,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { StationManager } from '@app/features/station/states';
+import { DesktopManager } from '@app/features/desktop/states';
 
 /**
  * The address of a sheet. The sheet itself is rendered by the station; this
@@ -24,7 +24,7 @@ export class ProjectDetailPageComponent {
   public readonly slug = input.required<string>();
 
   constructor() {
-    const station = inject(StationManager);
+    const station = inject(DesktopManager);
 
     // Declared at once, before the station's view is checked: inputs are not
     // bound yet, the snapshot already holds the slug.

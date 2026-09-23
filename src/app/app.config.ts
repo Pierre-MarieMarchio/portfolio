@@ -19,7 +19,7 @@ import { routes } from './app.routes';
 import { AppErrorHandler } from './core/error-handling';
 import { PageTitleStrategy } from './core/services';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
-import { StationEffect } from './features/station/states';
+import { DesktopEffect } from './features/desktop/states';
 import { provideI18n } from './i18n';
 
 /**
@@ -58,7 +58,7 @@ export const appConfig: ApplicationConfig = {
     // it does, which was checked in a browser rather than assumed.
     provideClientHydration(),
     provideStatewise({
-      effects: [ProjectsEffect, StationEffect],
+      effects: [ProjectsEffect, DesktopEffect],
     }),
 
     // Both languages (D3): the texts of each layer, the links, and the

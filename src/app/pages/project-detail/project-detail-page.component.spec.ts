@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
-import { StationManager } from '@app/features/station/states';
+import { DesktopManager } from '@app/features/desktop/states';
 import { ProjectDetailPageComponent } from './project-detail-page.component';
 
 const mount = async (slug: string) => {
@@ -17,7 +17,7 @@ const mount = async (slug: string) => {
   });
 
   const fixture = TestBed.createComponent(ProjectDetailPageComponent);
-  const station = TestBed.inject(StationManager);
+  const station = TestBed.inject(DesktopManager);
   const declared = { view: station.view(), slug: station.slug() };
   fixture.componentRef.setInput('slug', slug);
   await fixture.whenStable();

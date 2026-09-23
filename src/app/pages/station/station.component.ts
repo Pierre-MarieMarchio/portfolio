@@ -19,9 +19,9 @@ import {
   ProjectPreviewComponent,
   ProjectSheetComponent,
 } from '@app/features/projects/components';
-import { ObjectComponent } from '@app/features/station/components';
-import { StationView } from '@app/features/station/models';
-import { StationManager } from '@app/features/station/states';
+import { SpaceSceneComponent } from '@app/features/desktop/components';
+import { DesktopView } from '@app/features/desktop/models';
+import { DesktopManager } from '@app/features/desktop/states';
 import { ContactLink, ContactRailComponent } from '@shared/ui/contact-rail';
 import { LandingFocus } from '@shared/ui/landing-focus';
 import { ObjectPanelDirective } from '@shared/ui/object-marks';
@@ -63,7 +63,7 @@ import { WindowSlot, WindowStack } from './window-stack/window-stack';
     HomeTitleComponent,
     IntroCardComponent,
     NotFoundWindowComponent,
-    ObjectComponent,
+    SpaceSceneComponent,
     ObjectPanelDirective,
     OrbitRuleComponent,
     PageBarComponent,
@@ -83,7 +83,7 @@ export class StationComponent {
   private readonly stack = inject(WindowStack);
   private readonly curtain = inject(Curtain);
   private readonly arrivalController = inject(ArrivalController);
-  protected readonly station = inject(StationManager);
+  protected readonly station = inject(DesktopManager);
   protected readonly binding = inject(StationProjectsBinding);
 
   private readonly locale = inject(Locale);
@@ -262,7 +262,7 @@ export class StationComponent {
   }
 
   /** The view's container: the home title, or the slot of its window. */
-  private claimFocus(view: StationView, slot: WindowSlot | null): () => void {
+  private claimFocus(view: DesktopView, slot: WindowSlot | null): () => void {
     return this.landing.claimWithin(() =>
       view === 'home'
         ? this.homeTitle()?.nativeElement
@@ -276,7 +276,7 @@ export class StationComponent {
 }
 
 /** The slot a view shows its window in; the home page has none. */
-function slotOf(view: StationView): WindowSlot | null {
+function slotOf(view: DesktopView): WindowSlot | null {
   switch (view) {
     case 'index':
     case 'about':

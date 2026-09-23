@@ -402,3 +402,24 @@ en serait une, et le moteur ne se corrige que sous le golden étendu.
 **Écarté.** Une exemption datée du moteur, retirée à l'étape 7 ; un budget
 d'avertissements qui ne fait que baisser (un second appel à eslint, une
 sortie bruyante).
+
+## 2026-09-23 — Les réglages de la scène canvas hors moteur (D18)
+
+**Décision.** Ce que `ObjectComponent` portait en commentaire, sorti avec les
+unités qui le portent maintenant :
+
+- `PIXEL_BUDGET` (`canvas-resolution.rules.ts`) vaut 4,2 millions de pixels
+  par canvas, avec un ratio plafonné à 2. Le coût de la traversée suit les
+  pixels dessinés et les étoiles, dont le nombre les suit aussi : au-delà
+  d'environ cinq millions, un écran 4K à 200 % tombait sous dix images par
+  seconde. 4,2 millions garde nets un écran 1080p à 150 % et un retina de
+  13 pouces ; au-delà, le ratio cède, et une poussière dessinée en carrés de
+  2,5 px n'y perd rien.
+- Sans survol (écran tactile), une planète demande deux touchers : le premier
+  montre le nom du projet, le second l'ouvre (`PlanetButtonsComponent`).
+- Un glissement n'est pas un clic : `TurnGestureDirective` émet `spun` au
+  lâcher, sans quoi tourner la scène fermait l'aperçu.
+- Un bouton de planète fait 48 px, la taille d'une cible tactile ; le moteur
+  le place par `transform`.
+
+**Raison.** D10 : le pourquoi quitte le code, pas le dépôt.

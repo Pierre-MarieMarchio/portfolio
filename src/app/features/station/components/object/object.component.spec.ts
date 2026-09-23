@@ -16,9 +16,10 @@ const BODIES: readonly ObjectBody[] = [
  * A 2D context that accepts every call and answers itself, so the engine
  * runs in jsdom, which has no canvas. Its drawing is not under test here.
  */
+const callable = (): undefined => undefined;
+
 const fakeContext = (): unknown => {
-  const target = (): undefined => undefined;
-  const proxy: unknown = new Proxy(target, {
+  const proxy: unknown = new Proxy(callable, {
     get: () => proxy,
     set: () => true,
     apply: () => proxy,
@@ -28,77 +29,75 @@ const fakeContext = (): unknown => {
 
 /** A media query list that never matches and never changes. */
 const quietMedia =
-  (matches: (query: string) => boolean) => (query: string) => ({
-    matches: matches(query),
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
+  (isMatching: (query: string) => boolean) => (query: string) => ({
+    matches: isMatching(query),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
   });
 
-describe('ObjectComponent', () => {
-  const mount = async (
-    options: {
-      view?: ObjectView;
-      preview?: number;
-      hovered?: number;
-      context?: boolean;
-      touch?: boolean;
-      /** Lines of the home rule signed in before the mount, as the rule's are. */
-      lines?: number;
-    } = {},
-  ) => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
-      () =>
-        (options.context === false
-          ? null
-          : fakeContext()) as CanvasRenderingContext2D | null,
-    );
-    vi.stubGlobal(
-      'matchMedia',
-      quietMedia((query) => query === '(hover: none)' && !!options.touch),
-    );
-    TestBed.configureTestingModule({
-      imports: [ObjectComponent],
-      providers: [provideTexts()],
-    });
-    const registry = TestBed.inject(ObjectRegistry);
-    const lines = Array.from({ length: options.lines ?? 0 }, () => {
-      const line = document.createElement('button');
-      document.body.append(line);
-      registry.addLine(line);
-      return line;
-    });
-    const fixture = TestBed.createComponent(ObjectComponent);
-    fixture.componentRef.setInput('bodies', BODIES);
-    fixture.componentRef.setInput('featured', 4);
-    fixture.componentRef.setInput('view', options.view ?? 'home');
-    fixture.componentRef.setInput('preview', options.preview ?? -1);
-    fixture.componentRef.setInput('hovered', options.hovered ?? -1);
-    const clicked: number[] = [];
-    const hovered: number[] = [];
-    let spins = 0;
-    fixture.componentInstance.bodyClicked.subscribe((rank) =>
-      clicked.push(rank),
-    );
-    fixture.componentInstance.bodyHovered.subscribe((rank) =>
-      hovered.push(rank),
-    );
-    fixture.componentInstance.spun.subscribe(() => (spins += 1));
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
-    return {
-      fixture,
-      host,
-      clicked,
-      hovered,
-      lines,
-      spins: () => spins,
-      buttons: () =>
-        Array.from(
-          host.querySelectorAll<HTMLButtonElement>('button[data-object-body]'),
-        ),
-    };
+const mount = async (
+  options: {
+    view?: ObjectView;
+    preview?: number;
+    hovered?: number;
+    context?: boolean;
+    touch?: boolean;
+    /** Lines of the home rule signed in before the mount, as the rule's are. */
+    lines?: number;
+  } = {},
+) => {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+    () =>
+      (options.context === false
+        ? null
+        : fakeContext()) as CanvasRenderingContext2D | null,
+  );
+  vi.stubGlobal(
+    'matchMedia',
+    quietMedia((query) => query === '(hover: none)' && !!options.touch),
+  );
+  TestBed.configureTestingModule({
+    imports: [ObjectComponent],
+    providers: [provideTexts()],
+  });
+  const registry = TestBed.inject(ObjectRegistry);
+  const lines = Array.from({ length: options.lines ?? 0 }, () => {
+    const line = document.createElement('button');
+    document.body.append(line);
+    registry.addLine(line);
+    return line;
+  });
+  const fixture = TestBed.createComponent(ObjectComponent);
+  fixture.componentRef.setInput('bodies', BODIES);
+  fixture.componentRef.setInput('featured', 4);
+  fixture.componentRef.setInput('view', options.view ?? 'home');
+  fixture.componentRef.setInput('preview', options.preview ?? -1);
+  fixture.componentRef.setInput('hovered', options.hovered ?? -1);
+  const clicked: number[] = [];
+  const hovered: number[] = [];
+  let spins = 0;
+  fixture.componentInstance.bodyClicked.subscribe((rank) => clicked.push(rank));
+  fixture.componentInstance.bodyHovered.subscribe((rank) => hovered.push(rank));
+  fixture.componentInstance.spun.subscribe(() => (spins += 1));
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  return {
+    fixture,
+    host,
+    clicked,
+    hovered,
+    lines,
+    spins: () => spins,
+    buttons: () => [
+      ...host.querySelectorAll<HTMLButtonElement>('button[data-object-body]'),
+    ],
   };
+};
 
+const frames = (): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, 80));
+
+describe('ObjectComponent', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     vi.restoreAllMocks();
@@ -106,9 +105,6 @@ describe('ObjectComponent', () => {
   });
 
   describe('the lines of the home rule', () => {
-    const frames = (): Promise<void> =>
-      new Promise((resolve) => setTimeout(resolve, 80));
-
     afterEach(() => {
       document.body.replaceChildren();
     });
@@ -117,32 +113,32 @@ describe('ObjectComponent', () => {
       const { lines } = await mount({ lines: 2 });
       await frames();
 
-      lines.forEach((line) => {
+      for (const line of lines) {
         expect(line.style.opacity).toBe('0');
         expect(line.style.transform).toBe('translateY(9.0px)');
         expect(line.style.pointerEvents).toBe('none');
-      });
+      }
     });
 
     it('shows them risen away from the home page, where nothing is waited for', async () => {
       const { lines } = await mount({ view: 'index', lines: 2 });
       await frames();
 
-      lines.forEach((line) => {
+      for (const line of lines) {
         expect(line.style.opacity).toBe('1');
         expect(line.style.transform).toBe('none');
         expect(line.style.pointerEvents).toBe('auto');
-      });
+      }
     });
   });
 
   it('draws on two canvases hidden from assistive technologies', async () => {
     const { host } = await mount();
-    const canvases = Array.from(host.querySelectorAll('canvas'));
+    const canvases = [...host.querySelectorAll('canvas')];
     expect(canvases).toHaveLength(2);
-    canvases.forEach((canvas) => {
+    for (const canvas of canvases) {
       expect(canvas.getAttribute('aria-hidden')).toBe('true');
-    });
+    }
   });
 
   it('names a button per body on the home page, as a preview', async () => {
@@ -162,7 +158,7 @@ describe('ObjectComponent', () => {
       'Sélectionner 04 — Template Clean Architecture .NET dans le relevé',
     );
     expect(
-      Array.from(host.querySelectorAll('.label')).map((label) =>
+      [...host.querySelectorAll('.label')].map((label) =>
         label.textContent?.trim(),
       ),
     ).toEqual(['01', '02', '03', '04', '05']);
@@ -179,11 +175,11 @@ describe('ObjectComponent', () => {
   it('keeps a body that is not placed yet out of reach', async () => {
     // The home page's planets rise after the crossing: none is drawn yet.
     const { buttons } = await mount();
-    buttons().forEach((button) => {
+    for (const button of buttons()) {
       expect(button.getAttribute('aria-hidden')).toBe('true');
       expect(button.tabIndex).toBe(-1);
       expect(button.style.pointerEvents).not.toBe('auto');
-    });
+    }
   });
 
   it('offers no target on the sheet, only labels, and nothing on about', async () => {
@@ -259,7 +255,7 @@ describe('ObjectComponent', () => {
   it('never spins from a panel: what has a gesture keeps it', async () => {
     const { spins } = await mount();
     const panel = document.createElement('div');
-    panel.setAttribute('data-panel', '');
+    panel.dataset['panel'] = '';
     document.body.append(panel);
     const pointer = (type: string, x: number): void => {
       panel.dispatchEvent(

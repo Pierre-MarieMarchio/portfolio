@@ -11,8 +11,8 @@ import {
   RankedProject,
   SheetSource,
 } from '@app/features/projects/models';
-import { provideTexts } from './texts';
-import { ProjectsRepository } from '@app/features/projects/services';
+import { provideTexts } from './texts.fixture';
+import { ProjectsRepositoryService } from '@app/features/projects/services';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 
 /**
@@ -103,7 +103,10 @@ export const catalogOf = (
 });
 
 /** The repository's seam, answering whatever entries the spec sets. */
-class RepositoryDouble implements Pick<ProjectsRepository, 'getCatalog'> {
+class RepositoryDouble implements Pick<
+  ProjectsRepositoryService,
+  'getCatalog'
+> {
   public constructor(public entries: readonly ProjectEntry[]) {}
 
   public getCatalog(): Observable<ProjectCatalog> {
@@ -123,7 +126,7 @@ export const provideProjects = (
 ): (Provider | EnvironmentProviders)[] => [
   provideStatewise({ effects: [ProjectsEffect, ...effects] }),
   {
-    provide: ProjectsRepository,
+    provide: ProjectsRepositoryService,
     useFactory: () => new RepositoryDouble(entries),
   },
   provideTexts(),
@@ -136,7 +139,7 @@ export const provideProjects = (
 export const loadProjects = async (
   entries?: readonly ProjectEntry[],
 ): Promise<ProjectsManager> => {
-  const repository = TestBed.inject(ProjectsRepository);
+  const repository = TestBed.inject(ProjectsRepositoryService);
   if (entries && repository instanceof RepositoryDouble) {
     repository.entries = entries;
   }

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { SceneBody, SceneView } from '../../models/scene.model';
 import { PlanetButtonsComponent } from './planet-buttons.component';
 

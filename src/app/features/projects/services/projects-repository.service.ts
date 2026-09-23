@@ -20,7 +20,7 @@ function bySlug<T>(part: (entry: ProjectEntry) => T): Record<string, T> {
  * loading cycle, so a sheet is never there while its project is not.
  */
 @Injectable({ providedIn: 'root' })
-export class ProjectsRepository {
+export class ProjectsRepositoryService {
   public getCatalog(): Observable<ProjectCatalog> {
     return of({
       projects: PROJECTS.map((entry) => entry.project),

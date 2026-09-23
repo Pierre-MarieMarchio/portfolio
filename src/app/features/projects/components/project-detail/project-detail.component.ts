@@ -16,8 +16,8 @@ import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/ui/components';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
-import { PROJECTS_TEXTS } from '../../i18n';
-import { positionOf } from '../project-labels';
+import { PROJECTS_TEXTS } from '../../ports';
+import { positionOf } from '../../rules/project-labels.rules';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 import {
   ChapterOnShow,
@@ -33,7 +33,7 @@ import {
  * never from the sheet, so the sheet speaks the index's vocabulary.
  */
 @Component({
-  selector: 'app-project-sheet',
+  selector: 'app-project-detail',
   imports: [
     ViewHeadingDirective,
     ProjectChapterComponent,
@@ -41,11 +41,11 @@ import {
     SegmentedComponent,
     WindowComponent,
   ],
-  templateUrl: './project-sheet.component.html',
-  styleUrl: './project-sheet.component.scss',
+  templateUrl: './project-detail.component.html',
+  styleUrl: './project-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectSheetComponent {
+export class ProjectDetailComponent {
   private readonly manager = inject(ProjectsManager);
   protected readonly texts = inject(PROJECTS_TEXTS);
   protected readonly links = inject(LINKS);

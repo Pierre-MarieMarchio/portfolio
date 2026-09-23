@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { DesktopEffect } from './desktop.effect';
 import { DesktopManager } from './desktop.manager';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 describe('StationManager', () => {
   let navigated: string[];

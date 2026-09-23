@@ -14,9 +14,9 @@ import {
 import { BrowserEnvironmentService } from '@app/core/services';
 import { RouterLink } from '@angular/router';
 import { LINKS } from '@app/features/common';
-import { PROJECTS_TEXTS } from '../../i18n';
+import { PROJECTS_TEXTS } from '../../ports';
 import { RankedProject } from '../../models';
-import { rowLabel } from '../project-labels';
+import { rowLabel } from '../../rules/project-labels.rules';
 import { Entrance } from '@shared/ui/models';
 import { LineAnchorDirective } from '@shared/ui/directives';
 
@@ -45,17 +45,17 @@ const LABEL_PX = 130;
  * the same `hovered`.
  */
 @Component({
-  selector: 'app-orbit-rule',
+  selector: 'app-featured-bar',
   imports: [LineAnchorDirective, RouterLink],
-  templateUrl: './orbit-rule.component.html',
-  styleUrl: './orbit-rule.component.scss',
+  templateUrl: './featured-bar.component.html',
+  styleUrl: './featured-bar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[attr.data-arrival]': 'arrival()',
     '[attr.data-crowded]': 'crowded()',
   },
 })
-export class OrbitRuleComponent {
+export class FeaturedBarComponent {
   /** The featured projects, in rank order. */
   public readonly bodies = input.required<readonly RankedProject[]>();
   /** The id of the panel a marker opens, for `aria-controls`. */

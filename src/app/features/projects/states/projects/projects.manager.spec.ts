@@ -4,8 +4,8 @@ import {
   sampleFacts,
   sampleProject,
   sampleSheet,
-} from '@testing/fake-managers';
-import { provideTexts } from '@testing/texts';
+} from '@testing/fixtures/project.fixture';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { PROJECTS } from '../../data';
 import { FEATURED_COUNT, ProjectsManager } from './projects.manager';
 import { ProjectsEffect } from './projects.effect';

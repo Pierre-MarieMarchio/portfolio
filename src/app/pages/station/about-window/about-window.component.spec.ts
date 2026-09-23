@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AboutWindowComponent } from './about-window.component';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 type Part = 0 | 1 | 2 | 3;
 

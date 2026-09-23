@@ -5,8 +5,8 @@ import {
   provideProjects,
   sampleEntry,
   sampleSheet,
-} from '@testing/fake-managers';
-import { ProjectSheetComponent } from './project-sheet.component';
+} from '@testing/fixtures/project.fixture';
+import { ProjectDetailComponent } from './project-detail.component';
 
 describe('ProjectSheetComponent', () => {
   const sheet = sampleSheet({
@@ -64,12 +64,12 @@ describe('ProjectSheetComponent', () => {
     chapter?: number;
   }) => {
     TestBed.configureTestingModule({
-      imports: [ProjectSheetComponent],
+      imports: [ProjectDetailComponent],
       providers: [provideRouter([]), provideProjects(ENTRIES)],
     });
     const manager = await loadProjects();
 
-    const fixture = TestBed.createComponent(ProjectSheetComponent);
+    const fixture = TestBed.createComponent(ProjectDetailComponent);
     fixture.componentRef.setInput('slug', inputs.slug);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
     fixture.componentRef.setInput('chapter', inputs.chapter ?? 0);

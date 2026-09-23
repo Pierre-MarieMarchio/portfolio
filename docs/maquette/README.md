@@ -133,6 +133,13 @@ La base du dépôt s'écarte de la maquette sur les points suivants :
   pages ne porte que la langue et s'élargit quand les pages arrivent ; chaque
   repère de la règle se lève ensuite avec sa planète, sur la même horloge
   (0,42 s d'écart, 0,7 s pour chacun).
+- **Dans les virages du voyage, le tunnel d'étoiles s'incline au lieu de
+  glisser.** L'export traduit le virage de la caméra en panoramique : tout le
+  champ glisse de côté, les traînées le suivent et le tunnel se défait en
+  hachures parallèles. Ici, comme un saut en hyperespace, le tunnel reste
+  centré : chaque traînée part du point de fuite, le tunnel tourne sur lui-même
+  dans le sens du virage (le roulis, plus 0,35 de l'azimut) et sa bouche
+  anticipe un peu la trajectoire (30 % du panoramique d'origine).
 - **Le rail de contact porte des icônes Material Symbols.** L'export y écrit
   « @ », « in » et « gh » en texte. Les icônes sont incluses en SVG (contour,
   graisse 400) : `mail`, puis `work` pour LinkedIn et `code` pour GitHub,

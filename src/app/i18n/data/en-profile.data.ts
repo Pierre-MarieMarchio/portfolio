@@ -113,12 +113,12 @@ export const EN_PROFILE: ProfileTexts = {
           'I am also open to a permanent job or freelance work, depending on the project.',
         ),
       ],
+      contact: draft('To talk about it, write to me at'),
     },
     path: {
       label: draft('Path'),
       title: draft('Path'),
       heading: draft('Milestones'),
-      missing: '',
       milestones: [
         {
           year: '2016 – 2021',

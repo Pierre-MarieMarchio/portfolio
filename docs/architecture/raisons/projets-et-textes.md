@@ -21,8 +21,10 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
   n'en partagent jamais un.
 - `short` est le nom là où la place manque : libellé de planète, repère de la
   page d'accueil.
-- Le niveau de preuve (`ProofLevel`) est dit en mots au lecteur, parce que
-  c'est la question que pose un recruteur.
+- Il n'y a plus de niveau de preuve : le statut (`proof`) et les liens de la
+  fiche disent déjà si le lecteur peut ouvrir quelque chose.
+- La période (`period`) est la deuxième question d'un recruteur après
+  « quoi ? ».
 - Les faits (`FactsSource`) sont la source unique de ce qui se vérifie :
   la règle d'accueil, l'index, l'aperçu et la fiche lisent tous cette table,
   et une fiche ne les répète jamais.
@@ -132,7 +134,7 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
 
 ## `features/projects/components/project-preview/`
 
-- L'aperçu montre ce qu'un recruteur demande d'abord (preuve, rôle, stack) et
+- L'aperçu montre ce qu'un recruteur demande d'abord (statut, rôle, stack) et
   le chemin vers la fiche.
 - Il ne montre qu'un projet mis en avant : un projet hors de la sélection se
   lirait « 05 / 04 ».

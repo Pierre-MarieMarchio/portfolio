@@ -27,10 +27,10 @@ Un projet s'écrit **dans un seul fichier**, puis se range **à une seule ligne*
      },
      facts: {
        proof: 'Dépôt public · npm', // ce qu'un lecteur peut vérifier
-       proofLevel: 'public', // 'public', 'indirect' ou 'none'
        role: 'Seul, de bout en bout',
        stack: 'Angular · TypeScript',
        context: 'Personnel',
+       period: 'depuis 2025', // quand, tel que la fiche l'affiche
      },
      detail: {
        lede: 'Le chapô de la fiche.',
@@ -64,8 +64,8 @@ paires terme / texte) et une figure :
   couches d'une architecture.
 
 Une figure est un schéma de lecture, jamais une capture présentée comme une
-preuve. Les faits (preuve, rôle, technique, contexte) ne se répètent jamais
-dans la fiche : la fiche les lit dans `facts`.
+preuve. Les faits (preuve, rôle, technique, contexte, période) ne se
+répètent jamais dans la fiche : la fiche les lit dans `facts`.
 
 ## Changer les projets mis en avant
 

@@ -1,8 +1,10 @@
 import { ContactAddress } from '../models/contact.model';
 
+export const CONTACT_EMAIL = 'pierremariemarchio.pro@gmail.com';
+
 export const CONTACT_ADDRESSES: readonly ContactAddress[] = [
   {
-    href: 'mailto:pierremariemarchio.pro@gmail.com',
+    href: `mailto:${CONTACT_EMAIL}`,
     icon: 'email',
     title: 'E-mail',
     external: false,

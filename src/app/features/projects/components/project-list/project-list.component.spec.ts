@@ -10,8 +10,6 @@ import {
   FamilyFilter,
   ProjectEntry,
 } from '@app/features/projects/models';
-import { PROJECTS_TEXTS } from '@app/features/projects/ports';
-import { proofLevelLabel } from '@app/features/projects/rules/project-labels.rules';
 import { FEATURED } from '@app/features/projects/states';
 import { ProjectListComponent } from './project-list.component';
 
@@ -45,7 +43,6 @@ describe('ProjectIndexComponent', () => {
         proof: `Proof ${slug}`,
         role: `Role ${slug}`,
         stack: `Stack ${slug}`,
-        proofLevel: index % 2 === 0 ? 'public' : 'indirect',
       },
       detail,
     });
@@ -195,20 +192,13 @@ describe('ProjectIndexComponent', () => {
     ).toBe(true);
   });
 
-  it('shows a row facts: stack, proof with its level label, and role', async () => {
+  it('shows a row facts: stack, proof alone, and role', async () => {
     const { host } = await mount();
     const row = rows(host)[0];
-    const level = proofLevelLabel(
-      'public',
-      TestBed.inject(PROJECTS_TEXTS)().proofLevels,
-    );
 
     expect(row?.querySelector('.stack')?.textContent).toContain('Stack proj-a');
-    const proofText = row?.querySelector('.proof')?.textContent ?? '';
-    expect(proofText).toContain('Proof proj-a');
-    expect(proofText).toContain(level);
-    expect(proofText.indexOf('Proof proj-a')).toBeLessThan(
-      proofText.indexOf(level),
+    expect(row?.querySelector('.proof')?.textContent?.trim()).toBe(
+      'Proof proj-a',
     );
     expect(row?.querySelector('.role')?.textContent).toContain('Role proj-a');
   });

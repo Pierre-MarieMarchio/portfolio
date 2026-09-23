@@ -23,11 +23,6 @@ export const EN: Catalog = {
   },
 
   projects: {
-    proofLevels: {
-      public: draft('Public link'),
-      indirect: draft('Private code'),
-      none: draft('No public link'),
-    },
     defaultChapterTitles: [
       draft('The need'),
       draft('What I did'),
@@ -88,6 +83,7 @@ export const EN: Catalog = {
         role: draft('Role'),
         stack: draft('Stack'),
         context: draft('Context'),
+        period: draft('Period'),
       },
       nextApproach: draft((title: string) => `Next: ${title} →`),
       nextProject: draft((short: string) => `Next project: ${short} →`),
@@ -111,14 +107,17 @@ export const EN: Catalog = {
       parts: [
         draft('Profile'),
         draft('Skills'),
-        draft('What next'),
         draft('Path'),
+        draft('What next'),
       ],
     },
     home: {
       void: draft('Close the windows'),
       name: 'Pierre-Marie Marchio',
       trade: draft('.NET and Angular developer'),
+      status: draft(
+        'I am looking for a work-study position in Toulouse or remote, available now.',
+      ),
       brand: 'Portfolio',
     },
     notFound: {

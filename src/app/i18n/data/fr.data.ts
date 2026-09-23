@@ -22,11 +22,6 @@ export const FR: Catalog = {
   },
 
   projects: {
-    proofLevels: {
-      public: 'Lien public',
-      indirect: 'Code privé',
-      none: 'Pas de lien public',
-    },
     defaultChapterTitles: [
       'Le besoin',
       'Ce que j’ai fait',
@@ -72,6 +67,7 @@ export const FR: Catalog = {
         role: 'Rôle',
         stack: 'Stack',
         context: 'Contexte',
+        period: 'Période',
       },
       nextApproach: (title) => `Suite : ${title} →`,
       nextProject: (short) => `Suivant : ${short} →`,
@@ -90,12 +86,14 @@ export const FR: Catalog = {
     object: {
       select: (_number, title) => `Afficher ${title} dans la liste`,
       preview: (title) => `Aperçu du projet ${title}`,
-      parts: ['Profil', 'Compétences', 'Et après', 'Parcours'],
+      parts: ['Profil', 'Compétences', 'Parcours', 'Et après'],
     },
     home: {
       void: 'Fermer les fenêtres',
       name: 'Pierre-Marie Marchio',
       trade: 'Développeur .NET et Angular',
+      status:
+        'Je cherche une alternance à Toulouse ou en télétravail, disponible dès maintenant.',
       brand: 'Portfolio',
     },
     notFound: {

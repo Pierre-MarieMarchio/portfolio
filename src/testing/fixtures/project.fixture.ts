@@ -33,10 +33,10 @@ export const sampleFacts = (
   overrides: Partial<FactsSource> = {},
 ): FactsSource => ({
   proof: 'Sample proof',
-  proofLevel: 'public',
   role: 'Sample role',
   stack: 'Sample stack',
   context: 'Personnel',
+  period: '2025',
   ...overrides,
 });
 

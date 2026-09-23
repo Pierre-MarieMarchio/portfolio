@@ -24,13 +24,13 @@ export const BKONE: ProjectEntry = {
       fr: 'Vendu à des banques · code privé',
       en: draft('Sold to banks · private code'),
     },
-    proofLevel: 'indirect',
     role: {
       fr: 'Stagiaire, refonte du code',
       en: draft('Intern, code rework'),
     },
     stack: 'Java · Swing · XML',
     context: 'Numerilis',
+    period: '2024',
   },
   detail: {
     lede: {

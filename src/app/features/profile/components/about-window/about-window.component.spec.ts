@@ -11,8 +11,8 @@ const TOOLBAR = '[aria-label="Rubriques"]';
 const TITLES: Record<Part, string> = {
   0: 'Profil',
   1: 'Compétences',
-  2: 'Et après',
-  3: 'Parcours',
+  2: 'Parcours',
+  3: 'Et après',
 };
 
 const mount = async (inputs: { pinned?: boolean; part?: Part } = {}) => {
@@ -66,14 +66,14 @@ describe('AboutWindowComponent', () => {
     expect(buttons.map((button) => button.textContent?.trim())).toEqual([
       'Profil',
       'Compétences',
-      'Et après',
       'Parcours',
+      'Et après',
     ]);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
       'Aller à la rubrique Profil',
       'Aller à la rubrique Compétences',
-      'Aller à la rubrique Et après',
       'Aller à la rubrique Parcours',
+      'Aller à la rubrique Et après',
     ]);
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
@@ -120,19 +120,19 @@ describe('AboutWindowComponent', () => {
     );
   });
 
-  it('titles the h1 after the "Et après" part', async () => {
+  it('titles the h1 after the path part', async () => {
     const { host } = await mount({ part: 2 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Et après',
+      'À propos : Parcours',
     );
   });
 
-  it('titles the h1 after the path part', async () => {
+  it('titles the h1 after the "Et après" part, the last one', async () => {
     const { host } = await mount({ part: 3 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Parcours',
+      'À propos : Et après',
     );
   });
 
@@ -191,8 +191,8 @@ describe('AboutWindowComponent', () => {
     }
   });
 
-  it('shows part 02: the caps and four numbered items, the first about finishing the degree', async () => {
-    const { host } = await mount({ part: 2 });
+  it('shows part 03: the caps and four numbered items, the first about finishing the degree', async () => {
+    const { host } = await mount({ part: 3 });
     const text = host.textContent ?? '';
 
     expect(text).toContain('Ce que je cherche');
@@ -208,8 +208,8 @@ describe('AboutWindowComponent', () => {
     }
   });
 
-  it('shows part 03: Étapes, eight dated milestones, and ordered facts', async () => {
-    const { host } = await mount({ part: 3 });
+  it('shows part 02: Étapes, eight dated milestones, and ordered facts', async () => {
+    const { host } = await mount({ part: 2 });
     const text = host.textContent ?? '';
 
     expect(text).toContain('Étapes');
@@ -243,6 +243,30 @@ describe('AboutWindowComponent', () => {
       expect(at).toBeGreaterThan(cursor);
       cursor = at;
     }
+  });
+
+  it('heads the path part with Étapes alone, no side note', async () => {
+    const { host } = await mount({ part: 2 });
+    const head = host.querySelector('.milestones')?.previousElementSibling;
+
+    expect(head?.textContent?.trim()).toBe('Étapes');
+    expect(host.querySelector('.missing')).toBeNull();
+  });
+
+  it('ends the "Et après" part with a line to write, after the list', async () => {
+    const { host } = await mount({ part: 3 });
+    const contact = host.querySelector('ul.method + p.contact');
+    const address = contact?.querySelector<HTMLAnchorElement>('a');
+
+    expect(contact?.textContent?.replaceAll(/\s+/g, ' ').trim()).toBe(
+      'Pour en parler, écrivez-moi à pierremariemarchio.pro@gmail.com.',
+    );
+    expect(address?.textContent?.trim()).toBe(
+      'pierremariemarchio.pro@gmail.com',
+    );
+    expect(address?.getAttribute('href')).toBe(
+      'mailto:pierremariemarchio.pro@gmail.com',
+    );
   });
 
   it('keeps only the current part’s content in the DOM when switching parts', async () => {
@@ -291,7 +315,7 @@ describe('AboutWindowComponent', () => {
     const next = [
       ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ].find((button) => button.textContent?.trim().startsWith('Suite'));
-    expect(next?.textContent?.trim()).toBe('Suite : Et après →');
+    expect(next?.textContent?.trim()).toBe('Suite : Parcours →');
 
     next?.click();
     await fixture.whenStable();
@@ -311,7 +335,7 @@ describe('AboutWindowComponent', () => {
     const next = [
       ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ].find((button) => button.textContent?.trim().startsWith('Suite'));
-    expect(next?.textContent?.trim()).toBe('Suite : Parcours →');
+    expect(next?.textContent?.trim()).toBe('Suite : Et après →');
 
     next?.click();
     await fixture.whenStable();

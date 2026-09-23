@@ -11,7 +11,6 @@ export type {
   Project,
   ProjectEntry,
   ProjectSource,
-  ProofLevel,
   RankedProject,
   Ranking,
 } from './project.model';

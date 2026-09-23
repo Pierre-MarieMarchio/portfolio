@@ -7,8 +7,6 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { PROJECTS } from '../../data';
-import { PROJECTS_TEXTS } from '../../ports';
-import { proofLevelLabel } from '../../rules/project-labels.rules';
 import { FEATURED, ProjectsManager } from './projects.manager';
 import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
@@ -157,9 +155,6 @@ describe('ProjectsManager', () => {
     expect(manager.detailOf('skyted-voice')?.chapters.length).toBeGreaterThan(
       0,
     );
-    expect(
-      proofLevelLabel('indirect', TestBed.inject(PROJECTS_TEXTS)().proofLevels),
-    ).toBe('Code privé');
     expect(manager.find('skyted-voice')?.facts.context).toBe('Skyted');
     expect(state.isLoading()).toBe(false);
   });

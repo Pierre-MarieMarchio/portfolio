@@ -61,15 +61,16 @@
               </li>
             }
           </ul>
+          <p class="prose after contact">
+            {{ about().method.contact }}
+            <a [href]="mailto">{{ email }}</a
+            >.
+          </p>
         </section>
       }
       @case ('path') {
         <section>
-          <div class="steps-head">
-            <p class="caps">{{ about().path.heading }}</p>
-            <span class="grow"></span>
-            <span class="caps missing">{{ about().path.missing }}</span>
-          </div>
+          <p class="caps">{{ about().path.heading }}</p>
           <dl class="milestones">
             @for (milestone of about().path.milestones; track milestone.fact) {
               <div>

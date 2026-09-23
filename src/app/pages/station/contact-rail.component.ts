@@ -11,8 +11,10 @@ import { Arrival } from '@shared/ui/page-bar';
  * The contact rail, fixed bottom right: e-mail, LinkedIn, GitHub, at 44px
  * each, and the object's pause when there is an object to pause.
  *
- * The icons are Material Symbols, inlined: Material has no brand marks, so
- * LinkedIn reads as the work it shows and GitHub as the code it holds.
+ * The icons are Material Design Icons (Pictogrammers, Apache 2.0), inlined:
+ * the community set drawn on Material's grid, which has the brand marks that
+ * Google's Material Symbols leave out. The three from the one set, so they
+ * share a weight: `email-outline`, `linkedin`, `github`.
  */
 @Component({
   selector: 'app-contact-rail',

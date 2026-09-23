@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
-import { catalogOf, sampleEntry } from '@testing/fake-managers';
+import { catalogOf, sampleEntry } from '@testing/fixtures/project.fixture';
 import { getProjectsActions, projectsReset } from './projects.action';
 import { ProjectsState } from './projects.state';
 import { projectsUpdater } from './projects.updater';

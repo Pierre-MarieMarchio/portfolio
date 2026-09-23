@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { PageBarComponent } from './page-bar.component';
 
 const LANGUAGES = [

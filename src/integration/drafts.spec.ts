@@ -1,6 +1,6 @@
 import { draftsLeft } from '@app/core/rules';
 import { PROJECTS } from '@app/features/projects/data';
-import { EN } from '@app/i18n/en';
+import { EN } from '@app/i18n/data/en.data';
 
 /**
  * The English texts not yet read by the author. Every one was written as

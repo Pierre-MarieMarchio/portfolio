@@ -12,7 +12,7 @@ import { LocaleService } from '@app/core/services';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
-import { Catalogs, provideI18n, translatePath } from '@app/i18n';
+import { CatalogLoaderService, provideI18n, translatePath } from '@app/i18n';
 import { StationComponent } from '@app/pages/station/station.component';
 import { routes } from '../app/app.routes';
 
@@ -39,7 +39,7 @@ const mount = async () => {
       provideI18n(),
     ],
   });
-  await TestBed.inject(Catalogs).ensure('fr');
+  await TestBed.inject(CatalogLoaderService).ensure('fr');
   await TestBed.inject(ProjectsManager).load();
   const fixture = TestBed.createComponent(Shell);
   const router = TestBed.inject(Router);

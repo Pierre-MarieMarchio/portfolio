@@ -14,8 +14,8 @@ import { WindowComponent } from '@shared/ui/components';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
-import { PROJECTS_TEXTS } from '../../i18n';
-import { positionOf, rowLabel } from '../project-labels';
+import { PROJECTS_TEXTS } from '../../ports';
+import { positionOf, rowLabel } from '../../rules/project-labels.rules';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
 /** Which family the index shows; `all` is no filter. */
@@ -33,18 +33,18 @@ const FAMILIES: readonly FamilyFilter[] = ['all', 'professional', 'personal'];
  * Filtering is not re-sorting: the rank order never changes.
  */
 @Component({
-  selector: 'app-project-index',
+  selector: 'app-project-list',
   imports: [
     ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,
     WindowComponent,
   ],
-  templateUrl: './project-index.component.html',
-  styleUrl: './project-index.component.scss',
+  templateUrl: './project-list.component.html',
+  styleUrl: './project-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProjectIndexComponent {
+export class ProjectListComponent {
   private readonly manager = inject(ProjectsManager);
 
   public readonly pinned = input(false);

@@ -3,7 +3,7 @@ import { RenderMode, type ServerRoute } from '@angular/ssr';
 import { firstValueFrom } from 'rxjs';
 import { LANGS } from '@app/core/models';
 import { PATHS } from '@app/i18n';
-import { ProjectsRepository } from './features/projects/services';
+import { ProjectsRepositoryService } from './features/projects/services';
 
 /**
  * Everything is prerendered: a portfolio is content, and a static host serves
@@ -20,7 +20,7 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
     getPrerenderParams: async () => {
       const { projects } = await firstValueFrom(
-        inject(ProjectsRepository).getCatalog(),
+        inject(ProjectsRepositoryService).getCatalog(),
       );
 
       return projects.map(({ slug }) => ({ slug }));

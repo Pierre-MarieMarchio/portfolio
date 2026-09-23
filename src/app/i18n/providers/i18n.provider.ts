@@ -5,35 +5,17 @@ import {
   provideAppInitializer,
   Provider,
 } from '@angular/core';
-import type { CanActivateFn } from '@angular/router';
-import { langOfUrl } from '@app/core/models';
 import { LocaleService } from '@app/core/services';
-import { PROJECTS_TEXTS } from '@app/features/projects/i18n';
+import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ILinks, LINKS } from '@app/features/common';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
 import { SHARED_TEXTS } from '@shared/ui/ports';
-import { PAGES_TEXTS } from './catalog';
-import { Catalogs } from './catalogs.service';
-import { pathOf } from './paths';
+import { PAGES_TEXTS } from '../models/catalog.model';
+import { CatalogLoaderService } from '../services/catalog-loader.service';
+import { pathOf } from '../rules/paths.rules';
 
-/**
- * Loads the catalogue of the address about to open, and takes its language
- * before the route activates: the markers declare their view in their
- * constructor, and the first render after them already speaks the new
- * language.
- */
-export const loadCatalog: CanActivateFn = async (_route, state) => {
-  // Both taken before the wait: past an `await`, `inject` has no context.
-  const catalogs = inject(Catalogs);
-  const locale = inject(LocaleService);
-  const lang = langOfUrl(state.url);
-  await catalogs.ensure(lang);
-  locale.set(lang);
-  return true;
-};
-
-const slice = <T>(read: (catalogs: Catalogs) => T) => {
-  const catalogs = inject(Catalogs);
+const slice = <T>(read: (catalogs: CatalogLoaderService) => T) => {
+  const catalogs = inject(CatalogLoaderService);
   return computed(() => read(catalogs));
 };
 
@@ -73,7 +55,7 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
       },
     },
     provideAppInitializer(() =>
-      inject(Catalogs).ensure(inject(LocaleService).lang()),
+      inject(CatalogLoaderService).ensure(inject(LocaleService).lang()),
     ),
   ];
 }

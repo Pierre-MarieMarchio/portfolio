@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SocialLinksComponent } from './social-links.component';
 import { SocialLink } from '../../models/social-link.model';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const LINKS: readonly SocialLink[] = [
   {

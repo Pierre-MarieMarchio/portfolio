@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { SpaceSceneComponent } from './space-scene.component';
 import { SceneBody, SceneView } from '../../models/scene.model';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const BODIES: readonly SceneBody[] = [
   { title: 'Skyted Voice', short: 'Skyted Voice' },

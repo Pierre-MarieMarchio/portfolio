@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SegmentedComponent } from './segmented.component';
 import { SegmentedItem } from '../../models/segmented.model';
-import { provideTexts } from '@testing/texts';
+import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const ITEMS: readonly SegmentedItem[] = [
   { value: 'all', label: 'Tout', active: true },

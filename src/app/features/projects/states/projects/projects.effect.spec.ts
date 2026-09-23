@@ -3,9 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { injectStatewise, type Statewise } from 'ngx-statewise';
 import { provideStatewiseTesting } from 'ngx-statewise/testing';
 import { NEVER, Observable, of, throwError } from 'rxjs';
-import { catalogOf, sampleEntry } from '@testing/fake-managers';
+import { catalogOf, sampleEntry } from '@testing/fixtures/project.fixture';
 import { ProjectCatalog } from '../../models';
-import { ProjectsRepository } from '../../services';
+import { ProjectsRepositoryService } from '../../services';
 import { getProjectsActions, projectsReset } from './projects.action';
 import { ProjectsEffect } from './projects.effect';
 import { ProjectsState } from './projects.state';
@@ -26,7 +26,7 @@ describe('ProjectsEffect', () => {
       providers: [
         provideStatewiseTesting({ effects: [ProjectsEffect] }),
         {
-          provide: ProjectsRepository,
+          provide: ProjectsRepositoryService,
           useValue: { getCatalog: () => source },
         },
         {

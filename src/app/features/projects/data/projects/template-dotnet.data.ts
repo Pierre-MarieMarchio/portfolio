@@ -21,10 +21,10 @@ export const TEMPLATE_DOTNET: ProjectEntry = {
       fr: 'Code public sur GitHub',
       en: draft('Public code on GitHub'),
     },
-    proofLevel: 'public',
     role: { fr: 'Seul', en: draft('Alone') },
     stack: '.NET 10 · EF Core · PostgreSQL',
     context: { fr: 'Personnel', en: draft('Personal') },
+    period: { fr: 'depuis 2025', en: draft('since 2025') },
   },
   detail: {
     lede: {

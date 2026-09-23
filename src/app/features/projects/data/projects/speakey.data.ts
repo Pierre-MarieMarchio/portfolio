@@ -18,13 +18,13 @@ export const SPEAKEY: ProjectEntry = {
   },
   facts: {
     proof: { fr: 'Pas de lien public', en: draft('No public link') },
-    proofLevel: 'none',
     role: {
       fr: 'Tout, sauf le moteur de reconnaissance',
       en: draft('Everything but the recognition engine'),
     },
     stack: 'Angular · .NET 10 · OVHcloud',
     context: 'Skyted',
+    period: '2025 – 2026',
   },
   detail: {
     lede: {

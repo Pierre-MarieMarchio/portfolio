@@ -7,12 +7,7 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { PROJECTS_TEXTS, ProjectsTexts } from '../ports';
-import {
-  chapterTitle,
-  positionOf,
-  proofLevelLabel,
-  rowLabel,
-} from './project-labels.rules';
+import { chapterTitle, positionOf, rowLabel } from './project-labels.rules';
 
 describe('project labels', () => {
   let texts: ProjectsTexts;
@@ -42,14 +37,6 @@ describe('project labels', () => {
   it('places an item among its peers on two digits', () => {
     expect(positionOf(3, 7)).toBe('03 / 07');
     expect(positionOf(12, 12)).toBe('12 / 12');
-  });
-
-  it('says a proof level in words', () => {
-    expect(proofLevelLabel('public', texts.proofLevels)).toBe('Lien public');
-    expect(proofLevelLabel('indirect', texts.proofLevels)).toBe('Code privé');
-    expect(proofLevelLabel('none', texts.proofLevels)).toBe(
-      'Pas de lien public',
-    );
   });
 
   it('titles a chapter by its own title, else the default of its place', () => {

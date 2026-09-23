@@ -80,7 +80,7 @@ describe('shipped project content', () => {
 
     expect(Object.keys(detail)).toContain('proof');
     for (const { detail: each } of PROJECTS) {
-      for (const field of ['proof', 'proofLevel', 'role', 'stack', 'context']) {
+      for (const field of ['proof', 'role', 'stack', 'context', 'period']) {
         expect(Object.keys(each)).not.toContain(field);
       }
     }

@@ -35,12 +35,12 @@ export interface ProfileTexts {
       readonly title: string;
       readonly heading: string;
       readonly steps: readonly string[];
+      readonly contact: string;
     };
     readonly path: {
       readonly label: string;
       readonly title: string;
       readonly heading: string;
-      readonly missing: string;
       readonly milestones: readonly {
         readonly year: string;
         readonly fact: string;

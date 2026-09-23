@@ -12,14 +12,12 @@ export interface ProjectSource {
   readonly summary: Text;
 }
 
-export type ProofLevel = 'public' | 'indirect' | 'none';
-
 export interface FactsSource {
   readonly proof: Text;
-  readonly proofLevel: ProofLevel;
   readonly role: Text;
   readonly stack: Text;
   readonly context: Text;
+  readonly period: Text;
 }
 
 export interface ProjectEntry {

@@ -21,13 +21,13 @@ export const TRAINWAYS: ProjectEntry = {
   },
   facts: {
     proof: { fr: 'Sur Google Play', en: draft('On Google Play') },
-    proofLevel: 'public',
     role: {
       fr: 'En binôme : back-end, mise à jour, publication',
       en: draft('In a pair: back end, update, release'),
     },
     stack: 'Kotlin · Android',
     context: 'Skyted',
+    period: '2026',
   },
   detail: {
     lede: {

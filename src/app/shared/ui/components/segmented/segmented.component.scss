@@ -6,9 +6,6 @@
   max-width: 100%;
 }
 
-/* A block that wraps as a whole: its border grows with its rows, so a
-   second row never spills over what follows (the mockup's inline-sized list
-   let "Personnels" overflow onto the column headers at 924px). */
 ul {
   display: flex;
   flex-wrap: wrap;
@@ -35,15 +32,11 @@ button {
     color var(--t-duration),
     background var(--t-duration);
 
-  &:hover,
   &[data-active='true'] {
-    color: var(--ink);
-    background: var(--vitre-2);
+    @include controls.lit;
   }
 }
 
-/* --line is a rule colour, not an ink: a count written with it falls to
-   1.5:1. The inactive count stays readable; only the hue marks the active. */
 .count {
   font-size: var(--m1);
   color: var(--ink-2);

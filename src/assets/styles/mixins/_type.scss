@@ -1,23 +1,15 @@
-/*
- * The mono voices of the interface. The running text is the body's font and
- * needs no mixin.
- */
-
-/* Mono data: a stack, a count, a link written as an address. */
 @mixin mono($size: var(--m3), $track: var(--ls-mono)) {
   font-family: var(--mono);
   font-size: $size;
   letter-spacing: $track;
 }
 
-/* A label in capitals: a column head, a term, a state. */
 @mixin caps($size: var(--m1), $track: var(--ls-caps)) {
   @include mono($size, $track);
 
   text-transform: uppercase;
 }
 
-/* A mono title: a window's, the rule's, the name above the home title. */
 @mixin title($size: var(--m2)) {
   @include caps($size, var(--ls-title));
 }

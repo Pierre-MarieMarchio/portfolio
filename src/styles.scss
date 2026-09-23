@@ -1,11 +1,3 @@
-/*
- * Global styles only, each in its own partial under src/assets/styles/: the
- * mockup's tokens, fonts and element defaults, the shared entrance, and the
- * few utilities every page shares. What components share beyond that is a
- * mixin (src/assets/styles/mixins/), found through the include path set in
- * angular.json.
- */
-
 @use 'assets/styles/fonts';
 @use 'assets/styles/tokens';
 @use 'assets/styles/base';

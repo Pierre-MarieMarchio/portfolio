@@ -2,8 +2,11 @@
 @use 'mixins/controls';
 @use 'mixins/motion';
 
+$rise-duration: 1200ms;
+$rise-delay: 800ms;
+
 :host {
-  @include arrival.on-its-own(1200ms, 800ms);
+  @include arrival.on-its-own($rise-duration, $rise-delay);
 
   position: fixed;
   right: var(--gutter);
@@ -11,15 +14,12 @@
   z-index: var(--z-chrome);
 }
 
-/* Arrives with the home page's rest (see `Arrival`): on its own at the end
-   of the crossing without a script, held until the reader is there with one,
-   then rising from that moment. */
 :host([data-arrival='held']) {
   @include arrival.held;
 }
 
 :host([data-arrival='shown']) {
-  @include arrival.shown(1200ms, 800ms);
+  @include arrival.shown($rise-duration, $rise-delay);
 }
 
 .rail {
@@ -36,7 +36,6 @@ ul {
   gap: 2px;
 }
 
-/* 44px: the touch target, never below. */
 a {
   display: flex;
   align-items: center;
@@ -57,7 +56,6 @@ a {
   }
 }
 
-/* Material Design Icons, on their 24 grid, drawn in the link's colour. */
 svg {
   width: 22px;
   height: 22px;

@@ -414,29 +414,38 @@ et plus aucun relais inutile.
 
 - `rules/view.rules.ts` : `parentOf`, `stepBack`, et **`windowOf(view)`**,
   la table vue → fenêtre écrite une seule fois (deux copies aujourd'hui).
-- `models/desktop.model.ts` : `DesktopView`, `DesktopWindow`, `SceneBody`,
+- `models/desktop.model.ts` : `DesktopView`, `DesktopWindow`, `Planet`,
   les ids DOM (ex-`station.ids`). Une seule union de vues : celle du moteur
   (`ObjectView`) et celle de la pile (`WindowSlot`) disparaissent.
 
 #### Les composants
 
-- **`space-scene/`** (ex-`object`). Le composant canvas perd ses sept
-  responsabilités :
+- **`desktop-scene/`** `DesktopSceneComponent` : la chorégraphie du bureau
+  sur la scène de `shared/space-scene`. Il reçoit des `Planet { slug, title,
+short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
+  et le chapitre, et les traduit en direction de scène
+  (`rules/scene-direction.rules.ts`) :
 
-  | Unité                                                  | But                                                                   |
-  | ------------------------------------------------------ | --------------------------------------------------------------------- |
-  | `space-scene.component.ts` `SpaceSceneComponent`       | démarrer et arrêter la scène, lui passer ce que l'écran montre        |
-  | `rules/canvas-resolution.rules.ts`                     | la taille des canvas selon le budget de pixels et la densité          |
-  | `scene-layout.rules.ts`                                | faire des ancres posées sur l'écran la mise en page de la scène       |
-  | `turn-gesture.directive.ts` `TurnGestureDirective`     | tourner la scène en la faisant glisser, sans cliquer au lâcher        |
-  | `planet-buttons.component.ts` `PlanetButtonsComponent` | un bouton accessible par planète, le double toucher sur écran tactile |
-  | `engine/`                                              | la boucle et ses couches (étape 6, D11)                               |
+  | Vue         | Cadrage                              | Corps               | Étiquettes | Tourne |
+  | ----------- | ------------------------------------ | ------------------- | ---------- | ------ |
+  | `home`      | `rest`, `close-up` sur l'aperçu      | `held` puis `shown` | `names`    | oui    |
+  | `index`     | `overview`, la sélection `ringed`    | `shown`             | `tags`     | oui    |
+  | `sheet`     | `approach` du projet, pas = chapitre | `shown`             | `names`    | non    |
+  | `about`     | `aside`, la section = figure allumée | `hidden`            | `none`     | oui    |
+  | `not-found` | `overview`                           | `hidden`            | `none`     | non    |
 
-  Elle reçoit des `SceneBody { slug, title, short }` et des slugs, plus des
-  rangs : la traduction slug ↔ rang devient son affaire interne. La page fait
-  la correspondance `Project` → `SceneBody` par un `computed`. Le clic qui
-  termine un glissement est absorbé par `TurnGestureDirective`, ce qui retire
-  `swallowVoid` de l'écran.
+  Le survol devient `emphasised` partout ; l'aperçu ne compte que sur
+  l'accueil ; les projets au-delà des vedettes sont `faint`. Sur l'index, une
+  étiquette est le numéro de la colonne REF. Il projette dans la scène les
+  `PlanetButtonsComponent` (les noms accessibles portent les textes du
+  bureau) sur l'accueil et l'index, et fournit `SCENE_SURROUNDINGS` avec
+  `SceneSurroundingsService`, qui lit `LayoutAnchorsService` et traduit les
+  rôles d'ancre (`head`, `rule`, `sheet`, `preview`) en rôles de scène.
+
+  La page fait la correspondance `Project` → `Planet` par un `computed` ; la
+  traduction slug ↔ rang est interne à la scène. Le clic qui termine un
+  glissement est absorbé par `TurnGestureDirective` : `swallowVoid` a quitté
+  l'écran.
 
 - `intro-card/` : la carte d'ouverture, une fois par visite, sur
   `UserPresenceService`.
@@ -455,6 +464,39 @@ et plus aucun relais inutile.
 - **`FeaturedTourService`** (ex-`Curtain`). But : une fois l'accueil révélé,
   survoler tour à tour chaque projet vedette, jusqu'à ce que le lecteur prenne
   la main. Contrat : `play(slugs)`, `stop()`.
+
+#### La scène qu'il anime : `shared/space-scene/`
+
+La scène canvas, sans un mot du portfolio. Son API parle de cadrages, de
+corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
+
+| Unité                                                         | But                                                                                                                |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `components/space-scene/` `SpaceSceneComponent`               | démarrer et arrêter la scène, lui passer les corps, la direction et les noms des figures                           |
+| `directives/turn-gesture.directive.ts` `TurnGestureDirective` | tourner la scène en la faisant glisser ; absorber le clic qui termine un glissement                                |
+| `directives/scene-target.directive.ts` `SceneTargetDirective` | inscrire un élément comme cible d'un corps, dans l'ordre du document (le rang)                                     |
+| `services/scene-targets.service.ts` `SceneTargetsService`     | le registre des cibles, fourni par `SpaceSceneComponent`                                                           |
+| `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                               |
+| `models/scene.model.ts`                                       | `SceneBody`, `SceneDirection`, `CameraFraming`, `BodiesPresence`, `LabelStyle`                                     |
+| `models/scene-layout.model.ts`                                | `SceneLayout`, `PanelRect`, `ScenePanelRole`                                                                       |
+| `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `matter/`, `planets/`, `sky/` |
+| `engine/`                                                     | la boucle et ses couches (D11)                                                                                     |
+
+- **`SceneDirection`** : `framing` (`rest`, `overview`, `aside`,
+  `close-up` sur un corps, `approach` d'un corps à un pas donné),
+  `presence` des corps (`shown`, `held` jusqu'à leur entrée, que le
+  mouvement réduit n'attend pas, `hidden`), `labels` (`names`, `tags`,
+  `none`), `emphasised` et `ringed` (un id ou `null`), `turnable`,
+  `figuresShown` et `litFigure`.
+- Ce qui se déduit du cadrage reste interne : au `close-up`, la rotation
+  freine, la scène recule d'un cran, les autres corps s'éteignent et lui seul
+  garde son nom ; à l'`approach`, le corps approché porte l'anneau, les
+  autres s'éteignent ; à l'`overview`, tous les corps sont là et aucun ne
+  s'efface sous un panneau ; hors `overview` et `approach`, les corps `faint`
+  quittent la scène ; les corps montent l'un après l'autre au `rest` et au
+  `close-up` seulement.
+- Un id inconnu ne désigne aucun corps ; un `close-up` sur un id inconnu
+  revient au `rest`.
 
 ### 4.6 `features/profile/`
 
@@ -551,6 +593,25 @@ src/app/
     data/          social-icons.data
     ports/         shared-texts.port
 
+  shared/space-scene/
+    components/    space-scene/
+    directives/    turn-gesture · scene-target
+    services/      scene-targets.service
+    ports/         scene-surroundings.port
+    models/        scene · scene-layout · scene-constants
+    rules/         scene-state · scene-frame · scene-layout · panel-veil ·
+                   scene-bodies · canvas-resolution
+                   camera/   camera-frames · framing · pointer · projection ·
+                             traveling
+                   matter/   grain-reserve · matter-light
+                   planets/  planet-focus · planet-spacing · label-placement
+                   sky/      star-field · comets · constellations
+    engine/        space-scene.engine
+                   motions/    camera · clock · grains · scene · star-flow ·
+                               turntable
+                   renderers/  grains · orbits · planets · planet-labels · scene
+                               sky/  sky · star-sky · constellations · comets
+
   features/
     common/
       ports/       links.port
@@ -564,25 +625,14 @@ src/app/
       models/      project · project-family · project-detail
       data/        projects.data · projects/<un fichier par projet>.data
     desktop/
-      components/  space-scene/ · planet-buttons/ · intro-card/ · home-title/ ·
+      components/  desktop-scene/ · planet-buttons/ · intro-card/ · home-title/ ·
                    not-found-window/ · animation-toggle/
-      directives/  turn-gesture.directive
-      services/    home-reveal.service · featured-tour.service
+      services/    home-reveal.service · featured-tour.service ·
+                   scene-surroundings.service
       states/      desktop/ · animation/
       ports/       desktop-texts.port
-      rules/       view.rules · scene-layout.rules · canvas-resolution.rules
-                   scene/  scene-frame · panel-veil · scene-bodies · scene-math
-                           camera/   camera-frames · framing · pointer ·
-                                     projection · traveling
-                           matter/   grain-reserve · matter-light
-                           planets/  planet-focus · label-placement
-                           sky/      star-field · comets · constellations
-      models/      desktop.model · scene.model · scene-constants.model
-      engine/      space-scene.engine
-                   motions/    camera · clock · grains · scene · star-flow ·
-                               turntable
-                   renderers/  grains · orbits · planets · planet-labels · scene
-                               sky/  sky · star-sky · constellations · comets
+      rules/       view.rules · scene-direction.rules
+      models/      desktop.model
     profile/
       components/  about-window/
       ports/       profile-texts.port

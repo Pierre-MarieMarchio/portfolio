@@ -1,16 +1,15 @@
-@for (entry of entries(); track $index; let rank = $index) {
+@for (entry of entries(); track $index) {
   <button
-    #button
+    appSceneTarget
     type="button"
     class="body"
-    data-object-body
     aria-hidden="true"
     tabindex="-1"
     [attr.aria-expanded]="entry.expanded"
-    (click)="onClick(rank)"
-    (mouseenter)="onEnter(rank)"
+    (click)="onClick(entry.slug)"
+    (mouseenter)="onEnter(entry.slug)"
     (mouseleave)="onLeave()"
-    (focus)="onEnter(rank)"
+    (focus)="onEnter(entry.slug)"
     (blur)="onLeave()"
   >
     <span class="visually-hidden">{{ entry.name }}</span>

@@ -8,7 +8,8 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED, FEATURED_COUNT } from '@app/features/projects/states';
-import { SpaceSceneComponent } from '@app/features/desktop/components';
+import { DesktopSceneComponent } from '@app/features/desktop/components';
+import { SpaceSceneComponent } from '@shared/space-scene/components';
 import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
 import { DesktopPageComponent } from '@app/pages/desktop/desktop-page.component';
 
@@ -44,12 +45,17 @@ const mount = async (featured: number, total: number) => {
   const host = fixture.nativeElement as HTMLElement;
   const object = fixture.debugElement.query(
     (node: DebugElement) =>
+      node.componentInstance instanceof DesktopSceneComponent,
+  ).componentInstance as DesktopSceneComponent;
+  const scene = fixture.debugElement.query(
+    (node: DebugElement) =>
       node.componentInstance instanceof SpaceSceneComponent,
   ).componentInstance as SpaceSceneComponent;
   return {
     fixture,
     host,
     object,
+    scene,
     station: TestBed.inject(DesktopManager),
     markers: () => host.querySelectorAll('app-featured-bar li').length,
     choices: () =>
@@ -120,11 +126,11 @@ describe('featured count', () => {
   it('opens no preview for a planet the home page does not feature', async () => {
     const { fixture, station, object } = await mount(3, 12);
 
-    object.bodyClicked.emit(5);
+    object.bodyClicked.emit('project-6');
     await fixture.whenStable();
     expect(station.preview()).toBeNull();
 
-    object.bodyClicked.emit(1);
+    object.bodyClicked.emit('project-2');
     await fixture.whenStable();
     expect(station.preview()).toBe('project-2');
   });
@@ -139,13 +145,13 @@ describe('featured count', () => {
   });
 
   it('keeps the object from reading a pinned preview away from home', async () => {
-    const { fixture, station, object } = await mount(3, 12);
+    const { fixture, station, scene } = await mount(3, 12);
 
     station.openPreview('project-1');
     station.togglePin('preview');
     station.syncRoute('index');
     await fixture.whenStable();
 
-    expect(object.preview()).toBe(-1);
+    expect(scene.direction().framing).toEqual({ kind: 'overview' });
   });
 });

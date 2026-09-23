@@ -2,12 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   inject,
   input,
   output,
-  untracked,
-  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
@@ -15,7 +12,7 @@ import { LINKS } from '@app/features/common';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
-import { WindowComponent } from '@shared/ui/components';
+import { WindowComponent } from '@shared/windows/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
 /**
@@ -65,8 +62,6 @@ export class AboutWindowComponent {
     })),
   );
 
-  private readonly window = viewChild(WindowComponent);
-
   private readonly index = computed(() => {
     const part = this.part();
     return Number.isInteger(part) && part >= 0 && part < PARTS.length
@@ -101,19 +96,6 @@ export class AboutWindowComponent {
     const key = PARTS[index];
     return key ? { index, label: this.about()[key].label } : null;
   });
-
-  constructor() {
-    // A new part starts at its top; the first run is the arrival.
-    let isFirst = true;
-    effect(() => {
-      this.part();
-      if (isFirst) {
-        isFirst = false;
-        return;
-      }
-      untracked(() => this.window()?.scrollBodyTo(0));
-    });
-  }
 
   protected advance(): void {
     const next = this.next();

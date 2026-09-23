@@ -1,5 +1,5 @@
-import { DesktopView } from '../models';
-import { parentOf, stepBack, StepBackFrom } from './view.rules';
+import { DesktopView, DesktopWindow } from '../models';
+import { parentOf, stepBack, StepBackFrom, windowOf } from './view.rules';
 
 const from = (
   view: DesktopView,
@@ -72,5 +72,17 @@ describe('stepBack', () => {
     it('leaves a pinned preview alone away from the home page', () => {
       expect(stepBack('void', from('about', { preview: 'a' }))).toBeNull();
     });
+  });
+});
+
+describe('windowOf', () => {
+  it.each<[DesktopView, DesktopWindow | null]>([
+    ['home', null],
+    ['index', 'index'],
+    ['about', 'about'],
+    ['sheet', 'sheet'],
+    ['not-found', 'sheet'],
+  ])('shows %s in the window %s', (view, shown) => {
+    expect(windowOf(view)).toBe(shown);
   });
 });

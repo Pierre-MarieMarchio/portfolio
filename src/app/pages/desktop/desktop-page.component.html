@@ -53,7 +53,12 @@
       <app-home-title appPanelAnchor [arrival]="arrival()" />
     }
 
-    <div class="slot slot--about" appWindowSlot="about" appPanelAnchor>
+    <div
+      #aboutSlot
+      class="slot slot--about"
+      appStackedWindow="about"
+      appPanelAnchor
+    >
       @if (station.showsAbout()) {
         <app-about-window
           [pinned]="station.pins().about"
@@ -65,7 +70,12 @@
       }
     </div>
 
-    <div class="slot slot--index" appWindowSlot="index" appPanelAnchor>
+    <div
+      #indexSlot
+      class="slot slot--index"
+      appStackedWindow="index"
+      appPanelAnchor
+    >
       @if (station.showsIndex()) {
         <app-project-list
           [pinned]="station.pins().index"
@@ -81,7 +91,12 @@
       }
     </div>
 
-    <div class="slot slot--sheet" appWindowSlot="sheet" appPanelAnchor="sheet">
+    <div
+      #sheetSlot
+      class="slot slot--sheet"
+      appStackedWindow="sheet"
+      appPanelAnchor="sheet"
+    >
       @if (binding.isNotFound()) {
         <app-not-found-window
           [total]="binding.projectCount()"
@@ -100,8 +115,9 @@
     </div>
 
     <div
+      #previewSlot
       class="slot slot--preview"
-      appWindowSlot="preview"
+      appStackedWindow="preview"
       appPanelAnchor="preview"
       [id]="ids.previewPanel"
     >

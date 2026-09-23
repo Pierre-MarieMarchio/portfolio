@@ -25,7 +25,7 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   );
 }
 
-const SHARED_LIBS = ['ui'];
+const SHARED_LIBS = ['ui', 'windows'];
 
 const libsOnDisk = readdirSync(`${APP}/shared`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())

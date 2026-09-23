@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
-import { WindowComponent } from '@shared/ui/components';
+import { WindowComponent } from '@shared/windows/components';
 import { ProjectFamily } from '../../models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';

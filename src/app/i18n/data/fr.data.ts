@@ -8,13 +8,6 @@ import { Catalog } from '../models/catalog.model';
  */
 export const FR: Catalog = {
   shared: {
-    window: {
-      pin: 'Épingler : garder la fenêtre ouverte en changeant de page',
-      unpin: 'Détacher : la fenêtre se refermera en changeant de page',
-      fold: 'Replier la fenêtre',
-      unfold: 'Déplier la fenêtre',
-      close: 'Fermer la fenêtre',
-    },
     segmented: { label: 'Sélection' },
     pageBar: {
       languages: 'Langue du site',
@@ -25,6 +18,14 @@ export const FR: Catalog = {
       pause: 'Mettre l’animation de l’objet en pause',
       resume: 'Reprendre l’animation de l’objet',
     },
+  },
+
+  windows: {
+    pin: 'Épingler : garder la fenêtre ouverte en changeant de page',
+    unpin: 'Détacher : la fenêtre se refermera en changeant de page',
+    fold: 'Replier la fenêtre',
+    unfold: 'Déplier la fenêtre',
+    close: 'Fermer la fenêtre',
   },
 
   projects: {

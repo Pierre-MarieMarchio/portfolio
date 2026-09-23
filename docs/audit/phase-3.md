@@ -72,7 +72,7 @@ commit. Ordre suivi (D16) : 0, 2, 7, 1, puis 3 à 6 et 8.
 - [x] **3. `refactor(tree)`** : dossiers, fichiers, sélecteurs et classes
       selon `organisation.md`, sans changer de comportement ;
       `check-structure.mjs` passe en erreur.
-- [ ] **4. `refactor(units)`** : les découpages d'`organisation.md` §4.
+- [x] **4. `refactor(units)`** : les découpages d'`organisation.md` §4.
 - [ ] **5. `refactor(angular)`** : langue dérivée du routeur, composant de
       route unique qui déclare la vue, têtes de page dans la langue visée, OnPush implicite,
       `@Service()` si ngx-statewise l'accepte, `afterRenderEffect`,

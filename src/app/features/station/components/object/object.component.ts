@@ -16,28 +16,18 @@ import {
   viewChildren,
 } from '@angular/core';
 import { BrowserEnvironment } from '@app/core/services';
+import { twoDigits } from '@app/core/utils/format.utils';
 import { ObjectRegistry } from '@shared/ui/object-marks';
+import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
 import { STATION_TEXTS } from '../../i18n';
-import {
-  EngineInputs,
-  Layout,
-  ObjectEngine,
-  PanelRect,
-} from './engine/object-engine';
+import { canvasResolution } from '../../rules/canvas-resolution.rules';
+import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
+import { PlanetButtonsComponent } from '../planet-buttons/planet-buttons.component';
+import { EngineInputs, ObjectEngine } from './engine/object-engine';
 import { ObjectBody, ObjectView } from './object.model';
 
 /** The mockup's resting density; the reserve and the screen scale it. */
 const DENSITY = 3800;
-
-/**
- * The most device pixels a canvas may hold. The crossing's cost follows the
- * pixels drawn and the stars, whose number follows them too: past about
- * five million pixels a canvas, a 4K screen at 200% fell to under ten frames
- * a second during the run. 4.2 million keeps a 1080p screen at 150% and a
- * 13-inch retina screen at full sharpness; beyond, the ratio gives way, and
- * dust drawn in 2.5 px squares loses nothing to it.
- */
-const PIXEL_BUDGET = 4_200_000;
 
 /**
  * The object: a black hole in two `<canvas>` layers (the sky behind, the
@@ -61,6 +51,7 @@ const PIXEL_BUDGET = 4_200_000;
  */
 @Component({
   selector: 'app-object',
+  imports: [PlanetButtonsComponent, TurnGestureDirective],
   templateUrl: './object.component.html',
   styleUrl: './object.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,31 +113,22 @@ export class ObjectComponent {
     return view === 'home' || view === 'index' || view === 'sheet';
   });
 
-  protected readonly entries = computed(() => {
-    const index = this.view() === 'index';
-    const preview = this.preview();
-    return this.bodies().map((body, rank) => {
-      const number = String(rank + 1).padStart(2, '0');
-      return {
-        label: index ? number : body.short,
-        name: index
-          ? this.texts().object.select(number, body.title)
-          : this.texts().object.preview(body.title),
-        expanded: index ? null : preview === rank,
-      };
-    });
+  protected readonly labels = computed(() => {
+    const isIndex = this.view() === 'index';
+    return this.bodies().map((body, rank) =>
+      isIndex ? twoDigits(rank + 1) : body.short,
+    );
   });
 
   private readonly sky =
     viewChild.required<ElementRef<HTMLCanvasElement>>('sky');
   private readonly matter =
     viewChild.required<ElementRef<HTMLCanvasElement>>('matter');
-  private readonly nodes = viewChildren<ElementRef<HTMLElement>>('node');
-  private readonly labels = viewChildren<ElementRef<HTMLElement>>('label');
+  private readonly planetButtons = viewChild(PlanetButtonsComponent);
+  private readonly labelNodes = viewChildren<ElementRef<HTMLElement>>('label');
 
-  private engine: ObjectEngine | null = null;
+  protected readonly engine = signal<ObjectEngine | null>(null);
   private readonly stops: (() => void)[] = [];
-  private readonly gesture: (() => void)[] = [];
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -156,15 +138,15 @@ export class ObjectComponent {
     effect(() => {
       const snapshot = this.snapshot();
       untracked(() => {
-        this.engine?.setInputs(snapshot);
+        this.engine()?.setInputs(snapshot);
       });
     });
 
     effect(() => {
-      const buttons = this.nodes().map((ref) => ref.nativeElement);
-      const labels = this.labels().map((ref) => ref.nativeElement);
+      const buttons = this.buttonElements();
+      const labels = this.labelElements();
       untracked(() => {
-        this.engine?.setNodes(buttons, labels);
+        this.engine()?.setNodes(buttons, labels);
       });
     });
 
@@ -181,36 +163,21 @@ export class ObjectComponent {
     });
 
     destroyRef.onDestroy(() => {
-      this.endGesture();
       for (const stop of this.stops) {
         stop();
       }
-      this.engine?.stop();
-      this.engine = null;
+      this.engine()?.stop();
+      this.engine.set(null);
     });
   }
 
-  protected onClick(rank: number): void {
-    // Without hover (touch), a planet takes two touches: the first reveals
-    // the project's name, the second opens it.
-    if (
-      this.view() !== 'index' &&
-      this.browser.cannotHover() &&
-      this.hovered() !== rank &&
-      this.preview() !== rank
-    ) {
-      this.bodyHovered.emit(rank);
-      return;
-    }
-    this.bodyClicked.emit(rank);
+  private buttonElements(): HTMLElement[] {
+    const buttons = this.planetButtons()?.buttons() ?? [];
+    return buttons.map((ref) => ref.nativeElement);
   }
 
-  protected onEnter(rank: number): void {
-    this.bodyHovered.emit(rank);
-  }
-
-  protected onLeave(): void {
-    this.bodyHovered.emit(-1);
+  private labelElements(): HTMLElement[] {
+    return this.labelNodes().map((ref) => ref.nativeElement);
   }
 
   private snapshot(): EngineInputs {
@@ -240,8 +207,23 @@ export class ObjectComponent {
     }
     const skyCtx = this.browser.context2d(this.sky().nativeElement);
     this.reduced.set(this.browser.prefersReducedMotion());
+    const engine = this.createEngine(ctx, skyCtx);
+    this.engine.set(engine);
+    engine.setInputs(untracked(() => this.snapshot()));
+    engine.setNodes(this.buttonElements(), this.labelElements());
+    this.resize();
+    this.measure();
+    this.watch(engine, matter);
+    this.browser.whenFontsReady(() => this.measure());
+    this.running.set(true);
+  }
+
+  private createEngine(
+    ctx: CanvasRenderingContext2D,
+    skyCtx: CanvasRenderingContext2D | null,
+  ): ObjectEngine {
     const viewport = this.browser.viewport() ?? { width: 1280, height: 800 };
-    const engine = new ObjectEngine(
+    return new ObjectEngine(
       {
         frame: (callback) => this.browser.nextFrame(callback),
         now: () => this.browser.now(),
@@ -258,15 +240,9 @@ export class ObjectComponent {
       },
       viewport.width * viewport.height,
     );
-    this.engine = engine;
-    engine.setInputs(untracked(() => this.snapshot()));
-    engine.setNodes(
-      this.nodes().map((ref) => ref.nativeElement),
-      this.labels().map((ref) => ref.nativeElement),
-    );
-    this.resize();
-    this.measure();
+  }
 
+  private watch(engine: ObjectEngine, matter: HTMLCanvasElement): void {
     this.stops.push(
       this.browser.observeResize(matter, () => {
         this.resize();
@@ -304,38 +280,28 @@ export class ObjectComponent {
         },
         { passive: true },
       ),
-      this.browser.listen('pointerdown', (event) => this.onGrab(event), {
-        capture: true,
-      }),
     );
-    this.browser.whenFontsReady(() => this.measure());
-    this.running.set(true);
   }
 
   /** Canvas size in device pixels, the ratio capped at 2 and by the budget. */
   private resize(): void {
-    const engine = this.engine;
+    const engine = this.engine();
     if (!engine) {
       return;
     }
     const matter = this.matter().nativeElement;
     const sky = this.sky().nativeElement;
-    const rect = matter.getBoundingClientRect();
-    const area = Math.max(1, rect.width * rect.height);
-    const dpr = Math.min(
-      2,
+    const { width, height, pixelRatio } = canvasResolution(
+      matter.getBoundingClientRect(),
       this.browser.devicePixelRatio(),
-      Math.sqrt(PIXEL_BUDGET / area),
     );
-    const width = Math.max(1, Math.round(rect.width * dpr));
-    const height = Math.max(1, Math.round(rect.height * dpr));
     for (const canvas of [matter, sky]) {
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
       }
     }
-    engine.resize(width, height, dpr);
+    engine.resize(width, height, pixelRatio);
   }
 
   /**
@@ -343,16 +309,12 @@ export class ObjectComponent {
    * before any write, or each read forces a layout of its own.
    */
   private measure(): void {
-    const engine = this.engine;
+    const engine = this.engine();
     if (!engine) {
       return;
     }
     const canvas = this.matter().nativeElement.getBoundingClientRect();
-    const panels: PanelRect[] = [];
-    let headHeight: number | null = null;
-    let ruleHeight: number | null = null;
-    let sheetLeft: number | null = null;
-    let previewLeft: number | null = null;
+    const anchors: PanelAnchor[] = [];
     for (const { element, role } of this.registry.panels()) {
       // A panel held out of sight (the home page's rest, during the
       // crossing) is not there yet: the mockup mounts it later. Measured,
@@ -360,97 +322,15 @@ export class ObjectComponent {
       if (this.browser.computedStyle(element, 'visibility') === 'hidden') {
         continue;
       }
-      const rect = element.getBoundingClientRect();
-      const opacity = Number.parseFloat(
-        this.browser.computedStyle(element, 'opacity'),
-      );
-      panels.push({
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        opacity: Number.isFinite(opacity) ? opacity : 1,
+      anchors.push({
+        rect: element.getBoundingClientRect(),
+        opacity: this.browser.computedStyle(element, 'opacity'),
+        role: role(),
       });
-      const shown = rect.width > 0 && rect.height > 0;
-      switch (shown ? role() : '') {
-        case 'head':
-          headHeight = Math.round(rect.height);
-          break;
-        case 'rule':
-          ruleHeight = Math.round(rect.height);
-          break;
-        case 'sheet':
-          sheetLeft = Math.round(rect.left);
-          break;
-        case 'preview':
-          previewLeft = rect.left;
-          break;
-      }
     }
     engine.setLines(this.registry.lines());
     engine.measureLabels();
     const viewport = this.browser.viewport() ?? { width: 1200, height: 800 };
-    const layout: Layout = {
-      canvas: { left: canvas.left, top: canvas.top },
-      viewport,
-      panels,
-      headHeight,
-      ruleHeight,
-      sheetLeft,
-      previewLeft,
-    };
-    engine.setLayout(layout);
-  }
-
-  /**
-   * Turning the object by hand. Everything that already has a gesture keeps
-   * it: the panels, links, fields and the planets themselves.
-   */
-  private onGrab(event: PointerEvent): void {
-    const engine = this.engine;
-    const target = event.target instanceof Element ? event.target : null;
-    if (!engine || event.button !== 0 || !target) {
-      return;
-    }
-    if (
-      target.closest(
-        '[data-panel], [data-object-body], a, input, textarea, select',
-      )
-    ) {
-      return;
-    }
-    if (!engine.grab(event.clientX, event.clientY)) {
-      return;
-    }
-    this.endGesture();
-    this.browser.setCursor('grabbing');
-    this.gesture.push(
-      this.browser.listen(
-        'pointermove',
-        (move) => {
-          engine.turn(move.clientX, move.clientY);
-        },
-        { passive: true },
-      ),
-      this.browser.listen('pointerup', () => this.release()),
-      this.browser.listen('pointercancel', () => this.release()),
-    );
-  }
-
-  private release(): void {
-    const spun = this.engine?.release() ?? false;
-    this.endGesture();
-    // A drag is not a click: without this, turning the object closed the
-    // preview on release.
-    if (spun) {
-      this.spun.emit();
-    }
-  }
-
-  private endGesture(): void {
-    for (const stop of this.gesture.splice(0)) {
-      stop();
-      this.browser.setCursor('');
-    }
+    engine.setLayout(sceneLayout(canvas, viewport, anchors));
   }
 }

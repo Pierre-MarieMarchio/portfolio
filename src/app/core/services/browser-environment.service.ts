@@ -97,8 +97,145 @@ export class BrowserEnvironment {
     };
   }
 
+  /**
+   * Whether the primary pointer cannot hover (a touch screen): there, a
+   * target that reveals on hover needs a first touch to reveal. `false` on
+   * the server, where nothing is touched.
+   */
+  public cannotHover(): boolean {
+    return this.matches('(hover: none)', false);
+  }
+
+  /** The device pixel ratio, capped by the caller; 1 on the server. */
+  public devicePixelRatio(): number {
+    return this.view()?.devicePixelRatio || 1;
+  }
+
+  /** A monotonic clock in milliseconds, for frame deltas; 0 on the server. */
+  public now(): number {
+    return this.view()?.performance.now() ?? 0;
+  }
+
+  /** Whether the tab is hidden. `true` on the server: nothing is on show. */
+  public isHidden(): boolean {
+    return this.isBrowser ? this.document.hidden : true;
+  }
+
+  /**
+   * Calls back when the tab is hidden or shown again, and returns the
+   * function that stops listening. Inert on the server.
+   */
+  public watchVisibility(onChange: (hidden: boolean) => void): () => void {
+    if (!this.isBrowser) {
+      return () => undefined;
+    }
+    const document = this.document;
+    const listener = (): void => {
+      onChange(document.hidden);
+    };
+    document.addEventListener('visibilitychange', listener);
+    return () => {
+      document.removeEventListener('visibilitychange', listener);
+    };
+  }
+
+  /**
+   * Calls back when an element changes size, and returns the function that
+   * stops observing. Inert on the server and where `ResizeObserver` lacks.
+   */
+  public observeResize(element: Element, onResize: () => void): () => void {
+    const view = this.globals();
+    if (!view || typeof view.ResizeObserver !== 'function') {
+      return () => undefined;
+    }
+    const observer = new view.ResizeObserver(() => {
+      onResize();
+    });
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+    };
+  }
+
+  /**
+   * Calls back when an element enters or leaves the viewport, past
+   * `threshold` of its area, and returns the function that stops observing.
+   * Inert on the server and where `IntersectionObserver` lacks.
+   */
+  public observeIntersection(
+    element: Element,
+    threshold: number,
+    onChange: (intersecting: boolean) => void,
+  ): () => void {
+    const view = this.globals();
+    if (!view || typeof view.IntersectionObserver !== 'function') {
+      return () => undefined;
+    }
+    const observer = new view.IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          onChange(entry.isIntersecting);
+        }
+      },
+      { threshold },
+    );
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+    };
+  }
+
+  /**
+   * A canvas's 2D context, or `null` on the server and wherever the browser
+   * refuses one (blocked, out of memory, not implemented): the caller falls
+   * back instead of throwing.
+   */
+  public context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+    try {
+      return canvas.getContext('2d');
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * The computed value of a CSS property on an element, trimmed; empty on
+   * the server, where nothing is laid out.
+   */
+  public computedStyle(element: Element, property: string): string {
+    const view = this.view();
+    return view
+      ? view.getComputedStyle(element).getPropertyValue(property).trim()
+      : '';
+  }
+
+  /** Calls back once the web fonts have loaded. Inert on the server. */
+  public whenFontsReady(callback: () => void): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    // jsdom and old engines have no font loading API: nothing to wait for.
+    const fonts = this.document.fonts as FontFaceSet | undefined;
+    if (!fonts) {
+      return;
+    }
+    void fonts.ready.then(() => {
+      callback();
+    });
+  }
+
   private view(): Window | null {
     return this.isBrowser ? this.document.defaultView : null;
+  }
+
+  /** The window with its constructors (`ResizeObserver`…), which `Window` omits. */
+  private globals(): (Window & typeof globalThis) | null {
+    const view = this.view();
+    return view ? (view as Window & typeof globalThis) : null;
   }
 
   private matches(query: string, serverAnswer: boolean): boolean {

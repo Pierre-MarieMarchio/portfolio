@@ -1,8 +1,8 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { FamilyFilter } from '@app/features/projects/components';
 import { ProjectsManager } from '@app/features/projects/states';
-import { ObjectBody, ObjectView } from '@app/features/station/components';
-import { StationManager } from '@app/features/station/states';
+import { SceneBody, SceneView } from '@app/features/desktop/components';
+import { DesktopManager } from '@app/features/desktop/states';
 
 /**
  * Where the station meets the projects. The station speaks in slugs and
@@ -15,7 +15,7 @@ import { StationManager } from '@app/features/station/states';
  */
 @Injectable()
 export class StationProjectsBinding {
-  private readonly station = inject(StationManager);
+  private readonly station = inject(DesktopManager);
   private readonly projects = inject(ProjectsManager);
 
   /** The slug of the sheet on show, when it names a project. */
@@ -49,13 +49,13 @@ export class StationProjectsBinding {
     () => this.projects.featured().length,
   );
 
-  public readonly bodies = computed<readonly ObjectBody[]>(() =>
+  public readonly bodies = computed<readonly SceneBody[]>(() =>
     this.projects
       .projects()
       .map((project) => ({ title: project.title, short: project.short })),
   );
 
-  public readonly objectView = computed<ObjectView>(() =>
+  public readonly objectView = computed<SceneView>(() =>
     this.isNotFound() ? 'not-found' : this.station.view(),
   );
 

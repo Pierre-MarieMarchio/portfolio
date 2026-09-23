@@ -1,6 +1,6 @@
 import { InjectionToken, Signal } from '@angular/core';
 import { ProjectsTexts } from '@app/features/projects/i18n';
-import { StationTexts } from '@app/features/station/i18n';
+import { DesktopTexts } from '@app/features/desktop/ports';
 import { SharedTexts } from '@shared/ui/texts';
 
 /** What a view says about itself in the head: its title and description. */
@@ -106,7 +106,7 @@ export interface PagesTexts {
 export interface Catalog {
   readonly shared: SharedTexts;
   readonly projects: ProjectsTexts;
-  readonly station: StationTexts;
+  readonly station: DesktopTexts;
   readonly pages: PagesTexts;
 }
 

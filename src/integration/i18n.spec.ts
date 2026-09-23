@@ -11,7 +11,7 @@ import { provideStatewise } from 'ngx-statewise';
 import { Locale } from '@app/core/i18n';
 import { PageTitleStrategy } from '@app/core/services';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
-import { StationEffect, StationManager } from '@app/features/station/states';
+import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
 import { Catalogs, provideI18n, translatePath } from '@app/i18n';
 import { StationComponent } from '@app/pages/station/station.component';
 import { routes } from '../app/app.routes';
@@ -35,7 +35,7 @@ const mount = async () => {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
       { provide: TitleStrategy, useClass: PageTitleStrategy },
-      provideStatewise({ effects: [ProjectsEffect, StationEffect] }),
+      provideStatewise({ effects: [ProjectsEffect, DesktopEffect] }),
       provideI18n(),
     ],
   });
@@ -51,7 +51,7 @@ const mount = async () => {
     fixture,
     go,
     host: fixture.nativeElement as HTMLElement,
-    station: TestBed.inject(StationManager),
+    station: TestBed.inject(DesktopManager),
   };
 };
 

@@ -3,6 +3,7 @@ import { Lang } from '@app/core/models';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
+import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { Catalog, PAGES_TEXTS, pathOf } from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
@@ -22,7 +23,8 @@ export const provideTexts = (
   return [
     { provide: SHARED_TEXTS, useValue: signal(catalog.shared) },
     { provide: PROJECTS_TEXTS, useValue: signal(catalog.projects) },
-    { provide: DESKTOP_TEXTS, useValue: signal(catalog.station) },
+    { provide: DESKTOP_TEXTS, useValue: signal(catalog.desktop) },
+    { provide: PROFILE_TEXTS, useValue: signal(catalog.profile) },
     { provide: PAGES_TEXTS, useValue: signal(catalog.pages) },
     {
       provide: LINKS,

@@ -44,21 +44,21 @@ const pagesIn = (lang, at) => [
     path: `/${at.index}`,
     file: join(at.index, 'index.html'),
     lang,
-    holds: ['<app-project-list'],
+    holds: ['<app-project-list', '<app-window'],
     lacks: ['<app-home-title'],
   },
   {
     path: `/${at.about}`,
     file: join(at.about, 'index.html'),
     lang,
-    holds: ['<app-about-window'],
+    holds: ['<app-about-window', '<app-window'],
     lacks: ['<app-home-title'],
   },
   ...sheets.map((slug) => ({
     path: `/${at.sheet}/${slug}`,
     file: join(at.sheet, slug, 'index.html'),
     lang,
-    holds: ['<app-project-detail'],
+    holds: ['<app-project-detail', '<app-window'],
     lacks: ['<app-home-title', '<app-not-found-window'],
   })),
 ];
@@ -127,6 +127,24 @@ for (const page of PAGES) {
   }
   if (page.lang === 'en' && /[àâçéèêëîïôûùœ]/i.test(wordsOf(html))) {
     fail('French words on an English page');
+  }
+}
+
+const declared = new Set(
+  readdirSync('src/app', { recursive: true, encoding: 'utf8' })
+    .filter((file) => file.endsWith('.component.ts'))
+    .flatMap((file) => [
+      ...readFileSync(join('src/app', file), 'utf8').matchAll(
+        /selector: '([a-z-]+)'/g,
+      ),
+    ])
+    .map((match) => `<${match[1] ?? ''}`),
+);
+for (const element of new Set(PAGES.flatMap((page) => page.lacks))) {
+  if (!declared.has(element)) {
+    failures.push(
+      `${element}>: no component declares it, so its absence proves nothing`,
+    );
   }
 }
 

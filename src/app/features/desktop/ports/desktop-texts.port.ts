@@ -13,9 +13,22 @@ export interface DesktopTexts {
     /** The constellation of each part of "about", in the parts' order. */
     readonly parts: readonly string[];
   };
+  readonly home: {
+    readonly void: string;
+    readonly name: string;
+    readonly trade: string;
+    readonly brand: string;
+  };
+  readonly notFound: {
+    readonly heading: string;
+    readonly label: string;
+    readonly title: string;
+    readonly sentence: (count: string) => string;
+    readonly back: string;
+  };
 }
 
 /** No default: a composition that forgets it fails loudly. */
 export const DESKTOP_TEXTS = new InjectionToken<Signal<DesktopTexts>>(
-  'STATION_TEXTS',
+  'DESKTOP_TEXTS',
 );

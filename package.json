@@ -20,7 +20,7 @@
     "format:check": "prettier --check .",
     "check": "npm run format:check && npm run typecheck:tools && npm run lint && npm run test && npm run build && npm run check:prerender && npm run check:structure",
     "check:prerender": "node scripts/check-prerender.mjs",
-    "check:structure": "node scripts/check-structure.mjs",
+    "check:structure": "node scripts/check-structure.mjs --strict",
     "prepare": "husky",
     "typecheck:tools": "tsc -p tsconfig.tools.json"
   },

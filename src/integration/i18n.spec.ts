@@ -13,12 +13,12 @@ import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
 import { CatalogLoaderService, provideI18n, translatePath } from '@app/i18n';
-import { StationComponent } from '@app/pages/station/station.component';
+import { DesktopPageComponent } from '@app/pages/desktop/desktop-page.component';
 import { routes } from '../app/app.routes';
 
 @Component({
-  imports: [RouterOutlet, StationComponent],
-  template: '<router-outlet /><app-station />',
+  imports: [RouterOutlet, DesktopPageComponent],
+  template: '<router-outlet /><app-desktop-page />',
 })
 class Shell {}
 

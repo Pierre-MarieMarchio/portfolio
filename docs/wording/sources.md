@@ -174,10 +174,14 @@ Ne pas contredire, ne pas reprendre son style :
 - **TrainWays** : le back-end est sur Firebase ; l'application est aussi sur
   l'App Store.
 - **Mods** : avant et pendant les années d'archéologie.
-- **Profil** : ajouter la curiosité au travail et l'espace. L'anglais langue
+- **Profil** : ajouter la curiosité au travail. L'espace, ajouté puis retiré :
+  « ça sert à rien ». L'anglais langue
   maternelle n'est pas expliqué, « Bilingue » suffit.
 - **Accueil** : ni ville ni « alternance » sous le titre, rien qui fasse
   LinkedIn (« disponible », « ouvert », « à l'écoute de nouvelles
   opportunités »). Retenu : « Je cherche le prochain projet à construire. »
 - **Référencement** : les descriptions Google gardent Toulouse et
   l'alternance.
+- **Compétences** : Mobile plus court. Architecture et outillage jugés « un peu
+  too much » : Git sort, l'outillage devient « Mise en production » ;
+  l'architecture reste, avec sa raison dans `fr.md`.

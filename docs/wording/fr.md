@@ -24,7 +24,6 @@ questions, sinon il sort.
 - **Le vocabulaire de la métaphore** : « relevé », « fiches », « corps en
   orbite », « approches », « l'objet ». L'espace reste dans le visuel, avec un
   seul clin d'œil dans le texte (« Projets en orbite ») et un sur la page 404.
-  Le profil le nomme une fois, comme ta passion, pour expliquer le décor.
 - **L'archéologie comme fil rouge.** Tu as été archéologue parce que tu es toi,
   pas l'inverse. Elle devient une ligne du parcours et une phrase du profil.
 - **Le volet « Méthode ».** Des phrases que n'importe quel candidat peut signer.
@@ -46,8 +45,7 @@ questions, sinon il sort.
   d'exclamation. Des phrases de longueurs différentes, des mots ordinaires.
 - Une information n'est dite qu'une fois par fiche. « Seul » est dans le champ
   Rôle, et nulle part ailleurs.
-- Deux confidences dans tout le site, toutes deux dans le profil : la
-  curiosité, et l'espace, qui explique le décor.
+- Une seule confidence dans tout le site : la curiosité, dans le profil.
 - Pas de chiffres pour faire sérieux. Aucun téléchargement, aucune adoption :
   tout appuyer sur des chiffres est un réflexe d'IA. Il en reste deux, parce
   qu'ils décrivent un résultat technique et non une audience : la connexion
@@ -232,8 +230,6 @@ dans la description Google.
   > Ce qui m'intéresse le plus, c'est la conception, la façon de découper un
   > code pour qu'on puisse encore le faire évoluer dans deux ans. C'est aussi
   > là que j'ai le plus à apprendre.
-  >
-  > En dehors du code, il y a l'espace. Le décor de ce site vient de là.
 
   Ta femme n'apparaît plus. La phrase sur le départ du référent technique non
   plus : elle est vraie et figure sur ton CV, mais sur un site public elle peut
@@ -253,8 +249,11 @@ dans la description Google.
   La curiosité, force et faiblesse, ce sont tes mots : « y trouve son compte »
   pour la force, « pour ne pas m'éparpiller » pour la réponse au « moyen en
   tout ». Le fait qui le prouve est Voice, passée en Avalonia pour partager le
-  code. L'espace ferme le profil sans « passion » : il explique le décor, et
-  s'arrête là.
+  code.
+
+  Une phrase sur l'espace a fermé le profil un temps. Elle est sortie : elle ne
+  disait rien du développeur, et le décor parle seul. Le profil finit de
+  nouveau sur ce qui reste à apprendre, qui ouvre « Et après ».
 
 **Compétences**
 
@@ -263,11 +262,10 @@ dans la description Google.
   - Web : Angular (signals, SSR, i18n), TypeScript, SCSS
   - Back : C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL, Firebase
   - Desktop : Avalonia, sur Windows, macOS et Linux
-  - Mobile : Android en Kotlin et Kotlin Multiplatform, iOS en Swift, Avalonia
-    Android
+  - Mobile : Kotlin Multiplatform, Swift, Avalonia Android
   - Bluetooth et audio : Bluetooth Classic et BLE, audio temps réel
   - Architecture : Clean Architecture, DDD, CQRS, tests d'architecture
-  - Outillage : Git, GitHub Actions, Docker, VPS OVHcloud
+  - Mise en production : GitHub Actions, Docker, VPS OVHcloud
 - _Texte_ :
 
   > Je travaille tous les jours en C# et en Angular, avec Avalonia pour le
@@ -279,6 +277,18 @@ dans la description Google.
   phrases le montre déjà. La
   ligne « Métier : flux bancaires, compensation européenne » sort, un stage de
   trois mois ne fait pas une compétence métier.
+
+  « Kotlin Multiplatform » dit déjà Kotlin. « Avalonia Android » garde son
+  second mot : seul, « Avalonia » redirait la ligne Desktop et cacherait le
+  plus rare, une application Android en C#.
+
+  « Outillage » devient « Mise en production », les mots de la fiche Speakey :
+  Git sort, tout le monde s'en sert ; GitHub Actions, Docker et un VPS disent
+  qu'on sait mettre en ligne soi-même. « Architecture » reste telle quelle,
+  même si elle dépend du projet : la ligne dit ce que tu connais, pas ce que
+  tu appliques partout, et c'est la trace, dans les compétences, de la
+  conception du profil et du bac+5 d'« Et après ». Le template .NET et
+  Companion la montrent.
 
 **Parcours** (intertitre : Étapes)
 
@@ -538,7 +548,7 @@ application. Ta part (le Bluetooth V24, la migration Firebase) reste précise et
   réseau du trajet.
 - **Ce que j'ai fait** : J'ai refait le back-end, mis l'application à jour et
   repris les développements prévus, puis je l'ai republiée sur Google Play et
-  l'App Store en 2026.
+  l'App Store. L'année est dans le champ Période.
 - liens : Google Play (`com.skyted.trainways`), App Store (`id6739769823`)
 
 Deux parties seulement : c'est un plus petit projet, la fiche le reflète.

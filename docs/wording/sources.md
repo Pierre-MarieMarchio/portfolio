@@ -79,8 +79,9 @@ Tout fait écrit dans `fr.md` doit se retrouver ici. Ce qui n'y est pas est marq
   l'appairage BLE pour le firmware V24 (identification par manufacturer data
   puis services GATT, mises à jour détectées par checksum, connexion ~20 %
   plus rapide), back-end migré vers Firebase Functions v2.
-- **TrainWays** : application Android Kotlin de Skyted, remise en production et
-  republiée sur Google Play en 2026 (CV mobile). Absente du site aujourd'hui.
+- **TrainWays** : application de Skyted, Android en Kotlin et iOS en Swift,
+  back-end Firebase, remise en production et republiée sur Google Play et
+  l'App Store en 2026 (CV mobile).
 - **Speakey** : projet Skyted. Application web de dictée (ASR), hébergement
   européen, pensée comme concurrent souverain de Wispr Flow. Front Angular
   prérendu (signals, SSR, lazy loading, design system SCSS, i18n) et API REST
@@ -133,12 +134,14 @@ Tout fait écrit dans `fr.md` doit se retrouver ici. Ce qui n'y est pas est marq
 - **CV à publier** : le Full Stack .NET / Angular.
 - **Périodes** des projets Skyted : le long de l'alternance (depuis 10/2025).
 
-## TrainWays (Google Play, lu le 23/09/2026)
+## TrainWays (Google Play lu le 23/09/2026, App Store lu le 24/09/2026)
 
 « Anticipez la couverture réseau de votre trajet en train. » Carte de
 connectivité des trains ; choix du train par numéro ou par gares de départ et
 d'arrivée ; heures de départ et d'arrivée, zones de connexion et d'absence de
-réseau, créneaux pour les appels. Mise à jour du 28 juillet 2026.
+réseau, créneaux pour les appels. Mise à jour du 28 juillet 2026. App Store :
+« Trainways », éditeur Skyted, iPhone, version 3.0 du 27 juillet,
+id6739769823.
 
 ## Cohérence avec le portfolio de sa collègue (fatouniasse.com, lu le 23/09/2026)
 
@@ -165,3 +168,16 @@ Ne pas contredire, ne pas reprendre son style :
 - **CV en ligne** : une version sans numéro de téléphone.
 - **Chiffres** : aucun chiffre de téléchargement. « C'est très IA de vouloir
   tout appuyer par des chiffres. »
+
+## Réponses du 24/09/2026
+
+- **TrainWays** : le back-end est sur Firebase ; l'application est aussi sur
+  l'App Store.
+- **Mods** : avant et pendant les années d'archéologie.
+- **Profil** : ajouter la curiosité au travail et l'espace. L'anglais langue
+  maternelle n'est pas expliqué, « Bilingue » suffit.
+- **Accueil** : ni ville ni « alternance » sous le titre, rien qui fasse
+  LinkedIn (« disponible », « ouvert », « à l'écoute de nouvelles
+  opportunités »). Retenu : « Je cherche le prochain projet à construire. »
+- **Référencement** : les descriptions Google gardent Toulouse et
+  l'alternance.

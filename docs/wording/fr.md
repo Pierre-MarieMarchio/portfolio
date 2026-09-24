@@ -262,7 +262,7 @@ dans la description Google.
   - Web : Angular (signals, SSR, i18n), TypeScript, SCSS
   - Back : C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL, Firebase
   - Desktop : Avalonia, sur Windows, macOS et Linux
-  - Mobile : Kotlin Multiplatform, Swift, Avalonia Android
+  - Mobile : Kotlin Multiplatform, Swift, Avalonia
   - Bluetooth et audio : Bluetooth Classic et BLE, audio temps réel
   - Architecture : Clean Architecture, DDD, CQRS, tests d'architecture
   - Mise en production : GitHub Actions, Docker, VPS OVHcloud
@@ -278,9 +278,8 @@ dans la description Google.
   ligne « Métier : flux bancaires, compensation européenne » sort, un stage de
   trois mois ne fait pas une compétence métier.
 
-  « Kotlin Multiplatform » dit déjà Kotlin. « Avalonia Android » garde son
-  second mot : seul, « Avalonia » redirait la ligne Desktop et cacherait le
-  plus rare, une application Android en C#.
+  « Kotlin Multiplatform » dit déjà Kotlin. « Avalonia » tout court : tu l'as
+  utilisé sur toutes les plateformes, et « Avalonia Android » le réduisait.
 
   « Outillage » devient « Mise en production », les mots de la fiche Speakey :
   Git sort, tout le monde s'en sert ; GitHub Actions, Docker et un VPS disent

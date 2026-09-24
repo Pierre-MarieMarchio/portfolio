@@ -185,3 +185,4 @@ Ne pas contredire, ne pas reprendre son style :
 - **Compétences** : Mobile plus court. Architecture et outillage jugés « un peu
   too much » : Git sort, l'outillage devient « Mise en production » ;
   l'architecture reste, avec sa raison dans `fr.md`.
+- **Avalonia** : utilisé sur toutes les plateformes, pas seulement Android.

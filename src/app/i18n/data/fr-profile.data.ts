@@ -63,7 +63,7 @@ export const FR_PROFILE: ProfileTexts = {
         { label: 'Desktop', value: 'Avalonia, sur Windows, macOS et Linux' },
         {
           label: 'Mobile',
-          value: 'Kotlin Multiplatform, Swift, Avalonia Android',
+          value: 'Kotlin Multiplatform, Swift, Avalonia',
         },
         {
           label: 'Bluetooth et audio',

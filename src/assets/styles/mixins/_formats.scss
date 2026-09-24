@@ -1,0 +1,40 @@
+$phone-width-below: 620px;
+$phone-height-below-with-coarse-pointer: 500px;
+$short-screen-height-up-to: 640px;
+
+@mixin phone {
+  @media (width < $phone-width-below),
+    (height < $phone-height-below-with-coarse-pointer) and (pointer: coarse) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (width >= $phone-width-below) and ((height >= $phone-height-below-with-coarse-pointer) or (not (pointer: coarse))) and ((pointer: coarse) or (hover: none)) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (width >= $phone-width-below) and (hover: hover) and (not (pointer: coarse)) {
+    @content;
+  }
+}
+
+@mixin can-hover {
+  @media (hover: hover) {
+    @content;
+  }
+}
+
+@mixin coarse-pointer {
+  @media (pointer: coarse) {
+    @content;
+  }
+}
+
+@mixin short-screen {
+  @media (height <= $short-screen-height-up-to) {
+    @content;
+  }
+}

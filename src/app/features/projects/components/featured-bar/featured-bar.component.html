@@ -14,11 +14,10 @@
             [attr.aria-controls]="controls()"
             [attr.aria-label]="marker.label"
             [attr.data-lit]="marker.lit"
+            appHoverFocus
             (click)="chosen.emit(marker.slug)"
-            (mouseenter)="hoveredChange.emit(marker.slug)"
-            (mouseleave)="hoveredChange.emit(null)"
-            (focus)="hoveredChange.emit(marker.slug)"
-            (blur)="hoveredChange.emit(null)"
+            (entered)="hoveredChange.emit(marker.slug)"
+            (exited)="hoveredChange.emit(null)"
           >
             <span aria-hidden="true" class="dot"></span>
             <span aria-hidden="true" class="stem"></span>

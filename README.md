@@ -137,7 +137,7 @@ pause, l'état `animation` (D14).
   client, jusqu'à la page « Adresse inconnue ») : c'est le réglage « SPA
   fallback » de la plupart des hébergeurs statiques.
 - Aucun code ne touche `window`, `localStorage`, `matchMedia` ou `canvas` en
-  direct : tout passe par les services de `core/services/`, inertes au
+  direct : tout passe par les services de `core/services/browser/` et `core/services/device/`, inertes au
   prérendu. `src/integration/prerender-safety.spec.ts` le vérifie.
 
 ## Conventions
@@ -182,6 +182,6 @@ valeur partagée (gouttière, cibles, rayons, flou, durée) s'y écrit une fois,
 Stylelint refuse les littéraux qui la contourneraient. Les partiels globaux
 (`_base`, `_motion` pour l'entrée `rise`, `_utilities`) sont chargés par
 `styles.scss`. Ce que les composants partagent au-delà est un mixin de
-`src/assets/styles/mixins/` (`type`, `controls`, `facts`, `arrival`, `motion`),
+`src/assets/styles/mixins/` (`type`, `controls`, `facts`, `arrival`, `motion`, `formats`),
 importé par `@use 'mixins/…'` grâce au chemin d'inclusion d'`angular.json`,
 plutôt qu'une classe globale qui gagnerait ou perdrait par sa spécificité.

@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { LANGS } from '@app/core/models';
-import { LocaleService } from '@app/core/services';
+import { DisplayFormatService, LocaleService } from '@app/core/services';
 import {
   FeaturedBarComponent,
   ProjectListComponent,
@@ -210,6 +210,7 @@ export class ObservatoryPageComponent {
   private landed = false;
 
   constructor() {
+    inject(DisplayFormatService).publishOnRoot();
     afterNextRender(() => {
       this.landed = true;
       this.arrivalController.start(

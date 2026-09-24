@@ -5,6 +5,7 @@ import {
   CanvasContextsService,
   ClockService,
   CursorService,
+  DisplayFormatService,
   DocumentStylesService,
   ElementObserverService,
   MediaPreferencesService,
@@ -165,6 +166,25 @@ describe('prerender safety', () => {
     stop();
     window.dispatchEvent(new Event('resize'));
     expect(heard).toEqual(['resize']);
+  });
+
+  it('is a desktop on the server, listens to nothing and marks no root', () => {
+    const matchMedia = vi.fn();
+    vi.stubGlobal('matchMedia', matchMedia);
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    on('server');
+    const display = TestBed.inject(DisplayFormatService);
+
+    display.publishOnRoot();
+    TestBed.tick();
+
+    expect(display.format()).toBe('desktop');
+    expect(matchMedia).not.toHaveBeenCalled();
+    expect(addEventListener).not.toHaveBeenCalled();
+    expect(document.documentElement.dataset['format']).toBeUndefined();
+
+    addEventListener.mockRestore();
+    vi.unstubAllGlobals();
   });
 
   it('leaves the cursor alone on the server', () => {

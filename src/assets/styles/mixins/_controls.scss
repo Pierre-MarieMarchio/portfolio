@@ -1,3 +1,4 @@
+@use 'formats';
 @use 'type';
 
 @mixin glass($blur: var(--glass-blur)) {
@@ -24,6 +25,13 @@
   background: var(--vitre-2);
 }
 
+@mixin touch-target {
+  @include formats.coarse-pointer {
+    min-width: var(--target);
+    min-height: var(--target);
+  }
+}
+
 @mixin icon-button($width, $height, $duration: var(--t)) {
   flex: 0 0 auto;
   display: flex;
@@ -44,8 +52,12 @@
     color $duration,
     background $duration;
 
-  &:hover {
-    @include lit;
+  @include touch-target;
+
+  @include formats.can-hover {
+    &:hover {
+      @include lit;
+    }
   }
 }
 
@@ -59,8 +71,12 @@
   background: transparent;
   color: var(--ink-2);
 
-  &:hover {
-    @include lit;
+  @include touch-target;
+
+  @include formats.can-hover {
+    &:hover {
+      @include lit;
+    }
   }
 }
 
@@ -81,4 +97,6 @@
   }
 
   border-bottom: 1px solid var(--accent);
+
+  @include touch-target;
 }

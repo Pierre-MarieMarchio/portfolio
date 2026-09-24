@@ -7,6 +7,9 @@
   display: contents;
 }
 
+$lowered-top: 60%;
+$raised-top: var(--s2);
+
 @keyframes window-rise {
   from {
     opacity: 0;
@@ -17,6 +20,26 @@
     opacity: 1;
     translate: 0 0;
   }
+}
+
+@keyframes glass-shade {
+  from {
+    backdrop-filter: var(--glass-shade-lowered);
+  }
+
+  to {
+    backdrop-filter: var(--glass-shade-raised);
+  }
+}
+
+.glass,
+.rail {
+  display: contents;
+}
+
+.shade,
+.lead {
+  display: none;
 }
 
 .window {
@@ -120,9 +143,101 @@ h2 {
   }
 }
 
+@include formats.phone {
+  .glass {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+
+  .rail {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .window {
+    flex: 1 1 auto;
+  }
+
+  .titlebar {
+    cursor: default;
+    touch-action: manipulation;
+  }
+
+  .glass--folded .window {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
+}
+
+@include formats.phone-portrait {
+  .glass {
+    timeline-scope: --glass-rise;
+  }
+
+  .shade {
+    position: absolute;
+    inset: 0;
+    display: block;
+    animation: glass-shade linear both;
+    animation-timeline: --glass-rise;
+  }
+
+  .rail {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    scroll-timeline: --glass-rise y;
+    scrollbar-width: none;
+  }
+
+  .lead {
+    display: block;
+    flex: 0 0 $lowered-top;
+  }
+
+  .window {
+    flex: 0 0 auto;
+    height: calc(100% - #{$raised-top});
+    border-inline-width: 0;
+  }
+
+  .body {
+    overflow-y: hidden;
+    overscroll-behavior-y: auto;
+  }
+
+  .rail[data-rest='end'] .body {
+    overflow-y: auto;
+  }
+
+  .glass--folded {
+    .lead {
+      flex-grow: 1;
+    }
+
+    .window {
+      height: auto;
+    }
+  }
+}
+
+@include formats.phone-landscape {
+  .glass {
+    left: 50%;
+  }
+}
+
 @include motion.reduced {
   .window {
     animation: none;
+  }
+
+  .rail {
+    scroll-behavior: auto;
   }
 
   .control {

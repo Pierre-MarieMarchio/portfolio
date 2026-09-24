@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import {
   BrowserWindowService,
+  DisplayFormatService,
   DocumentStylesService,
 } from '@app/core/services';
 import { WindowAnchor } from '../models/window.model';
@@ -30,6 +31,7 @@ const layoutTop = (element: HTMLElement): number => {
 export class FitHeightDirective {
   private readonly browserWindow = inject(BrowserWindowService);
   private readonly styles = inject(DocumentStylesService);
+  private readonly display = inject(DisplayFormatService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -46,7 +48,7 @@ export class FitHeightDirective {
 
   protected fit(): void {
     const ceiling = this.appFitHeight();
-    if (ceiling === null) {
+    if (ceiling === null || this.display.format() === 'phone') {
       this.element.style.maxHeight = '';
       return;
     }

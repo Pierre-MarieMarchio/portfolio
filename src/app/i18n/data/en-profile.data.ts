@@ -47,13 +47,16 @@ export const EN_PROFILE: ProfileTexts = {
       ],
       prose: [
         draft(
-          'There was always a PC at home, and I always wanted to look inside it. But I am curious about everything, and it took me a while to choose. I was an archaeologist first, five years on excavation sites. A fine job, but not one that pays the bills.',
+          'There was always a PC at home, and I wanted to know what was inside it. But I am curious about everything, and it took me a while to choose. I was an archaeologist first, five years on excavation sites. A fine job, but not one that pays the bills. All that time, I kept on modding.',
         ),
         draft(
-          'In 2021 I decided to make it my job. I am now a work-study developer at Skyted, where I do a bit of everything: Angular front ends, .NET APIs, desktop and mobile apps talking to a headset over Bluetooth.',
+          'In 2021, I chose software development. I am now a work-study developer at Skyted, where I do a bit of everything: Angular front ends, .NET APIs, desktop and mobile apps talking to a headset over Bluetooth. My curiosity gets its fill there. To avoid spreading myself thin, I run almost everything through .NET and Angular, down to an Android app written in C#.',
         ),
         draft(
           'What interests me most is design: how to split code so that it can still be changed two years later. It is also where I have the most to learn.',
+        ),
+        draft(
+          'Outside code, there is space. The look of this site comes from there.',
         ),
       ],
     },
@@ -68,7 +71,7 @@ export const EN_PROFILE: ProfileTexts = {
         },
         {
           label: draft('Back end'),
-          value: 'C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL',
+          value: 'C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL, Firebase',
         },
         {
           label: 'Desktop',
@@ -77,7 +80,7 @@ export const EN_PROFILE: ProfileTexts = {
         {
           label: 'Mobile',
           value: draft(
-            'Android in Kotlin and Kotlin Multiplatform, Avalonia Android',
+            'Android in Kotlin and Kotlin Multiplatform, iOS in Swift, Avalonia Android',
           ),
         },
         {
@@ -94,7 +97,7 @@ export const EN_PROFILE: ProfileTexts = {
         },
       ],
       prose: draft(
-        'Not everything is at the same level. I work in C# and Angular every day, with Avalonia for desktop. I have shipped Kotlin at work. Java, Swift or React, I know less well.',
+        'I work in C# and Angular every day, with Avalonia for desktop. I have also shipped Kotlin at work. Java, Swift and React I have worked with less closely.',
       ),
     },
     method: {

@@ -82,16 +82,34 @@ main {
   z-index: calc(var(--z-window) + var(--stack, 1));
 }
 
-$foot-reserve: calc(var(--target) + 2 * var(--s1));
+$dock-reserve: calc(var(--target) + 2 * var(--s1));
+$contact-room: calc(var(--target) + 2 * var(--s1));
 
 @include formats.phone {
+  :host {
+    --dock-reserve: 0px;
+  }
+
+  :host:has(app-observatory-dock li) {
+    --dock-reserve: #{$dock-reserve};
+  }
+
   .bar {
-    top: var(--s1);
-    right: var(--s1);
-    max-width: calc(100% - 2 * var(--s1));
+    top: 0;
+    right: auto;
+    left: 0;
+    max-width: none;
     flex-wrap: nowrap;
+    justify-content: flex-start;
     gap: var(--s1);
-    padding: 0;
+    padding: var(--s1);
+    border: 0;
+    background: linear-gradient(var(--paper), transparent);
+    backdrop-filter: none;
+  }
+
+  .scene {
+    min-height: 0;
   }
 
   .slot {
@@ -106,29 +124,37 @@ $foot-reserve: calc(var(--target) + 2 * var(--s1));
 }
 
 @include formats.phone-portrait {
+  .bar {
+    right: 0;
+    padding-right: #{$contact-room};
+  }
+
   .slot {
     top: calc(var(--glass-lowered) * 100%);
 
     --glass-inset: calc(
         -100% * var(--glass-lowered) / (1 - var(--glass-lowered))
       )
-      0 0;
+      0 var(--dock-reserve);
     --glass-raised-top: calc(var(--head-bottom, 0px) + var(--s1));
-    --glass-bottom-reserve: #{$foot-reserve};
   }
 
   .slot--preview {
     top: auto;
-    bottom: $foot-reserve;
-    max-height: calc(45% - #{$foot-reserve});
+    bottom: var(--dock-reserve);
+    max-height: calc(45% - var(--dock-reserve));
   }
 }
 
 @include formats.phone-landscape {
   .bar {
-    right: auto;
-    left: var(--s1);
-    max-width: calc(50% - 2 * var(--s1));
+    right: 50%;
+  }
+
+  app-featured-bar {
+    left: calc(50% + var(--s1));
+    right: var(--s2);
+    bottom: var(--s1);
   }
 
   .slot {

@@ -708,3 +708,30 @@ pleine largeur en bas : un dock vide y coûterait une bande d'écran pour rien.
 Des boutons de planète sur la fiche, pour mesurer la planète visée : ils
 seraient focalisables au bureau, sans rien faire ; l'e2e mesure son nom,
 que la scène pose contre elle.
+
+## 2026-09-25 — Au téléphone, le châssis tient dans le haut de l'écran (D27)
+
+**Décision.** Au format `phone`, la barre de pages s'étend à plat sur tout le
+haut, sans boîte ni bordure, sur un léger fondu de `--paper`. Elle ne montre
+que le lien de l'autre langue : le code courant et la barre oblique restent
+dans le DOM, masqués. La page active garde sa face allumée, sans cadre. Le
+« @ » du rail de contact rejoint le bout droit de cette bande, à plat tant
+qu'il est fermé. Ouvert, ses liens couvrent toute la rangée, sur `--paper`.
+Couché, la barre tient dans la moitié gauche, et le « @ » se place en bas à
+droite de cette moitié de ciel. La vitre ne réserve plus de bande en bas,
+sauf quand le dock a une entrée : elle se retire alors de la hauteur du dock
+(`--dock-reserve`, par `:has()`), et le dock ne se pose jamais sur elle. La
+scène perd son plancher de 380 px : à 568 × 320, la page ne défile plus, et
+la règle des vedettes passe dans la moitié droite, libre sur l'accueil.
+
+**Raison.** Le bas de l'écran appartient à la vitre. Une bande de 56 px pour
+un seul bouton coûtait la même hauteur à chaque vue, et le dock s'y posait
+sur le texte. Le haut était déjà occupé par la barre, qui gagne la place du
+code courant (la langue se lit dans le contenu). Le « @ » y garde un mot, un
+glyphe et une place par orientation : le coin du châssis opposé à la vitre.
+
+**Écarté.** Garder le « @ » en bas, flottant sur la vitre : il cachait son
+pied. Le mettre dans le menu de la barre : un seul toucher de plus pour un
+contact, et deux actions dans un même bouton. Couché, le mettre dans la
+barre : à 568 px, la moitié gauche ne tient pas la langue, la navigation et
+le « @ » sur une ligne.

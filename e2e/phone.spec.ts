@@ -12,6 +12,8 @@ type Edges = {
 const PORTRAIT_SIZES = new Set(['phone-xs', 'phone-s', 'phone']);
 const PHONE_SIZES = new Set([...PORTRAIT_SIZES, 'phone-landscape']);
 const EDGE_TOLERANCE_PX = 1;
+const MIN_TARGET_PX = 44;
+const EDGE_WITHIN_PX = 12;
 const MAX_CHROME_SHARE = 0.12;
 const MAX_TAPS_TO_A_CONTACT = 2;
 
@@ -79,6 +81,19 @@ const isOnScreen = (page: Page, edges: Edges): boolean => {
 };
 
 const pageBarOf = (page: Page): Locator => page.locator('.bar');
+const contentEdgesOf = (bar: Locator): Promise<Edges> =>
+  bar.evaluate((element) => {
+    const boxes = [...element.children]
+      .flatMap((child) => [child, ...child.children])
+      .map((child) => child.getBoundingClientRect())
+      .filter((box) => box.width > 0 && box.height > 0);
+    return {
+      left: Math.min(...boxes.map((box) => box.left)),
+      top: Math.min(...boxes.map((box) => box.top)),
+      right: Math.max(...boxes.map((box) => box.right)),
+      bottom: Math.max(...boxes.map((box) => box.bottom)),
+    };
+  });
 const contactToggleOf = (page: Page): Locator =>
   page.locator('app-social-links').getByRole('button', {
     name: /^(Me contacter|Contact me)$/,
@@ -163,7 +178,7 @@ test('lays the home page out without overlaps, all on screen', async ({
   await settle(page);
   await expect(contactToggleOf(page), 'revealed').toBeVisible();
   const parts = {
-    'page bar': await edgesOf(pageBarOf(page)),
+    'page bar': await contentEdgesOf(pageBarOf(page)),
     title: await edgesOf(page.locator('app-home-title')),
     rule: await edgesOf(page.locator('app-featured-bar')),
     contacts: await edgesOf(contactToggleOf(page)),
@@ -187,6 +202,7 @@ test('lays the home page out without overlaps, all on screen', async ({
       .filter(
         ([other, otherEdges]) =>
           !(name === 'contacts' && other === 'open contacts') &&
+          !(name === 'page bar' && other === 'open contacts') &&
           isOverlapping(edges, otherEdges),
       )
       .map(([other]) => `${name} over ${other}`),
@@ -205,12 +221,10 @@ test('keeps the page bar on one line', async ({ page }, testInfo) => {
   await settle(page);
 
   const lines = await pageBarOf(page).evaluate((bar) => {
-    const centres = [...bar.querySelectorAll('a, [aria-current]')].map(
-      (element) => {
-        const box = element.getBoundingClientRect();
-        return Math.round(box.top + box.height / 2);
-      },
-    );
+    const centres = [...bar.querySelectorAll('a, [aria-current]')]
+      .map((element) => element.getBoundingClientRect())
+      .filter((box) => box.width > 0)
+      .map((box) => Math.round(box.top + box.height / 2));
     return {
       rows: new Set(centres).size,
       overflow: bar.scrollWidth - bar.clientWidth,
@@ -220,6 +234,267 @@ test('keeps the page bar on one line', async ({ page }, testInfo) => {
   expect(lines.rows, 'rows of the page bar').toBe(1);
   expect(lines.overflow, 'nothing cut off').toBeLessThanOrEqual(0);
 });
+
+const SMALL_LANDSCAPE = { width: 568, height: 320 } as const;
+
+const fitSmallLandscape = async (
+  page: Page,
+  testInfo: TestInfo,
+): Promise<void> => {
+  if (!isPortrait(testInfo)) {
+    await page.setViewportSize(SMALL_LANDSCAPE);
+  }
+};
+
+const OTHER_LANGUAGE_NAME = 'English';
+
+const barLinesOf = (bar: Locator) =>
+  bar.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const centres = [...element.querySelectorAll('a')]
+      .map((link) => link.getBoundingClientRect())
+      .filter((box) => box.width > 0)
+      .map((box) => Math.round(box.top + box.height / 2));
+    return {
+      border: [
+        style.borderTopWidth,
+        style.borderRightWidth,
+        style.borderBottomWidth,
+        style.borderLeftWidth,
+      ],
+      background: style.backgroundColor,
+      rows: new Set(centres).size,
+      overflow: element.scrollWidth - element.clientWidth,
+    };
+  });
+
+test('draws the page bar flat, on one line, the other language included', async ({
+  page,
+}, testInfo) => {
+  skipOffPhone(testInfo);
+  await fitSmallLandscape(page, testInfo);
+  await openHydrated(page, '/projets');
+  await settle(page);
+  const bar = pageBarOf(page);
+  const other = bar.getByRole('link', {
+    name: OTHER_LANGUAGE_NAME,
+    exact: true,
+  });
+
+  await expect(other, 'the other language').toBeVisible();
+  await expect(other).toHaveText('EN');
+  const lines = await barLinesOf(bar);
+  const otherEdges = await edgesOf(other);
+
+  expect(lines.border, 'no border').toEqual(['0px', '0px', '0px', '0px']);
+  expect(lines.background, 'no box background').toBe('rgba(0, 0, 0, 0)');
+  expect(lines.rows, 'rows of the page bar').toBe(1);
+  expect(lines.overflow, 'nothing cut off').toBeLessThanOrEqual(0);
+  expect(isOnScreen(page, otherEdges), 'the other language on screen').toBe(
+    true,
+  );
+  expect(
+    otherEdges.right - otherEdges.left,
+    'the other language, wide enough to tap',
+  ).toBeGreaterThanOrEqual(MIN_TARGET_PX);
+});
+
+const openContactsOf = (page: Page): Locator =>
+  page.locator('app-social-links ul').locator('..');
+
+const expectContactsClearOfTheGlass = async (
+  page: Page,
+  state: string,
+): Promise<void> => {
+  const contacts = await edgesOf(openContactsOf(page));
+  const glass = await edgesOf(openWindowOf(page));
+  expect(
+    isOverlapping(contacts, glass),
+    `contacts over the glass, ${state}`,
+  ).toBe(false);
+  await expectNothingOverTheGlass(page, state);
+};
+
+test('puts the contacts at the right of the top band, clear of the glass', async ({
+  page,
+}, testInfo) => {
+  skipOffPortrait(testInfo);
+  await openGlassPage(page, GLASS_PAGES[0]);
+  const size = page.viewportSize();
+  const bar = await edgesOf(pageBarOf(page));
+  const toggle = await edgesOf(contactToggleOf(page));
+
+  expect(toggle.top, 'in the top band').toBeGreaterThanOrEqual(bar.top);
+  expect(toggle.bottom, 'in the top band').toBeLessThanOrEqual(bar.bottom);
+  expect(
+    (size?.width ?? 0) - toggle.right,
+    'at the right end',
+  ).toBeLessThanOrEqual(EDGE_WITHIN_PX);
+  expect(
+    isOverlapping(toggle, await contentEdgesOf(pageBarOf(page))),
+    'beside the language and the navigation',
+  ).toBe(false);
+  expect(
+    await contactToggleOf(page).evaluate((button) => {
+      const style = getComputedStyle(button);
+      return [style.borderTopColor, style.backgroundColor];
+    }),
+    'a flat toggle, closed',
+  ).toEqual(['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0)']);
+
+  await contactToggleOf(page).tap();
+  await expect(contactToggleOf(page), 'open').toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+  const contacts = await edgesOf(openContactsOf(page));
+  expect(contacts.right, 'to the left of the toggle').toBeLessThanOrEqual(
+    toggle.left,
+  );
+  expect(contacts.left, 'from the left edge').toBeLessThanOrEqual(
+    EDGE_WITHIN_PX,
+  );
+  expect(contacts.top, 'over the whole row').toBeLessThanOrEqual(
+    (await contentEdgesOf(pageBarOf(page))).top,
+  );
+  expect(contacts.bottom, 'within the top band').toBeLessThanOrEqual(
+    (await edgesOf(openWindowOf(page).locator('.titlebar'))).top,
+  );
+  await expectContactsClearOfTheGlass(page, 'low');
+
+  await raiseGlass(page);
+  await expectContactsClearOfTheGlass(page, 'high');
+});
+
+test('rests a raised glass on the bottom edge when the dock is empty', async ({
+  page,
+}, testInfo) => {
+  skipOffPhone(testInfo);
+  await openGlassPage(page, GLASS_PAGES[0]);
+  await expect(dockOf(page).getByRole('link'), 'empty dock').toHaveCount(0);
+  if (isPortrait(testInfo)) {
+    await raiseGlass(page);
+  }
+  const height = page.viewportSize()?.height ?? 0;
+
+  await expect
+    .poll(
+      async () => Math.abs((await edgesOf(openWindowOf(page))).bottom - height),
+      'gap between the glass and the bottom edge, in px',
+    )
+    .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+});
+
+const shownGlassOf = (page: Page): Promise<Edges> =>
+  openWindowOf(page).evaluate((window) => {
+    const box = window.getBoundingClientRect();
+    const clip = window.closest('.rail')?.getBoundingClientRect() ?? box;
+    return {
+      left: Math.max(box.left, clip.left),
+      top: Math.max(box.top, clip.top),
+      right: Math.min(box.right, clip.right),
+      bottom: Math.min(box.bottom, clip.bottom),
+    };
+  });
+
+const dockSheetBehindAbout = async (page: Page): Promise<void> => {
+  await openHydrated(page, '/projet/bkone');
+  await settle(page);
+  await openWindowOf(page).locator('.titlebar button.pin').tap();
+  await pageBarOf(page).getByRole('link', { name: 'À propos' }).tap();
+  await expect(openWindowOf(page)).toHaveAttribute('aria-label', 'À propos');
+  await expect(
+    dockOf(page).getByRole('link', { name: 'Fiche' }),
+    'the docked sheet',
+  ).toBeVisible();
+};
+
+test('keeps the dock off the body of the open glass', async ({
+  page,
+}, testInfo) => {
+  skipOffPhone(testInfo);
+  await dockSheetBehindAbout(page);
+
+  await expect
+    .poll(
+      async () =>
+        isOverlapping(await edgesOf(dockOf(page)), await shownGlassOf(page)),
+      'dock over the glass, low',
+    )
+    .toBe(false);
+
+  if (isPortrait(testInfo)) {
+    await raiseGlass(page);
+    expect(
+      isOverlapping(await edgesOf(dockOf(page)), await shownGlassOf(page)),
+      'dock over the glass, high',
+    ).toBe(false);
+  }
+});
+
+for (const isSmall of [false, true]) {
+  test(`keeps the chrome off the home title and the featured rule${isSmall ? ', 568×320' : ''}`, async ({
+    page,
+  }, testInfo) => {
+    skipOffPhone(testInfo);
+    if (isSmall) {
+      testInfo.skip(isPortrait(testInfo), 'the phone, lying down');
+      await fitSmallLandscape(page, testInfo);
+    }
+    await dockSheetBehindAbout(page);
+    await pageBarOf(page).getByRole('link', { name: 'Accueil' }).tap();
+    await expect(page).toHaveURL(/\/$/);
+    const rule = page.locator('app-featured-bar');
+    await expect(rule, 'the rule').toBeVisible();
+    const parts = {
+      dock: await edgesOf(dockOf(page)),
+      contacts: await edgesOf(contactToggleOf(page)),
+      title: await edgesOf(page.locator('app-home-title')),
+      'all projects': await edgesOf(
+        rule.getByRole('link', { name: /Tous les projets/ }),
+      ),
+      rule: await edgesOf(rule),
+    };
+
+    const overlaps = (['dock', 'contacts', 'title'] as const).flatMap((name) =>
+      (['all projects', 'rule'] as const)
+        .filter((other) => isOverlapping(parts[name], parts[other]))
+        .map((other) => `${name} over ${other}`),
+    );
+    expect(overlaps, 'overlaps').toEqual([]);
+  });
+}
+
+for (const path of ['/', '/projets']) {
+  test(`fits the page to the screen without a scroll, ${path}`, async ({
+    page,
+  }, testInfo) => {
+    const size = sizeOf(testInfo);
+    testInfo.skip(
+      size !== 'phone-xs' && size !== 'phone-landscape',
+      'the smallest phones',
+    );
+    await fitSmallLandscape(page, testInfo);
+    await openHydrated(page, path);
+    await settle(page);
+    const height = page.viewportSize()?.height ?? 0;
+
+    expect(
+      await page.evaluate(() => document.documentElement.scrollHeight),
+      'height of the document',
+    ).toBe(height);
+
+    if (path !== '/') {
+      if (isPortrait(testInfo)) {
+        await raiseGlass(page);
+      }
+      const glass = await edgesOf(openWindowOf(page));
+      const footer = await edgesOf(openWindowOf(page).locator('.footer'));
+      expect(isOnScreen(page, glass), 'glass on screen').toBe(true);
+      expect(isOnScreen(page, footer), 'footer on screen').toBe(true);
+    }
+  });
+}
 
 test('frames the planet of a sheet opened from home above the glass', async ({
   page,

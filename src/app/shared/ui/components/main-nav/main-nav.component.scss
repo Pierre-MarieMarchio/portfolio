@@ -59,6 +59,10 @@ nav {
     font-size: var(--m1);
     letter-spacing: var(--ls-mono);
     white-space: nowrap;
+
+    &[data-active='true'] {
+      border-color: transparent;
+    }
   }
 }
 

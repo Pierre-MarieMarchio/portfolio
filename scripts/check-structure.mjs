@@ -1,6 +1,6 @@
 // @ts-check
 import { readdirSync, readFileSync } from 'node:fs';
-import { basename, dirname, join, relative } from 'node:path';
+import { basename, dirname, join, posix, relative, sep } from 'node:path';
 
 const APP = 'src/app';
 const TESTING = 'src/testing';
@@ -111,7 +111,9 @@ const FILE =
 const filesUnder = (dir) =>
   readdirSync(dir, { withFileTypes: true, recursive: true })
     .filter((entry) => entry.isFile())
-    .map((entry) => relative('.', join(entry.parentPath, entry.name)));
+    .map((entry) =>
+      relative('.', join(entry.parentPath, entry.name)).split(sep).join('/'),
+    );
 
 /**
  * @param {string} dir
@@ -222,7 +224,7 @@ const misplaced = ({ kind, zone, rest }, suffix, name) => {
  * @returns {string[]}
  */
 const appFileErrors = (path) => {
-  const inApp = relative(APP, path);
+  const inApp = posix.relative(APP, path);
   const file = basename(path);
   if (!inApp.includes('/')) {
     return /^app\.[a-z.]+\.ts$|^app\.component\.(html|scss)$/.test(file)
@@ -256,7 +258,7 @@ const appFileErrors = (path) => {
  * @returns {string[]}
  */
 const testingFileErrors = (path) => {
-  const [role, file = '', ...deeper] = relative(TESTING, path).split('/');
+  const [role, file = '', ...deeper] = posix.relative(TESTING, path).split('/');
   const expected =
     role === 'fixtures' ? 'fixture' : role === 'doubles' ? 'double' : null;
   if (!expected || deeper.length > 0) {

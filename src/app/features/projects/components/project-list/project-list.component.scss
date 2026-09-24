@@ -1,9 +1,17 @@
+@use 'mixins/controls';
+@use 'mixins/formats';
 @use 'mixins/motion';
 @use 'mixins/type';
 
 :host {
   display: contents;
   --window-body-padding: 0 var(--s2) var(--s2) var(--s2);
+}
+
+@mixin lit-row {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  padding-left: var(--s2);
 }
 
 .columns,
@@ -49,11 +57,14 @@
     border-color var(--t),
     padding-left var(--t);
 
-  &:hover,
   &[data-selected='true'] {
-    color: var(--accent);
-    border-left-color: var(--accent);
-    padding-left: var(--s2);
+    @include lit-row;
+  }
+
+  @include formats.can-hover {
+    &:hover {
+      @include lit-row;
+    }
   }
 
   &[data-selected='true'] {
@@ -139,6 +150,8 @@
     display: inline-flex;
     align-items: center;
     min-height: 40px;
+
+    @include controls.touch-target;
   }
 }
 

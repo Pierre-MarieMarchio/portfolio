@@ -1,6 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT, inject, PLATFORM_ID, Service } from '@angular/core';
 
+export const NO_HOVER_QUERY = '(hover: none)';
+export const COARSE_POINTER_QUERY = '(pointer: coarse)';
+
 @Service()
 export class MediaPreferencesService {
   private readonly document = inject(DOCUMENT);
@@ -11,7 +14,11 @@ export class MediaPreferencesService {
   }
 
   public cannotHover(): boolean {
-    return this.matches('(hover: none)', false);
+    return this.matches(NO_HOVER_QUERY, false);
+  }
+
+  public hasCoarsePointer(): boolean {
+    return this.matches(COARSE_POINTER_QUERY, false);
   }
 
   public watch(

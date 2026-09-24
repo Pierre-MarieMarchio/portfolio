@@ -2,12 +2,13 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { MediaPreferencesService } from '@app/core/services';
 import { twoDigits } from '@app/core/helpers';
 import { SceneTargetDirective } from '@shared/space-scene/directives';
+import { HoverFocusDirective } from '@shared/ui/directives';
 import { OBSERVATORY_TEXTS } from '../../ports';
 import { ObservatoryView, Planet } from '../../models';
 
 @Component({
   selector: 'app-planet-buttons',
-  imports: [SceneTargetDirective],
+  imports: [HoverFocusDirective, SceneTargetDirective],
   templateUrl: './planet-buttons.component.html',
   styleUrl: './planet-buttons.component.scss',
 })

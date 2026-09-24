@@ -272,7 +272,7 @@ describe('ProjectIndexComponent', () => {
     expect(opened?.querySelector('a[target="_blank"]')).toBeNull();
   });
 
-  it('emits hoveredChange on mouseenter/focus, and null on mouseleave/blur', async () => {
+  it('emits hoveredChange on a mouse hover or a keyboard focus, and null on leaving them', async () => {
     const { fixture, host } = await mount();
     const emitted: (string | null)[] = [];
     fixture.componentInstance.hoveredChange.subscribe((value: string | null) =>
@@ -280,10 +280,14 @@ describe('ProjectIndexComponent', () => {
     );
 
     const row = rows(host)[0];
-    row?.dispatchEvent(new MouseEvent('mouseenter'));
-    row?.dispatchEvent(new FocusEvent('focus'));
-    row?.dispatchEvent(new MouseEvent('mouseleave'));
-    row?.dispatchEvent(new FocusEvent('blur'));
+    row?.dispatchEvent(
+      new PointerEvent('pointerenter', { pointerType: 'mouse' }),
+    );
+    row?.focus();
+    row?.dispatchEvent(
+      new PointerEvent('pointerleave', { pointerType: 'mouse' }),
+    );
+    row?.blur();
     await fixture.whenStable();
 
     expect(emitted).toEqual(['proj-a', 'proj-a', null, null]);

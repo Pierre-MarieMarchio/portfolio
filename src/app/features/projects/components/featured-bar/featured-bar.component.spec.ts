@@ -200,7 +200,7 @@ describe('OrbitRuleComponent', () => {
     expect(emitted).toEqual(['gamma', 'alpha']);
   });
 
-  it('emits hoveredChange with the slug on mouseenter and focus, null on mouseleave and blur', async () => {
+  it('emits hoveredChange with the slug on a mouse hover and a keyboard focus, null on leaving them', async () => {
     const { fixture, host } = await mount({ bodies });
     const emitted: (string | null)[] = [];
     fixture.componentInstance.hoveredChange.subscribe((slug: string | null) => {
@@ -212,10 +212,14 @@ describe('OrbitRuleComponent', () => {
       throw new Error('expected at least one marker button');
     }
 
-    first.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-    first.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
-    first.dispatchEvent(new FocusEvent('focus'));
-    first.dispatchEvent(new FocusEvent('blur'));
+    first.dispatchEvent(
+      new PointerEvent('pointerenter', { pointerType: 'mouse' }),
+    );
+    first.dispatchEvent(
+      new PointerEvent('pointerleave', { pointerType: 'mouse' }),
+    );
+    first.focus();
+    first.blur();
     await fixture.whenStable();
 
     expect(emitted).toEqual(['alpha', null, 'alpha', null]);

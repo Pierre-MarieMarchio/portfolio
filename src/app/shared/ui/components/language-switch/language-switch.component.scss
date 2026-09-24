@@ -1,3 +1,5 @@
+@use 'mixins/controls';
+@use 'mixins/formats';
 @use 'mixins/type';
 
 :host {
@@ -32,7 +34,17 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 
-  &:hover {
-    color: var(--accent);
+  @include controls.touch-target;
+
+  @include formats.coarse-pointer {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @include formats.can-hover {
+    &:hover {
+      color: var(--accent);
+    }
   }
 }

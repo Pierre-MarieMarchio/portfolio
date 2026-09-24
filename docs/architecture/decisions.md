@@ -600,3 +600,17 @@ comprend sans la maquette, comme le demande D12.
 expanded`) : une page « desktop » affichée sur un téléphone se lit mal.
 Revenir à `station` : l'opérateur a voulu un autre nom. `console` et `orbit`
 nomment déjà autre chose (`ConsoleErrorHandler`, `orbits.renderer`).
+
+## 2026-09-24 — Une capture tolère 200 pixels, pas une position fractionnaire (D24)
+
+**Décision.** Les captures de référence de Playwright tolèrent 200 pixels
+différents (`maxDiffPixels` dans `playwright.config.ts`). Le haut de la fiche
+est arrondi au pixel (`round(clamp(96px, 13vh, 120px), 1px)`).
+
+**Raison.** À 1180 × 820 sous Chromium, deux rendus alternent d'un lancement à
+l'autre : le titre de l'à-propos change d'anticrénelage sur une ligne,
+159 pixels toujours. Rien ne bouge, et le seuil par défaut le refusait. Une
+régression de disposition dépasse largement 200 pixels : le haut de la fiche à
+106,6 px en faisait 1 500, d'où l'arrondi, qui laisse le bureau identique
+(117 px à 900 de haut, le plancher de 96 px à 540). `--window-top` n'est pas
+arrondi : au bureau, 94,5 px deviendrait 95, et ses captures bougeraient.

@@ -35,7 +35,7 @@ const projects: Project<SiteOptions>[] = ENGINES.flatMap((engine) =>
       deviceScaleFactor: 1,
       hasTouch: size.isTouch,
       isMobile: size.isTouch,
-      captures: !size.isTouch,
+      captures: !size.isTouch || size.name.startsWith('tablet'),
     },
   })),
 );
@@ -54,7 +54,12 @@ export default defineConfig<SiteOptions>({
     trace: 'retain-on-failure',
   },
   expect: {
-    toHaveScreenshot: { animations: 'disabled', caret: 'hide', scale: 'css' },
+    toHaveScreenshot: {
+      animations: 'disabled',
+      caret: 'hide',
+      scale: 'css',
+      maxDiffPixels: 200,
+    },
   },
   projects,
   webServer: {

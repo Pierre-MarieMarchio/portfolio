@@ -174,6 +174,10 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   pas.
 - Seuls `setTimeout` et `clearTimeout` sont simulés : l'ordonnanceur sans
   zone passe par des microtâches.
+- La tablette reprend la disposition du bureau telle quelle : à 820×1180 et
+  à 1180×820, chaque fenêtre tient déjà entière dans l'écran, sous la barre
+  de pages (mesuré, et tenu par `e2e/tablet.spec.ts`). Rien dans la page ne
+  dépend donc du format.
 
 ## `pages/resolvers/page-head.resolver.ts`
 

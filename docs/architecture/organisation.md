@@ -279,16 +279,16 @@ Chaque fiche donne : **but** · **contrat** · **rôle** · **d'où elle vient**
 spec « inerte côté serveur ». Rien d'autre dans le dépôt ne touche une
 globale.
 
-| Unité                                                    | But                                                 | Contrat                                                     |
-| -------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------- |
-| `browser-window.service.ts` `BrowserWindowService`       | la fenêtre : sa taille, ses événements              | `size()`, `on(type, handler)`                               |
-| `media-preferences.service.ts` `MediaPreferencesService` | ce que le lecteur a demandé au système              | `reducedMotion()`, `cannotHover()`, `watch(query, handler)` |
-| `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai | `now()`, `nextFrame(fn)`, `after(ms, fn)`                   |
-| `page-visibility.service.ts` `PageVisibilityService`     | l'onglet est-il visible                             | `isHidden()`, `watch(handler)`                              |
-| `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément             | `onResize(el, fn)`, `onVisible(el, threshold, fn)`          |
-| `document-styles.service.ts` `DocumentStylesService`     | lire les jetons CSS, attendre les polices           | `token(name, el?)`, `duration(name)`, `fontsReady(fn)`      |
-| `cursor.service.ts` `CursorService`                      | le curseur de la page                               | `set(cursor)`                                               |
-| `canvas-contexts.service.ts` `CanvasContextsService`     | un contexte 2D et la densité de pixels              | `context2d(canvas)`, `pixelRatio()`                         |
+| Unité                                                    | But                                                 | Contrat                                                                           |
+| -------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `browser-window.service.ts` `BrowserWindowService`       | la fenêtre : sa taille, ses événements              | `size()`, `on(type, handler)`                                                     |
+| `media-preferences.service.ts` `MediaPreferencesService` | ce que le lecteur a demandé au système              | `reducedMotion()`, `cannotHover()`, `hasCoarsePointer()`, `watch(query, handler)` |
+| `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai | `now()`, `nextFrame(fn)`, `after(ms, fn)`                                         |
+| `page-visibility.service.ts` `PageVisibilityService`     | l'onglet est-il visible                             | `isHidden()`, `watch(handler)`                                                    |
+| `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément             | `onResize(el, fn)`, `onVisible(el, threshold, fn)`                                |
+| `document-styles.service.ts` `DocumentStylesService`     | lire les jetons CSS, attendre les polices           | `token(name, el?)`, `duration(name)`, `fontsReady(fn)`                            |
+| `cursor.service.ts` `CursorService`                      | le curseur de la page                               | `set(cursor)`                                                                     |
+| `canvas-contexts.service.ts` `CanvasContextsService`     | un contexte 2D et la densité de pixels              | `context2d(canvas)`, `pixelRatio()`                                               |
 
 Les accès directs relevés passent par elles : `Date.now` de la mise au point
 du focus, `setTimeout` du rideau ; l'`addEventListener('scroll')` de la
@@ -296,6 +296,23 @@ fenêtre devient un `(scroll)` de gabarit.
 
 **Signal de réveil** : un composant qui injecte plus de quatre de ces
 services pour un seul besoin appelle une façade propre à ce besoin.
+
+#### `core/services/device/` : le format d'affichage
+
+- **`DisplayFormatService`** (`display-format.service.ts`). But : dire sous
+  quel format le site s'affiche, `phone`, `tablet` ou `desktop`. Contrat :
+  `format` (signal), `publishOnRoot()`. Il vaut `desktop` au serveur, suit le
+  redimensionnement, la rotation et le pointeur, et `publishOnRoot()` écrit
+  `data-format` sur `<html>` au client après le premier rendu ; le bureau
+  l'appelle. Il s'appuie sur `BrowserWindowService` et
+  `MediaPreferencesService`, et décide par `displayFormatOf`
+  (`core/rules/display-format.rules.ts`, types dans
+  `core/models/display-format.model.ts`). Son dossier à lui :
+  `core/services/browser/` est à huit sources, et le format est une règle
+  posée sur le navigateur, pas un accès de plus.
+- La disposition ne lit pas ce signal : elle suit les mixins de
+  `src/assets/styles/mixins/_formats.scss`, qui disent la même règle en
+  media queries. Aucun bloc structurel ne dépend du format au premier rendu.
 
 #### `core/services/presence/`
 
@@ -380,6 +397,11 @@ contenait remonte dans une feature ou devient générique.
 - **`elementSize(el)`** (`element-size.signal.ts`) : un signal de la taille
   d'un élément. Remplace la mesure écrite à la main dans la barre des
   vedettes.
+- **`HoverFocusDirective`** (`hover-focus.directive.ts`). But : dire quand
+  un élément est survolé à la souris ou désigné au clavier, jamais sur un
+  toucher. Contrat : `appHoverFocus`, `entered`, `exited`. La barre des
+  vedettes, la liste des projets et les boutons des planètes l'emploient à la
+  place de `mouseenter`/`mouseleave`/`focus`/`blur`.
 - **`BottomEdgeVariableDirective`** (ex-`HeadBottomDirective`). But : écrire
   en variable CSS jusqu'où descend l'élément qui la porte. Le nom de la
   variable est son entrée.
@@ -626,9 +648,10 @@ Le dossier et ses fichiers source (hors specs et barrels), tels que
 src/app/
   (racine)                                     app.component · app.config · app.config.server · app.routes · app.routes.server
   core/helpers/                                angle.helper · easing.helper · event.helper · format.helper · number.helper · random.helper
-  core/models/                                 lang.model
-  core/rules/                                  draft.rules · localize.rules
+  core/models/                                 display-format.model · lang.model
+  core/rules/                                  display-format.rules · draft.rules · localize.rules
   core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
+  core/services/device/                        display-format.service
   core/services/errors/                        console-error-handler.service
   core/services/head/                          document-head.service
   core/services/i18n/                          locale.service
@@ -692,7 +715,7 @@ src/app/
   shared/ui/components/segmented/              segmented.component
   shared/ui/components/social-links/           social-links.component
   shared/ui/data/                              social-icons.data
-  shared/ui/directives/                        bottom-edge-variable.directive · layout-anchor.directive · view-heading.directive
+  shared/ui/directives/                        bottom-edge-variable.directive · hover-focus.directive · layout-anchor.directive · view-heading.directive
   shared/ui/models/                            element-size.model · entrance.model · language-item.model · navigation-item.model · segmented.model · social-link.model
   shared/ui/ports/                             shared-texts.port
   shared/ui/services/                          layout-anchors.service · view-focus.service

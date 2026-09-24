@@ -4,8 +4,13 @@ export { ClockService } from './browser/clock.service';
 export { CursorService } from './browser/cursor.service';
 export { DocumentStylesService } from './browser/document-styles.service';
 export { ElementObserverService } from './browser/element-observer.service';
-export { MediaPreferencesService } from './browser/media-preferences.service';
+export {
+  COARSE_POINTER_QUERY,
+  MediaPreferencesService,
+  NO_HOVER_QUERY,
+} from './browser/media-preferences.service';
 export { PageVisibilityService } from './browser/page-visibility.service';
+export { DisplayFormatService } from './device/display-format.service';
 export { ConsoleErrorHandlerService } from './errors/console-error-handler.service';
 export { SITE_NAME } from './head/document-head.service';
 export { LocaleService } from './i18n/locale.service';

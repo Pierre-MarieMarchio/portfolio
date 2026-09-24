@@ -1,5 +1,6 @@
 @use 'mixins/controls';
 @use 'mixins/facts';
+@use 'mixins/formats';
 @use 'mixins/type';
 
 :host {
@@ -66,8 +67,14 @@ h1 {
 
   a {
     @include type.mono;
+    @include controls.touch-target;
 
     word-break: break-all;
+
+    @include formats.coarse-pointer {
+      display: inline-flex;
+      align-items: center;
+    }
   }
 }
 

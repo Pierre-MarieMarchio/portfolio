@@ -1,5 +1,6 @@
 @use 'mixins/controls';
 @use 'mixins/facts';
+@use 'mixins/formats';
 @use 'mixins/type';
 
 :host {
@@ -65,6 +66,12 @@ dt,
   margin-top: var(--s2);
   font-size: var(--p2);
   color: var(--ink-2);
+
+  a {
+    @include formats.coarse-pointer {
+      padding-block: calc((var(--target) - 1em) / 2);
+    }
+  }
 
   &.first {
     margin-top: var(--s4);

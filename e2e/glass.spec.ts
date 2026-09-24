@@ -367,7 +367,7 @@ test('settles the glass without a transition when motion is reduced', async ({
 test.describe('without reduced motion', () => {
   test.use({ reducedMotion: 'no-preference' });
 
-  test('settles the glass through a transition', async ({ page }, testInfo) => {
+  test('settles the glass by a smooth scroll', async ({ page }, testInfo) => {
     skipOffPortrait(testInfo);
     await openGlass(page, '/projets');
     const tops = await railTopsAfterMidwayScroll(
@@ -385,6 +385,22 @@ test.describe('without reduced motion', () => {
       'scroll behaviour',
     ).toBe('smooth');
     expect(tops.at(-1), 'settled up').toBeCloseTo(end, 0);
+  });
+
+  test('shows frames on the way up', async ({ page }, testInfo) => {
+    skipOffPortrait(testInfo);
+    testInfo.skip(
+      testInfo.project.name.endsWith('-webkit'),
+      'headless WebKit may settle a smooth scroll in one frame',
+    );
+    await openGlass(page, '/projets');
+    const tops = await railTopsAfterMidwayScroll(
+      page,
+      SAMPLED_FRAMES,
+      MIDWAY_SCROLL_PX,
+    );
+    const end = await endTopOf(page);
+
     expect(
       tops.filter((top) => isBetween(top, MIDWAY_SCROLL_PX, end)).length,
       'frames on the way up',

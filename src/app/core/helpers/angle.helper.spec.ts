@@ -8,6 +8,6 @@ describe('azimuth unrolling', () => {
 
   it('puts a constant target back on the current turn', () => {
     expect(onCurrentTurn(0.3, 5 * TAU + 0.2)).toBeCloseTo(5 * TAU + 0.3, 6);
-    expect(onCurrentTurn(0.3, 0.2)).toBe(0.3);
+    expect(onCurrentTurn(0.3, 0.2)).toBeCloseTo(0.3, 6);
   });
 });

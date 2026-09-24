@@ -19,15 +19,16 @@ npm ci
 npm start          # http://localhost:4200
 ```
 
-| Script                    | Rôle                                                                                                      |
-| ------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `npm run build`           | build de production + prérendu de toutes les routes                                                       |
-| `npm run serve:static`    | sert `dist/portfolio/browser` comme un hébergeur static                                                   |
-| `npm test`                | Vitest + jsdom, une passe                                                                                 |
-| `npm run lint`            | ESLint, dont la loi de dépendance, puis Stylelint, zéro avertissement                                     |
-| `npm run check:structure` | la nomenclature d'`organisation.md` §3 ; échoue sur un écart                                              |
-| `npm run check:comments`  | aucun commentaire dans le code (D10) ; échoue en listant ceux qui restent                                 |
-| `npm run check`           | format:check → typecheck:tools → lint → test → build → check:prerender → check:structure → check:comments |
+| Script                    | Rôle                                                                                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `npm run build`           | build de production + prérendu de toutes les routes                                                                   |
+| `npm run serve:static`    | sert `dist/portfolio/browser` comme un hébergeur static                                                               |
+| `npm test`                | Vitest + jsdom, une passe                                                                                             |
+| `npm run lint`            | ESLint, dont la loi de dépendance, puis Stylelint, zéro avertissement                                                 |
+| `npm run check:structure` | la nomenclature d'`organisation.md` §3 ; échoue sur un écart                                                          |
+| `npm run check:comments`  | aucun commentaire dans le code (D10) ; échoue en listant ceux qui restent                                             |
+| `npm run check:e2e`       | Playwright sur le site prérendu, Chromium et WebKit, à chaque taille cible (`dist/` doit être construit)              |
+| `npm run check`           | format:check → typecheck:tools → lint → test → build → check:prerender → check:structure → check:comments → check:e2e |
 
 Les messages de commit suivent les Conventional Commits (Husky + commitlint).
 

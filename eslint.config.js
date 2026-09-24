@@ -260,7 +260,7 @@ export default defineConfig(
   },
 
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.ts', 'e2e/**/*.ts', 'playwright.config.ts'],
     extends: [
       eslint.configs.recommended,
       ...tseslint.configs.recommendedTypeChecked,
@@ -326,7 +326,7 @@ export default defineConfig(
   },
 
   {
-    files: ['src/**/*.spec.ts', 'src/testing/**/*.ts'],
+    files: ['src/**/*.spec.ts', 'src/testing/**/*.ts', 'e2e/**/*.spec.ts'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       'max-lines': 'off',

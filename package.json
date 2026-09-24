@@ -18,12 +18,13 @@
     "lint:fix": "eslint . --fix && stylelint \"src/**/*.scss\" --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run typecheck:tools && npm run lint && npm run test && npm run build && npm run check:prerender && npm run check:structure && npm run check:comments",
-    "check:comments": "node scripts/check-comments.mjs",
+    "check": "npm run format:check && npm run typecheck:tools && npm run lint && npm run test && npm run build && npm run check:prerender && npm run check:structure && npm run check:comments && npm run check:e2e",
+    "check:comments": "node scripts/check-comments.mjs src e2e playwright.config.ts",
+    "check:e2e": "playwright test",
     "check:prerender": "node scripts/check-prerender.mjs",
     "check:structure": "node scripts/check-structure.mjs --strict",
     "prepare": "husky",
-    "typecheck:tools": "tsc -p tsconfig.tools.json"
+    "typecheck:tools": "tsc -p tsconfig.tools.json && tsc -p tsconfig.e2e.json"
   },
   "dependencies": {
     "@angular/common": "^22.1.5",
@@ -46,6 +47,7 @@
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "angular-eslint": "^22.5.0",
     "eslint": "^10.10.0",

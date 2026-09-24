@@ -65,9 +65,9 @@ describe('sceneDirectionOf', () => {
 
   it('rings the selection on the index only', () => {
     for (const view of ['home', 'sheet', 'about', 'not-found'] as const) {
-      expect(sceneDirectionOf(scene(view, { selected: 'lib' })).ringed).toBe(
-        null,
-      );
+      expect(
+        sceneDirectionOf(scene(view, { selected: 'lib' })).ringed,
+      ).toBeNull();
     }
   });
 

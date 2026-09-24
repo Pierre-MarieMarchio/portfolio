@@ -1,11 +1,17 @@
+import { halfLifeStep } from '@app/core/helpers';
 import { CURSOR_REACH } from '../../models/scene-constants.model';
 import { Grain } from '../../rules/scene-bodies.rules';
 import { TurntableMotion } from './turntable.motion';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 
+const DENSITY_HALF_LIFE = 0.55;
+
 export class GrainsMotion {
   private arrival = 0;
   private hasArrivalMoved = false;
+  private lit = 1;
+  private litTarget = 1;
+  private hasLitMoved = false;
   private isPushed = false;
   private pointer: { readonly x: number; readonly y: number } | null = null;
   private reach = 0;
@@ -17,12 +23,25 @@ export class GrainsMotion {
     return this.arrival;
   }
 
+  public get density(): number {
+    return this.lit;
+  }
+
   public get hasMoved(): boolean {
-    return this.hasArrivalMoved || this.isPushed;
+    return this.hasArrivalMoved || this.isPushed || this.hasLitMoved;
   }
 
   public get isSettled(): boolean {
-    return this.arrival >= 1 && !this.isPushed;
+    return this.arrival >= 1 && !this.isPushed && this.lit === this.litTarget;
+  }
+
+  public startDensity(share: number): void {
+    this.lit = share;
+    this.litTarget = share;
+  }
+
+  public setDensity(share: number): void {
+    this.litTarget = share;
   }
 
   public start(isReduced: boolean): void {
@@ -35,6 +54,7 @@ export class GrainsMotion {
       this.arrival = Math.min(1, this.arrival + dt / (isReduced ? 0.001 : 6.2));
     }
     this.hasArrivalMoved = before !== this.arrival;
+    this.easeDensity(dt, isReduced);
   }
 
   public begin(frame: SceneFrame): void {
@@ -42,6 +62,16 @@ export class GrainsMotion {
     this.reach = CURSOR_REACH * frame.dpr;
     this.dpr = frame.dpr;
     this.isPushed = false;
+  }
+
+  private easeDensity(dt: number, isReduced: boolean): void {
+    const before = this.lit;
+    const k = isReduced ? 1 : halfLifeStep(dt, DENSITY_HALF_LIFE);
+    this.lit += (this.litTarget - this.lit) * k;
+    if (Math.abs(this.litTarget - this.lit) < 0.002) {
+      this.lit = this.litTarget;
+    }
+    this.hasLitMoved = before !== this.lit;
   }
 
   public push(grain: Grain, sx: number, sy: number): void {

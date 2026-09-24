@@ -8,6 +8,35 @@ et de `src/testing/`, rangées par unité (D10).
 - Le système de la maquette est gardé tel quel : ses sept orbites
   (`ORBIT_REFERENCE_COUNT`) sont celles de l'export.
 
+## `src/app/shared/space-scene/rules/scene-layout.rules.ts`
+
+- Un panneau est un bandeau du bas s'il couvre au moins 90 % de la largeur
+  et que son haut est sous le milieu de l'écran (`BOTTOM_BAND`). La vitre du
+  téléphone arrive à 60 % : elle l'est. Montée pour la lecture, elle ne l'est
+  plus ; la page doit alors désigner sa place d'arrivée, pas la vitre montée
+  (D26).
+- Les hauts de bandeau sont optionnels dans `SceneLayout` : un rectangle qui
+  ne les donne pas garde le cadrage à droite, au pixel près.
+
+## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`
+
+- Au-dessus d'un bandeau, le corps visé est au centre de la largeur et au
+  milieu de la bande de ciel ; l'objet se range à côté, son centre dans
+  l'écran : l'échelle cède avant (2,9 rayons au plus dans la demi-largeur),
+  comme elle cède devant un panneau à droite.
+- Le décalage du corps se calcule avec l'élévation et le roulis du cadrage
+  visé (`BodyOffset`) : ceux du cran pour l'approche, ceux du repos pour le
+  gros plan. Le gros plan dessine l'objet 6 % plus petit (l'ouverture) : le
+  corps y tombe un peu plus près de l'objet que visé, dans la marge.
+
+## `src/app/shared/space-scene/engine/motions/grains.motion.ts`
+
+- La réserve est tirée pour la densité pleine, et la part allumée suit l'aire
+  de la fenêtre (`densityShare`). Recalculée après un redimensionnement, elle
+  rejoint sa valeur en 0,55 s de demi-vie : les points s'allument ou
+  s'éteignent un à un, par le tirage déterministe, sans être retirés. Au
+  bureau, la part vaut 1 et le dessin est celui d'avant.
+
 ## `src/app/shared/space-scene/engine/motions/turntable.motion.ts`
 
 - Le plateau qui n'est pas tenu est entraîné, pas engrené : il suit le

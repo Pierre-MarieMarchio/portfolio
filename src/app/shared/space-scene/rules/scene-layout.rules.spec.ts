@@ -92,4 +92,52 @@ describe('sceneLayout', () => {
 
     expect(layout.topBarHeight).toBe(48);
   });
+
+  describe('a panel along the bottom', () => {
+    const PHONE = { width: 390, height: 844 };
+
+    it('reads a full-width panel whose top is below the middle as a band, and keeps its top', () => {
+      const layout = sceneLayout(CANVAS, PHONE, [
+        anchor('approach-edge', {
+          left: 0,
+          top: 506.4,
+          width: 390,
+          height: 338,
+        }),
+        anchor('close-up-edge', {
+          left: 12,
+          top: 430,
+          width: 366,
+          height: 400,
+        }),
+      ]);
+
+      expect(layout).toMatchObject({
+        approachBandTop: 506.4,
+        closeUpBandTop: 430,
+      });
+    });
+
+    it('does not read a panel on the right as a band', () => {
+      const layout = sceneLayout(CANVAS, VIEWPORT, [
+        anchor('approach-edge', {
+          left: 640,
+          top: 500,
+          width: 640,
+          height: 300,
+        }),
+      ]);
+
+      expect(layout.approachBandTop).toBeNull();
+      expect(layout.approachEdge).toBe(640);
+    });
+
+    it('does not read a full-width panel risen above the middle as a band', () => {
+      const layout = sceneLayout(CANVAS, PHONE, [
+        anchor('approach-edge', { left: 0, top: 12, width: 390, height: 832 }),
+      ]);
+
+      expect(layout.approachBandTop).toBeNull();
+    });
+  });
 });

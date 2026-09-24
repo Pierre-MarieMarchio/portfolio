@@ -153,7 +153,6 @@ export class SpaceSceneComponent {
     ctx: CanvasRenderingContext2D,
     skyCtx: CanvasRenderingContext2D | null,
   ): SpaceSceneEngine {
-    const viewport = this.canvas.windowSize() ?? REFERENCE_VIEWPORT;
     return new SpaceSceneEngine(
       {
         frame: (callback) => this.canvas.nextFrame(callback),
@@ -168,8 +167,13 @@ export class SpaceSceneComponent {
         ink: this.canvas.token('--ink') || '#2b2f3a',
         accent: this.canvas.token('--accent') || '#3b62c4',
       },
-      viewport.width * viewport.height,
+      this.viewportArea(),
     );
+  }
+
+  private viewportArea(): number {
+    const viewport = this.canvas.windowSize() ?? REFERENCE_VIEWPORT;
+    return viewport.width * viewport.height;
   }
 
   private watch(engine: SpaceSceneEngine, matter: HTMLCanvasElement): void {
@@ -231,6 +235,7 @@ export class SpaceSceneComponent {
       }
     }
     engine.resize(width, height, pixelRatio);
+    engine.setViewportArea(this.viewportArea());
   }
 
   private measure(): void {

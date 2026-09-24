@@ -5,6 +5,7 @@ import {
   Dims,
   Frame,
   OVERVIEW_FRAME,
+  SkyBand,
 } from './camera-frames.rules';
 import type { SceneLayout } from '../../models/scene-layout.model';
 import { FALLBACK_VIEWPORT } from '../../models/scene-constants.model';
@@ -64,8 +65,10 @@ const approachFraming = (state: SceneState, scene: FramingScene): Frame => {
     dims: scene.dims,
     orbit: scene.orbits[framed] ?? null,
     panelLeft: scene.layout?.approachEdge ?? null,
+    band: skyBand(scene.layout, scene.layout?.approachBandTop),
     phase: scene.phase,
     azim: scene.azim + scene.orbitTurn(framed),
+    offset: (az, tilt) => offsetSeen(scene, framed, az, tilt),
   });
 };
 
@@ -76,23 +79,35 @@ const closeUpFraming = (state: SceneState, scene: FramingScene): Frame => {
     dims: scene.dims,
     orbit: scene.orbits[framed] ?? null,
     panelLeft: scene.layout?.closeUpEdge ?? null,
+    band: skyBand(scene.layout, scene.layout?.closeUpBandTop),
     phase: scene.phase,
     azim: scene.azim + scene.orbitTurn(framed),
-    offset: (az) => offsetAtRest(scene, framed, az),
+    offset: (az, tilt) => offsetSeen(scene, framed, az, tilt),
   });
 };
 
-const offsetAtRest = (
+const skyBand = (
+  layout: SceneLayout | null,
+  bandTop: number | null | undefined,
+): SkyBand | null =>
+  layout && typeof bandTop === 'number'
+    ? {
+        top: (layout.topBarHeight ?? 0) - layout.canvas.top,
+        bottom: bandTop - layout.canvas.top,
+      }
+    : null;
+
+const offsetSeen = (
   scene: FramingScene,
   i: number,
   az: number,
+  tilt: Pick<Frame, 'ev' | 'i'>,
 ): { nx: number; ny: number } => {
   const orbit = scene.orbits[i];
   if (!orbit) {
     return { nx: 0, ny: 0 };
   }
-  const rest = scene.rest;
-  const elev = rest.ev;
+  const elev = tilt.ev;
   const p = positionOrbit(
     orbit,
     { phase: scene.phase, elev, azim: az },
@@ -102,8 +117,8 @@ const offsetAtRest = (
     p,
     {
       flatten: flattening(elev),
-      cr: Math.cos(rest.i),
-      sr: Math.sin(rest.i),
+      cr: Math.cos(tilt.i),
+      sr: Math.sin(tilt.i),
     },
     { nx: 0, ny: 0 },
   );

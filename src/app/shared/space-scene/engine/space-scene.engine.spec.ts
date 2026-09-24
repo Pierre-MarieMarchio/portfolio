@@ -2,9 +2,18 @@ import { SpaceSceneEngine } from './space-scene.engine';
 import { SceneDirection, SceneInputs } from '../models/scene.model';
 import { SceneLayout } from '../models/scene-layout.model';
 import { TurntableMotion } from './motions/turntable.motion';
-import { fitOrbits, placeOrbits } from '../rules/scene-bodies.rules';
-import { opening } from '../rules/camera/projection.rules';
 import {
+  fitOrbits,
+  placeOrbits,
+  positionOrbit,
+} from '../rules/scene-bodies.rules';
+import {
+  flattening,
+  opening,
+  rollFlatten,
+} from '../rules/camera/projection.rules';
+import {
+  APPROACHES,
   Frame,
   measureRest,
   REST_FRAME,
@@ -14,9 +23,12 @@ import { TRAVELING_END } from '../rules/camera/traveling.rules';
 import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
 import {
+  bodyId,
+  mountEngineScene,
   SCENE_INPUTS,
   sceneBodies,
 } from '@testing/fixtures/engine-scene.fixture';
+import { sceneLayout } from '../rules/scene-layout.rules';
 
 const callable = (): undefined => undefined;
 
@@ -287,6 +299,36 @@ describe('fitOrbits', () => {
     );
   });
 
+  it.each([1, 3])(
+    'keeps the widest orbit within the width of a 360 × 780 portrait (dpr %i)',
+    (dpr) => {
+      const w = 360 * dpr;
+      const h = 780 * dpr;
+      const { frame, freeHalf } = restOf(360, 780);
+      const orbits = placeOrbits(7);
+      fitOrbits(orbits, { w, h, dpr }, frame, freeHalf);
+      const view = {
+        flatten: flattening(frame.ev),
+        cr: Math.cos(frame.i),
+        sr: Math.sin(frame.i),
+      };
+      const radius = referenceRadius(w, h, frame.s);
+      const xs = orbits.flatMap((orbit) =>
+        Array.from({ length: 84 }, (_, k) => {
+          const point = positionOrbit(
+            orbit,
+            { phase: 0, elev: frame.ev, azim: (k / 84) * 2 * Math.PI },
+            { x: 0, y: 0, z: 0 },
+          );
+          const { nx } = rollFlatten(point, view, { nx: 0, ny: 0 });
+          return w * frame.x + nx * radius;
+        }),
+      );
+      expect(Math.min(...xs)).toBeGreaterThanOrEqual(0);
+      expect(Math.max(...xs)).toBeLessThanOrEqual(w);
+    },
+  );
+
   it('keeps the inner orbit inside the outer one, whatever the room', () => {
     for (const [w, h] of [
       [1280, 800],
@@ -415,5 +457,197 @@ describe('SpaceSceneEngine, fixed', () => {
 
     expect(texts).toContain('D');
     expect(texts).not.toContain('undefined');
+  });
+});
+
+const TOP_BAR = 56;
+const PLANET_REACH = 6.6 * 1.18 * 4.8;
+
+const rectOf = (left: number, top: number, width: number, height: number) => ({
+  left,
+  top,
+  width,
+  height,
+  right: left + width,
+  bottom: top + height,
+});
+
+const bottomPanelLayout = (width: number, height: number): SceneLayout => {
+  const top = Math.round(height * 0.55);
+  const panel = rectOf(0, top, width, height - top);
+  return sceneLayout({ left: 0, top: 0 }, { width, height }, [
+    { rect: rectOf(0, 0, width, TOP_BAR), opacity: '1', role: 'top-bar' },
+    { rect: panel, opacity: '1', role: 'approach-edge' },
+    { rect: panel, opacity: '1', role: 'close-up-edge' },
+  ]);
+};
+
+const buttonAt = (
+  styles: readonly string[],
+  rank: number,
+): { x: number; y: number } => {
+  const match = /translate\((-?[\d.]+)px, ?(-?[\d.]+)px\)/.exec(
+    styles[rank] ?? '',
+  );
+  if (!match) {
+    throw new Error(`expected body ${String(rank)} to be placed`);
+  }
+  return { x: Number(match[1]), y: Number(match[2]) };
+};
+
+const PORTRAITS = [
+  { width: 390, height: 844, dpr: 3 },
+  { width: 390, height: 844, dpr: 1 },
+  { width: 360, height: 780, dpr: 3 },
+  { width: 360, height: 780, dpr: 1 },
+] as const;
+
+const FRAMED_RANKS = [0, 3] as const;
+
+const expectInSkyBand = (
+  at: { x: number; y: number },
+  screen: { width: number; height: number },
+): void => {
+  const panelTop = Math.round(screen.height * 0.55);
+  expect(at.y - PLANET_REACH).toBeGreaterThanOrEqual(TOP_BAR);
+  expect(at.y + PLANET_REACH).toBeLessThanOrEqual(panelTop);
+  expect(Math.abs(at.x - screen.width / 2)).toBeLessThan(0.1 * screen.width);
+};
+
+describe('SpaceSceneEngine, above a panel along the bottom', () => {
+  it.each(PORTRAITS)(
+    'places the approached body between the top bar and the panel, at every step ($width × $height, dpr $dpr)',
+    (screen) => {
+      const scene = mountEngineScene({
+        layout: bottomPanelLayout(screen.width, screen.height),
+        dpr: screen.dpr,
+      });
+      scene.run(PAST_CROSSING_MS);
+      for (const rank of FRAMED_RANKS) {
+        for (const step of APPROACHES.keys()) {
+          scene.set({
+            direction: {
+              framing: { kind: 'approach', body: bodyId(rank), step },
+              turnable: false,
+            },
+          });
+          scene.run(4000);
+          expectInSkyBand(buttonAt(scene.styles(), rank), screen);
+          expect(scene.attributes()[rank]).not.toMatch(/^true/);
+        }
+      }
+    },
+    60_000,
+  );
+
+  it.each(PORTRAITS)(
+    'places the close-up body between the top bar and the panel ($width × $height, dpr $dpr)',
+    (screen) => {
+      const scene = mountEngineScene({
+        layout: bottomPanelLayout(screen.width, screen.height),
+        dpr: screen.dpr,
+      });
+      scene.run(PAST_CROSSING_MS);
+      for (const rank of FRAMED_RANKS) {
+        scene.set({
+          direction: { framing: { kind: 'close-up', body: bodyId(rank) } },
+        });
+        scene.run(4000);
+        expectInSkyBand(buttonAt(scene.styles(), rank), screen);
+        expect(scene.attributes()[rank]).not.toMatch(/^true/);
+      }
+    },
+    60_000,
+  );
+});
+
+const grainCounter = (): {
+  readonly context: CanvasRenderingContext2D;
+  readonly take: () => number;
+} => {
+  let count = 0;
+  const context = new Proxy(
+    {},
+    {
+      get: (_object, property: string) => {
+        if (property === 'fillRect') {
+          return () => {
+            count++;
+          };
+        }
+        return property.startsWith('create')
+          ? () => ({ addColorStop: ignored })
+          : ignored;
+      },
+      set: () => true,
+    },
+  ) as CanvasRenderingContext2D;
+  const take = (): number => {
+    const taken = count;
+    count = 0;
+    return taken;
+  };
+  return { context, take };
+};
+
+const mountSized = (width: number, height: number) => {
+  const { host, step } = drivenHost();
+  const counter = grainCounter();
+  const engine = new SpaceSceneEngine(
+    host,
+    { matter: counter.context, sky: null },
+    {
+      rnd: seededRandom(5),
+      density: 3800,
+      figures: 'constellations',
+      ink: '#fff',
+      accent: '#0af',
+    },
+    width * height,
+  );
+  engine.setInputs(INPUTS);
+  engine.setLayout({ ...layout(44), viewport: { width, height } });
+  engine.resize(width, height, 1);
+  step(PAST_CROSSING_MS);
+  const grainsDrawn = (): number => {
+    counter.take();
+    step(FRAME_MS);
+    return counter.take();
+  };
+  return { engine, step, grainsDrawn };
+};
+
+describe('SpaceSceneEngine, grain density', () => {
+  it('lights more grains once a phone window grows to a desktop one, without a jump', () => {
+    const { engine, step, grainsDrawn } = mountSized(390, 844);
+    const before = grainsDrawn();
+
+    engine.setViewportArea(1280 * 800);
+    const next = grainsDrawn();
+    step(4000);
+    const after = grainsDrawn();
+
+    expect(next).toBeLessThan(before * 1.15);
+    expect(after).toBeGreaterThan(before * 2);
+  });
+
+  it('lights fewer grains once a desktop window shrinks to a phone one', () => {
+    const { engine, step, grainsDrawn } = mountSized(1280, 800);
+    const before = grainsDrawn();
+
+    engine.setViewportArea(390 * 844);
+    step(4000);
+
+    expect(grainsDrawn()).toBeLessThan(before * 0.5);
+  });
+
+  it('keeps the density across a rotation, the area being the same', () => {
+    const { engine, step, grainsDrawn } = mountSized(390, 844);
+    const before = grainsDrawn();
+
+    engine.setViewportArea(844 * 390);
+    step(4000);
+
+    expect(grainsDrawn()).toBeCloseTo(before, -1);
   });
 });

@@ -642,3 +642,34 @@ leur disposition de téléphone. Un geste de glisser écrit en
 JavaScript : il refait l'élan et la latence du défilement natif. L'accroche
 CSS (`scroll-snap`) : elle choisit la butée la plus proche, pas celle du
 côté où l'on tire.
+
+## 2026-09-24 — La caméra cadre au-dessus d'un panneau du bas (D26)
+
+**Décision.** Le moteur reconnaît un panneau de fiche ou d'aperçu en bandeau
+du bas : au moins 90 % de la largeur de l'écran, et son haut sous le milieu
+(`isBottomBand`, `scene-layout.rules.ts`). `SceneLayout` en porte le haut
+(`approachBandTop`, `closeUpBandTop`, absents ou `null` sinon). Avec un
+bandeau, l'approche (chaque cran de `APPROACHES`) et le gros plan placent le
+corps visé au milieu de la bande de ciel, entre la barre du haut et le haut
+du panneau, et au centre de la largeur ; l'objet se tient à sa gauche (à sa
+droite au gros plan), son centre dans l'écran. Sans bandeau, rien ne change.
+La réserve de grains est tirée une fois pour la densité pleine, et la part
+allumée suit l'aire de la fenêtre (`densityShare`), recalculée à chaque
+redimensionnement du canvas et amenée à sa nouvelle valeur en 0,55 s de
+demi-vie. Le golden du téléphone change : `PHONE_LAYOUT` porte son bandeau,
+la scène `close-up` s'y ajoute, et ses cinq empreintes sont reprises ; aucune
+autre ne bouge.
+
+**Raison.** Au téléphone, la vitre (D25) arrive en bas, pas à droite : le
+cadrage à droite rangeait la planète à 16-21 % de la largeur, sous la vitre
+ou collée au bord. Une réserve tirée à la taille de l'ouverture ne pouvait
+pas s'épaissir quand la fenêtre grandit ; la retirer redistribuerait tous les
+points d'un coup, alors qu'allumer une part plus grande d'une même réserve
+les fait apparaître un à un, par le tirage déterministe.
+
+**Écarté.** Suivre la vitre qui monte : la scène est floutée derrière elle,
+et un cadrage qui la suit ferait bouger l'objet à chaque défilement. Un
+seuil de variation sous lequel la densité ne se recalcule pas : l'amorti
+suffit, et une rotation garde l'aire. Rendre les nouveaux champs
+obligatoires : le banc du golden (`src/testing/fixtures/`) les ignore et
+reste hors de cette tâche.

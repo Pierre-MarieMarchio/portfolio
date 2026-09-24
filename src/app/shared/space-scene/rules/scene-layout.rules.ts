@@ -13,6 +13,22 @@ export interface PanelAnchor {
   readonly role: ScenePanelRole;
 }
 
+type PanelBox = PanelAnchor['rect'];
+
+const BOTTOM_BAND = { widthShare: 0.9, topShare: 0.5 } as const;
+
+export const isBottomBand = (
+  rect: PanelBox,
+  viewport: SceneLayout['viewport'],
+): boolean =>
+  rect.width >= viewport.width * BOTTOM_BAND.widthShare &&
+  rect.top >= viewport.height * BOTTOM_BAND.topShare;
+
+const bandTop = (
+  rect: PanelBox | null,
+  viewport: SceneLayout['viewport'],
+): number | null => (rect && isBottomBand(rect, viewport) ? rect.top : null);
+
 export function sceneLayout(
   canvas: SceneLayout['canvas'],
   viewport: SceneLayout['viewport'],
@@ -30,6 +46,8 @@ export function sceneLayout(
     bottomBarHeight: bottomBar ? Math.round(bottomBar.height) : null,
     approachEdge: approach ? Math.round(approach.left) : null,
     closeUpEdge: closeUp ? closeUp.left : null,
+    approachBandTop: bandTop(approach, viewport),
+    closeUpBandTop: bandTop(closeUp, viewport),
   };
 }
 
@@ -47,7 +65,7 @@ function panelOf({ rect, opacity }: PanelAnchor): PanelRect {
 function lastShown(
   anchors: readonly PanelAnchor[],
   role: Exclude<ScenePanelRole, ''>,
-): PanelAnchor['rect'] | null {
+): PanelBox | null {
   const shown = anchors.filter(
     (anchor) =>
       anchor.role === role && anchor.rect.width > 0 && anchor.rect.height > 0,

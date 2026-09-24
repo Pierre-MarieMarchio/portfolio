@@ -17,8 +17,13 @@
 
 @include formats.phone {
   .language {
-    padding: 0 0 0 var(--s1);
+    padding: 0;
     white-space: nowrap;
+  }
+
+  .here,
+  .slash {
+    display: none;
   }
 }
 

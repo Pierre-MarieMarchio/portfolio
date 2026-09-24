@@ -112,10 +112,14 @@ describe('PlanetButtonsComponent', () => {
     }
 
     second.click();
-    second.dispatchEvent(new MouseEvent('mouseenter'));
-    second.dispatchEvent(new MouseEvent('mouseleave'));
-    second.dispatchEvent(new FocusEvent('focus'));
-    second.dispatchEvent(new FocusEvent('blur'));
+    second.dispatchEvent(
+      new PointerEvent('pointerenter', { pointerType: 'mouse' }),
+    );
+    second.dispatchEvent(
+      new PointerEvent('pointerleave', { pointerType: 'mouse' }),
+    );
+    second.focus();
+    second.blur();
 
     expect(clicked).toEqual(['app']);
     expect(hovered).toEqual(['app', null, 'app', null]);

@@ -56,6 +56,39 @@ nomme l'unité qu'elle concerne.
   contenu n'a cette forme ; un objet qui a d'autres clés est du contenu, et
   `localize.rules.spec.ts` le garde.
 
+## `src/app/core/rules/display-format.rules.ts`
+
+- Trois formats d'affichage, décidés dans cet ordre : `phone` sous 620 px de
+  large, ou sous 500 px de haut avec un pointeur grossier (un téléphone
+  couché garde sa largeur de bureau, pas sa hauteur) ; `tablet` avec un
+  pointeur grossier ou sans survol ; `desktop` sinon.
+- La hauteur ne compte qu'avec un pointeur grossier : une fenêtre de bureau
+  basse reste un bureau, et la souris garde ce qu'elle a.
+- Les seuils sont écrits deux fois, ici et dans
+  `src/assets/styles/mixins/_formats.scss`, parce qu'une media query ne lit
+  pas une constante TypeScript. Changer l'un, c'est changer l'autre.
+
+## `src/app/core/services/device/display-format.service.ts`
+
+- Le format est un signal que le comportement lit ; la disposition, elle, se
+  fait en CSS par les mixins de seuil. Un seul arbre de composants : aucun
+  `@if` ni bloc structurel ne dépend du format au premier rendu, car le
+  prérendu vaut `desktop` et une branche qui diffère au client casserait
+  l'hydratation.
+- `desktop` au serveur, où il n'y a ni fenêtre ni pointeur ; au client, il
+  se lit dès la construction et suit le redimensionnement, la rotation
+  (`resize`, et `orientationchange` aussi écouté) et le changement de
+  pointeur, sans rechargement.
+- `publishOnRoot()` écrit le format en `data-format` sur `<html>`, au client
+  seulement, après le premier rendu : c'est la lecture publique du format
+  (les tests de bout en bout la lisent). L'attribut est hors de l'arbre
+  d'Angular, et absent du HTML prérendu. C'est le bureau, toujours monté,
+  qui le demande.
+- Un dossier à lui plutôt que `core/services/browser/`, qui est à la limite
+  de huit sources : le format n'est pas un accès au navigateur, c'est une
+  règle posée sur deux d'entre eux (`BrowserWindowService`,
+  `MediaPreferencesService`).
+
 ## `src/app/core/services/errors/console-error-handler.service.ts`
 
 - Le seul canal où arrive chaque échec : celui d'Angular, et celui de
@@ -181,6 +214,20 @@ nomme l'unité qu'elle concerne.
 
 - Le titre s'inscrit une fois rendu, pour être déjà dans son conteneur ; et
   seulement dans un navigateur, là où il y a un focus à déplacer.
+
+## `src/app/shared/ui/directives/hover-focus.directive.ts`
+
+- Le survol d'un repère, d'une ligne ou d'une planète ne s'écrit que pour
+  une souris (`pointerType === 'mouse'`) sur un écran qui sait survoler. Un
+  toucher envoie aussi `mouseenter` et, sous Chromium, un `pointerenter` de
+  type souris après le clic (relevé sous Playwright) : sans ce filtre, un toucher laissait un survol
+  qu'aucun doigt ne pouvait lever.
+- Le focus garde son effet, sauf celui qu'un toucher donne en pressant le
+  bouton : le clavier survole toujours ce qu'il désigne, la souris aussi.
+- `exited` ne suit que ce qui est entré : un focus ignoré ne produit pas de
+  sortie, qui passerait pour un geste du lecteur (et arrêterait le rideau).
+- Le double toucher des planètes (`cannotHover()`) ne passe pas par ici :
+  c'est le clic qui révèle d'abord, puis ouvre.
 
 ## `src/app/shared/windows/components/window/`
 
@@ -319,12 +366,29 @@ nomme l'unité qu'elle concerne.
   suivant → »), un `<a>` ou un `<button>`, souligné par l'accent et assez
   haut pour le toucher. Un bouton perd d'abord sa propre face, et prend
   l'encre d'accent qu'un lien a déjà.
+- `touch-target` : sous un pointeur grossier, une cible fait au moins
+  `--target` (44 px) dans les deux sens. `icon-button`, `tab` et
+  `next-link` l'incluent ; au pointeur fin, rien ne change.
+- Chaque `:hover` passe par `formats.can-hover` : un écran tactile qui garde
+  le dernier survol après un toucher ne laisse plus de face allumée.
 
 ## `src/assets/styles/mixins/_facts.scss`
 
 - Une liste de faits (`dl`) : une rangée par fait, le terme dans sa propre
   colonne, la valeur prenant le reste. Chaque liste pose la marge de ses
   rangées et la largeur de son terme, comme le fait l'export.
+
+## `src/assets/styles/mixins/_formats.scss`
+
+- Les media queries des formats, dans la même règle que
+  `display-format.rules.ts` : `phone`, `tablet`, `desktop`, et
+  `can-hover` pour tout `:hover`, `coarse-pointer` pour les cibles.
+- `phone` remplace les littéraux 620 et 640 de largeur : les noms courts de
+  la règle des vedettes disparaissent sous 620 px de large (et en téléphone
+  couché) ; le titre de l'accueil tient sur une ligne hors du téléphone.
+- `short-screen` garde le seuil de hauteur de la règle des vedettes (la
+  ligne de lecture disparaît à 640 px de haut et moins) : ce n'est pas un
+  format, un bureau bas le prend aussi.
 
 ## `src/assets/styles/mixins/_motion.scss`
 

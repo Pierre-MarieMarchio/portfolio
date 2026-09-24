@@ -208,10 +208,14 @@ describe('ObservatorySceneComponent', () => {
       throw new Error('expected a third body');
     }
     third.click();
-    third.dispatchEvent(new MouseEvent('mouseenter'));
-    third.dispatchEvent(new MouseEvent('mouseleave'));
-    third.dispatchEvent(new FocusEvent('focus'));
-    third.dispatchEvent(new FocusEvent('blur'));
+    third.dispatchEvent(
+      new PointerEvent('pointerenter', { pointerType: 'mouse' }),
+    );
+    third.dispatchEvent(
+      new PointerEvent('pointerleave', { pointerType: 'mouse' }),
+    );
+    third.focus();
+    third.blur();
 
     expect(clicked).toEqual(['statewise']);
     expect(hovered).toEqual(['statewise', null, 'statewise', null]);

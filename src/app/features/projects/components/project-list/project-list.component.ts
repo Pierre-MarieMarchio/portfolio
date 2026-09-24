@@ -9,11 +9,15 @@ import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
 import { positionOf, rowLabel } from '../../rules/project-labels.rules';
-import { ViewHeadingDirective } from '@shared/ui/directives';
+import {
+  HoverFocusDirective,
+  ViewHeadingDirective,
+} from '@shared/ui/directives';
 
 @Component({
   selector: 'app-project-list',
   imports: [
+    HoverFocusDirective,
     ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,

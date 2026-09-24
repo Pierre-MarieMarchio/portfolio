@@ -1,16 +1,15 @@
 @for (entry of entries(); track $index) {
   <button
     appSceneTarget
+    appHoverFocus
     type="button"
     class="body"
     aria-hidden="true"
     tabindex="-1"
     [attr.aria-expanded]="entry.expanded"
     (click)="onClick(entry.slug)"
-    (mouseenter)="onEnter(entry.slug)"
-    (mouseleave)="onLeave()"
-    (focus)="onEnter(entry.slug)"
-    (blur)="onLeave()"
+    (entered)="onEnter(entry.slug)"
+    (exited)="onLeave()"
   >
     <span class="visually-hidden">{{ entry.name }}</span>
   </button>

@@ -43,6 +43,7 @@ describe('MediaPreferencesService', () => {
 
     expect(media.reducedMotion()).toBe(true);
     expect(media.cannotHover()).toBe(false);
+    expect(media.hasCoarsePointer()).toBe(false);
     media.watch('(min-width: 1px)', heard)();
 
     expect(matchMedia).not.toHaveBeenCalled();
@@ -51,12 +52,13 @@ describe('MediaPreferencesService', () => {
 
   it('answers what the system says, in the browser', () => {
     vi.stubGlobal('matchMedia', (query: string) =>
-      mediaList(query === '(hover: none)'),
+      mediaList(query === '(hover: none)' || query === '(pointer: coarse)'),
     );
     const media = inject('browser');
 
     expect(media.reducedMotion()).toBe(false);
     expect(media.cannotHover()).toBe(true);
+    expect(media.hasCoarsePointer()).toBe(true);
   });
 
   it('calls back on each change until stopped, in the browser', () => {

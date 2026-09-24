@@ -1,5 +1,6 @@
 @use 'mixins/arrival';
 @use 'mixins/controls';
+@use 'mixins/formats';
 @use 'mixins/motion';
 @use 'mixins/type';
 
@@ -48,9 +49,10 @@ h1 {
   font-weight: 500;
   color: var(--ink);
   outline: none;
+  white-space: nowrap;
 
-  @media (width >= 640px) {
-    white-space: nowrap;
+  @include formats.phone {
+    white-space: normal;
   }
 }
 

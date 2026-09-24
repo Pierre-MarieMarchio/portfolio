@@ -1,5 +1,6 @@
 @use 'mixins/arrival';
 @use 'mixins/controls';
+@use 'mixins/formats';
 @use 'mixins/motion';
 @use 'mixins/type';
 
@@ -88,9 +89,18 @@ button {
   color: var(--ink-2);
   transition: color var(--t);
 
-  &:hover,
   &[data-lit='true'] {
     color: var(--accent);
+  }
+
+  @include formats.can-hover {
+    &:hover {
+      color: var(--accent);
+    }
+  }
+
+  @include formats.coarse-pointer {
+    min-width: var(--target);
   }
 }
 
@@ -140,9 +150,13 @@ button {
   text-decoration: none;
   border-bottom: 1px solid var(--line);
 
-  &:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+  @include controls.touch-target;
+
+  @include formats.can-hover {
+    &:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
   }
 }
 
@@ -176,7 +190,7 @@ button {
   color: var(--accent);
 }
 
-@media (width <= 620px) {
+@include formats.phone {
   .short {
     display: none;
   }
@@ -186,7 +200,7 @@ button {
   display: none;
 }
 
-@media (height <= 640px) {
+@include formats.short-screen {
   .reading {
     display: none;
   }

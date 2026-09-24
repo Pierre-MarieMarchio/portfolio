@@ -1,3 +1,4 @@
+@use 'mixins/formats';
 @use 'mixins/motion';
 
 *,
@@ -46,9 +47,11 @@ a {
   text-underline-offset: 3px;
 }
 
-a:hover {
-  color: var(--ink);
-  text-decoration-color: var(--accent);
+@include formats.can-hover {
+  a:hover {
+    color: var(--ink);
+    text-decoration-color: var(--accent);
+  }
 }
 
 button {

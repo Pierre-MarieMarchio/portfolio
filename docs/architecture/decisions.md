@@ -580,3 +580,23 @@ lit ses propres textes.
 
 **Écarté.** Raccourcir des phrases pour tenir dans la limite : le texte ne se
 règle pas sur un outil. Une exception au lint : proscrite (D9).
+
+## 2026-09-24 — Le bureau s'appelle `observatory` (D23, amende D12)
+
+**Décision.** La feature et la page `desktop` deviennent `observatory`, avec
+tout ce qui en porte le nom : composants (`observatory-scene`,
+`ObservatoryPageComponent`, `ObservatoryRouteComponent`), modèles, état,
+actions (`'OBSERVATORY_*'`), ports, la clé `observatory` du catalogue et les
+sélecteurs `app-observatory-*`. Le mot « desktop » reste dans les textes, où il
+nomme une plateforme logicielle. Les entrées précédentes de ce journal gardent
+les noms de leur date.
+
+**Raison.** Le site va porter des formats d'affichage `phone | tablet |
+desktop` : « desktop » désignerait alors deux choses. « observatory » dit la
+métaphore, un ciel qu'on observe à travers des panneaux d'instrument, et se
+comprend sans la maquette, comme le demande D12.
+
+**Écarté.** Garder `desktop` avec des formats neutres (`compact | medium |
+expanded`) : une page « desktop » affichée sur un téléphone se lit mal.
+Revenir à `station` : l'opérateur a voulu un autre nom. `console` et `orbit`
+nomment déjà autre chose (`ConsoleErrorHandler`, `orbits.renderer`).

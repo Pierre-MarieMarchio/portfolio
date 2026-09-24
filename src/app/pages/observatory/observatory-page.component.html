@@ -1,0 +1,159 @@
+<app-intro-card />
+
+<main tabindex="-1" [id]="ids.main">
+  <section
+    class="scene"
+    [id]="ids.home"
+    [attr.aria-labelledby]="ids.homeTitle"
+    [attr.data-arrival]="arrival()"
+  >
+    <app-observatory-scene
+      #object
+      [bodies]="planets()"
+      [featured]="featuredCount()"
+      [view]="sceneView()"
+      [sheet]="sheetSlug()"
+      [chapter]="station.chapter()"
+      [part]="station.section()"
+      [preview]="station.preview()"
+      [hovered]="station.hovered()"
+      [selected]="station.selected()"
+      [paused]="animation.paused()"
+      [revealed]="arrival() === 'shown'"
+      (bodyClicked)="onBodyClicked($event)"
+      (bodyHovered)="onReaderHovered($event)"
+    />
+
+    @if (station.canStepBack()) {
+      <button
+        type="button"
+        class="void"
+        tabindex="-1"
+        [attr.aria-label]="observatoryTexts().home.void"
+        (click)="onVoid()"
+      ></button>
+    }
+
+    <div
+      class="bar"
+      appBottomEdgeVariable="--head-bottom"
+      [appLayoutAnchor]="anchor.head"
+    >
+      <app-language-switch [languages]="languages()" />
+      <span aria-hidden="true" class="rule"></span>
+      <app-main-nav
+        [items]="navigationItems()"
+        [current]="currentRoute()"
+        [arrival]="arrival()"
+      />
+    </div>
+
+    @if (station.view() === 'home') {
+      <app-home-title [appLayoutAnchor]="anchor.panel" [arrival]="arrival()" />
+    }
+
+    <div
+      #aboutSlot
+      class="slot slot--about"
+      appStackedWindow="about"
+      [appLayoutAnchor]="anchor.panel"
+    >
+      @if (station.showsAbout()) {
+        <app-about-window
+          [pinned]="station.pins().about"
+          [part]="station.section()"
+          (partChange)="station.chooseSection($event)"
+          (pinToggled)="station.togglePin('about')"
+          (closed)="station.close('about')"
+        />
+      }
+    </div>
+
+    <div
+      #indexSlot
+      class="slot slot--index"
+      appStackedWindow="index"
+      [appLayoutAnchor]="anchor.panel"
+    >
+      @if (station.showsList()) {
+        <app-project-list
+          [pinned]="station.pins().index"
+          [selected]="station.selected()"
+          [visited]="station.visited()"
+          [family]="family()"
+          (familyChange)="station.filter($event)"
+          (selectedChange)="station.select($event)"
+          (hoveredChange)="station.hover($event)"
+          (pinToggled)="station.togglePin('index')"
+          (closed)="station.close('index')"
+        />
+      }
+    </div>
+
+    <div
+      #sheetSlot
+      class="slot slot--sheet"
+      appStackedWindow="sheet"
+      [appLayoutAnchor]="anchor.detail"
+    >
+      @if (isNotFound()) {
+        <app-not-found-window
+          [total]="projectCount()"
+          (closed)="station.close('sheet')"
+        />
+      } @else if (sheetSlug(); as slug) {
+        <app-project-detail
+          [slug]="slug"
+          [pinned]="station.pins().sheet"
+          [chapter]="station.chapter()"
+          (chapterChange)="station.chooseChapter($event)"
+          (pinToggled)="station.togglePin('sheet')"
+          (closed)="station.close('sheet')"
+        />
+      }
+    </div>
+
+    <div
+      #previewSlot
+      class="slot slot--preview"
+      appStackedWindow="preview"
+      [appLayoutAnchor]="anchor.preview"
+      [id]="ids.previewPanel"
+    >
+      @if (station.showsPreview()) {
+        @if (station.preview(); as slug) {
+          <app-project-preview
+            [slug]="slug"
+            [pinned]="station.pins().preview"
+            (chosen)="station.openPreview($event)"
+            (pinToggled)="station.togglePin('preview')"
+            (closed)="station.close('preview')"
+          />
+        }
+      }
+    </div>
+
+    @if (showsRule()) {
+      <app-featured-bar
+        [appLayoutAnchor]="anchor.rule"
+        [bodies]="projects.featured()"
+        [controls]="ids.previewPanel"
+        [hovered]="station.hovered()"
+        [reading]="station.lastPreview()"
+        [arrival]="arrival()"
+        (chosen)="station.openPreview($event)"
+        (hoveredChange)="onReaderHovered($event)"
+      />
+    }
+  </section>
+</main>
+
+<app-social-links
+  [appLayoutAnchor]="anchor.panel"
+  [links]="contactLinks()"
+  [arrival]="arrival()"
+>
+  @if (object.animated()) {
+    <app-animation-toggle />
+  }
+</app-social-links>

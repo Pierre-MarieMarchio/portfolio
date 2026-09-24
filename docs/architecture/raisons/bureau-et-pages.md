@@ -1,29 +1,29 @@
 # Raisons : le bureau, le profil, les pages et la racine
 
-Le pourquoi des choix de `features/desktop/`, `features/profile/`, `pages/`,
+Le pourquoi des choix de `features/observatory/`, `features/profile/`, `pages/`,
 de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 
-## `features/desktop/models/desktop-ids.model.ts`
+## `features/observatory/models/observatory-ids.model.ts`
 
 - Les ids que le balisage se renvoie (la cible du lien d'évitement, le titre
   de l'accueil, le panneau que pilotent les repères de la règle) s'écrivent
   une seule fois, pour qu'une référence et sa cible ne puissent pas diverger.
 
-## `features/desktop/models/desktop.model.ts`
+## `features/observatory/models/observatory.model.ts`
 
-- `DesktopView` est brute exprès : savoir si le slug d'une fiche nomme un
+- `ObservatoryView` est brute exprès : savoir si le slug d'une fiche nomme un
   projet regarde le catalogue, et se décide là où le bureau et les projets se
   rencontrent (la page), jamais ici.
-- `DESKTOP_WINDOWS` suit l'ordre dans lequel la page dispose les fenêtres.
+- `OBSERVATORY_WINDOWS` suit l'ordre dans lequel la page dispose les fenêtres.
 
-## `features/desktop/ports/desktop-texts.port.ts`
+## `features/observatory/ports/observatory-texts.port.ts`
 
 - `object.select` nomme une planète de l'index, qui sélectionne sa ligne ;
   `object.preview` une planète de l'accueil, qui ouvre son aperçu.
 - `object.parts` donne la constellation de chaque partie d'« À propos », dans
   l'ordre des parties.
 
-## `features/desktop/rules/view.rules.ts`
+## `features/observatory/rules/view.rules.ts`
 
 - Un pas en arrière recule d'un cran, jamais plus : sélection → vue
   d'ensemble, fiche → index, index et « À propos » → accueil (Échap
@@ -36,7 +36,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   maquette, gardé exprès.
 - L'adresse des vues parentes appartient à la composition, pas à la règle.
 
-## `features/desktop/services/featured-tour.service.ts`
+## `features/observatory/services/featured-tour.service.ts`
 
 - Le rideau : une fois arrivé le reste de l'accueil, chaque repère de la
   règle s'allume avec sa planète, un par un, puis tout se pose. C'est le seul
@@ -47,7 +47,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   allumé 900 ms.
 - Fourni par le bureau : un par bureau, qui disparaît avec lui.
 
-## `features/desktop/services/home-reveal.service.ts`
+## `features/observatory/services/home-reveal.service.ts`
 
 - En arrivant sur l'accueil, l'objet traverse seul : les pages, le titre, la
   règle, le rail de contact et les planètes viennent au premier geste, et de
@@ -61,14 +61,14 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Quitter l'accueil est un signe de présence : cela lâche le reste retenu.
 - Fourni par le bureau : un par bureau, qui disparaît avec lui.
 
-## `features/desktop/components/home-title/`
+## `features/observatory/components/home-title/`
 
 - Le titre de l'accueil, en haut à gauche : le nom, et le métier comme titre
   de la page. Il arrive avec le reste de l'accueil.
 - Retenu par sa seule opacité : il ne prend pas le pointeur, et il garde le
   focus d'arrivée.
 
-## `features/desktop/components/intro-card/`
+## `features/observatory/components/intro-card/`
 
 - La carte d'ouverture, une fois par visite, par-dessus tout. Rien ne
   l'attend : le contenu est dans le document dès la première image, et la
@@ -86,14 +86,14 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   zone d'Angular passe par des microtâches, et `fixture.whenStable()`
   continue de fonctionner dessous.
 
-## `features/desktop/components/not-found-window/`
+## `features/observatory/components/not-found-window/`
 
 - Une adresse qui ne mène nulle part, dans la plus petite fenêtre : elle le
   dit et ramène à l'index. Jamais d'impasse.
 - Le nombre de projets est compté, pas écrit : un projet ajouté change la
   phrase de lui-même.
 
-## `features/desktop/components/desktop-scene/`
+## `features/observatory/components/observatory-scene/`
 
 - Dans le spec, jsdom n'a pas de canvas : un contexte 2D qui accepte tout
   appel et se renvoie lui-même laisse tourner le moteur. Son dessin n'y est
@@ -103,7 +103,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Au montage, aucune planète de l'accueil n'est encore placée : elles
   montent après la traversée, et restent hors d'atteinte jusque-là.
 
-## `features/desktop/states/desktop/`
+## `features/observatory/states/observatory/`
 
 - Le spec de l'updater n'enregistre aucun effet : un dispatch ne fait tourner
   que l'updater, car c'est la machine à états qui est testée, pas la
@@ -136,7 +136,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Le bouton pressé ne suit que l'entrée `part` : un clic émet la partie
   demandée, il ne bascule rien de lui-même.
 
-## `pages/desktop/`
+## `pages/observatory/`
 
 - Le bureau est le seul écran que le lecteur ne quitte jamais. L'objet, la
   barre des pages, le rail de contact et les fenêtres y vivent, au-dessus du

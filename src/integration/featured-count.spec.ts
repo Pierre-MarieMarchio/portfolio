@@ -8,10 +8,13 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED } from '@app/features/projects/states';
-import { DesktopSceneComponent } from '@app/features/desktop/components';
+import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { SpaceSceneComponent } from '@shared/space-scene/components';
-import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
-import { DesktopPageComponent } from '@app/pages/desktop/desktop-page.component';
+import {
+  ObservatoryEffect,
+  ObservatoryManager,
+} from '@app/features/observatory/states';
+import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
 
 const entries = (count: number): ProjectEntry[] =>
   Array.from({ length: count }, (_, index) =>
@@ -32,21 +35,21 @@ const mount = async (featured: number, total: number) => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
   document.documentElement.style.setProperty('--arrival-at', '8700ms');
   TestBed.configureTestingModule({
-    imports: [DesktopPageComponent],
+    imports: [ObservatoryPageComponent],
     providers: [
       provideRouter([{ path: '**', children: [] }]),
-      provideProjects(entries(total), [DesktopEffect]),
+      provideProjects(entries(total), [ObservatoryEffect]),
       { provide: FEATURED, useValue: featured },
     ],
   });
   await loadProjects();
-  const fixture = TestBed.createComponent(DesktopPageComponent);
+  const fixture = TestBed.createComponent(ObservatoryPageComponent);
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   const object = fixture.debugElement.query(
     (node: DebugElement) =>
-      node.componentInstance instanceof DesktopSceneComponent,
-  ).componentInstance as DesktopSceneComponent;
+      node.componentInstance instanceof ObservatorySceneComponent,
+  ).componentInstance as ObservatorySceneComponent;
   const scene = fixture.debugElement.query(
     (node: DebugElement) =>
       node.componentInstance instanceof SpaceSceneComponent,
@@ -56,7 +59,7 @@ const mount = async (featured: number, total: number) => {
     host,
     object,
     scene,
-    station: TestBed.inject(DesktopManager),
+    station: TestBed.inject(ObservatoryManager),
     markers: () => host.querySelectorAll('app-featured-bar li').length,
     choices: () =>
       host.querySelectorAll('[aria-label="Projets mis en avant"] button')

@@ -94,7 +94,7 @@ export const EN: Catalog = {
     },
   },
 
-  desktop: {
+  observatory: {
     animation: {
       pause: draft('Pause the animation'),
       resume: draft('Resume the animation'),

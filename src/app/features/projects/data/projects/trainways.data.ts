@@ -63,9 +63,9 @@ export const TRAINWAYS: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'J’ai refait le back-end, mis l’application à jour et repris les développements prévus, puis je l’ai republiée sur Google Play et l’App Store en 2026.',
+            fr: 'J’ai refait le back-end, mis l’application à jour et repris les développements prévus, puis je l’ai republiée sur Google Play et l’App Store.',
             en: draft(
-              'I rebuilt the back end, updated the app and took up the planned work, then released it again on Google Play and the App Store in 2026.',
+              'I rebuilt the back end, updated the app and took up the planned work, then released it again on Google Play and the App Store.',
             ),
           },
         ],

@@ -88,19 +88,44 @@ describe('ContactRailComponent', () => {
     expect(host.querySelector('ul')?.getAttribute('aria-label')).toBe(
       'Me contacter',
     );
-    expect(host.querySelector('button')).toBeNull();
   });
 
-  it('places the control it is given after its links, inside the rail', async () => {
+  it('folds its links behind one named toggle, which opens and closes them', async () => {
+    const { fixture, host } = await mount();
+    const toggle = host.querySelector('button');
+    const panel = host.querySelector('ul')?.parentElement;
+    const rail = host.querySelector<HTMLElement>('.rail');
+    if (!toggle || !panel || !rail) {
+      throw new Error('expected a toggle, its panel and the rail');
+    }
+
+    expect(toggle.getAttribute('aria-label')).toBe('Me contacter');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(panel.id).toBeTruthy();
+    expect(toggle.getAttribute('aria-controls')).toBe(panel.id);
+
+    toggle.click();
+    await fixture.whenStable();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(rail.dataset['open']).toBe('true');
+
+    toggle.click();
+    await fixture.whenStable();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('places the control it is given after its links, with them', async () => {
     TestBed.configureTestingModule({
       imports: [RailWithControl],
       providers: [provideTexts()],
     });
     const fixture = TestBed.createComponent(RailWithControl);
     await fixture.whenStable();
-    const rail = (fixture.nativeElement as HTMLElement).querySelector('.rail');
+    const links = (fixture.nativeElement as HTMLElement).querySelector(
+      'ul',
+    )?.parentElement;
 
-    expect(rail?.lastElementChild?.textContent).toBe('Extra');
-    expect(rail?.firstElementChild?.tagName).toBe('UL');
+    expect(links?.lastElementChild?.textContent).toBe('Extra');
+    expect(links?.firstElementChild?.tagName).toBe('UL');
   });
 });

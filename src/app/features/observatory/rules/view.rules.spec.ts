@@ -1,5 +1,12 @@
-import { ObservatoryView, ObservatoryWindow } from '../models';
-import { parentOf, stepBack, StepBackFrom, windowOf } from './view.rules';
+import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
+import {
+  DockFrom,
+  dockedOf,
+  parentOf,
+  stepBack,
+  StepBackFrom,
+  windowOf,
+} from './view.rules';
 
 const from = (
   view: ObservatoryView,
@@ -83,5 +90,66 @@ describe('windowOf', () => {
     ['not-found', 'sheet'],
   ])('shows %s in the window %s', (view, shown) => {
     expect(windowOf(view)).toBe(shown);
+  });
+});
+
+describe('dockedOf', () => {
+  const NONE: ObservatoryPins = {
+    about: false,
+    index: false,
+    sheet: false,
+    preview: false,
+  };
+  const dock = (
+    view: ObservatoryView,
+    pinned: readonly ObservatoryWindow[],
+    overrides: Partial<DockFrom> = {},
+  ): readonly ObservatoryWindow[] =>
+    dockedOf({
+      view,
+      pins: Object.fromEntries(
+        Object.keys(NONE).map((window) => [
+          window,
+          pinned.includes(window as ObservatoryWindow),
+        ]),
+      ) as ObservatoryPins,
+      preview: null,
+      lastSheet: null,
+      ...overrides,
+    });
+
+  it('docks nothing while nothing is pinned', () => {
+    expect(dock('about', [])).toEqual([]);
+  });
+
+  it('docks a pinned window the reader has left', () => {
+    expect(dock('about', ['index'])).toEqual(['index']);
+  });
+
+  it('keeps the window of the current view open, pinned or not', () => {
+    expect(dock('index', ['index'])).toEqual([]);
+    expect(dock('not-found', ['sheet'], { lastSheet: 'a' })).toEqual([]);
+  });
+
+  it('docks the pinned sheet once left, if it has a project to reopen', () => {
+    expect(dock('about', ['sheet'], { lastSheet: 'a' })).toEqual(['sheet']);
+    expect(dock('about', ['sheet'])).toEqual([]);
+  });
+
+  it('keeps the preview open on the home page, and docks it elsewhere', () => {
+    expect(dock('home', ['preview', 'about'], { preview: 'a' })).toEqual([
+      'about',
+    ]);
+    expect(dock('index', ['preview'], { preview: 'a' })).toEqual(['preview']);
+    expect(dock('index', ['preview'])).toEqual([]);
+  });
+
+  it('lists the docked windows in a fixed order', () => {
+    expect(
+      dock('home', ['preview', 'sheet', 'index', 'about'], {
+        preview: 'a',
+        lastSheet: 'b',
+      }),
+    ).toEqual(['about', 'index', 'sheet']);
   });
 });

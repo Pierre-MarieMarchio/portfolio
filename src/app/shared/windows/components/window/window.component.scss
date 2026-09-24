@@ -7,8 +7,8 @@
   display: contents;
 }
 
-$lowered-top: 60%;
-$raised-top: var(--s2);
+$raised-top: var(--glass-raised-top, var(--s2));
+$bottom-reserve: var(--glass-bottom-reserve, 0px);
 
 @keyframes window-rise {
   from {
@@ -38,7 +38,8 @@ $raised-top: var(--s2);
 }
 
 .shade,
-.lead {
+.lead,
+.tail {
   display: none;
 }
 
@@ -144,22 +145,27 @@ h2 {
 }
 
 @include formats.phone {
-  .glass {
+  .glass--rising {
     position: absolute;
-    inset: 0;
+    inset: var(--glass-inset, 0);
     display: block;
     pointer-events: none;
-  }
 
-  .rail {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-  }
+    .rail {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
 
-  .window {
-    flex: 1 1 auto;
+    .window {
+      flex: 1 1 auto;
+    }
+
+    &.glass--folded .window {
+      flex: 0 0 auto;
+      margin-top: auto;
+    }
   }
 
   .titlebar {
@@ -167,67 +173,73 @@ h2 {
     touch-action: manipulation;
   }
 
-  .glass--folded .window {
-    flex: 0 0 auto;
-    margin-top: auto;
+  .spacer {
+    display: none;
+  }
+
+  .meta {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 @include formats.phone-portrait {
-  .glass {
+  .glass--rising {
     timeline-scope: --glass-rise;
-  }
 
-  .shade {
-    position: absolute;
-    inset: 0;
-    display: block;
-    animation: glass-shade linear both;
-    animation-timeline: --glass-rise;
-  }
+    .shade {
+      position: absolute;
+      inset: 0;
+      display: block;
+      animation: glass-shade linear both;
+      animation-timeline: --glass-rise;
+    }
 
-  .rail {
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scroll-behavior: smooth;
-    scroll-timeline: --glass-rise y;
-    scrollbar-width: none;
-  }
+    .rail {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+      scroll-timeline: --glass-rise y;
+      scrollbar-width: none;
+    }
 
-  .lead {
-    display: block;
-    flex: 0 0 $lowered-top;
-  }
-
-  .window {
-    flex: 0 0 auto;
-    height: calc(100% - #{$raised-top});
-    border-inline-width: 0;
-  }
-
-  .body {
-    overflow-y: hidden;
-    overscroll-behavior-y: auto;
-  }
-
-  .rail[data-rest='end'] .body {
-    overflow-y: auto;
-  }
-
-  .glass--folded {
     .lead {
-      flex-grow: 1;
+      display: block;
+      flex: 0 0 calc(var(--glass-lowered) * 100%);
+    }
+
+    .tail {
+      display: block;
+      flex: 0 0 $bottom-reserve;
     }
 
     .window {
-      height: auto;
+      flex: 0 0 auto;
+      height: calc(100% - #{$raised-top} - #{$bottom-reserve});
+      border-inline-width: 0;
     }
-  }
-}
 
-@include formats.phone-landscape {
-  .glass {
-    left: 50%;
+    .body {
+      overflow-y: hidden;
+      overscroll-behavior-y: auto;
+    }
+
+    .rail[data-rest='end'] .body {
+      overflow-y: auto;
+    }
+
+    &.glass--folded {
+      .lead {
+        flex-grow: 1;
+      }
+
+      .window {
+        height: auto;
+      }
+    }
   }
 }
 
@@ -236,7 +248,7 @@ h2 {
     animation: none;
   }
 
-  .rail {
+  .glass--rising .rail {
     scroll-behavior: auto;
   }
 

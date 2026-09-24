@@ -1,4 +1,8 @@
-<div class="glass" [class.glass--folded]="collapsed()">
+<div
+  class="glass"
+  [class.glass--folded]="collapsed()"
+  [class.glass--rising]="anchor() !== 'bottom'"
+>
   <div class="shade"></div>
   <div class="rail" appScrollStops>
     <div class="lead"></div>
@@ -66,5 +70,6 @@
         <div class="footer"><ng-content select="[footer]" /></div>
       }
     </section>
+    <div class="tail"></div>
   </div>
 </div>

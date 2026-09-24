@@ -673,3 +673,38 @@ seuil de variation sous lequel la densité ne se recalcule pas : l'amorti
 suffit, et une rotation garde l'aire. Rendre les nouveaux champs
 obligatoires : le banc du golden (`src/testing/fixtures/`) les ignore et
 reste hors de cette tâche.
+
+## 2026-09-25 — Au téléphone, une vitre à la fois, un dock, un chrome replié (D27, amende D25)
+
+**Décision.** Au format `phone`, une seule vitre est ouverte : celle de la
+vue, ou l'aperçu sur l'accueil. Une vitre épinglée que le lecteur quitte se
+range dans un dock en bas de l'écran (`ObservatoryDockComponent`), un lien par
+fenêtre vers sa vue ; la toucher y ramène, et la vitre revient ouverte. Le
+manager dérive la liste (`docked`, par `dockedOf`) ; l'état retient la
+dernière fiche (`lastSheet`) pour qu'une fiche rangée ait où revenir. La
+barre de pages tient sur une ligne, en haut à droite debout, en haut à
+gauche couchée. Le rail de contact se replie derrière un bouton « @ » en bas
+à gauche, qui ouvre les liens dans la même rangée, à droite de lui, où le
+dock se tient aussi. Debout, la vitre s'arrête sous la barre de pages quand
+elle monte, et au-dessus de la rangée du bas quand elle se replie ; couchée,
+la barre et la rangée sont dans la moitié gauche, la vitre garde la moitié
+droite. L'aperçu de l'accueil est une petite vitre basse, qui ne monte pas.
+Les emplacements de la page prennent la place d'arrivée de leur vitre
+(pleine largeur, le haut à 60 % ; moitié droite couchée) : c'est ce
+rectangle que la caméra lit (D26). Au bureau et à la tablette, rien ne
+change : le dock, le bouton « @ » et la place de la vitre sont dans le DOM à
+tous les formats, cachés ou sans effet hors du téléphone.
+
+**Raison.** À 390 px, la barre sur deux lignes descendait à 154 px et
+couvrait la vitre montée ; le rail flottant couvrait les boutons de la vitre
+repliée. Deux vitres ouvertes sur un écran de téléphone se couvrent l'une
+l'autre sans qu'on puisse les déplacer. Le détail est dans
+`raisons/bureau-et-pages.md` et `raisons/core-et-interface.md`.
+
+**Écarté.** Les liens de contact dans la barre de pages : à 320 px, elle ne
+tient déjà sur une ligne qu'à quelques pixels près. Les liens au pied de
+chaque vitre : ils disparaîtraient sur l'accueil sans aperçu. Une bande
+pleine largeur en bas : un dock vide y coûterait une bande d'écran pour rien.
+Des boutons de planète sur la fiche, pour mesurer la planète visée : ils
+seraient focalisables au bureau, sans rien faire ; l'e2e mesure son nom,
+que la scène pose contre elle.

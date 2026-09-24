@@ -5,6 +5,7 @@ import { expect, openHydrated, sizeOf, test } from './site.fixture';
 type DisplayFormat = 'phone' | 'tablet' | 'desktop';
 
 const FORMAT_AT: Readonly<Record<string, DisplayFormat>> = {
+  'phone-xs': 'phone',
   'phone-s': 'phone',
   phone: 'phone',
   'phone-landscape': 'phone',

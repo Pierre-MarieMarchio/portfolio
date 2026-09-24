@@ -10,7 +10,7 @@ type Box = {
 };
 type Viewport = { readonly width: number; readonly height: number };
 
-const PORTRAIT_SIZES = new Set(['phone-s', 'phone']);
+const PORTRAIT_SIZES = new Set(['phone-xs', 'phone-s', 'phone']);
 const LANDSCAPE_SIZES = new Set(['phone-landscape']);
 const PAGES = [
   { name: 'index', path: '/projets' },
@@ -27,6 +27,7 @@ const FINGER_INTO_BODY_PX = 60;
 const EDGE_TOLERANCE_PX = 1.5;
 const SAMPLED_FRAMES = 40;
 const MIDWAY_SCROLL_PX = 200;
+const FOOT_ROW_PX = 60;
 
 const glassOf = (page: Page): Locator => page.locator('section.window').first();
 
@@ -266,9 +267,10 @@ for (const { name, path } of PAGES) {
       folded.height - titlebar.height,
       'no more than the title bar and its frame',
     ).toBeLessThanOrEqual(2 * EDGE_TOLERANCE_PX);
-    expect(folded.y + folded.height, 'at the bottom').toBeCloseTo(
-      viewportOf(page).height,
-      0,
+    const fromBottom = viewportOf(page).height - (folded.y + folded.height);
+    expect(fromBottom, 'on screen').toBeGreaterThanOrEqual(-EDGE_TOLERANCE_PX);
+    expect(fromBottom, 'at the bottom, above the foot row').toBeLessThanOrEqual(
+      FOOT_ROW_PX,
     );
 
     await fold.focus();

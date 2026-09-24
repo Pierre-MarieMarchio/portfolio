@@ -38,6 +38,10 @@ const inject = (platform: 'browser' | 'server') => {
 };
 
 describe('DisplayFormatService', () => {
+  beforeEach(() => {
+    delete document.documentElement.dataset['format'];
+  });
+
   afterEach(() => {
     TestBed.resetTestingModule();
     vi.unstubAllGlobals();

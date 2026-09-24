@@ -92,8 +92,7 @@ export const FR: Catalog = {
       void: 'Fermer les fenêtres',
       name: 'Pierre-Marie Marchio',
       trade: 'Développeur .NET et Angular',
-      status:
-        'Je cherche une alternance à Toulouse ou en télétravail, disponible dès maintenant.',
+      status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',
     },
     notFound: {

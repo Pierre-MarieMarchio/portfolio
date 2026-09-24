@@ -14,7 +14,6 @@ $arrival-delay: 700ms;
   left: var(--gutter);
   top: max(clamp(64px, 10vh, 96px), calc(var(--head-bottom, 0px) + var(--s2)));
   z-index: var(--z-scene-top);
-  max-width: min(27ch, 44vw);
   pointer-events: none;
 }
 
@@ -49,11 +48,16 @@ h1 {
   font-weight: 500;
   color: var(--ink);
   outline: none;
+
+  @media (width >= 640px) {
+    white-space: nowrap;
+  }
 }
 
 .status {
+  @include type.mono(var(--m2));
+
   margin-top: var(--s2);
-  font-size: var(--p2);
   color: var(--ink-2);
 }
 

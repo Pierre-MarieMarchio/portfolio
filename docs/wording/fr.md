@@ -71,7 +71,7 @@ changer pour tout changer serait aussi artificiel que ce qu'on corrige.
 | Bk-ONE           | « flux ISO 20022 », « validation à la frontière » retenue             | Java Swing pur, refonte de l'interface et des flux XML. Ta proposition retenue : lire le XML une fois en objets, au lieu de le modifier en chaîne |
 | ngx-statewise    | « updators », flux en 3 étapes                                        | 1.0 en bêta : `updater`, étape `interceptor`, site de doc FR/EN                                                                                   |
 | Parcours         | années à renseigner                                                   | toutes connues (CV)                                                                                                                               |
-| TrainWays        | absent                                                                | remise en production chez Skyted, en binôme, republiée sur Google Play en 2026                                                                    |
+| TrainWays        | absent                                                                | remise en production chez Skyted, en binôme, republiée sur Google Play et l'App Store en 2026                                                     |
 
 ## 3. Les changements de structure
 
@@ -155,20 +155,20 @@ qu'une liste.
 
 ### 4.3 Bureau (`desktop`)
 
-| Clé                     | Avant                                                             | Après                                                                                  |
-| ----------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| object.select(n, t)     | Sélectionner n — t dans le relevé                                 | Afficher t dans la liste                                                               |
-| object.preview(t)       | Aperçu du projet t                                                | inchangé                                                                               |
-| object.parts            | Profil · Compétences · Méthode · Parcours                         | Profil · Compétences · Parcours · Et après                                             |
-| home.void               | Refermer et revenir à la vue d'ensemble                           | Fermer les fenêtres                                                                    |
-| home.name               | Pierre-Marie Marchio                                              | inchangé                                                                               |
-| home.trade              | Concepteur développeur d'applications                             | **Développeur .NET et Angular**                                                        |
-| home.status (nouveau)   |                                                                   | **Je cherche une alternance à Toulouse ou en télétravail, disponible dès maintenant.** |
-| home.brand              | Portfolio                                                         | inchangé                                                                               |
-| notFound.heading, label | Adresse inconnue / Fenêtre : adresse inconnue                     | Page introuvable                                                                       |
-| notFound.title          | Cette réalisation n'existe pas.                                   | Rien en orbite à cette adresse.                                                        |
-| notFound.sentence(n)    | L'adresse demandée ne correspond à aucune des n fiches du relevé. | Aucun des n projets ne correspond à ce lien.                                           |
-| notFound.back           | Tous les projets →                                                | inchangé                                                                               |
+| Clé                     | Avant                                                             | Après                                           |
+| ----------------------- | ----------------------------------------------------------------- | ----------------------------------------------- |
+| object.select(n, t)     | Sélectionner n — t dans le relevé                                 | Afficher t dans la liste                        |
+| object.preview(t)       | Aperçu du projet t                                                | inchangé                                        |
+| object.parts            | Profil · Compétences · Méthode · Parcours                         | Profil · Compétences · Parcours · Et après      |
+| home.void               | Refermer et revenir à la vue d'ensemble                           | Fermer les fenêtres                             |
+| home.name               | Pierre-Marie Marchio                                              | inchangé                                        |
+| home.trade              | Concepteur développeur d'applications                             | **Développeur .NET et Angular**                 |
+| home.status (nouveau)   |                                                                   | **Je cherche le prochain projet à construire.** |
+| home.brand              | Portfolio                                                         | inchangé                                        |
+| notFound.heading, label | Adresse inconnue / Fenêtre : adresse inconnue                     | Page introuvable                                |
+| notFound.title          | Cette réalisation n'existe pas.                                   | Rien en orbite à cette adresse.                 |
+| notFound.sentence(n)    | L'adresse demandée ne correspond à aucune des n fiches du relevé. | Aucun des n projets ne correspond à ce lien.    |
+| notFound.back           | Tous les projets →                                                | inchangé                                        |
 
 **Pourquoi « Développeur .NET et Angular ».** Tu fais du front, du back, du
 desktop et du mobile. Tout lister, c'est le « il fait tout, donc rien de bien »
@@ -176,7 +176,18 @@ que tu crains. Or presque tout passe par deux technos : Angular pour le web,
 .NET pour le back, le desktop (Avalonia) et même le mobile (Voice). Le titre dit
 la vérité sans énumérer, les projets montrent l'étendue. « Concepteur
 développeur d'applications » reste en toutes lettres dans le profil, là où un
-RH cherche le titre préparé.
+RH cherche le titre préparé. Le titre tient sur une ligne dès que l'écran le
+permet.
+
+**Pourquoi « le prochain projet à construire ».** « Je cherche une alternance à
+Toulouse… » sonnait comme une petite annonce et réduisait la recherche à
+l'alternance. « Disponible », « ouvert », « à l'écoute de nouvelles
+opportunités » ou « de nouvelles solutions » : c'est le vocabulaire de
+LinkedIn, que n'importe quel candidat peut signer. « Projet » a le sens de
+« selon le projet », à la fin de « Et après », qui donne le détail. Le prochain
+projet est celui qui manque à ceux qui tournent sur l'accueil. « Construire »
+dit la conception sans la nommer. Pas de ville : elle est dans le profil et
+dans la description Google.
 
 ### 4.4 À propos (`profile.about`)
 
@@ -203,14 +214,18 @@ RH cherche le titre préparé.
   - Langues : Bilingue français-anglais
 - _Texte_ :
 
-  > J'ai toujours eu un PC à la maison, et l'envie de regarder ce qu'il y
+  > Il y a toujours eu un PC à la maison, et je voulais savoir ce qu'il y
   > avait dedans. Mais je suis curieux de tout, et j'ai mis du temps à
   > choisir. J'ai d'abord été archéologue, cinq ans sur des chantiers de
-  > fouilles. Un beau métier, qui nourrit mal son homme.
+  > fouilles. Un beau métier, qui nourrit mal son homme. Pendant tout ce
+  > temps, je n'ai pas arrêté les mods.
   >
-  > En 2021, j'ai décidé d'en faire mon métier. Je suis aujourd'hui en
+  > En 2021, j'ai choisi le développement. Je suis aujourd'hui en
   > alternance chez Skyted, où je touche à tout : front Angular, API .NET,
-  > applications desktop et mobiles reliées en Bluetooth à un casque.
+  > applications desktop et mobiles reliées en Bluetooth à un casque. Ma
+  > curiosité y trouve son compte. Pour ne pas m'éparpiller, je fais passer
+  > presque tout par .NET et Angular, jusqu'à une application Android écrite
+  > en C#.
   >
   > Ce qui m'intéresse le plus, c'est la conception, la façon de découper un
   > code pour qu'on puisse encore le faire évoluer dans deux ans. C'est aussi
@@ -220,39 +235,74 @@ RH cherche le titre préparé.
   plus : elle est vraie et figure sur ton CV, mais sur un site public elle peut
   se lire comme une critique de Skyted. Elle a sa place en entretien.
 
+  « J'ai choisi le développement » remplace « j'ai décidé d'en faire mon
+  métier » : le « en » renvoyait trop loin, on pouvait lire l'archéologie, et
+  « métier » venait juste avant. Le verbe répond à « j'ai mis du temps à
+  choisir ».
+
+  « Je voulais savoir » remplace « j'ai toujours eu […] l'envie » : un seul
+  verbe portait un PC et une envie, et le « Mais » qui suit n'avait rien à
+  contredire. Les mods, faits avant et pendant l'archéologie, relient
+  l'accroche à 2021 ; la phrase vient après « nourrit mal son homme », sinon
+  « un beau métier » semblait parler des mods.
+
+  La curiosité, force et faiblesse, ce sont tes mots : « y trouve son compte »
+  pour la force, « pour ne pas m'éparpiller » pour la réponse au « moyen en
+  tout ». Le fait qui le prouve est Voice, passée en Avalonia pour partager le
+  code.
+
+  Une phrase sur l'espace a fermé le profil un temps. Elle est sortie : elle ne
+  disait rien du développeur, et le décor parle seul. Le profil finit de
+  nouveau sur ce qui reste à apprendre, qui ouvre « Et après ».
+
 **Compétences**
 
 - _Titre_ : Compétences. _Intertitre_ : Ce que je pratique
 - _Domaines_ :
   - Web : Angular (signals, SSR, i18n), TypeScript, SCSS
-  - Back : C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL
+  - Back : C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL, Firebase
   - Desktop : Avalonia, sur Windows, macOS et Linux
-  - Mobile : Android en Kotlin et Kotlin Multiplatform, Avalonia Android
+  - Mobile : Kotlin Multiplatform, Swift, Avalonia
   - Bluetooth et audio : Bluetooth Classic et BLE, audio temps réel
   - Architecture : Clean Architecture, DDD, CQRS, tests d'architecture
-  - Outillage : Git, GitHub Actions, Docker, VPS OVHcloud
+  - Mise en production : GitHub Actions, Docker, VPS OVHcloud
 - _Texte_ :
 
-  > Je ne mets pas tout au même niveau. Je travaille tous les jours en C# et
-  > en Angular, avec Avalonia pour le desktop. J'ai livré du Kotlin en
-  > entreprise. Java, Swift ou React, je les connais moins.
+  > Je travaille tous les jours en C# et en Angular, avec Avalonia pour le
+  > desktop. J'ai aussi livré du Kotlin en entreprise. Java, Swift et React, je
+  > les ai pratiqués de moins près.
 
   C'est la réponse au « moyen en tout » : dire soi-même où on est fort. La
+  phrase d'annonce (« Je ne mets pas tout au même niveau ») sort, l'ordre des
+  phrases le montre déjà. La
   ligne « Métier : flux bancaires, compensation européenne » sort, un stage de
   trois mois ne fait pas une compétence métier.
+
+  « Kotlin Multiplatform » dit déjà Kotlin. « Avalonia » tout court : tu l'as
+  utilisé sur toutes les plateformes, et « Avalonia Android » le réduisait.
+
+  « Outillage » devient « Mise en production », les mots de la fiche Speakey :
+  Git sort, tout le monde s'en sert ; GitHub Actions, Docker et un VPS disent
+  qu'on sait mettre en ligne soi-même. « Architecture » reste telle quelle,
+  même si elle dépend du projet : la ligne dit ce que tu connais, pas ce que
+  tu appliques partout, et c'est la trace, dans les compétences, de la
+  conception du profil et du bac+5 d'« Et après ». Le template .NET et
+  Companion la montrent.
 
 **Parcours** (intertitre : Étapes)
 
 | Année       | Étape                                                                |
 | ----------- | -------------------------------------------------------------------- |
-| 2016 – 2021 | Archéologue sur des chantiers de fouilles                            |
-| 2020        | Licence d'archéologie, université Toulouse-Jean Jaurès               |
-| 2021 – 2023 | Autoformation au développement                                       |
-| 2023        | Apple Foundation Program, Simplon                                    |
-| 2024        | Titre Développeur web et web mobile, AFPA, félicitations du jury     |
-| 2024        | Stage chez Numerilis, à Paris : refonte de l'application Java Bk-ONE |
-| 2025        | Projets open source : ngx-statewise et un template d'API .NET        |
 | 2025 –      | Alternance chez Skyted, titre Concepteur développeur d'applications  |
+| 2025        | Projets open source : ngx-statewise et un template d'API .NET        |
+| 2024        | Stage chez Numerilis, à Paris : refonte de l'application Java Bk-ONE |
+| 2024        | Titre Développeur web et web mobile, AFPA, félicitations du jury     |
+| 2023        | Apple Foundation Program, Simplon                                    |
+| 2021 – 2023 | Autoformation au développement                                       |
+| 2020        | Licence d'archéologie, université Toulouse-Jean Jaurès               |
+| 2016 – 2021 | Archéologue sur des chantiers de fouilles                            |
+
+Le plus récent en haut, comme sur un CV.
 
 **Et après** (remplace Méthode ; intertitre : Ce que je cherche)
 
@@ -485,19 +535,20 @@ application. Ta part (le Bluetooth V24, la migration Firebase) reste précise et
 ### 5.7 TrainWays (nouveau)
 
 - slug : `trainways` · famille : En entreprise · tag : publiée
-- sujet : Une application Android qui montre, avant un trajet en train, où le
+- sujet : Une application Android et iOS qui montre, avant un trajet en train, où le
   réseau passe et où il coupe.
-- résumé : réseau en train, Android
-- statut : Sur Google Play · rôle : En binôme : back-end, mise à jour, publication · stack :
-  Kotlin · Android · contexte : Skyted · période : 2026
+- résumé : réseau en train, Android et iOS
+- statut : Sur Google Play et l'App Store · rôle : En binôme : back-end, mise à jour, publication · stack :
+  Kotlin · Swift · Firebase · contexte : Skyted · période : 2026
 - chapô : Pour savoir à l'avance à quel moment du trajet on pourra passer un
   appel.
 - **Le besoin** : On choisit son train, par son numéro ou par ses gares, et
   l'application affiche les horaires, les zones couvertes et les zones sans
   réseau du trajet.
 - **Ce que j'ai fait** : J'ai refait le back-end, mis l'application à jour et
-  repris les développements prévus, puis je l'ai republiée sur Google Play en 2026.
-- liens : Google Play (`com.skyted.trainways`)
+  repris les développements prévus, puis je l'ai republiée sur Google Play et
+  l'App Store. L'année est dans le champ Période.
+- liens : Google Play (`com.skyted.trainways`), App Store (`id6739769823`)
 
 Deux parties seulement : c'est un plus petit projet, la fiche le reflète.
 

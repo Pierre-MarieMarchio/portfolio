@@ -76,7 +76,7 @@ export const EN_PROFILE: ProfileTexts = {
         },
         {
           label: 'Mobile',
-          value: 'Kotlin Multiplatform, Swift, Avalonia Android',
+          value: 'Kotlin Multiplatform, Swift, Avalonia',
         },
         {
           label: draft('Bluetooth and audio'),

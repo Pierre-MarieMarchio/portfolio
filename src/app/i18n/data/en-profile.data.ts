@@ -55,9 +55,6 @@ export const EN_PROFILE: ProfileTexts = {
         draft(
           'What interests me most is design: how to split code so that it can still be changed two years later. It is also where I have the most to learn.',
         ),
-        draft(
-          'Outside code, there is space. The look of this site comes from there.',
-        ),
       ],
     },
     skills: {
@@ -79,9 +76,7 @@ export const EN_PROFILE: ProfileTexts = {
         },
         {
           label: 'Mobile',
-          value: draft(
-            'Android in Kotlin and Kotlin Multiplatform, iOS in Swift, Avalonia Android',
-          ),
+          value: 'Kotlin Multiplatform, Swift, Avalonia Android',
         },
         {
           label: draft('Bluetooth and audio'),
@@ -92,8 +87,8 @@ export const EN_PROFILE: ProfileTexts = {
           value: draft('Clean Architecture, DDD, CQRS, architecture tests'),
         },
         {
-          label: draft('Tooling'),
-          value: draft('Git, GitHub Actions, Docker, OVHcloud VPS'),
+          label: draft('Deployment'),
+          value: draft('GitHub Actions, Docker, OVHcloud VPS'),
         },
       ],
       prose: draft(

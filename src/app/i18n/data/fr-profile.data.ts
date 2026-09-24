@@ -45,7 +45,6 @@ export const FR_PROFILE: ProfileTexts = {
         'Il y a toujours eu un PC à la maison, et je voulais savoir ce qu’il y avait dedans. Mais je suis curieux de tout, et j’ai mis du temps à choisir. J’ai d’abord été archéologue, cinq ans sur des chantiers de fouilles. Un beau métier, qui nourrit mal son homme. Pendant tout ce temps, je n’ai pas arrêté les mods.',
         'En 2021, j’ai choisi le développement. Je suis aujourd’hui en alternance chez Skyted, où je touche à tout : front Angular, API .NET, applications desktop et mobiles reliées en Bluetooth à un casque. Ma curiosité y trouve son compte. Pour ne pas m’éparpiller, je fais passer presque tout par .NET et Angular, jusqu’à une application Android écrite en C#.',
         'Ce qui m’intéresse le plus, c’est la conception, la façon de découper un code pour qu’on puisse encore le faire évoluer dans deux ans. C’est aussi là que j’ai le plus à apprendre.',
-        'En dehors du code, il y a l’espace. Le décor de ce site vient de là.',
       ],
     },
     skills: {
@@ -64,8 +63,7 @@ export const FR_PROFILE: ProfileTexts = {
         { label: 'Desktop', value: 'Avalonia, sur Windows, macOS et Linux' },
         {
           label: 'Mobile',
-          value:
-            'Android en Kotlin et Kotlin Multiplatform, iOS en Swift, Avalonia Android',
+          value: 'Kotlin Multiplatform, Swift, Avalonia Android',
         },
         {
           label: 'Bluetooth et audio',
@@ -76,8 +74,8 @@ export const FR_PROFILE: ProfileTexts = {
           value: 'Clean Architecture, DDD, CQRS, tests d’architecture',
         },
         {
-          label: 'Outillage',
-          value: 'Git, GitHub Actions, Docker, VPS OVHcloud',
+          label: 'Mise en production',
+          value: 'GitHub Actions, Docker, VPS OVHcloud',
         },
       ],
       prose:

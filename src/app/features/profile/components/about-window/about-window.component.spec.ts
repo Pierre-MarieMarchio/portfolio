@@ -177,7 +177,7 @@ describe('AboutWindowComponent', () => {
       ['04', 'Mobile'],
       ['05', 'Bluetooth et audio'],
       ['06', 'Architecture'],
-      ['07', 'Outillage'],
+      ['07', 'Mise en production'],
     ];
     let cursor = -1;
     for (const [number, label] of rows) {

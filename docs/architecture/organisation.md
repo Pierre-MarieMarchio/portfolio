@@ -88,7 +88,7 @@ Le portfolio a **trois concepts** :
 
 - **`projects`** : les réalisations. Leurs données, leur rang, leur liste,
   leur fiche, leur aperçu, la barre des projets vedettes.
-- **`desktop`** : l'écran-bureau. Ce que le lecteur regarde (la vue, la
+- **`observatory`** : l'écran-bureau. Ce que le lecteur regarde (la vue, la
   fiche, le chapitre), les fenêtres ouvertes et épinglées, ce qu'il survole
   ou sélectionne, la scène spatiale en fond, l'ouverture de l'accueil.
 - **`profile`** : l'auteur. La fenêtre « à propos », les liens de contact.
@@ -148,7 +148,7 @@ route, vide, qui dit au bureau quelle vue son adresse montre).
 | Suffixe                                 | Ce que c'est                                                                                                     | Comment on s'en sert                                     | Ne fait jamais                      |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------- |
 | `.service`                              | une classe qui vit dans le temps : état, minuterie, registre, navigateur                                         | `inject(ClockService)`                                   | décider une règle métier (`.rules`) |
-| `.manager`                              | la seule porte vers l'état d'un concept                                                                          | `inject(DesktopManager)` depuis un composant             | écrire l'état lui-même              |
+| `.manager`                              | la seule porte vers l'état d'un concept                                                                          | `inject(ObservatoryManager)` depuis un composant         | écrire l'état lui-même              |
 | `.state` `.action` `.updater` `.effect` | l'état, ses événements, son seul écrivain, ses effets (ngx-statewise)                                            | jamais par un composant : `provideStatewise`, le manager | sortir de leur feature              |
 | `.port`                                 | un contrat que le consommateur déclare et que la composition fournit : l'interface et son jeton, dans un fichier | `inject(LINKS)`, `inject(PROJECTS_TEXTS)`                | avoir une valeur par défaut         |
 
@@ -235,17 +235,17 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
 
 ### 3.4 Les rôles permis dans chaque zone
 
-| Zone                  | Dossiers de rôle permis                                                                                                                   |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/`               | `services/` `ports/` `strategies/` `interceptors/` `models/` `rules/` `helpers/` `signals/`                                               |
-| `shared/ui/`          | `components/` `directives/` `pipes/` `services/` `validators/` `signals/` `ports/` `models/` `data/`                                      |
-| `shared/windows/`     | `components/` `directives/` `services/` `models/` `ports/`                                                                                |
-| `shared/space-scene/` | `components/` `directives/` `services/` `engine/` `rules/` `models/` `ports/`                                                             |
-| `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `desktop` |
-| `features/common/`    | `ports/` `models/` (types seuls)                                                                                                          |
-| `i18n/`               | `services/` `providers/` `guards/` `models/` `rules/` `data/`                                                                             |
-| `pages/`              | un dossier par écran (`-page.component`, `-route.component`) ; `resolvers/` `guards/` `providers/`                                        |
-| racine `src/app/`     | les `app.*.ts`                                                                                                                            |
+| Zone                  | Dossiers de rôle permis                                                                                                                       |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/`               | `services/` `ports/` `strategies/` `interceptors/` `models/` `rules/` `helpers/` `signals/`                                                   |
+| `shared/ui/`          | `components/` `directives/` `pipes/` `services/` `validators/` `signals/` `ports/` `models/` `data/`                                          |
+| `shared/windows/`     | `components/` `directives/` `services/` `models/` `ports/`                                                                                    |
+| `shared/space-scene/` | `components/` `directives/` `services/` `engine/` `rules/` `models/` `ports/`                                                                 |
+| `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `observatory` |
+| `features/common/`    | `ports/` `models/` (types seuls)                                                                                                              |
+| `i18n/`               | `services/` `providers/` `guards/` `models/` `rules/` `data/`                                                                                 |
+| `pages/`              | un dossier par écran (`-page.component`, `-route.component`) ; `resolvers/` `guards/` `providers/`                                            |
+| racine `src/app/`     | les `app.*.ts`                                                                                                                                |
 
 `pages/` est la seule zone rangée par écran : un écran est une page.
 
@@ -401,7 +401,7 @@ contenait remonte dans une feature ou devient générique.
   (la navigation), composés par l'écran.
 - **`social-links/`** (ex-`contact-rail`) : `SocialLinksComponent`, une liste
   de liens à icône. Le bouton pause, qui commande l'animation du bureau,
-  part dans `features/desktop`.
+  part dans `features/observatory`.
 - **`ViewFocusService`** (ex-`landing-focus`) :
   `claim(container)`, avec `ViewHeadingDirective`. But : mettre le focus sur
   le titre de la vue qui vient d'apparaître.
@@ -420,7 +420,7 @@ contenait remonte dans une feature ou devient générique.
   lecteur. `provideI18n` y répond.
 - **`models/scene-anchors.model.ts`** : `SceneAnchorKind = 'panel' | 'head'
 | 'rule' | 'detail' | 'preview' | 'line'`, en type seul. La barre des vedettes (`projects`)
-  déclare ses ancres, la scène (`desktop`) les lit : ce vocabulaire est un
+  déclare ses ancres, la scène (`observatory`) les lit : ce vocabulaire est un
   contrat entre deux features, que le compilateur vérifie. Il remplit les
   trois conditions d'admission : deux features le consomment, le besoin naît
   dans leurs composants, il est minimal.
@@ -452,7 +452,7 @@ Il perd le classement (une règle pure), les libellés (de la présentation),
 `factsOf`, `isLoading`, `isError`, `reset`. Le nombre de vedettes n'a plus
 qu'une source, `FEATURED`.
 
-### 4.5 `features/desktop/` (ex-`station`)
+### 4.5 `features/observatory/` (ex-`station`)
 
 #### L'état : découpé selon ses actions
 
@@ -461,24 +461,24 @@ sur une vue change à la fois la vue, la fiche, le chapitre, les fiches lues,
 l'aperçu (selon les épingles) et le survol : ces signaux forment un seul
 état, sinon une règle métier se disperse en chaînes d'effets.
 
-| État        | Signaux                                                                                                            | But                                         |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| `desktop`   | `view`, `slug`, `chapter`, `section`, `visited`, `pins`, `preview`, `lastPreview`, `selected`, `hovered`, `family` | ce que le lecteur regarde, ouvre et désigne |
-| `animation` | `paused`                                                                                                           | la scène en mouvement ou en pause           |
+| État          | Signaux                                                                                                            | But                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| `observatory` | `view`, `slug`, `chapter`, `section`, `visited`, `pins`, `preview`, `lastPreview`, `selected`, `hovered`, `family` | ce que le lecteur regarde, ouvre et désigne |
+| `animation`   | `paused`                                                                                                           | la scène en mouvement ou en pause           |
 
-`DesktopManager` expose l'état et ses commandes ; ses dérivés sont ceux dont
+`ObservatoryManager` expose l'état et ses commandes ; ses dérivés sont ceux dont
 un écran a besoin (`showsList`, `showsAbout`, `showsPreview`, `canStepBack`),
 et plus aucun relais inutile.
 
 - `rules/view.rules.ts` : `parentOf`, `stepBack`, et **`windowOf(view)`**,
   la table vue → fenêtre écrite une seule fois (deux copies aujourd'hui).
-- `models/desktop.model.ts` : `DesktopView`, `DesktopWindow`, `Planet`,
+- `models/observatory.model.ts` : `ObservatoryView`, `ObservatoryWindow`, `Planet`,
   les ids DOM (ex-`station.ids`). Une seule union de vues : celle du moteur
   (`ObjectView`) et celle de la pile (`WindowSlot`) disparaissent.
 
 #### Les composants
 
-- **`desktop-scene/`** `DesktopSceneComponent` : la chorégraphie du bureau
+- **`observatory-scene/`** `ObservatorySceneComponent` : la chorégraphie du bureau
   sur la scène de `shared/space-scene`. Il reçoit des `Planet { slug, title,
 short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
   et le chapitre, et les traduit en direction de scène
@@ -588,12 +588,12 @@ français quand les resolvers tournent.
 
 ### 4.8 `pages/`
 
-| Unité                                  | But                                                                                                                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `desktop/desktop-page.component.*`     | composer l'écran : scène, navigation, fenêtres ; brancher les gestes sur les managers                                                                                                       |
-| `desktop/desktop-route.component.ts`   | la feuille de route, vide : à son activation, dire au bureau quelle vue son adresse montre ; un seul composant pour toutes les vues, fiche comprise (ex-`ViewMarker` + `ProjectDetailPage`) |
-| `page-head.resolver.ts`                | titre, description et adresses alternatives de chaque vue (ex-`view-head` + `project-title.resolver`)                                                                                       |
-| `workbench/workbench-page.component.*` | l'atelier des composants partagés, en développement                                                                                                                                         |
+| Unité                                        | But                                                                                                                                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `observatory/observatory-page.component.*`   | composer l'écran : scène, navigation, fenêtres ; brancher les gestes sur les managers                                                                                                       |
+| `observatory/observatory-route.component.ts` | la feuille de route, vide : à son activation, dire au bureau quelle vue son adresse montre ; un seul composant pour toutes les vues, fiche comprise (ex-`ViewMarker` + `ProjectDetailPage`) |
+| `page-head.resolver.ts`                      | titre, description et adresses alternatives de chaque vue (ex-`view-head` + `project-title.resolver`)                                                                                       |
+| `workbench/workbench-page.component.*`       | l'atelier des composants partagés, en développement                                                                                                                                         |
 
 - `station-projects.binding.ts` disparaît. La scène traduit elle-même slug
   et rang, le filtre est typé, les relais tombent. Il reste deux
@@ -610,7 +610,7 @@ dont c'est le rôle, qui déclare la vue au bureau.
 ### 4.9 La racine
 
 `app.component.ts`, `app.config.ts`, `app.config.server.ts`, `app.routes.ts`,
-`app.routes.server.ts`. Chaque route charge `DesktopRouteComponent`, déclare
+`app.routes.server.ts`. Chaque route charge `ObservatoryRouteComponent`, déclare
 sa vue dans `data` et ses têtes par le resolver `page-head`.
 
 ### 4.10 `src/testing/`
@@ -636,18 +636,18 @@ src/app/
   core/strategies/                             route-head.strategy
   features/common/models/                      scene-anchors.model
   features/common/ports/                       links.port
-  features/desktop/components/animation-toggle/ animation-toggle.component
-  features/desktop/components/desktop-scene/   desktop-scene.component
-  features/desktop/components/home-title/      home-title.component
-  features/desktop/components/intro-card/      intro-card.component
-  features/desktop/components/not-found-window/ not-found-window.component
-  features/desktop/components/planet-buttons/  planet-buttons.component
-  features/desktop/models/                     desktop-ids.model · desktop.model
-  features/desktop/ports/                      desktop-texts.port
-  features/desktop/rules/                      scene-direction.rules · view.rules
-  features/desktop/services/                   featured-tour.service · home-reveal.service · scene-surroundings.service
-  features/desktop/states/animation/           animation.action · animation.manager · animation.state · animation.updater
-  features/desktop/states/desktop/             desktop.action · desktop.effect · desktop.manager · desktop.state · desktop.updater
+  features/observatory/components/animation-toggle/ animation-toggle.component
+  features/observatory/components/home-title/  home-title.component
+  features/observatory/components/intro-card/  intro-card.component
+  features/observatory/components/not-found-window/ not-found-window.component
+  features/observatory/components/observatory-scene/ observatory-scene.component
+  features/observatory/components/planet-buttons/ planet-buttons.component
+  features/observatory/models/                 observatory-ids.model · observatory.model
+  features/observatory/ports/                  observatory-texts.port
+  features/observatory/rules/                  scene-direction.rules · view.rules
+  features/observatory/services/               featured-tour.service · home-reveal.service · scene-surroundings.service
+  features/observatory/states/animation/       animation.action · animation.manager · animation.state · animation.updater
+  features/observatory/states/observatory/     observatory.action · observatory.effect · observatory.manager · observatory.state · observatory.updater
   features/profile/components/about-window/    about-window.component
   features/profile/data/                       contact.data
   features/profile/models/                     contact.model
@@ -670,7 +670,7 @@ src/app/
   i18n/providers/                              i18n.provider
   i18n/rules/                                  paths.rules
   i18n/services/                               catalog-loader.service
-  pages/desktop/                               desktop-page.component · desktop-route.component
+  pages/observatory/                           observatory-page.component · observatory-route.component
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component
   shared/space-scene/components/space-scene/   space-scene.component

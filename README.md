@@ -60,16 +60,16 @@ src/app/
       components/        barre vedettes, liste, aperçu, fiche
       data/              contenu : un fichier par projet, leur ordre, libellés
       models/ services/ ports/ rules/ states/
-    desktop/
-      components/        la scène du bureau, la carte d'ouverture, le titre,
+    observatory/
+      components/        la scène de l'observatoire, la carte d'ouverture, le titre,
                          la fenêtre « adresse inconnue », la pause
       services/          la révélation de l'accueil, le tour des vedettes
-      models/ ports/ rules/ states/desktop/ states/animation/
+      models/ ports/ rules/ states/observatory/ states/animation/
     profile/
       components/        la fenêtre « à propos »
       data/ models/ ports/
   pages/                 composition : un dossier par écran
-    desktop/             l'écran-bureau et sa feuille de route
+    observatory/         l'écran de l'observatoire et sa feuille de route
     workbench/           l'atelier des composants, en développement
     resolvers/           les têtes de page, dans la langue visée
 src/testing/             fixtures/ et doubles/ des specs
@@ -121,7 +121,7 @@ pages ne parlent qu'aux **managers**. Un concept d'état = cinq fichiers dans
 
 On dérive plutôt que de stocker : l'état garde un **slug** et l'écran en dérive
 le projet (`manager.find(slug)`), jamais une copie. Ce que le lecteur regarde
-et désigne (vue, fiche, épingles, sélection, filtre) est l'état `desktop` ; la
+et désigne (vue, fiche, épingles, sélection, filtre) est l'état `observatory` ; la
 pause, l'état `animation` (D14).
 
 ## SSR et prérendu

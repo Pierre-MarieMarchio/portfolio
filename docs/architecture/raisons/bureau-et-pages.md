@@ -178,6 +178,11 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   à 1180×820, chaque fenêtre tient déjà entière dans l'écran, sous la barre
   de pages (mesuré, et tenu par `e2e/tablet.spec.ts`). Rien dans la page ne
   dépend donc du format.
+- Au téléphone, les emplacements couvrent l'écran, sous la barre de pages et
+  le rail de contact dans l'ordre des calques : la vitre décide de sa forme
+  dans cette place (basse, haute, couchée). La page ne fait rien d'autre au
+  téléphone : le dock, l'accueil, la règle, l'aperçu et une vitre à la fois
+  sont d'autres tâches.
 
 ## `pages/resolvers/page-head.resolver.ts`
 

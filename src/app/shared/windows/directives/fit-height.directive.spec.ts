@@ -16,6 +16,19 @@ const stubViewportHeight = (height: number): (() => void) => {
   };
 };
 
+const stubViewportWidth = (width: number): (() => void) => {
+  const descriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+  Object.defineProperty(window, 'innerWidth', {
+    value: width,
+    configurable: true,
+  });
+  return () => {
+    if (descriptor) {
+      Object.defineProperty(window, 'innerWidth', descriptor);
+    }
+  };
+};
+
 const stubLayout = (
   element: HTMLElement,
   layout: { offsetTop: number; offsetHeight?: number },
@@ -159,6 +172,16 @@ describe('FitHeightDirective', () => {
 
     fixture.componentInstance.ceiling.set(null);
     await fixture.whenStable();
+
+    expect(section.style.maxHeight).toBe('');
+  });
+
+  it('bounds nothing at the phone format', async () => {
+    const { section, refit } = await setup({ offsetTop: 500 }, 844);
+    expect(section.style.maxHeight).toBe('318px');
+
+    restorers.push(stubViewportWidth(390));
+    await refit();
 
     expect(section.style.maxHeight).toBe('');
   });

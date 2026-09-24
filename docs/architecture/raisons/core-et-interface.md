@@ -236,7 +236,42 @@ nomme l'unité qu'elle concerne.
   d'équivalent au clavier dans la maquette.
 - La barre garde `touch-action: none` : sans elle, le navigateur prend le
   glisser du doigt pour un défilement (il annule le pointeur), et WebKit le
-  double toucher pour un zoom.
+  double toucher pour un zoom. Au téléphone, où elle ne se glisse plus, elle
+  passe à `manipulation` : tirer la barre fait descendre la vitre, et le
+  double toucher reste un repli, pas un zoom.
+- Au téléphone, la fenêtre est une vitre, par le CSS seul : les deux
+  enveloppes (`.glass`, `.rail`) et les deux calques (`.shade`, `.lead`)
+  sont dans le DOM à tous les formats, en `display: contents` ou `none`
+  hors du téléphone. Un bloc structurel qui dépendrait du format changerait
+  le HTML prérendu, qui vaut `desktop`. Au bureau et à la tablette, la
+  fenêtre garde donc ses boîtes, et leurs captures ne bougent pas.
+- La vitre debout est un conteneur de défilement qui couvre l'emplacement :
+  un espace transparent de 60 % (`.lead`), puis la fenêtre, haute de l'écran
+  moins 12 px. Faire défiler ce conteneur fait monter la vitre, avec l'élan
+  natif, sans JavaScript de geste ; sa course est exactement la montée. Le
+  conteneur laisse passer le pointeur : l'espace transparent ne cache pas
+  l'objet, et le doigt posé sur la fenêtre fait quand même défiler son
+  ancêtre (mesuré sous les deux moteurs).
+- Le corps reste le seul contenu qui défile, comme au bureau :
+  `remember-scroll` et `resetOn` gardent leur élément. Tant que la vitre est
+  basse, il est en `overflow-y: hidden` : un geste qui commence sur lui fait
+  d'abord monter la vitre. Il redevient libre quand la vitre repose en haut
+  (`data-rest='end'`), et `overscroll-behavior` y repasse à `auto` : revenu
+  en haut du contenu, tirer vers le bas passe au conteneur, qui redescend.
+- Le flou de la scène est une animation liée au défilement du conteneur
+  (`scroll-timeline`), portée par un calque frère (`.shade`) sous la vitre :
+  rien n'est écrit à chaque image, ni dans un signal ni dans le DOM. Le
+  calque est un élément et non un `::before` : WebKit 26 ne trouve pas une
+  frise nommée depuis un pseudo-élément (mesuré), et le calque est un frère
+  et non un ancêtre de la fenêtre, sans quoi il deviendrait la racine de son
+  `backdrop-filter` et la vitre ne flouterait plus rien.
+- Couchée, la vitre prend la moitié droite, de haut en bas, sans montée : le
+  corps défile comme au bureau. Repliée, elle se réduit à sa barre, collée en
+  bas, debout comme couchée.
+- La barre de pages et le rail de contact restent au-dessus de la vitre
+  (`--z-chrome`) : vitre haute, la barre de pages couvre sa barre de titre ;
+  couchée, elle la couvre aussi ; repliée, le rail de contact couvre ses
+  boutons. C'est la tâche du dock, pas celle de la vitre.
 - L'ouverture joue sur `translate`, pas `transform` : `transform` appartient
   au glissement, et une animation en `fill-mode: both` écraserait la
   position que le lecteur a choisie.
@@ -245,7 +280,7 @@ nomme l'unité qu'elle concerne.
 - Les bandes que la maquette répétait dans chaque appelant (outils, pied)
   sont dessinées une fois, ici. Une bande vide ne dessine rien.
 - Seul le corps défile, et arriver en bas ne fait jamais défiler la page
-  derrière. Sa marge intérieure diffère selon la vue : l'appelant la pose
+  derrière (au téléphone, la vitre défile avant lui : voir plus haut). Sa marge intérieure diffère selon la vue : l'appelant la pose
   (`--window-body-padding`).
 - L'entrée s'appelle `heading`, pas `title` : `title` posait sur l'hôte
   l'attribut natif, donc une infobulle.
@@ -270,6 +305,10 @@ nomme l'unité qu'elle concerne.
 
 ## `src/app/shared/windows/directives/draggable.directive.ts`
 
+- Au format `phone`, la fenêtre ne se glisse pas : la vitre a sa place, et
+  le doigt sur la barre fait défiler. Une fenêtre déplacée à la tablette
+  revient à sa place quand l'écran devient un téléphone.
+
 - Après un redimensionnement ou une rotation, une fenêtre déplacée est
   ramenée dans les bornes du glisser, calculées sur la nouvelle mise en page.
   Une fenêtre jamais déplacée reste où la mise en page la pose : son
@@ -278,6 +317,28 @@ nomme l'unité qu'elle concerne.
   arrondi après coup, il pouvait laisser 149,5 px à l'écran au lieu de 150.
 - Les bornes comptent le cadre de la fenêtre : les 150 px visibles sur le
   côté comprennent sa bordure d'un pixel.
+
+## `src/app/shared/windows/directives/fit-height.directive.ts`
+
+- Au format `phone`, elle ne borne rien : la vitre prend sa hauteur du CSS,
+  et une borne comptée depuis sa position de mise en page (60 % de l'écran)
+  la couperait à la hauteur de la vitre basse.
+
+## `src/app/shared/windows/directives/scroll-stops.directive.ts`
+
+- Une zone qui défile ne repose qu'à son début ou à sa fin : lâchée entre
+  les deux, elle va du côté où on l'a poussée depuis sa dernière butée, pour
+  peu qu'elle ait bougé de 48 px. Sans elle, tirer la vitre de 150 px la
+  laisserait à mi-course, et l'accroche CSS (`scroll-snap`) choisirait la
+  butée la plus proche, donc la remonterait.
+- Elle agit à `scrollend`, que Chromium et WebKit 26 envoient, et ne lit que
+  la position : pas de geste à suivre, rien à chaque image. Elle écrit
+  `data-rest` quand la zone touche une butée, une fois par changement.
+- Elle suit la zone par `scrollTo` sans comportement : le CSS
+  (`scroll-behavior`) dit s'il y a une transition, et le mouvement réduit
+  l'enlève.
+- Le spec redéfinit `scrollHeight`, `clientHeight` et `scrollTo`, que jsdom
+  n'a pas.
 
 ## `src/styles.scss`
 
@@ -414,6 +475,8 @@ nomme l'unité qu'elle concerne.
 - `phone` remplace les littéraux 620 et 640 de largeur : les noms courts de
   la règle des vedettes disparaissent sous 620 px de large (et en téléphone
   couché) ; le titre de l'accueil tient sur une ligne hors du téléphone.
+- `phone-portrait` et `phone-landscape` sont le téléphone debout et couché :
+  la même règle, avec l'orientation. La vitre ne monte que debout.
 - `short-screen` garde le seuil de hauteur de la règle des vedettes (la
   ligne de lecture disparaît à 640 px de haut et moins) : ce n'est pas un
   format, un bureau bas le prend aussi.

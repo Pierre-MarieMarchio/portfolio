@@ -362,20 +362,26 @@ contenait remonte dans une feature ou devient générique.
 
 `WindowComponent` portait cinq responsabilités.
 
-| Unité                                                    | But                                                                                                  | Contrat                                                                                                                   |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, épingler, replier, fermer, zones                                          | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
-| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran, et l'y ramener quand l'écran change | `appDraggable` (la poignée)                                                                                               |
-| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                   | `appDoublePress` ; `doublePressed`                                                                                        |
-| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                                       | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                             |
-| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                     | `appRememberScroll` (clé), `resetOn`                                                                                      |
-| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                           | `save(key, top)`, `read(key)`                                                                                             |
+| Unité                                                    | But                                                                                                        | Contrat                                                                                                                   |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, épingler, replier, fermer, zones                                                | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
+| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran, et l'y ramener quand l'écran change       | `appDraggable` (la poignée)                                                                                               |
+| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                         | `appDoublePress` ; `doublePressed`                                                                                        |
+| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                                             | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                             |
+| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                           | `appRememberScroll` (clé), `resetOn`                                                                                      |
+| `scroll-stops.directive.ts` `ScrollStopsDirective`       | faire reposer une zone qui défile à son début ou à sa fin, du côté où on l'a poussée ; dire où elle repose | `appScrollStops` ; écrit `data-rest` (`start`, `end`)                                                                     |
+| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                 | `save(key, top)`, `read(key)`                                                                                             |
 
 - `FitHeightDirective` calcule depuis la **position de mise en page**
   (`offsetTop`), que le glissement ne change pas, puisqu'il passe par un
   `transform`. Elle ne lit donc rien de `DraggableDirective`. Si un spec
   montre que les deux mesures divergent, elles se réunissent : deux
   directives qui partagent un état caché n'en font qu'une.
+- Au format `phone`, la fenêtre est une vitre (D25) : un conteneur de
+  défilement que `ScrollStopsDirective` fait reposer basse ou haute, et dont
+  le défilement floute la scène par une animation CSS. `FitHeightDirective`
+  n'y borne rien et `DraggableDirective` n'y glisse pas ; elles lisent
+  `DisplayFormatService`.
 - `resetOn` remplace les deux effets « remonter en haut » écrits dans la
   fiche et dans « à propos ».
 - Les marges passées en dur (76, 88) deviennent `--window-reserve`, posée par
@@ -722,7 +728,7 @@ src/app/
   shared/ui/services/                          layout-anchors.service · view-focus.service
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
-  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · remember-scroll.directive · stacked-window.directive
+  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · remember-scroll.directive · scroll-stops.directive · stacked-window.directive
   shared/windows/models/                       window.model
   shared/windows/ports/                        window-texts.port
   shared/windows/services/                     scroll-memory.service · window-stack.service

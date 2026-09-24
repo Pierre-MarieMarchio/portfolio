@@ -7,7 +7,7 @@ import {
   input,
 } from '@angular/core';
 import { clamp, isOnControl } from '@app/core/helpers';
-import { BrowserWindowService } from '@app/core/services';
+import { BrowserWindowService, DisplayFormatService } from '@app/core/services';
 
 const VISIBLE_SIDEWAYS = 150;
 const EDGE_LEFT = 16;
@@ -27,6 +27,7 @@ interface Grip {
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {
   private readonly browserWindow = inject(BrowserWindowService);
+  private readonly display = inject(DisplayFormatService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -60,7 +61,7 @@ export class DraggableDirective {
   }
 
   private grab(event: PointerEvent, handle: HTMLElement): void {
-    if (event.button !== 0 || isOnControl(event)) {
+    if (event.button !== 0 || isOnControl(event) || this.isOnPhone()) {
       return;
     }
     this.release();
@@ -96,9 +97,22 @@ export class DraggableDirective {
   }
 
   private keepOnScreen(): void {
-    if (this.dx !== 0 || this.dy !== 0) {
+    if (this.isOnPhone()) {
+      this.putBack();
+    } else if (this.dx !== 0 || this.dy !== 0) {
       this.moveTo(this.dx, this.dy);
     }
+  }
+
+  private putBack(): void {
+    this.release();
+    this.dx = 0;
+    this.dy = 0;
+    this.element.style.transform = '';
+  }
+
+  private isOnPhone(): boolean {
+    return this.display.format() === 'phone';
   }
 
   private moveTo(dx: number, dy: number): void {

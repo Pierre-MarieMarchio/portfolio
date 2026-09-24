@@ -62,6 +62,7 @@ describe('StationComponent', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
     TestBed.resetTestingModule();
+    delete document.documentElement.dataset['format'];
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();

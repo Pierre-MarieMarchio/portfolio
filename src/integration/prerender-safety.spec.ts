@@ -169,6 +169,7 @@ describe('prerender safety', () => {
   });
 
   it('is a desktop on the server, listens to nothing and marks no root', () => {
+    delete document.documentElement.dataset['format'];
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
     const addEventListener = vi.spyOn(window, 'addEventListener');

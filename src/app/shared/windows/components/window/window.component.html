@@ -5,7 +5,7 @@
   [appFitHeight]="ceiling()"
   [anchor]="anchor()"
 >
-  <div #bar class="titlebar" (dblclick)="onBarDoubleClick($event)">
+  <div #bar class="titlebar" appDoublePress (doublePressed)="toggleCollapse()">
     <span class="square" aria-hidden="true"></span>
     <h2>{{ heading() }}</h2>
     <span class="spacer"></span>

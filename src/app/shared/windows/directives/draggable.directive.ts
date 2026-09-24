@@ -14,6 +14,9 @@ const EDGE_LEFT = 16;
 const EDGE_TOP = 12;
 const EDGE_BOTTOM = 60;
 
+const wholePixelsWithin = (value: number, min: number, max: number): number =>
+  clamp(Math.round(value), Math.ceil(min), Math.floor(max));
+
 interface Grip {
   readonly x: number;
   readonly y: number;
@@ -45,7 +48,13 @@ export class DraggableDirective {
         handle.removeEventListener('pointerdown', onGrab);
       });
     });
+    const stopResize = this.browserWindow.on(
+      'resize',
+      () => this.keepOnScreen(),
+      { passive: true },
+    );
     inject(DestroyRef).onDestroy(() => {
+      stopResize();
       this.release();
     });
   }
@@ -76,25 +85,41 @@ export class DraggableDirective {
 
   private drag(event: PointerEvent): void {
     const grip = this.grip;
-    const viewport = this.browserWindow.size();
-    if (!grip || !viewport) {
+    if (!grip) {
       return;
     }
     event.preventDefault();
+    this.moveTo(
+      grip.dx + (event.clientX - grip.x),
+      grip.dy + (event.clientY - grip.y),
+    );
+  }
+
+  private keepOnScreen(): void {
+    if (this.dx !== 0 || this.dy !== 0) {
+      this.moveTo(this.dx, this.dy);
+    }
+  }
+
+  private moveTo(dx: number, dy: number): void {
+    const viewport = this.browserWindow.size();
+    if (!viewport) {
+      return;
+    }
     const rect = this.element.getBoundingClientRect();
     const left0 = rect.left - this.dx;
     const top0 = rect.top - this.dy;
-    this.dx = clamp(
-      grip.dx + (event.clientX - grip.x),
+    this.dx = wholePixelsWithin(
+      dx,
       EDGE_LEFT - left0 - rect.width + VISIBLE_SIDEWAYS,
       viewport.width - VISIBLE_SIDEWAYS - left0,
     );
-    this.dy = clamp(
-      grip.dy + (event.clientY - grip.y),
+    this.dy = wholePixelsWithin(
+      dy,
       EDGE_TOP - top0,
       viewport.height - EDGE_BOTTOM - top0,
     );
-    this.element.style.transform = `translate(${String(Math.round(this.dx))}px,${String(Math.round(this.dy))}px)`;
+    this.element.style.transform = `translate(${String(this.dx)}px,${String(this.dy)}px)`;
   }
 
   private release(): void {

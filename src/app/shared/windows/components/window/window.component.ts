@@ -6,7 +6,7 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { isOnControl } from '@app/core/helpers';
+import { DoublePressDirective } from '../../directives/double-press.directive';
 import { DraggableDirective } from '../../directives/draggable.directive';
 import { FitHeightDirective } from '../../directives/fit-height.directive';
 import { RememberScrollDirective } from '../../directives/remember-scroll.directive';
@@ -19,7 +19,12 @@ import { WINDOW_TEXTS } from '../../ports/window-texts.port';
 
 @Component({
   selector: 'app-window',
-  imports: [DraggableDirective, FitHeightDirective, RememberScrollDirective],
+  imports: [
+    DoublePressDirective,
+    DraggableDirective,
+    FitHeightDirective,
+    RememberScrollDirective,
+  ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.scss',
 })
@@ -53,11 +58,5 @@ export class WindowComponent {
 
   protected toggleCollapse(): void {
     this.collapsed.update((collapsed) => !collapsed);
-  }
-
-  protected onBarDoubleClick(event: MouseEvent): void {
-    if (!isOnControl(event)) {
-      this.toggleCollapse();
-    }
   }
 }

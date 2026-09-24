@@ -614,3 +614,31 @@ régression de disposition dépasse largement 200 pixels : le haut de la fiche �
 106,6 px en faisait 1 500, d'où l'arrondi, qui laisse le bureau identique
 (117 px à 900 de haut, le plancher de 96 px à 540). `--window-top` n'est pas
 arrondi : au bureau, 94,5 px deviendrait 95, et ses captures bougeraient.
+
+## 2026-09-24 — Au téléphone, la fenêtre est une vitre (D25)
+
+**Décision.** Au format `phone`, la fenêtre garde son API et ses gestes
+(épingler, replier, fermer), mais se présente en vitre : elle arrive basse,
+son haut à 60 % de l'écran ; faire défiler son corps la monte d'abord
+jusqu'à 12 px du haut, puis fait défiler le contenu ; revenu en haut du
+contenu, tirer vers le bas la redescend ; repliée, elle n'est plus que sa
+barre, collée en bas ; la scène derrière se floute et s'assombrit à mesure
+qu'elle monte. Couchée, elle prend la moitié droite, de haut en bas, sans
+montée. Le glisser de la barre disparaît. Les emplacements de la page
+couvrent l'écran.
+
+**Raison.** Une fenêtre flottante de bureau, sur 390 px de large, cache
+l'objet sans rien gagner à se déplacer. La vitre laisse l'objet visible en
+arrivant et donne toute la hauteur à la lecture. Elle passe par le
+défilement natif (l'élan, le rebond, le retour) plutôt que par un geste
+écrit à la main, et par le CSS seul pour la disposition, puisque le HTML
+prérendu vaut `desktop` (voir `raisons/core-et-interface.md`).
+
+**Écarté.** Une vitre qui s'arrête sous la barre de pages : à 390 px, la
+barre tient sur deux lignes et descend à 154 px, et la vitre haute doit
+monter à moins de 80 px du haut. Elle passe donc sous la barre, dans l'ordre
+des calques, jusqu'à ce que la barre de pages et le rail de contact aient
+leur disposition de téléphone. Un geste de glisser écrit en
+JavaScript : il refait l'élan et la latence du défilement natif. L'accroche
+CSS (`scroll-snap`) : elle choisit la butée la plus proche, pas celle du
+côté où l'on tire.

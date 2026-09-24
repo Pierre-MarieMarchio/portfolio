@@ -10,6 +10,7 @@ import { DoublePressDirective } from '../../directives/double-press.directive';
 import { DraggableDirective } from '../../directives/draggable.directive';
 import { FitHeightDirective } from '../../directives/fit-height.directive';
 import { RememberScrollDirective } from '../../directives/remember-scroll.directive';
+import { ScrollStopsDirective } from '../../directives/scroll-stops.directive';
 import {
   WINDOW_CEILINGS,
   WindowAnchor,
@@ -24,6 +25,7 @@ import { WINDOW_TEXTS } from '../../ports/window-texts.port';
     DraggableDirective,
     FitHeightDirective,
     RememberScrollDirective,
+    ScrollStopsDirective,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.scss',

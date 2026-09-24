@@ -1,59 +1,70 @@
-<section
-  class="window"
-  [attr.aria-label]="name()"
-  [appDraggable]="bar"
-  [appFitHeight]="ceiling()"
-  [anchor]="anchor()"
->
-  <div #bar class="titlebar" appDoublePress (doublePressed)="toggleCollapse()">
-    <span class="square" aria-hidden="true"></span>
-    <h2>{{ heading() }}</h2>
-    <span class="spacer"></span>
-    <p class="meta">{{ meta() }}</p>
-    <button
-      type="button"
-      class="control pin"
-      [attr.data-pinned]="pinned()"
-      [attr.aria-pressed]="pinned()"
-      [attr.aria-label]="pinLabel()"
-      [title]="pinLabel()"
-      (click)="pinToggled.emit()"
+<div class="glass" [class.glass--folded]="collapsed()">
+  <div class="shade"></div>
+  <div class="rail" appScrollStops>
+    <div class="lead"></div>
+    <section
+      class="window"
+      [attr.aria-label]="name()"
+      [appDraggable]="bar"
+      [appFitHeight]="ceiling()"
+      [anchor]="anchor()"
     >
-      {{ pinned() ? '●' : '○' }}
-    </button>
-    <button
-      type="button"
-      class="control"
-      [attr.aria-expanded]="!collapsed()"
-      [attr.aria-label]="collapseLabel()"
-      [title]="collapseLabel()"
-      (click)="toggleCollapse()"
-    >
-      {{ collapsed() ? '+' : '–' }}
-    </button>
-    @if (closable()) {
-      <button
-        type="button"
-        class="control close"
-        [attr.aria-label]="texts().close"
-        [title]="texts().close"
-        (click)="closed.emit()"
+      <div
+        #bar
+        class="titlebar"
+        appDoublePress
+        (doublePressed)="toggleCollapse()"
       >
-        ✕
-      </button>
-    }
-  </div>
+        <span class="square" aria-hidden="true"></span>
+        <h2>{{ heading() }}</h2>
+        <span class="spacer"></span>
+        <p class="meta">{{ meta() }}</p>
+        <button
+          type="button"
+          class="control pin"
+          [attr.data-pinned]="pinned()"
+          [attr.aria-pressed]="pinned()"
+          [attr.aria-label]="pinLabel()"
+          [title]="pinLabel()"
+          (click)="pinToggled.emit()"
+        >
+          {{ pinned() ? '●' : '○' }}
+        </button>
+        <button
+          type="button"
+          class="control"
+          [attr.aria-expanded]="!collapsed()"
+          [attr.aria-label]="collapseLabel()"
+          [title]="collapseLabel()"
+          (click)="toggleCollapse()"
+        >
+          {{ collapsed() ? '+' : '–' }}
+        </button>
+        @if (closable()) {
+          <button
+            type="button"
+            class="control close"
+            [attr.aria-label]="texts().close"
+            [title]="texts().close"
+            (click)="closed.emit()"
+          >
+            ✕
+          </button>
+        }
+      </div>
 
-  @if (!collapsed()) {
-    <div class="toolbar"><ng-content select="[toolbar]" /></div>
-    <ng-content />
-    <div
-      class="body"
-      [appRememberScroll]="scrollKey()"
-      [resetOn]="scrollResetOn()"
-    >
-      <ng-content select="[body]" />
-    </div>
-    <div class="footer"><ng-content select="[footer]" /></div>
-  }
-</section>
+      @if (!collapsed()) {
+        <div class="toolbar"><ng-content select="[toolbar]" /></div>
+        <ng-content />
+        <div
+          class="body"
+          [appRememberScroll]="scrollKey()"
+          [resetOn]="scrollResetOn()"
+        >
+          <ng-content select="[body]" />
+        </div>
+        <div class="footer"><ng-content select="[footer]" /></div>
+      }
+    </section>
+  </div>
+</div>

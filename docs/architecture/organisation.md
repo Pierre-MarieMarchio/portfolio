@@ -362,13 +362,14 @@ contenait remonte dans une feature ou devient générique.
 
 `WindowComponent` portait cinq responsabilités.
 
-| Unité                                                    | But                                                                              | Contrat                                                                                                                   |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, épingler, replier, fermer, zones                      | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
-| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran                  | `appDraggable` (la poignée)                                                                                               |
-| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                   | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                             |
-| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change | `appRememberScroll` (clé), `resetOn`                                                                                      |
-| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                       | `save(key, top)`, `read(key)`                                                                                             |
+| Unité                                                    | But                                                                                                  | Contrat                                                                                                                   |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, épingler, replier, fermer, zones                                          | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
+| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran, et l'y ramener quand l'écran change | `appDraggable` (la poignée)                                                                                               |
+| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                   | `appDoublePress` ; `doublePressed`                                                                                        |
+| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                                       | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                             |
+| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                     | `appRememberScroll` (clé), `resetOn`                                                                                      |
+| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                           | `save(key, top)`, `read(key)`                                                                                             |
 
 - `FitHeightDirective` calcule depuis la **position de mise en page**
   (`offsetTop`), que le glissement ne change pas, puisqu'il passe par un
@@ -721,7 +722,7 @@ src/app/
   shared/ui/services/                          layout-anchors.service · view-focus.service
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
-  shared/windows/directives/                   draggable.directive · fit-height.directive · remember-scroll.directive · stacked-window.directive
+  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · remember-scroll.directive · stacked-window.directive
   shared/windows/models/                       window.model
   shared/windows/ports/                        window-texts.port
   shared/windows/services/                     scroll-memory.service · window-stack.service

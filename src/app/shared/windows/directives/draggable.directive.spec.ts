@@ -226,6 +226,65 @@ describe('DraggableDirective', () => {
     expect(fixture.componentInstance.count).toBe(before);
   });
 
+  it.each([
+    {
+      way: 'sideways',
+      to: { x: 2600, y: 400 },
+      movedRect: { left: 850 },
+      screen: { width: 820, height: 1180 },
+      transform: 'translate(370px,0px)',
+    },
+    {
+      way: 'downwards',
+      to: { x: 600, y: 2400 },
+      movedRect: { top: 740 },
+      screen: { width: 1200, height: 500 },
+      transform: 'translate(0px,140px)',
+    },
+  ])(
+    'brings a moved element back within the screen after a resize, $way',
+    async ({ to, movedRect, screen, transform }) => {
+      const { section, grab } = await setup();
+      grab();
+      move(to.x, to.y);
+      window.dispatchEvent(
+        pointer('pointerup', { clientX: to.x, clientY: to.y }),
+      );
+
+      restorers.push(
+        stubRect(section, { ...RECT, ...movedRect }),
+        stubViewport(screen.width, screen.height),
+      );
+      window.dispatchEvent(new Event('resize'));
+
+      expect(section.style.transform).toBe(transform);
+    },
+  );
+
+  it('leaves an element that was never moved where the layout puts it', async () => {
+    const { section } = await setup();
+    restorers.push(stubViewport(400, 300));
+
+    window.dispatchEvent(new Event('resize'));
+
+    expect(section.style.transform).toBe('');
+  });
+
+  it('stops following resizes once destroyed', async () => {
+    const { fixture, section, grab } = await setup();
+    grab();
+    move(2600, 400);
+    fixture.destroy();
+    restorers.push(
+      stubRect(section, { ...RECT, left: 1050 }),
+      stubViewport(820, 1180),
+    );
+
+    window.dispatchEvent(new Event('resize'));
+
+    expect(section.style.transform).toBe('translate(550px,0px)');
+  });
+
   it('stops listening once destroyed, even in the middle of a move', async () => {
     const { fixture, section, grab } = await setup();
 

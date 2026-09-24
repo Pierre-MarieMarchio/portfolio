@@ -1,0 +1,22 @@
+/*
+ * The end-to-end tests and their config, run by Playwright in Node against
+ * the prerendered site: as strict as the application, with Node's types and
+ * the DOM's, since page.evaluate runs its callback in the browser.
+ */
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "erasableSyntaxOnly": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["node"]
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts"]
+}

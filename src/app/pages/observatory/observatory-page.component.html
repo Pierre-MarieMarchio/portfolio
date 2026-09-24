@@ -56,6 +56,7 @@
       #aboutSlot
       class="slot slot--about"
       appStackedWindow="about"
+      [attr.data-docked]="station.docked().includes('about')"
       [appLayoutAnchor]="anchor.panel"
     >
       @if (station.showsAbout()) {
@@ -73,6 +74,7 @@
       #indexSlot
       class="slot slot--index"
       appStackedWindow="index"
+      [attr.data-docked]="station.docked().includes('index')"
       [appLayoutAnchor]="anchor.panel"
     >
       @if (station.showsList()) {
@@ -94,6 +96,7 @@
       #sheetSlot
       class="slot slot--sheet"
       appStackedWindow="sheet"
+      [attr.data-docked]="station.docked().includes('sheet')"
       [appLayoutAnchor]="anchor.detail"
     >
       @if (isNotFound()) {
@@ -117,6 +120,7 @@
       #previewSlot
       class="slot slot--preview"
       appStackedWindow="preview"
+      [attr.data-docked]="station.docked().includes('preview')"
       [appLayoutAnchor]="anchor.preview"
       [id]="ids.previewPanel"
     >
@@ -157,3 +161,5 @@
     <app-animation-toggle />
   }
 </app-social-links>
+
+<app-observatory-dock />

@@ -32,6 +32,14 @@ $rise-delay: 800ms;
   padding: 3px;
 }
 
+.links {
+  display: contents;
+}
+
+.toggle {
+  display: none;
+}
+
 ul {
   display: flex;
   gap: 2px;
@@ -63,6 +71,51 @@ svg {
   width: 22px;
   height: 22px;
   fill: currentColor;
+}
+
+@include formats.phone {
+  :host {
+    left: var(--s1);
+    right: auto;
+    bottom: var(--s1);
+  }
+
+  .rail {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    backdrop-filter: none;
+  }
+
+  .toggle {
+    @include controls.icon-button(var(--target), var(--target));
+    @include controls.glass;
+
+    color: var(--ink);
+  }
+
+  .rail[data-open='true'] .toggle {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .links {
+    @include controls.glass;
+
+    position: absolute;
+    left: calc(100% + var(--s1));
+    bottom: 0;
+    display: none;
+    align-items: center;
+    gap: var(--s2);
+    padding: 3px;
+  }
+
+  .rail[data-open='true'] .links {
+    display: flex;
+  }
 }
 
 @include motion.reduced {

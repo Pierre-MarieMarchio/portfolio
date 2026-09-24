@@ -19,7 +19,10 @@ import {
 } from '@app/features/projects/components';
 import { FAMILIES, FamilyFilter } from '@app/features/projects/models';
 import { ProjectsManager } from '@app/features/projects/states';
-import { ObservatorySceneComponent } from '@app/features/observatory/components';
+import {
+  ObservatorySceneComponent,
+  ObservatoryDockComponent,
+} from '@app/features/observatory/components';
 import {
   ObservatoryView,
   ObservatoryWindow,
@@ -77,6 +80,7 @@ import { WindowStackService } from '@shared/windows/services';
     ProjectPreviewComponent,
     ProjectDetailComponent,
     StackedWindowDirective,
+    ObservatoryDockComponent,
   ],
   providers: [HomeRevealService, FeaturedTourService, WindowStackService],
   host: {

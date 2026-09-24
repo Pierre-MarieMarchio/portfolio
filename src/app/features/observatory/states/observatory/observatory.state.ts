@@ -18,6 +18,7 @@ export class ObservatoryState {
   public readonly pins = signal<ObservatoryPins>(NO_PINS);
   public readonly preview = signal<string | null>(null);
   public readonly lastPreview = signal<string | null>(null);
+  public readonly lastSheet = signal<string | null>(null);
   public readonly selected = signal<string | null>(null);
   public readonly hovered = signal<string | null>(null);
   public readonly family = signal('all');

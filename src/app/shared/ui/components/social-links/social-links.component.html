@@ -1,18 +1,31 @@
-<div class="rail">
-  <ul [attr.aria-label]="texts().contactRail.label">
-    @for (link of links(); track link.href) {
-      <li>
-        <a
-          [href]="link.href"
-          [attr.target]="link.external ? '_blank' : null"
-          [attr.rel]="link.external ? 'noopener' : null"
-          [attr.aria-label]="link.label"
-          [title]="link.title"
-          ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-            <path [attr.d]="icons[link.icon]" /></svg
-        ></a>
-      </li>
-    }
-  </ul>
-  <ng-content />
+<div class="rail" [attr.data-open]="open()">
+  <button
+    type="button"
+    class="toggle"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="panelId"
+    [attr.aria-label]="texts().contactRail.label"
+    [title]="texts().contactRail.label"
+    (click)="toggle()"
+  >
+    &#64;
+  </button>
+  <div class="links" [id]="panelId">
+    <ul [attr.aria-label]="texts().contactRail.label">
+      @for (link of links(); track link.href) {
+        <li>
+          <a
+            [href]="link.href"
+            [attr.target]="link.external ? '_blank' : null"
+            [attr.rel]="link.external ? 'noopener' : null"
+            [attr.aria-label]="link.label"
+            [title]="link.title"
+            ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+              <path [attr.d]="icons[link.icon]" /></svg
+          ></a>
+        </li>
+      }
+    </ul>
+    <ng-content />
+  </div>
 </div>

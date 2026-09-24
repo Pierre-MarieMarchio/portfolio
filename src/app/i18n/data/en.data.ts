@@ -118,6 +118,15 @@ export const EN: Catalog = {
       status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',
     },
+    dock: {
+      label: draft('Put-away windows'),
+      windows: {
+        about: draft('About'),
+        index: draft('Projects'),
+        sheet: draft('Details'),
+        preview: draft('Preview'),
+      },
+    },
     notFound: {
       heading: draft('Page not found'),
       label: draft('Page not found'),

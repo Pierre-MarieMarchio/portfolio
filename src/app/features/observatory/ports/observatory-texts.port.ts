@@ -1,4 +1,5 @@
 import { InjectionToken, Signal } from '@angular/core';
+import { ObservatoryWindow } from '../models';
 
 export interface ObservatoryTexts {
   readonly animation: {
@@ -16,6 +17,10 @@ export interface ObservatoryTexts {
     readonly trade: string;
     readonly status: string;
     readonly brand: string;
+  };
+  readonly dock: {
+    readonly label: string;
+    readonly windows: Readonly<Record<ObservatoryWindow, string>>;
   };
   readonly notFound: {
     readonly heading: string;

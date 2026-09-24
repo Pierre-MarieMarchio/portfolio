@@ -145,7 +145,7 @@ describe('StationComponent', () => {
       '/a-propos',
     ]);
 
-    const rail = host.querySelector('[aria-label="Me contacter"]');
+    const rail = host.querySelector('ul[aria-label="Me contacter"]');
     expect(
       rail?.querySelector(
         '[aria-label="M’écrire à pierremariemarchio.pro@gmail.com"]',
@@ -161,7 +161,7 @@ describe('StationComponent', () => {
         '[aria-label="Dépôts GitHub de Pierre-Marie Marchio"]',
       ),
     ).not.toBeNull();
-    expect(host.querySelector('.rail button')).toBeNull();
+    expect(host.querySelector('app-social-links .links button')).toBeNull();
   });
 
   it('lights the home entry on the home view', async () => {
@@ -222,6 +222,27 @@ describe('StationComponent', () => {
     station.syncRoute('home');
     await fixture.whenStable();
     expect(host.querySelector('app-project-list')).not.toBeNull();
+  });
+
+  it('marks a pinned window the reader has left as docked, and brings it back', async () => {
+    const { fixture, station, host } = await mount();
+    const docked = () =>
+      [...host.querySelectorAll<HTMLElement>('[appStackedWindow], .slot')]
+        .filter((slot) => slot.dataset['docked'] === 'true')
+        .map((slot) => slot.getAttribute('appstackedwindow'));
+    station.syncRoute('index');
+    station.togglePin('index');
+
+    station.syncRoute('about');
+    await fixture.whenStable();
+    expect(docked()).toEqual(['index']);
+    expect(host.querySelector('app-observatory-dock a')?.textContent).toContain(
+      'Projets',
+    );
+
+    station.syncRoute('index');
+    await fixture.whenStable();
+    expect(docked()).toEqual([]);
   });
 
   it('shows the sheet for a slug the catalog knows', async () => {

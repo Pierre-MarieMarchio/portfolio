@@ -1,0 +1,59 @@
+@use 'mixins/controls';
+@use 'mixins/formats';
+@use 'mixins/type';
+
+:host {
+  display: none;
+}
+
+@include formats.phone {
+  :host {
+    position: fixed;
+    left: calc(2 * var(--s1) + var(--target));
+    right: var(--s1);
+    bottom: var(--s1);
+    z-index: var(--z-chrome);
+    display: block;
+    pointer-events: none;
+  }
+}
+
+@include formats.phone-landscape {
+  :host {
+    right: calc(50% + var(--s1));
+  }
+}
+
+ul {
+  display: flex;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+li {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+a {
+  @include controls.glass;
+  @include type.title(var(--m1));
+
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  height: var(--target);
+  padding: 0 var(--s2);
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: auto;
+}
+
+.square {
+  @include controls.marker(6px);
+
+  flex: 0 0 auto;
+}

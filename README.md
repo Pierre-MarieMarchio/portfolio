@@ -63,7 +63,7 @@ src/app/
       models/ services/ ports/ rules/ states/
     observatory/
       components/        la scène de l'observatoire, la carte d'ouverture, le titre,
-                         la fenêtre « adresse inconnue », la pause
+                         la fenêtre « adresse inconnue », la pause, le dock
       services/          la révélation de l'accueil, le tour des vedettes
       models/ ports/ rules/ states/observatory/ states/animation/
     profile/

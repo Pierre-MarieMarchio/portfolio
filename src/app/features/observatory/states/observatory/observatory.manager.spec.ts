@@ -43,6 +43,33 @@ describe('StationManager', () => {
     expect('set' in manager.chapter).toBe(false);
     expect('set' in manager.section).toBe(false);
     expect('set' in manager.hovered).toBe(false);
+    expect('set' in manager.lastSheet).toBe(false);
+  });
+
+  describe('docked', () => {
+    it('is empty at first', () => {
+      expect(manager.docked()).toEqual([]);
+    });
+
+    it('holds the pinned sheet once the reader opens another view', () => {
+      manager.syncRoute('sheet', 'a');
+      manager.togglePin('sheet');
+
+      manager.syncRoute('about');
+
+      expect(manager.docked()).toEqual(['sheet']);
+      expect(manager.lastSheet()).toBe('a');
+    });
+
+    it('lets the window of the view go back to its place', () => {
+      manager.syncRoute('about');
+      manager.togglePin('about');
+      manager.syncRoute('index');
+
+      manager.syncRoute('about');
+
+      expect(manager.docked()).toEqual([]);
+    });
   });
 
   describe('showsList', () => {

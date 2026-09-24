@@ -12,6 +12,7 @@ type TargetSize = {
 };
 
 const SIZES: readonly TargetSize[] = [
+  { name: 'phone-xs', width: 320, height: 568, isTouch: true },
   { name: 'phone-s', width: 360, height: 780, isTouch: true },
   { name: 'phone', width: 390, height: 844, isTouch: true },
   { name: 'phone-landscape', width: 844, height: 390, isTouch: true },
@@ -35,7 +36,7 @@ const projects: Project<SiteOptions>[] = ENGINES.flatMap((engine) =>
       deviceScaleFactor: 1,
       hasTouch: size.isTouch,
       isMobile: size.isTouch,
-      captures: !size.isTouch || size.name.startsWith('tablet'),
+      captures: true,
     },
   })),
 );

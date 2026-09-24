@@ -23,6 +23,25 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - `object.parts` donne la constellation de chaque partie d'« À propos », dans
   l'ordre des parties.
 
+## `features/observatory/components/observatory-dock/`
+
+- Une entrée du dock est un lien vers la vue de sa fenêtre, pas un bouton
+  qui l'ouvrirait par-dessus : l'adresse reste la seule source de ce que le
+  lecteur regarde (« le routeur ne dit que l'adresse », decisions.md), et revenir en arrière dans l'historique défait ce
+  que le dock a fait.
+- Le dock est dans le DOM à tous les formats, et ne se montre qu'au
+  téléphone : son contenu ne dépend que de l'état, jamais du format, et le
+  HTML prérendu reste celui du bureau. Vide au premier rendu, puisque rien
+  n'est épinglé.
+- Une entrée porte le nom du genre de fenêtre (« Fiche », « Aperçu »), pas
+  son titre : ces noms tiennent à 320 px, et l'aperçu et la fiche d'un même
+  projet porteraient le même titre.
+- Le carré de l'entrée est celui de la barre de titre : l'entrée est la
+  fenêtre repliée, dans l'encre qui dit « ici ».
+- Il s'appelle `app-observatory-dock`, pas `app-window-dock` :
+  `check-prerender` refuse `<app-window` dans l'accueil prérendu, et un
+  sélecteur qui commence ainsi y serait compté pour une fenêtre.
+
 ## `features/observatory/rules/view.rules.ts`
 
 - Un pas en arrière recule d'un cran, jamais plus : sélection → vue
@@ -35,6 +54,12 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   de plus : il ne remonte jamais d'un niveau. C'est le comportement de la
   maquette, gardé exprès.
 - L'adresse des vues parentes appartient à la composition, pas à la règle.
+- `dockedOf` : au téléphone, la vitre ouverte est celle de la vue, ou
+  l'aperçu sur l'accueil ; toute autre fenêtre épinglée est rangée. Une
+  fenêtre ne se range que si un toucher peut la rouvrir : la fiche s'il y a
+  une dernière fiche, l'aperçu s'il y a un projet à montrer. La règle ne sait
+  rien du format : au bureau, la page ne lit pas la liste, et les fenêtres
+  épinglées restent ouvertes côte à côte.
 
 ## `features/observatory/services/featured-tour.service.ts`
 
@@ -111,6 +136,9 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Le changement de langue arrive sur la même vue : le lecteur n'a pas bougé,
   rien ne se remet à zéro.
 - Fermer l'aperçu oublie ce qui est ouvert, pas ce qui a été lu.
+- `lastSheet` retient la dernière fiche ouverte, comme `lastPreview` le
+  dernier aperçu : `slug` s'efface dès qu'on quitte la fiche, et une fiche
+  épinglée puis rangée dans le dock doit savoir où revenir.
 - Le spec de l'effet remplace le `Router` par un faux qui enregistre où
   l'effet envoie le lecteur, sans naviguer : ce qui compte est l'URL demandée.
 
@@ -178,11 +206,31 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   à 1180×820, chaque fenêtre tient déjà entière dans l'écran, sous la barre
   de pages (mesuré, et tenu par `e2e/tablet.spec.ts`). Rien dans la page ne
   dépend donc du format.
-- Au téléphone, les emplacements couvrent l'écran, sous la barre de pages et
-  le rail de contact dans l'ordre des calques : la vitre décide de sa forme
-  dans cette place (basse, haute, couchée). La page ne fait rien d'autre au
-  téléphone : le dock, l'accueil, la règle, l'aperçu et une vitre à la fois
-  sont d'autres tâches.
+- Au téléphone (D27), un emplacement prend la place d'arrivée de sa vitre :
+  pleine largeur, le haut à `--glass-lowered` (60 %) de l'écran, debout ; la
+  moitié droite, couchée. C'est l'ancre que la caméra lit (`detail`,
+  `preview`, `panel`) : la vitre qui monte n'y change rien, et la caméra ne
+  saute pas (D26). La vitre déborde de son emplacement vers le haut par
+  `--glass-inset` (`-60 / 40` de la hauteur de l'emplacement), pour que son
+  conteneur de défilement couvre tout l'écran.
+- Un emplacement vide ou rangé (`data-docked`) est en `display: none` au
+  téléphone : sinon sa place d'arrivée, vide, compterait comme un panneau et
+  effacerait les planètes du bas de l'écran. `:empty` suffit,
+  puisqu'un `@if` faux ne laisse que des commentaires, que `:empty` ignore.
+- La vitre montée s'arrête 6 px sous la barre de pages
+  (`--glass-raised-top`, lu sur `--head-bottom`) ; repliée, elle se pose
+  au-dessus de la rangée du bas (`--glass-bottom-reserve`, une cible de 44 px
+  et ses deux marges). Basse, son bas passe sous la rangée : son contenu ne
+  défile pas tant qu'elle est basse, et la rangée ne cache que du texte, pas
+  un bouton.
+- La barre de pages tient sur une ligne à 320 px : des onglets en `m1` et
+  en `--ls-mono`, 6 px de marge. Debout, elle reste en haut à droite comme au
+  bureau ; couchée, elle passe à gauche, hors de la moitié de la vitre.
+- L'aperçu, ancré en bas, est une petite vitre basse : au plus 45 % de
+  l'écran moins la rangée du bas, pour que son haut reste sous le milieu et
+  que la caméra cadre la planète au-dessus (D26).
+- Le dock suit le bouton de contact dans la rangée du bas : une rangée, deux
+  rôles, et une seule réserve à tenir pour la vitre repliée.
 
 ## `pages/resolvers/page-head.resolver.ts`
 

@@ -17,7 +17,7 @@ import {
 } from './observatory.action';
 import { ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
-import { stepBack } from '../../rules/view.rules';
+import { dockedOf, stepBack } from '../../rules/view.rules';
 
 @Service()
 export class ObservatoryManager {
@@ -32,6 +32,7 @@ export class ObservatoryManager {
   public readonly pins = this.state.pins.asReadonly();
   public readonly preview = this.state.preview.asReadonly();
   public readonly lastPreview = this.state.lastPreview.asReadonly();
+  public readonly lastSheet = this.state.lastSheet.asReadonly();
   public readonly selected = this.state.selected.asReadonly();
   public readonly hovered = this.state.hovered.asReadonly();
   public readonly family = this.state.family.asReadonly();
@@ -46,6 +47,14 @@ export class ObservatoryManager {
     () =>
       this.preview() !== null &&
       (this.view() === 'home' || this.pins().preview),
+  );
+  public readonly docked = computed(() =>
+    dockedOf({
+      view: this.view(),
+      pins: this.pins(),
+      preview: this.preview(),
+      lastSheet: this.lastSheet(),
+    }),
   );
   public readonly canStepBack = computed(
     () =>

@@ -75,8 +75,7 @@ svg {
 
 @include formats.phone {
   :host {
-    left: var(--s1);
-    right: auto;
+    right: var(--s1);
     bottom: var(--s1);
   }
 
@@ -91,12 +90,11 @@ svg {
 
   .toggle {
     @include controls.icon-button(var(--target), var(--target));
-    @include controls.glass;
-
-    color: var(--ink);
   }
 
   .rail[data-open='true'] .toggle {
+    @include controls.glass;
+
     color: var(--accent);
     border-color: var(--accent);
   }
@@ -105,16 +103,41 @@ svg {
     @include controls.glass;
 
     position: absolute;
-    left: calc(100% + var(--s1));
+    right: calc(100% + var(--s1));
     bottom: 0;
+    width: calc(100vw - 3 * var(--s1) - var(--target));
     display: none;
+    justify-content: flex-end;
     align-items: center;
     gap: var(--s2);
     padding: 3px;
+    background: var(--paper);
   }
 
   .rail[data-open='true'] .links {
     display: flex;
+  }
+}
+
+@include formats.phone-portrait {
+  :host {
+    top: var(--s1);
+    bottom: auto;
+  }
+
+  .links {
+    top: 0;
+    bottom: auto;
+  }
+}
+
+@include formats.phone-landscape {
+  :host {
+    right: calc(50% + var(--s1));
+  }
+
+  .links {
+    width: calc(50vw - 3 * var(--s1) - var(--target));
   }
 }
 

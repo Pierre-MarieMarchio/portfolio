@@ -9,7 +9,7 @@
 @include formats.phone {
   :host {
     position: fixed;
-    left: calc(2 * var(--s1) + var(--target));
+    left: var(--s1);
     right: var(--s1);
     bottom: var(--s1);
     z-index: var(--z-chrome);
@@ -20,7 +20,7 @@
 
 @include formats.phone-landscape {
   :host {
-    right: calc(50% + var(--s1));
+    right: calc(50% + 2 * var(--s1) + var(--target));
   }
 }
 

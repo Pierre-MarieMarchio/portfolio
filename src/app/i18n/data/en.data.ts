@@ -115,9 +115,7 @@ export const EN: Catalog = {
       void: draft('Close the windows'),
       name: 'Pierre-Marie Marchio',
       trade: draft('.NET and Angular developer'),
-      status: draft(
-        'I am looking for a work-study position in Toulouse or remote, available now.',
-      ),
+      status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',
     },
     notFound: {

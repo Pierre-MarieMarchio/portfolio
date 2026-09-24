@@ -9,23 +9,26 @@ export const TRAINWAYS: ProjectEntry = {
     tag: { fr: 'publiée', en: draft('published') },
     family: 'professional',
     subject: {
-      fr: 'Une application Android qui montre, avant un trajet en train, où le réseau passe et où il coupe.',
+      fr: 'Une application Android et iOS qui montre, avant un trajet en train, où le réseau passe et où il coupe.',
       en: draft(
-        'An Android app that shows, before a train journey, where the network works and where it drops.',
+        'An Android and iOS app that shows, before a train journey, where the network works and where it drops.',
       ),
     },
     summary: {
-      fr: 'réseau en train, Android',
-      en: draft('network on trains, Android'),
+      fr: 'réseau en train, Android et iOS',
+      en: draft('network on trains, Android and iOS'),
     },
   },
   facts: {
-    proof: { fr: 'Sur Google Play', en: draft('On Google Play') },
+    proof: {
+      fr: 'Sur Google Play et l’App Store',
+      en: draft('On Google Play and the App Store'),
+    },
     role: {
       fr: 'En binôme : back-end, mise à jour, publication',
       en: draft('In a pair: back end, update, release'),
     },
-    stack: 'Kotlin · Android',
+    stack: 'Kotlin · Swift · Firebase',
     context: 'Skyted',
     period: '2026',
   },
@@ -40,6 +43,10 @@ export const TRAINWAYS: ProjectEntry = {
       {
         label: 'Google Play',
         href: 'https://play.google.com/store/apps/details?id=com.skyted.trainways',
+      },
+      {
+        label: 'App Store',
+        href: 'https://apps.apple.com/app/trainways/id6739769823',
       },
     ],
     chapters: [
@@ -56,9 +63,9 @@ export const TRAINWAYS: ProjectEntry = {
       {
         paragraphs: [
           {
-            fr: 'J’ai refait le back-end, mis l’application à jour et repris les développements prévus, puis je l’ai republiée sur Google Play en 2026.',
+            fr: 'J’ai refait le back-end, mis l’application à jour et repris les développements prévus, puis je l’ai republiée sur Google Play et l’App Store.',
             en: draft(
-              'I rebuilt the back end, updated the app and took up the planned work, then released it again on Google Play in 2026.',
+              'I rebuilt the back end, updated the app and took up the planned work, then released it again on Google Play and the App Store.',
             ),
           },
         ],

@@ -18,7 +18,7 @@ describe('HomeTitleComponent', () => {
     const status = host.querySelector('h1 + p.status');
 
     expect(status?.textContent?.trim()).toBe(
-      'Je cherche une alternance à Toulouse ou en télétravail, disponible dès maintenant.',
+      'Je cherche le prochain projet à construire.',
     );
     expect(host.querySelectorAll('h1, h2, h3')).toHaveLength(1);
   });

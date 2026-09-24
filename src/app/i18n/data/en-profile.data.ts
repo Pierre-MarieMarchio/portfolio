@@ -47,10 +47,10 @@ export const EN_PROFILE: ProfileTexts = {
       ],
       prose: [
         draft(
-          'There was always a PC at home, and I always wanted to look inside it. But I am curious about everything, and it took me a while to choose. I was an archaeologist first, five years on excavation sites. A fine job, but not one that pays the bills.',
+          'There was always a PC at home, and I wanted to know what was inside it. But I am curious about everything, and it took me a while to choose. I was an archaeologist first, five years on excavation sites. A fine job, but not one that pays the bills. All that time, I kept on modding.',
         ),
         draft(
-          'In 2021 I decided to make it my job. I am now a work-study developer at Skyted, where I do a bit of everything: Angular front ends, .NET APIs, desktop and mobile apps talking to a headset over Bluetooth.',
+          'In 2021, I chose software development. I am now a work-study developer at Skyted, where I do a bit of everything: Angular front ends, .NET APIs, desktop and mobile apps talking to a headset over Bluetooth. My curiosity gets its fill there. To avoid spreading myself thin, I run almost everything through .NET and Angular, down to an Android app written in C#.',
         ),
         draft(
           'What interests me most is design: how to split code so that it can still be changed two years later. It is also where I have the most to learn.',
@@ -68,7 +68,7 @@ export const EN_PROFILE: ProfileTexts = {
         },
         {
           label: draft('Back end'),
-          value: 'C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL',
+          value: 'C#, .NET 10, ASP.NET Core, EF Core, PostgreSQL, Firebase',
         },
         {
           label: 'Desktop',
@@ -76,9 +76,7 @@ export const EN_PROFILE: ProfileTexts = {
         },
         {
           label: 'Mobile',
-          value: draft(
-            'Android in Kotlin and Kotlin Multiplatform, Avalonia Android',
-          ),
+          value: 'Kotlin Multiplatform, Swift, Avalonia',
         },
         {
           label: draft('Bluetooth and audio'),
@@ -89,12 +87,12 @@ export const EN_PROFILE: ProfileTexts = {
           value: draft('Clean Architecture, DDD, CQRS, architecture tests'),
         },
         {
-          label: draft('Tooling'),
-          value: draft('Git, GitHub Actions, Docker, OVHcloud VPS'),
+          label: draft('Deployment'),
+          value: draft('GitHub Actions, Docker, OVHcloud VPS'),
         },
       ],
       prose: draft(
-        'Not everything is at the same level. I work in C# and Angular every day, with Avalonia for desktop. I have shipped Kotlin at work. Java, Swift or React, I know less well.',
+        'I work in C# and Angular every day, with Avalonia for desktop. I have also shipped Kotlin at work. Java, Swift and React I have worked with less closely.',
       ),
     },
     method: {
@@ -121,25 +119,9 @@ export const EN_PROFILE: ProfileTexts = {
       heading: draft('Milestones'),
       milestones: [
         {
-          year: '2016 – 2021',
-          fact: draft('Archaeologist on excavation sites'),
-        },
-        {
-          year: '2020',
-          fact: draft('Bachelor’s degree in archaeology, Toulouse'),
-        },
-        { year: '2021 – 2023', fact: draft('Teaching myself to code') },
-        { year: '2023', fact: draft('Apple Foundation Program, Simplon') },
-        {
-          year: '2024',
+          year: '2025 –',
           fact: draft(
-            'Web and mobile web developer diploma, AFPA, with the jury’s congratulations',
-          ),
-        },
-        {
-          year: '2024',
-          fact: draft(
-            'Internship at Numerilis, Paris: reworking the Bk-ONE Java application',
+            'Work-study at Skyted, application designer and developer degree',
           ),
         },
         {
@@ -149,10 +131,26 @@ export const EN_PROFILE: ProfileTexts = {
           ),
         },
         {
-          year: '2025 –',
+          year: '2024',
           fact: draft(
-            'Work-study at Skyted, application designer and developer degree',
+            'Internship at Numerilis, Paris: reworking the Bk-ONE Java application',
           ),
+        },
+        {
+          year: '2024',
+          fact: draft(
+            'Web and mobile web developer diploma, AFPA, with the jury’s congratulations',
+          ),
+        },
+        { year: '2023', fact: draft('Apple Foundation Program, Simplon') },
+        { year: '2021 – 2023', fact: draft('Teaching myself to code') },
+        {
+          year: '2020',
+          fact: draft('Bachelor’s degree in archaeology, Toulouse'),
+        },
+        {
+          year: '2016 – 2021',
+          fact: draft('Archaeologist on excavation sites'),
         },
       ],
     },

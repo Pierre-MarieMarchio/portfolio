@@ -584,6 +584,11 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
   `close-up` seulement.
 - Un id inconnu ne désigne aucun corps ; un `close-up` sur un id inconnu
   revient au `rest`.
+- Le panneau de fiche (`approach-edge`) et celui d'aperçu (`close-up-edge`)
+  bornent leur cadrage : à droite, par leur bord gauche ; en bandeau du bas
+  (90 % de la largeur au moins, le haut sous le milieu de l'écran), par leur
+  haut, et le corps visé se cadre au milieu de la bande de ciel entre la
+  barre du haut et ce haut (D26).
 
 ### 4.6 `features/profile/`
 

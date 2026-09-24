@@ -1,7 +1,7 @@
 import { InjectionToken, Signal } from '@angular/core';
 import { Lang } from '@app/core/models';
 import { ProjectsTexts } from '@app/features/projects/ports';
-import { DesktopTexts } from '@app/features/desktop/ports';
+import { ObservatoryTexts } from '@app/features/observatory/ports';
 import { ProfileTexts } from '@app/features/profile/ports';
 import { SharedTexts } from '@shared/ui/ports';
 import { WindowTexts } from '@shared/windows/ports';
@@ -32,7 +32,7 @@ export interface Catalog {
   readonly shared: SharedTexts;
   readonly windows: WindowTexts;
   readonly projects: ProjectsTexts;
-  readonly desktop: DesktopTexts;
+  readonly observatory: ObservatoryTexts;
   readonly profile: ProfileTexts;
   readonly pages: PagesTexts;
 }

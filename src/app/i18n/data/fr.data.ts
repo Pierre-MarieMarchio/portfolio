@@ -78,7 +78,7 @@ export const FR: Catalog = {
     },
   },
 
-  desktop: {
+  observatory: {
     animation: {
       pause: 'Mettre l’animation en pause',
       resume: 'Relancer l’animation',

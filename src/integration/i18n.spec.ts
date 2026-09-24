@@ -11,14 +11,17 @@ import { provideStatewise } from 'ngx-statewise';
 import { LocaleService } from '@app/core/services';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
-import { DesktopEffect, DesktopManager } from '@app/features/desktop/states';
+import {
+  ObservatoryEffect,
+  ObservatoryManager,
+} from '@app/features/observatory/states';
 import { CatalogLoaderService, provideI18n, translatePath } from '@app/i18n';
-import { DesktopPageComponent } from '@app/pages/desktop/desktop-page.component';
+import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
 import { routes } from '../app/app.routes';
 
 @Component({
-  imports: [RouterOutlet, DesktopPageComponent],
-  template: '<router-outlet /><app-desktop-page />',
+  imports: [RouterOutlet, ObservatoryPageComponent],
+  template: '<router-outlet /><app-observatory-page />',
 })
 class Shell {}
 
@@ -35,7 +38,7 @@ const mount = async () => {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
       { provide: TitleStrategy, useClass: RouteHeadStrategy },
-      provideStatewise({ effects: [ProjectsEffect, DesktopEffect] }),
+      provideStatewise({ effects: [ProjectsEffect, ObservatoryEffect] }),
       provideI18n(),
     ],
   });
@@ -51,7 +54,7 @@ const mount = async () => {
     fixture,
     go,
     host: fixture.nativeElement as HTMLElement,
-    station: TestBed.inject(DesktopManager),
+    station: TestBed.inject(ObservatoryManager),
   };
 };
 

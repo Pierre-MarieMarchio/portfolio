@@ -1,4 +1,10 @@
-import { test as base, type ConsoleMessage } from '@playwright/test';
+import {
+  test as base,
+  expect,
+  type ConsoleMessage,
+  type Page,
+  type TestInfo,
+} from '@playwright/test';
 
 export type SiteOptions = {
   readonly captures: boolean;
@@ -6,6 +12,14 @@ export type SiteOptions = {
 
 type SiteFixtures = {
   readonly consoleMessages: readonly string[];
+};
+
+export const sizeOf = (info: TestInfo): string =>
+  info.project.name.replace(/-(chromium|webkit)$/, '');
+
+export const openHydrated = async (page: Page, path: string): Promise<void> => {
+  await page.goto(path);
+  await expect(page.locator('[ngh]'), 'hydrated').toHaveCount(0);
 };
 
 const isReported = (message: ConsoleMessage): boolean =>

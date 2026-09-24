@@ -1,6 +1,6 @@
-import type { Page, TestInfo } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { SITE_ROUTES } from './site-routes';
-import { expect, test } from './site.fixture';
+import { expect, openHydrated, sizeOf, test } from './site.fixture';
 
 type DisplayFormat = 'phone' | 'tablet' | 'desktop';
 
@@ -16,14 +16,6 @@ const FORMAT_AT: Readonly<Record<string, DisplayFormat>> = {
 
 const TOUCH_TARGET_SIZES = new Set(['phone', 'tablet']);
 const MIN_TARGET_PX = 44;
-
-const sizeOf = (info: TestInfo): string =>
-  info.project.name.replace(/-(chromium|webkit)$/, '');
-
-const openHydrated = async (page: Page, path: string): Promise<void> => {
-  await page.goto(path);
-  await expect(page.locator('[ngh]'), 'hydrated').toHaveCount(0);
-};
 
 const displayFormat = (page: Page) =>
   expect(page.locator('html'), 'display format');

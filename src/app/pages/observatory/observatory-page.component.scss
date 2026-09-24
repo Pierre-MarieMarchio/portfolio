@@ -74,7 +74,10 @@ main {
 }
 
 .slot--sheet {
-  top: max(clamp(96px, 13vh, 120px), calc(var(--head-bottom, 0px) + var(--s4)));
+  top: max(
+    round(clamp(96px, 13vh, 120px), 1px),
+    calc(var(--head-bottom, 0px) + var(--s4))
+  );
   z-index: calc(var(--z-window) + var(--stack, 1));
 }
 

@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { SHARED_TEXTS } from '../../ports';
 import { Entrance } from '../../models';
 import { SOCIAL_ICONS } from '../../data/social-icons.data';
@@ -16,4 +16,10 @@ export class SocialLinksComponent {
 
   protected readonly icons = SOCIAL_ICONS;
   protected readonly texts = inject(SHARED_TEXTS);
+  protected readonly panelId = 'contact-links';
+  protected readonly open = signal(false);
+
+  protected toggle(): void {
+    this.open.update((open) => !open);
+  }
 }

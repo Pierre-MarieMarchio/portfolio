@@ -381,7 +381,11 @@ contenait remonte dans une feature ou devient générique.
   défilement que `ScrollStopsDirective` fait reposer basse ou haute, et dont
   le défilement floute la scène par une animation CSS. `FitHeightDirective`
   n'y borne rien et `DraggableDirective` n'y glisse pas ; elles lisent
-  `DisplayFormatService`.
+  `DisplayFormatService`. Une fenêtre ancrée en bas (`anchor="bottom"`)
+  reste une petite vitre basse, qui ne monte pas. L'appelant pose la place
+  de la vitre en propriétés CSS (`--glass-inset`, `--glass-raised-top`,
+  `--glass-bottom-reserve`) ; la part basse est un jeton, `--glass-lowered`
+  (D27).
 - `resetOn` remplace les deux effets « remonter en haut » écrits dans la
   fiche et dans « à propos ».
 - Les marges passées en dur (76, 88) deviennent `--window-reserve`, posée par
@@ -430,7 +434,8 @@ contenait remonte dans une feature ou devient générique.
   (la navigation), composés par l'écran.
 - **`social-links/`** (ex-`contact-rail`) : `SocialLinksComponent`, une liste
   de liens à icône. Le bouton pause, qui commande l'animation du bureau,
-  part dans `features/observatory`.
+  part dans `features/observatory`. Au format `phone`, la liste se replie
+  derrière un seul bouton, qui l'ouvre dans la rangée du bas (D27).
 - **`ViewFocusService`** (ex-`landing-focus`) :
   `claim(container)`, avec `ViewHeadingDirective`. But : mettre le focus sur
   le titre de la vue qui vient d'apparaître.
@@ -490,17 +495,19 @@ sur une vue change à la fois la vue, la fiche, le chapitre, les fiches lues,
 l'aperçu (selon les épingles) et le survol : ces signaux forment un seul
 état, sinon une règle métier se disperse en chaînes d'effets.
 
-| État          | Signaux                                                                                                            | But                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| `observatory` | `view`, `slug`, `chapter`, `section`, `visited`, `pins`, `preview`, `lastPreview`, `selected`, `hovered`, `family` | ce que le lecteur regarde, ouvre et désigne |
-| `animation`   | `paused`                                                                                                           | la scène en mouvement ou en pause           |
+| État          | Signaux                                                                                                                         | But                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `observatory` | `view`, `slug`, `chapter`, `section`, `visited`, `pins`, `preview`, `lastPreview`, `lastSheet`, `selected`, `hovered`, `family` | ce que le lecteur regarde, ouvre et désigne |
+| `animation`   | `paused`                                                                                                                        | la scène en mouvement ou en pause           |
 
 `ObservatoryManager` expose l'état et ses commandes ; ses dérivés sont ceux dont
-un écran a besoin (`showsList`, `showsAbout`, `showsPreview`, `canStepBack`),
-et plus aucun relais inutile.
+un écran a besoin (`showsList`, `showsAbout`, `showsPreview`, `canStepBack`,
+`docked`), et plus aucun relais inutile.
 
-- `rules/view.rules.ts` : `parentOf`, `stepBack`, et **`windowOf(view)`**,
-  la table vue → fenêtre écrite une seule fois (deux copies aujourd'hui).
+- `rules/view.rules.ts` : `parentOf`, `stepBack`, **`windowOf(view)`**,
+  la table vue → fenêtre écrite une seule fois (deux copies aujourd'hui), et
+  **`dockedOf`** : les fenêtres épinglées que le lecteur a quittées et qu'un
+  toucher peut rouvrir, dans l'ordre de `OBSERVATORY_WINDOWS`.
 - `models/observatory.model.ts` : `ObservatoryView`, `ObservatoryWindow`, `Planet`,
   les ids DOM (ex-`station.ids`). Une seule union de vues : celle du moteur
   (`ObjectView`) et celle de la pile (`WindowSlot`) disparaissent.
@@ -540,6 +547,11 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
 - `not-found-window/` : la fenêtre « adresse inconnue ».
 - `animation-toggle/` : le bouton pause de la scène (sorti du rail de
   contact).
+- `observatory-dock/` `ObservatoryDockComponent` : au format `phone`, le dock des
+  fenêtres rangées, un lien par fenêtre de `docked` vers sa vue (la dernière
+  fiche pour la fiche, l'accueil pour l'aperçu). Il est dans le DOM à tous
+  les formats, vide au premier rendu, et ne se montre qu'au téléphone
+  (D27).
 
 #### Les services de l'écran
 
@@ -675,6 +687,7 @@ src/app/
   features/observatory/components/home-title/  home-title.component
   features/observatory/components/intro-card/  intro-card.component
   features/observatory/components/not-found-window/ not-found-window.component
+  features/observatory/components/observatory-dock/ observatory-dock.component
   features/observatory/components/observatory-scene/ observatory-scene.component
   features/observatory/components/planet-buttons/ planet-buttons.component
   features/observatory/models/                 observatory-ids.model · observatory.model

@@ -194,6 +194,19 @@ button {
   .short {
     display: none;
   }
+
+  .row {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .track {
+    flex-basis: 100%;
+  }
+
+  .all {
+    margin-top: 0;
+  }
 }
 
 :host([data-crowded='true']) .short {

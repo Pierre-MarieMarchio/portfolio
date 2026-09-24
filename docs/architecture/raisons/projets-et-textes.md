@@ -111,6 +111,10 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
 
 - L'axe de la règle est un rang d'importance : les repères sont également
   espacés et tous les titres sont sur la même ligne.
+- Au téléphone, « Tous les projets → » passe sous la piste : à 320 px, la
+  piste qui partageait sa ligne avec lui n'avait plus que 110 px, et le
+  numéro d'un repère recouvrait le repère voisin (un toucher tombait à
+  côté).
 - Survoler un repère éclaire sa planète, et l'inverse : les deux lisent le
   même `hovered`. Sans survol, la ligne sous la règle montre le dernier corps
   lu par l'aperçu (`reading`).

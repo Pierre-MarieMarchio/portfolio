@@ -1,0 +1,11 @@
+<nav [attr.aria-label]="texts().dock.label">
+  <ul>
+    @for (entry of entries(); track entry.window) {
+      <li>
+        <a [routerLink]="entry.route" [attr.data-window]="entry.window"
+          ><span aria-hidden="true" class="square"></span>{{ entry.label }}</a
+        >
+      </li>
+    }
+  </ul>
+</nav>

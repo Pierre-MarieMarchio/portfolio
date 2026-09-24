@@ -167,6 +167,18 @@ nomme l'unité qu'elle concerne.
   dans la couleur du lien.
 - Un lien `external` s'ouvre dans un nouvel onglet : un profil ailleurs, pas
   un client de messagerie.
+- Au téléphone (D27), la liste se replie derrière un seul bouton « @ », en
+  bas à gauche : le rail flottant cachait une bonne part de l'écran et les
+  boutons de la vitre repliée. Le bouton porte le nom de la liste (« Me
+  contacter »), `aria-expanded` et `aria-controls`. Ouverte, la liste se
+  pose dans la même rangée, à droite du bouton : jamais par-dessus la règle
+  des vedettes ni la barre d'une vitre. Un lien est donc à deux touchers de
+  toute vue, et garde son nom.
+- Le bouton et l'enveloppe des liens sont dans le DOM à tous les formats :
+  hors du téléphone, le bouton est en `display: none` et l'enveloppe en
+  `display: contents`, et le rail garde ses boîtes et ses captures.
+- « @ » s'écrit `&#64;` dans le gabarit : Angular lit un `@` nu comme le
+  début d'un bloc de contrôle.
 
 ## `src/app/shared/ui/data/social-icons.data.ts`
 
@@ -245,9 +257,13 @@ nomme l'unité qu'elle concerne.
   hors du téléphone. Un bloc structurel qui dépendrait du format changerait
   le HTML prérendu, qui vaut `desktop`. Au bureau et à la tablette, la
   fenêtre garde donc ses boîtes, et leurs captures ne bougent pas.
-- La vitre debout est un conteneur de défilement qui couvre l'emplacement :
-  un espace transparent de 60 % (`.lead`), puis la fenêtre, haute de l'écran
-  moins 12 px. Faire défiler ce conteneur fait monter la vitre, avec l'élan
+- La vitre debout est un conteneur de défilement : un espace transparent de
+  `--glass-lowered` (`.lead`, 60 %), la fenêtre, haute de l'écran moins
+  `--glass-raised-top` et `--glass-bottom-reserve`, puis cette réserve
+  (`.tail`). L'appelant pose ces trois propriétés et `--glass-inset`, la
+  place de la vitre dans son emplacement : la vitre ne sait rien de la barre
+  de pages ni de la rangée du bas. Sans elles, elle couvre l'emplacement et
+  monte à 12 px du haut, comme en D25. Faire défiler ce conteneur fait monter la vitre, avec l'élan
   natif, sans JavaScript de geste ; sa course est exactement la montée. Le
   conteneur laisse passer le pointeur : l'espace transparent ne cache pas
   l'objet, et le doigt posé sur la fenêtre fait quand même défiler son
@@ -265,13 +281,21 @@ nomme l'unité qu'elle concerne.
   frise nommée depuis un pseudo-élément (mesuré), et le calque est un frère
   et non un ancêtre de la fenêtre, sans quoi il deviendrait la racine de son
   `backdrop-filter` et la vitre ne flouterait plus rien.
-- Couchée, la vitre prend la moitié droite, de haut en bas, sans montée : le
-  corps défile comme au bureau. Repliée, elle se réduit à sa barre, collée en
-  bas, debout comme couchée.
-- La barre de pages et le rail de contact restent au-dessus de la vitre
-  (`--z-chrome`) : vitre haute, la barre de pages couvre sa barre de titre ;
-  couchée, elle la couvre aussi ; repliée, le rail de contact couvre ses
-  boutons. C'est la tâche du dock, pas celle de la vitre.
+- Couchée, la vitre prend son emplacement, que la page met à la moitié
+  droite, de haut en bas, sans montée : le corps défile comme au bureau.
+  Repliée, elle se réduit à sa barre, en bas de sa place, debout comme
+  couchée.
+- Une fenêtre ancrée en bas (`anchor="bottom"`, l'aperçu) reste une petite
+  vitre basse : ni conteneur de défilement, ni voile ; elle garde ses boîtes,
+  comme au bureau, et l'emplacement la borne. Les règles de la vitre qui
+  monte sont écrites sous `.glass--rising`, que portent les autres fenêtres,
+  et celles qui doivent les battre (le repli, le mouvement réduit) sous le
+  même sélecteur, sinon elles perdent à la spécificité. Une classe positive
+  plutôt qu'un `:not()` : la feuille de la fenêtre tient dans son budget de
+  4 kB (`angular.json`).
+- Au téléphone, le titre passe avant le compteur : le compteur prend la
+  place que le titre laisse, et s'efface le premier (à 320 px, « Projets »
+  entier plutôt que « P… »).
 - L'ouverture joue sur `translate`, pas `transform` : `transform` appartient
   au glissement, et une animation en `fill-mode: both` écraserait la
   position que le lecteur a choisie.
@@ -406,6 +430,9 @@ nomme l'unité qu'elle concerne.
 - `--glass-blur`, `--glass-blur-window` : le verre du chrome (la navigation,
   le rail de contact), et celui des fenêtres, que l'export dessine un peu
   plus lourd.
+- `--glass-lowered` : la part de l'écran au-dessus d'une vitre basse, un
+  nombre (0,6) et pas un pourcentage, pour que la vitre et la page qui la
+  place (D27) en tirent chacune la longueur qu'il leur faut.
 - `--t-duration`, `--t` : une durée, et la courbe qui va avec. Le survol d'un
   onglet ou d'un contrôle de fenêtre prend la durée seule, comme dans
   l'export.

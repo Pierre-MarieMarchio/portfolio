@@ -45,6 +45,7 @@
   --glass-blur-window: blur(11px) saturate(1.08);
   --glass-shade-lowered: blur(0px) brightness(1);
   --glass-shade-raised: blur(8px) brightness(0.55);
+  --glass-lowered: 0.6;
 
   --t-duration: 180ms;
   --t: var(--t-duration) cubic-bezier(0.2, 0.6, 0.2, 1);

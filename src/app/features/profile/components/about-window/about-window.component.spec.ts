@@ -206,7 +206,7 @@ describe('AboutWindowComponent', () => {
     }
   });
 
-  it('shows part 02: Étapes, eight dated milestones, and ordered facts', async () => {
+  it('shows part 02: Étapes, eight dated milestones, newest first', async () => {
     const { host } = await mount({ part: 2 });
     const text = host.textContent ?? '';
 
@@ -216,26 +216,26 @@ describe('AboutWindowComponent', () => {
       dt.textContent?.trim(),
     );
     expect(years).toEqual([
-      '2016 – 2021',
-      '2020',
-      '2021 – 2023',
-      '2023',
-      '2024',
-      '2024',
-      '2025',
       '2025 –',
+      '2025',
+      '2024',
+      '2024',
+      '2023',
+      '2021 – 2023',
+      '2020',
+      '2016 – 2021',
     ]);
 
     let cursor = -1;
     for (const fact of [
-      'Archéologue',
-      'Licence d’archéologie',
-      'Autoformation',
-      'Apple Foundation Program',
-      'Titre Développeur web',
-      'Numerilis',
-      'Projets open source',
       'Alternance chez Skyted',
+      'Projets open source',
+      'Numerilis',
+      'Titre Développeur web',
+      'Apple Foundation Program',
+      'Autoformation',
+      'Licence d’archéologie',
+      'Archéologue',
     ]) {
       const at = text.indexOf(fact, cursor + 1);
       expect(at).toBeGreaterThan(cursor);

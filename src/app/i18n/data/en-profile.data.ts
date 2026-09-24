@@ -124,25 +124,9 @@ export const EN_PROFILE: ProfileTexts = {
       heading: draft('Milestones'),
       milestones: [
         {
-          year: '2016 – 2021',
-          fact: draft('Archaeologist on excavation sites'),
-        },
-        {
-          year: '2020',
-          fact: draft('Bachelor’s degree in archaeology, Toulouse'),
-        },
-        { year: '2021 – 2023', fact: draft('Teaching myself to code') },
-        { year: '2023', fact: draft('Apple Foundation Program, Simplon') },
-        {
-          year: '2024',
+          year: '2025 –',
           fact: draft(
-            'Web and mobile web developer diploma, AFPA, with the jury’s congratulations',
-          ),
-        },
-        {
-          year: '2024',
-          fact: draft(
-            'Internship at Numerilis, Paris: reworking the Bk-ONE Java application',
+            'Work-study at Skyted, application designer and developer degree',
           ),
         },
         {
@@ -152,10 +136,26 @@ export const EN_PROFILE: ProfileTexts = {
           ),
         },
         {
-          year: '2025 –',
+          year: '2024',
           fact: draft(
-            'Work-study at Skyted, application designer and developer degree',
+            'Internship at Numerilis, Paris: reworking the Bk-ONE Java application',
           ),
+        },
+        {
+          year: '2024',
+          fact: draft(
+            'Web and mobile web developer diploma, AFPA, with the jury’s congratulations',
+          ),
+        },
+        { year: '2023', fact: draft('Apple Foundation Program, Simplon') },
+        { year: '2021 – 2023', fact: draft('Teaching myself to code') },
+        {
+          year: '2020',
+          fact: draft('Bachelor’s degree in archaeology, Toulouse'),
+        },
+        {
+          year: '2016 – 2021',
+          fact: draft('Archaeologist on excavation sites'),
         },
       ],
     },

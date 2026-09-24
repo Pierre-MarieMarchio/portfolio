@@ -4,7 +4,11 @@ import { Orbit, placeOrbits } from '../rules/scene-bodies.rules';
 import { PlanePoint, TurntableMotion } from './motions/turntable.motion';
 import { SceneMotion } from './motions/scene.motion';
 import { SceneRenderer } from './renderers/scene.renderer';
-import { buildScene, RESERVE } from '../rules/matter/grain-reserve.rules';
+import {
+  buildScene,
+  densityShare,
+  RESERVE,
+} from '../rules/matter/grain-reserve.rules';
 import {
   framingFor,
   framingScene,
@@ -21,7 +25,6 @@ import { SceneFrame, sceneFrame } from '../rules/scene-frame.rules';
 import { NO_STATE, SceneState, sceneState } from '../rules/scene-state.rules';
 import type { SceneInputs, SkyFigures } from '../models/scene.model';
 import type { SceneLayout } from '../models/scene-layout.model';
-import { REFERENCE_VIEWPORT } from '../models/scene-constants.model';
 
 export interface EngineHost {
   frame(callback: (time: number) => void): () => void;
@@ -73,15 +76,11 @@ export class SpaceSceneEngine {
     options: EngineOptions,
     viewportArea: number,
   ) {
-    const factor = clamp(
-      viewportArea / (REFERENCE_VIEWPORT.width * REFERENCE_VIEWPORT.height),
-      0.42,
-      1,
-    );
     const grains = buildScene(
-      Math.round(options.density * factor * RESERVE),
+      Math.round(options.density * RESERVE),
       options.rnd,
     );
+    this.motion.grains.startDensity(densityShare(viewportArea));
     this.frame = sceneFrame(this.state, options);
     this.renderer = new SceneRenderer(canvases, options, grains, this.motion);
   }
@@ -141,6 +140,11 @@ export class SpaceSceneEngine {
     }
     this.needsDraw = true;
     this.draw();
+  }
+
+  public setViewportArea(viewportArea: number): void {
+    this.motion.grains.setDensity(densityShare(viewportArea));
+    this.request();
   }
 
   public setVisible(isVisible: boolean): void {

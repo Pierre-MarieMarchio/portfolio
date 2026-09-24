@@ -113,8 +113,10 @@ const PHONE_LAYOUT: SceneLayout = {
   panels: [{ left: 0, top: 430, right: 390, bottom: 844, opacity: 1 }],
   topBarHeight: 56,
   bottomBarHeight: 120,
-  approachEdge: null,
-  closeUpEdge: null,
+  approachEdge: 0,
+  closeUpEdge: 0,
+  approachBandTop: 430,
+  closeUpBandTop: 430,
 };
 
 const NARROW_LAYOUT: SceneLayout = {
@@ -182,6 +184,8 @@ describe('SpaceSceneEngine, the scenes the first golden left out', () => {
     drawn['overview'] = scene.print(3000);
     scene.set(approach(3, 0));
     drawn['approach'] = scene.print(3000);
+    scene.set(closeUp(2));
+    drawn['close-up'] = scene.print(2000);
     scene.set(aside(1));
     drawn['aside'] = scene.print(3000);
 
@@ -290,10 +294,11 @@ const SCENES_GOLDEN = {
     approach: '318c3ecc',
   },
   phone: {
-    arrival: 'bc6dd0b8',
-    overview: 'fe55540e',
-    approach: 'eaa07063',
-    aside: '0598f29b',
+    arrival: '5d0f1c63',
+    overview: '6bea4b02',
+    approach: '9f7ffa73',
+    'close-up': 'a2ac970a',
+    aside: 'd2c829bf',
   },
   measuredLabels: {
     arrival: '29a2446b',

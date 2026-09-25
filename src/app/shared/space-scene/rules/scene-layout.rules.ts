@@ -33,6 +33,12 @@ const isSidePanel = (
   rect.left >= viewport.width * SIDE_PANEL.leftShare &&
   rect.height >= viewport.height * SIDE_PANEL.heightShare;
 
+const CHROME_ROLES: ReadonlySet<ScenePanelRole> = new Set([
+  'top-bar',
+  'bottom-bar',
+  'chrome',
+]);
+
 const isPortrait = (viewport: SceneLayout['viewport']): boolean =>
   viewport.height > viewport.width;
 
@@ -61,6 +67,9 @@ export function sceneLayout(
     approachBandTop: bandTop(approach, viewport),
     closeUpBandTop: bandTop(closeUp, viewport),
     ...windowBounds(anchors, viewport),
+    chrome: anchors
+      .filter((anchor) => CHROME_ROLES.has(anchor.role) && isShown(anchor))
+      .map((anchor) => panelOf(anchor)),
   };
 }
 

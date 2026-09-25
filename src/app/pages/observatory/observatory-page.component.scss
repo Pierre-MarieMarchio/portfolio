@@ -151,9 +151,16 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
   }
 }
 
+$glass-landscape-min: 324px;
+
 @include formats.phone-landscape {
+  :host {
+    --glass-width: max(50vw, #{$glass-landscape-min});
+  }
+
   .bar {
-    right: 50%;
+    right: var(--glass-width);
+    gap: 0;
   }
 
   app-featured-bar {
@@ -163,11 +170,12 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
   }
 
   .slot {
-    left: 50%;
+    left: calc(100% - var(--glass-width));
   }
 
   .slot--preview {
     top: auto;
+    max-height: 100%;
   }
 }
 

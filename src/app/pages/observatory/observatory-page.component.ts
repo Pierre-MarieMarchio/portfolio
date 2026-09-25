@@ -111,6 +111,7 @@ export class ObservatoryPageComponent {
     rule: 'rule',
     detail: 'detail',
     preview: 'preview',
+    chrome: 'chrome',
   };
 
   protected readonly navigationItems = computed<readonly NavigationItem[]>(

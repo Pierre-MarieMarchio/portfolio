@@ -300,3 +300,64 @@ for (const route of SITE_ROUTES) {
       .toEqual([]);
   });
 }
+
+type Hole = { readonly x: number; readonly y: number; readonly radius: number };
+
+const holeOf = (page: Page): Promise<Hole> =>
+  page.locator('app-space-scene .stage').evaluate((stage) => ({
+    x: Number(stage.dataset['holeX']),
+    y: Number(stage.dataset['holeY']),
+    radius: Number(stage.dataset['holeRadius']),
+  }));
+
+const DISC_REACH = 2.4;
+const DISC_GUTTER_PX = 12;
+
+const discFaultsOf = (hole: Hole, panel: Edges, screen: Edges): string[] => [
+  ...(hole.radius > 0 ? [] : ['no hole']),
+  ...(hole.x - DISC_REACH * hole.radius >= screen.left + DISC_GUTTER_PX
+    ? []
+    : ['disc past the left edge']),
+  ...(hole.y - hole.radius >= screen.top &&
+  hole.y + hole.radius <= screen.bottom
+    ? []
+    : ['hole off screen, vertically']),
+  ...(hole.x + hole.radius <= panel.left ? [] : ['hole under the panel']),
+];
+
+test('frames the hole of a sheet on screen, left of the panel, at every chapter', async ({
+  page,
+}, testInfo) => {
+  testInfo.skip(sizeOf(testInfo) !== 'tablet', 'the tablet, upright');
+  await openHydrated(page, '/projet/bkone');
+  const window = firstWindow(page);
+  const chapters = window.locator('app-segmented button');
+  const screen = (await layoutOf(page)).screen;
+  const faults: string[] = [];
+
+  for (const chapter of await chapters.all()) {
+    await chapter.tap();
+    const name = await chapter.innerText();
+    const panel = await edgesOf(window);
+    let last = '';
+    await expect
+      .poll(
+        async () => {
+          const hole = await holeOf(page);
+          const now = `${String(hole.x)},${String(hole.y)}`;
+          const isSame = now === last;
+          last = now;
+          return isSame;
+        },
+        { message: `chapter ${name}, settled`, intervals: [300] },
+      )
+      .toBe(true);
+    faults.push(
+      ...discFaultsOf(await holeOf(page), panel, screen).map(
+        (fault) => `chapter ${name}: ${fault}`,
+      ),
+    );
+  }
+
+  expect(faults, 'faults').toEqual([]);
+});

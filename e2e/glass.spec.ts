@@ -142,7 +142,7 @@ const SKY_PAGES = [
 ] as const;
 const SKY_SIZE = 'phone';
 const SKY_ENGINE = 'chromium';
-const MIN_SPREAD_GAIN = 1.25;
+const MIN_SPREAD_GAIN = 1.15;
 const MIN_INK_CONTRAST = 4.5;
 const BRIGHT_PERCENTILE = 0.999;
 const CONTENT_HIDDEN =

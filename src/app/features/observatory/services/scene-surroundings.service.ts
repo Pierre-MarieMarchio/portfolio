@@ -12,6 +12,7 @@ const SCENE_ROLE_OF: Readonly<
   rule: 'bottom-bar',
   detail: 'approach-edge',
   preview: 'close-up-edge',
+  chrome: 'chrome',
 };
 
 const LINE: SceneAnchorKind = 'line';

@@ -8,6 +8,7 @@ export interface TakenPlace {
   readonly y: number;
   readonly w: number;
   readonly h: number;
+  readonly isName?: boolean;
 }
 
 export interface PanelEdges {
@@ -30,6 +31,9 @@ export interface HoleDisc {
 }
 
 const HOLE_CLEARANCE = 4;
+
+const offsetAcross = (place: TakenPlace, x: number, width: number): number =>
+  place.isName ? place.x + place.w / 2 - (x + width / 2) : place.x - x;
 
 const isOverHole = (
   hole: HoleDisc | undefined,
@@ -95,7 +99,7 @@ export function placeName(
     isOverHole(stage.hole, { x: x2, y: y2 }, size) ||
     taken.some(
       (q) =>
-        Math.abs(q.x - x2) < (q.w + lw) / 2 - 4 &&
+        Math.abs(offsetAcross(q, x2, lw)) < (q.w + lw) / 2 - 4 &&
         Math.abs(q.y - y2) < (q.h + lh) / 2 + 4,
     );
   const first = { x: placeX(dir), y: boundY(py + rise), dir };
@@ -112,7 +116,7 @@ export function placeName(
       return isTaken(x, at) ? null : at;
     });
     if (y !== null) {
-      taken.push({ x, y, w: lw, h: lh });
+      taken.push({ x, y, w: lw, h: lh, isName: true });
       return { x, y, dir: d, free: true };
     }
   }

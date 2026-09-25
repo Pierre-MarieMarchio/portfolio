@@ -12,7 +12,13 @@ import { FALLBACK_VIEWPORT } from '../../models/scene-constants.model';
 import type { SceneState } from '../scene-state.rules';
 import { Orbit, positionOrbit } from '../scene-bodies.rules';
 import { flattening, rollFlatten } from './projection.rules';
-import { freeSkyOf, outermostReach, wholeInFreeSky } from './free-sky.rules';
+import {
+  closeUpInRoom,
+  freeSkyOf,
+  holeRoomBeside,
+  outermostReach,
+  wholeInFreeSky,
+} from './free-sky.rules';
 
 export interface FramingScene {
   rest: Frame;
@@ -84,6 +90,16 @@ const approachFraming = (state: SceneState, scene: FramingScene): Frame => {
 };
 
 const closeUpFraming = (state: SceneState, scene: FramingScene): Frame => {
+  const frame = closeUpBeside(state, scene);
+  const corner = scene.layout?.cornerPanelLeft;
+  const room =
+    typeof corner === 'number' ? holeRoomBeside(scene.layout, corner) : null;
+  return room && scene.dims
+    ? closeUpInRoom(frame, { dims: scene.dims, room })
+    : frame;
+};
+
+const closeUpBeside = (state: SceneState, scene: FramingScene): Frame => {
   const framed = state.framed;
   return closeUpFrame({
     rest: scene.rest,

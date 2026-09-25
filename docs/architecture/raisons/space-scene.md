@@ -25,6 +25,15 @@ et de `src/testing/`, rangées par unité (D10).
   hauts d'au moins un quart de l'écran et qui commencent après son premier
   quart (`SIDE_PANEL`). Le rail de contact et la courte fenêtre de la page
   introuvable, à la tablette, n'en sont pas. Couché, rien ne change.
+- `cornerPanelLeft` n'existe que couché : le bord gauche du plus à gauche
+  des mêmes panneaux latéraux, s'il touche aussi le bord droit et le bas de
+  l'écran, à 1 px près. La vitre couchée du téléphone l'est (mesurée
+  244,0 → 568,320 à 568 × 320) ; aucune fenêtre du bureau ni de la tablette
+  couchée ne l'est (bord droit à 44 px de l'écran, bas à 76 px au moins).
+  La scène reconnaît ainsi la vitre couchée sans lire le format (D31).
+- `topBar` garde la boîte de la barre du haut, et pas seulement sa hauteur :
+  couchée, elle ne couvre que la moitié gauche, et un nom de constellation
+  n'a à s'en écarter que s'il la croise.
 - La vitre repliée tient dans son emplacement (voir `pages/observatory/`) :
   le haut du bandeau devient celui de sa barre, et la caméra glisse vers le
   cadrage au grand ciel. Le glissement est celui de toute visée (0,55 s de
@@ -63,9 +72,24 @@ et de `src/testing/`, rangées par unité (D10).
   panneau, 16 px avant lui. L'échelle tient l'orbite extérieure dans cet
   espace, moins 28 px pour le bouton de la planète (48 px), par l'étendue
   exacte de l'ellipse tournée (`discSpan`, élévation, aplatissement et
-  roulis) ; elle peut doubler celle du cadrage fixe, pas plus. Sans bandeau
-  ni panneau à droite, le cadrage fixe est rendu tel quel : le bureau, la
-  tablette couchée et le téléphone couché ne bougent pas.
+  roulis) ; elle peut doubler celle du cadrage fixe, pas plus. Couché, la
+  vitre du coin (`cornerPanelLeft`) donne le même espace qu'un panneau à
+  droite : sous la barre (56 px), à gauche de la vitre. Avant D31, le cadrage
+  fixe y posait des boutons de planète sous la barre (jusqu'à 45 px au-dessus
+  de son bas à 844 × 390). À 568 × 320, l'objet de la vue d'ensemble y perd
+  de la taille (trou de 26 à 13 px de rayon) : le ciel sous la barre n'a que
+  264 px de haut. Sans bandeau, ni panneau à droite, ni vitre au coin, le
+  cadrage fixe est rendu tel quel : le bureau et la tablette couchée ne
+  bougent pas.
+- Au gros plan, à côté d'une vitre couchée, le trou se centre dans le plus
+  grand rectangle vide que le chrome et la vitre laissent (`holeRoomBeside`,
+  la découpe de `restInFreeSky`), celui où le plus grand disque tient à
+  12 px de ses bords ; l'échelle du gros plan ne baisse que si ce disque
+  est plus petit que son trou (`closeUpInRoom`). Mesuré, le trou garde son
+  rayon (62 px à 844 × 390, 33 px à 568 × 320) et passe sous le titre, à
+  gauche du « @ ». La planète visée reste où l'angle du gros plan la pose
+  par rapport au trou, parfois sous la vitre : le contrat ne tient que le
+  trou.
 
 - Le repos de l'accueil garde la bande entre la barre et la règle
   (`measureRest`) tant qu'elle tient le trou à 12 px du chrome (barre,
@@ -105,6 +129,16 @@ et de `src/testing/`, rangées par unité (D10).
   place de l'ancienne règle plutôt que de sauter en plein vol. Sans cette
   condition, huit empreintes du bureau bougeaient (les passages vers et
   depuis l'à-propos), que D30 garde.
+- Entre deux noms, l'écart se mesure de centre à centre, avec la même
+  tolérance de 4 px (`offsetAcross`). Avant D31, il se mesurait de bord
+  gauche à bord gauche : deux noms de largeurs différentes pouvaient se
+  couvrir, comme « Skyted Companion » (148 px) et « Template .NET »
+  (123 px), 9 px l'un sur l'autre à 640 × 360. Le fond des noms est plein
+  (`--paper` à 92 %) : le recouvrement se voit. Contre un panneau, la mesure
+  reste celle d'avant, de bord gauche à bord gauche : la corriger aussi
+  déplaçait sept empreintes du bureau. Un vrai test de recouvrement des
+  boîtes, sans tolérance, les déplaçait aussi : le repos du golden du bureau
+  a deux noms qui se couvrent de 3,4 px, dans la tolérance.
 
 ## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`, la tablette
 
@@ -146,6 +180,10 @@ et de `src/testing/`, rangées par unité (D10).
 - D30 ne change que l'arrivée du téléphone : un nom posé sur le trou au repos
   cherche désormais une autre place. `PHONE_LAYOUT` n'a pas de chrome, donc
   pas de repos déplacé, et la fiche n'y est pas debout à côté d'un panneau.
+- D31 ne change aucune empreinte : les dispositions du golden n'ont ni vitre
+  au coin, ni boîte de barre (`topBar`), et leurs noms ont tous une même
+  largeur (120 px par défaut, ou la taille mesurée donnée à tous), où l'écart
+  de centre à centre est celui de bord à bord.
 
 ## `src/app/shared/space-scene/engine/space-scene.engine.spec.ts`
 
@@ -192,6 +230,17 @@ et de `src/testing/`, rangées par unité (D10).
 
 - Le point de fuite ne devance le virage que de quelques pixels : le spec
   prend le centre de l'image pour lui.
+
+## `src/app/shared/space-scene/rules/sky/figure-label.rules.ts`
+
+- Le nom d'une constellation allumée se pose au-dessus de sa figure, 16 px
+  plus haut. S'il y croise la barre du haut (`topBar`), il passe sous la
+  figure, 16 px plus bas, suspendu par son haut. Couché, la barre couvre le
+  haut de la moitié gauche, où l'à-propos allume ses figures : à 568 × 320,
+  le nom de « Profil » s'écrivait à 15 px du haut, sous la barre. Sa
+  largeur ne se mesure (`measureText`, plus l'interlettrage) que si sa
+  hauteur croise celle de la barre : au bureau, le dessin est appel pour
+  appel celui d'avant.
 
 ## `src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts`
 

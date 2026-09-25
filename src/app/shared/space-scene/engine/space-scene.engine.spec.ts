@@ -701,8 +701,12 @@ interface HoleSeen {
   readonly radius: number;
 }
 
-const markedScene = (layout: SceneLayout, dpr: number) => {
-  const scene = mountEngineScene({ layout, dpr });
+const markedScene = (
+  layout: SceneLayout,
+  dpr: number,
+  inputs: SceneInputs = SCENE_INPUTS,
+) => {
+  const scene = mountEngineScene({ layout, dpr, inputs });
   const mark = document.createElement('div');
   scene.engine.setHoleMark(mark);
   const hole = (): HoleSeen => ({
@@ -888,6 +892,25 @@ const isHoleOver = (hole: HoleSeen, box: ReturnType<typeof rectOf>): boolean =>
     hole.y - Math.min(Math.max(hole.y, box.top), box.bottom),
   ) < hole.radius;
 
+const FALLBACK_TITLE_WIDTH = 340.046875;
+const WEB_FONT_TITLE_WIDTH = 338.875;
+
+const titledLyingLayout = (titleWidth: number): SceneLayout =>
+  sceneLayout({ left: 0, top: 0 }, LYING_PHONE, [
+    { rect: rectOf(0, 0, 422, 56), opacity: '1', role: 'top-bar' },
+    {
+      rect: rectOf(33.75, 68, titleWidth, 95.25),
+      opacity: '1',
+      role: 'chrome',
+    },
+    { rect: rectOf(372, 340, 44, 44), opacity: '1', role: 'chrome' },
+    {
+      rect: rectOf(428, 250.8125, 404, 133.1875),
+      opacity: '1',
+      role: 'bottom-bar',
+    },
+  ]);
+
 describe('SpaceSceneEngine, at rest on a phone lying down', () => {
   it('rests in the free sky, clear of the title and the rule, the hole larger', () => {
     const scene = markedScene(lyingHomeLayout(true), 3);
@@ -916,6 +939,36 @@ describe('SpaceSceneEngine, at rest on a phone lying down', () => {
     expect(moved.x).toBeCloseTo(settled.hole().x, 0);
     expect(moved.radius).toBeCloseTo(settled.hole().radius, 0);
   }, 60_000);
+
+  it.each([
+    ['under reduced motion', true, 1000],
+    ['in motion', false, 6000],
+  ] as const)(
+    'lands where a late-measured scene lands once the web font narrows the title (%s)',
+    (_, reduced, settleMs) => {
+      const inputs = { ...SCENE_INPUTS, reduced };
+      const early = markedScene(
+        titledLyingLayout(FALLBACK_TITLE_WIDTH),
+        1,
+        inputs,
+      );
+      early.run(PAST_CROSSING_MS);
+      const before = early.hole();
+
+      early.engine.setLayout(titledLyingLayout(WEB_FONT_TITLE_WIDTH));
+      early.run(settleMs);
+      const late = markedScene(
+        titledLyingLayout(WEB_FONT_TITLE_WIDTH),
+        1,
+        inputs,
+      );
+      late.run(PAST_CROSSING_MS + settleMs);
+
+      expect(late.hole(), 'the fallback rest differs').not.toEqual(before);
+      expect(early.hole()).toEqual(late.hole());
+    },
+    60_000,
+  );
 });
 
 const SMALL_LYING = { width: 568, height: 320 } as const;

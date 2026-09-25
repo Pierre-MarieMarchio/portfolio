@@ -1,4 +1,5 @@
-import { Frame, measureRest } from '../rules/camera/camera-frames.rules';
+import { Frame } from '../rules/camera/camera-frames.rules';
+import { measureRest } from '../rules/camera/rest-frame.rules';
 import { clamp, finiteOr } from '@app/core/helpers';
 import { Orbit, placeOrbits } from '../rules/scene-bodies.rules';
 import { PlanePoint, TurntableMotion } from './motions/turntable.motion';
@@ -15,6 +16,7 @@ import {
   FramingScene,
 } from '../rules/camera/framing.rules';
 import { panelZones, Zone } from '../rules/panel-veil.rules';
+import { restInFreeSky } from '../rules/camera/free-sky.rules';
 import {
   diskOnScreen,
   DiskOnScreen,
@@ -130,7 +132,14 @@ export class SpaceSceneEngine {
   public setLayout(layout: SceneLayout): void {
     this.layout = layout;
     this.motion.camera.measureRest(
-      measureRest(layout.viewport, layout.topBarHeight, layout.bottomBarHeight),
+      restInFreeSky(
+        layout,
+        measureRest(
+          layout.viewport,
+          layout.topBarHeight,
+          layout.bottomBarHeight,
+        ),
+      ),
     );
     this.zones = panelZones(layout, this.dpr);
     this.request();

@@ -930,3 +930,220 @@ test('keeps the names of the featured planets apart on an upright phone', async 
 
   expect(overlaps, 'names over each other').toEqual([]);
 });
+
+const isDiscOver = (hole: Hole, edges: Edges): boolean => {
+  const dx = hole.x - Math.min(Math.max(hole.x, edges.left), edges.right);
+  const dy = hole.y - Math.min(Math.max(hole.y, edges.top), edges.bottom);
+  return Math.hypot(dx, dy) < hole.radius;
+};
+
+const holeEdgesOf = (hole: Hole): Edges => ({
+  left: hole.x - hole.radius,
+  top: hole.y - hole.radius,
+  right: hole.x + hole.radius,
+  bottom: hole.y + hole.radius,
+});
+
+const shownEdgesOf = async (locator: Locator): Promise<Edges | null> =>
+  (await locator.isVisible()) ? edgesOf(locator) : null;
+
+const featuredButtonsOf = async (page: Page): Promise<Edges[]> =>
+  Promise.all(
+    (await planetButtonsOf(page).all())
+      .slice(0, FEATURED_COUNT)
+      .map((button) => edgesOf(button)),
+  );
+
+const shownLabelsOf = (page: Page): Promise<(Edges & { name: string })[]> =>
+  page.locator('app-space-scene .label').evaluateAll((nodes) =>
+    nodes
+      .filter((node) => Number(getComputedStyle(node).opacity) > 0)
+      .map((node) => {
+        const box = node.getBoundingClientRect();
+        return {
+          name: node.textContent.trim(),
+          left: box.left,
+          top: box.top,
+          right: box.right,
+          bottom: box.bottom,
+        };
+      }),
+  );
+
+const LANDSCAPE_HOMES = [
+  { width: 844, height: 390 },
+  { width: 780, height: 360 },
+  { width: 640, height: 360 },
+  { width: 568, height: 320 },
+] as const;
+const MIN_LANDSCAPE_HOLE_PX = 10;
+
+for (const size of LANDSCAPE_HOMES) {
+  test(`frames the home object in the free sky of a phone lying down, ${String(size.width)}×${String(size.height)}`, async ({
+    page,
+  }, testInfo) => {
+    testInfo.skip(
+      sizeOf(testInfo) !== 'phone-landscape',
+      'the phone, lying down',
+    );
+    await page.setViewportSize(size);
+    await openHydrated(page, '/');
+    await settle(page);
+    await expect(contactToggleOf(page), 'revealed').toBeVisible();
+    const chrome = Object.entries({
+      title: await edgesOf(page.locator('app-home-title')),
+      'page bar': await contentEdgesOf(pageBarOf(page)),
+      rule: await edgesOf(page.locator('app-featured-bar')),
+      '@': await edgesOf(contactToggleOf(page)),
+      dock: await shownEdgesOf(dockOf(page)),
+    }).flatMap(([name, edges]) => (edges ? [{ name, edges }] : []));
+
+    await expect
+      .poll(async () => {
+        const hole = await holeOf(page);
+        const parts = [
+          { name: 'hole', edges: holeEdgesOf(hole) },
+          ...(await featuredButtonsOf(page)).map((edges, rank) => ({
+            name: `planet ${String(rank + 1)}`,
+            edges,
+          })),
+        ];
+        return [
+          ...(hole.radius >= MIN_LANDSCAPE_HOLE_PX ? [] : ['hole too small']),
+          ...parts
+            .filter(({ edges }) => !isOnScreen(page, edges))
+            .map(({ name }) => `${name} off screen`),
+          ...parts.flatMap(({ name, edges }) =>
+            chrome
+              .filter((part) =>
+                name === 'hole'
+                  ? isDiscOver(hole, part.edges)
+                  : isOverlapping(edges, part.edges),
+              )
+              .map((part) => `${name} over ${part.name}`),
+          ),
+        ];
+      }, 'the hole and the featured planets in the free sky')
+      .toEqual([]);
+  });
+}
+
+test('keeps the home object below the title and the featured names off the hole, upright', async ({
+  page,
+}, testInfo) => {
+  skipOffPortrait(testInfo);
+  await openHydrated(page, '/');
+  await settle(page);
+  await expect(contactToggleOf(page), 'revealed').toBeVisible();
+  const title = await edgesOf(page.locator('app-home-title'));
+
+  await expect
+    .poll(async () => {
+      const hole = await holeOf(page);
+      const labels = (await shownLabelsOf(page)).slice(0, FEATURED_COUNT);
+      return [
+        ...(isDiscOver(hole, title) ? ['hole under the title'] : []),
+        ...labels
+          .filter((label) => isDiscOver(hole, label))
+          .map((label) => `${label.name} over the hole`),
+      ];
+    }, 'the hole clear of the title and of the featured names')
+    .toEqual([]);
+});
+
+const SETTLE_TIMEOUT_MS = 25_000;
+
+const SETTLE_INTERVAL_MS = 400;
+
+const expectHoleSettled = async (page: Page): Promise<void> => {
+  let last = '';
+  await expect
+    .poll(
+      async () => {
+        const hole = await holeOf(page);
+        const now = `${String(hole.x)},${String(hole.y)},${String(hole.radius)}`;
+        const isSame = hole.radius > 0 && now === last;
+        last = now;
+        return isSame;
+      },
+      {
+        message: 'settled',
+        timeout: SETTLE_TIMEOUT_MS,
+        intervals: [SETTLE_INTERVAL_MS],
+      },
+    )
+    .toBe(true);
+};
+
+test('keeps every planet name off the hole of a sheet once the camera settles', async ({
+  page,
+}, testInfo) => {
+  const size = sizeOf(testInfo);
+  testInfo.skip(size !== 'phone' && size !== 'phone-s', 'the upright phones');
+  test.setTimeout(60_000);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await openHydrated(page, '/projet/bkone');
+  await settle(page);
+  await expect(openWindowOf(page), 'the sheet').toHaveCount(1);
+
+  await expectHoleSettled(page);
+
+  const hole = await holeOf(page);
+  const crossing = (await shownLabelsOf(page))
+    .filter((label) => isDiscOver(hole, label))
+    .map((label) => label.name);
+  expect(crossing, 'names over the hole').toEqual([]);
+});
+
+for (const size of [{ width: 640, height: 360 }, SMALL_LANDSCAPE] as const) {
+  test(`keeps the preview whole on a phone lying down, ${String(size.width)}×${String(size.height)}`, async ({
+    page,
+  }, testInfo) => {
+    testInfo.skip(
+      sizeOf(testInfo) !== 'phone-landscape',
+      'the phone, lying down',
+    );
+    await page.setViewportSize(size);
+    await openHydrated(page, '/');
+    await settle(page);
+    await openPreview(page);
+    const titlebar = await edgesOf(openWindowOf(page).locator('.titlebar'));
+    const footer = await edgesOf(openWindowOf(page).locator('.footer'));
+
+    expect(isOnScreen(page, titlebar), 'title bar on screen').toBe(true);
+    expect(isOnScreen(page, footer), 'footer on screen').toBe(true);
+  });
+}
+
+test('shows the short glass titles whole at 568×320, the page bar beside the glass', async ({
+  page,
+}, testInfo) => {
+  testInfo.skip(
+    sizeOf(testInfo) !== 'phone-landscape',
+    'the phone, lying down',
+  );
+  await page.setViewportSize(SMALL_LANDSCAPE);
+  const faults: string[] = [];
+  for (const glassPage of GLASS_PAGES.filter(({ name }) =>
+    ['index', 'about'].includes(name),
+  )) {
+    await openGlassPage(page, glassPage);
+    const title = openWindowOf(page).locator('.titlebar h2');
+    const cut = await title.evaluate(
+      (element) => element.scrollWidth - element.clientWidth,
+    );
+    const lines = await barLinesOf(pageBarOf(page));
+    const bar = await contentEdgesOf(pageBarOf(page));
+    const glass = await edgesOf(openWindowOf(page));
+    faults.push(
+      ...(cut > 0 ? [`${glassPage.name}: title cut by ${String(cut)} px`] : []),
+      ...(lines.rows === 1 ? [] : [`${glassPage.name}: page bar on rows`]),
+      ...(lines.overflow > 0 ? [`${glassPage.name}: page bar cut off`] : []),
+      ...(isOverlapping(bar, glass)
+        ? [`${glassPage.name}: page bar over the glass`]
+        : []),
+    );
+  }
+
+  expect(faults, 'faults').toEqual([]);
+});

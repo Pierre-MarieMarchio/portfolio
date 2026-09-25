@@ -76,6 +76,7 @@ const approachFraming = (state: SceneState, scene: FramingScene): Frame => {
     orbit: scene.orbits[framed] ?? null,
     panelLeft: scene.layout?.approachEdge ?? null,
     band: skyBand(scene.layout, scene.layout?.approachBandTop),
+    isDiscHeld: typeof scene.layout?.sidePanelLeft === 'number',
     phase: scene.phase,
     azim: scene.azim + scene.orbitTurn(framed),
     offset: (az, tilt) => offsetSeen(scene, framed, az, tilt),

@@ -4,7 +4,6 @@ import {
   closeUpFrame,
   Frame,
   isFiniteFrame,
-  measureRest,
   REST_FRAME,
 } from './camera-frames.rules';
 import { ARRIVED, traveling } from './traveling.rules';
@@ -18,67 +17,6 @@ const isFiniteNumbers = (frame: Frame): boolean =>
   Object.values(frame).every((value) => Number.isFinite(value));
 
 describe('scene camera', () => {
-  describe('measureRest', () => {
-    const viewports = [
-      { width: 0, height: 0 },
-      { width: 320, height: 240 },
-      { width: 924, height: 540 },
-      { width: 1280, height: 800 },
-      { width: 3840, height: 400 },
-      { width: 400, height: 3000 },
-    ];
-
-    it('keeps every term finite and inside its bounds, whatever the window', () => {
-      for (const viewport of viewports) {
-        for (const head of [null, 0, 72, 400]) {
-          const m = measureRest(viewport, head, null);
-          expect(
-            Object.values(m).every((value) => Number.isFinite(value)),
-          ).toBe(true);
-          expect(m.s).toBeGreaterThanOrEqual(0.07);
-          expect(m.s).toBeLessThanOrEqual(0.42);
-          expect(m.y).toBeGreaterThanOrEqual(0.14);
-          expect(m.y).toBeLessThanOrEqual(0.72);
-          expect(m.ev).toBeGreaterThanOrEqual(0.12);
-          expect(m.freeHalf).toBeGreaterThanOrEqual(26);
-        }
-      }
-    });
-
-    it.each([
-      { width: 390, height: 844, rule: 221 },
-      { width: 360, height: 780, rule: 221 },
-      { width: 320, height: 568, rule: 133 },
-    ])(
-      'raises an upright phone’s rest, the hole as big as before ($width × $height)',
-      ({ width, height, rule }) => {
-        const upright = measureRest({ width, height }, 56, rule);
-
-        expect(upright.ev).toBeGreaterThan(REST_FRAME.ev + 0.1);
-        expect(upright.s).toBeCloseTo(0.42, 9);
-      },
-    );
-
-    it('keeps the rest of a screen lying down', () => {
-      for (const viewport of [
-        { width: 844, height: 390 },
-        { width: 1180, height: 820 },
-        { width: 1440, height: 900 },
-      ]) {
-        expect(measureRest(viewport, 56, 90).ev).toBeLessThanOrEqual(
-          REST_FRAME.ev,
-        );
-      }
-    });
-
-    it('lays the system down as the free band narrows', () => {
-      const tall = measureRest({ width: 1280, height: 1000 }, 72, 56);
-      const low = measureRest({ width: 1280, height: 420 }, 72, 56);
-      expect(low.ev).toBeLessThan(tall.ev);
-      expect(Math.abs(low.i)).toBeLessThan(Math.abs(tall.i));
-    });
-  });
-
   describe('approachFrame and closeUpFrame', () => {
     const dims = { w: 1848, h: 1080, dpr: 2 };
     const orbit = { ang: 0.62, v: 0.01, rb: 5.2 };
@@ -191,5 +129,40 @@ describe('scene camera', () => {
         ),
       ).toBe(true);
     });
+  });
+});
+
+describe('approachFrame beside a panel on an upright screen', () => {
+  const dims = { w: 820, h: 1180, dpr: 1 };
+  const orbit = { ang: 0.62, v: 0.01, rb: 5.2 };
+  const framed = (step: number, isDiscHeld: boolean): Frame =>
+    approachFrame({
+      step,
+      rest: REST_FRAME,
+      viewportWidth: dims.w,
+      dims,
+      orbit,
+      panelLeft: 361,
+      band: null,
+      isDiscHeld,
+      phase: 0,
+      azim: 0,
+      offset: noOffset,
+    });
+  const discLeft = (frame: Frame): number =>
+    frame.x * dims.w - 2.4 * Math.min(dims.w / 6.6, dims.h / 3.2) * frame.s;
+
+  it('holds the whole disc on screen, at every step', () => {
+    expect(
+      Math.min(...APPROACHES.map((_, step) => discLeft(framed(step, false)))),
+    ).toBeLessThan(12);
+
+    for (const step of APPROACHES.keys()) {
+      expect(discLeft(framed(step, true))).toBeGreaterThanOrEqual(12 - 1e-9);
+    }
+  });
+
+  it('leaves the frame untouched when the disc is already on screen', () => {
+    expect(framed(0, true)).toEqual(framed(0, false));
   });
 });

@@ -182,3 +182,21 @@ describe('sceneLayout', () => {
     });
   });
 });
+
+describe('sceneLayout, the chrome', () => {
+  it('keeps the bars and the chrome, shown, apart from the windows', () => {
+    const layout = sceneLayout(CANVAS, VIEWPORT, [
+      anchor('top-bar', { left: 0, top: 0, width: 640, height: 56 }),
+      anchor('chrome', { left: 30, top: 70, width: 350, height: 90 }),
+      anchor('chrome', { left: 0, top: 700, width: 0, height: 0 }),
+      anchor('', { left: 700, top: 60, width: 500, height: 600 }),
+      anchor('bottom-bar', { left: 640, top: 600, width: 600, height: 150 }),
+    ]);
+
+    expect(layout.chrome).toEqual([
+      { left: 0, top: 0, right: 640, bottom: 56, opacity: 1 },
+      { left: 30, top: 70, right: 380, bottom: 160, opacity: 1 },
+      { left: 640, top: 600, right: 1240, bottom: 750, opacity: 1 },
+    ]);
+  });
+});

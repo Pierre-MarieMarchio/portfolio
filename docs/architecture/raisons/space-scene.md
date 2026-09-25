@@ -41,6 +41,8 @@ et de `src/testing/`, rangées par unité (D10).
   gros plan. Le gros plan dessine l'objet 6 % plus petit (l'ouverture) : le
   corps y tombe un peu plus près de l'objet que visé, dans la marge.
 
+## `src/app/shared/space-scene/rules/camera/rest-frame.rules.ts`
+
 - Debout, quand l'échelle du repos bute sur son plafond (0,42) et laisse de
   la hauteur libre, le repos se relève (`UPRIGHT_REST`, élévation 0,6 et
   roulis -0,45) dans cette seule marge : le facteur vertical ne dépasse pas
@@ -65,6 +67,66 @@ et de `src/testing/`, rangées par unité (D10).
   ni panneau à droite, le cadrage fixe est rendu tel quel : le bureau, la
   tablette couchée et le téléphone couché ne bougent pas.
 
+- Le repos de l'accueil garde la bande entre la barre et la règle
+  (`measureRest`) tant qu'elle tient le trou à 12 px du chrome (barre,
+  règle, titre, contact, dock) et que l'échelle n'y bute pas sur son
+  plancher (0,07). Sinon, `restInFreeSky` essaie chaque rectangle vide que
+  les bords du chrome découpent dans l'écran et garde celui où l'échelle est
+  la plus grande (à égalité, le plus grand) : couché, la moitié droite
+  au-dessus de la règle, ou le bas gauche sous le titre à 640 et 568 px ;
+  debout à 320 px, la bande sous le titre. Dans ce rectangle, rentré de
+  8 px, l'orbite extérieure tient aussi en largeur, à 30 px du bord
+  (`sideHalf`), comme en hauteur ; debout, elle laisse en plus de chaque côté
+  la longueur d'un coude de nom (48 px). À 320 × 568, la bande sous le titre
+  n'a que 150 px de haut, deux rangées de noms hors du trou, et les noms des
+  vedettes pointent vers le centre des deux côtés : sans ce retrait, le
+  quatrième ne trouvait plus de place. Le trou y passe d'un rayon de 20 px
+  (sous le titre) à 11 px. Au bureau et à la tablette, la bande tient :
+  rien ne change. La recherche ne tourne qu'à la mesure de la mise en page,
+  pas à chaque image.
+- Le repos glisse vers sa nouvelle place avec l'amorti du repos (0,75 s de
+  demi-vie), `x` compris : l'arrivée du titre, après l'intro, ne fait pas
+  sauter l'objet.
+
+## `src/app/shared/space-scene/rules/scene-bodies.rules.ts`, la vitesse
+
+- La vitesse d'une orbite se calcule sur un rayon d'au moins 0,1
+  (`NARROWEST_ORBIT`). Couché, avant D30, la bande du repos donnait un rayon
+  nul à 780, 640 et 568 px : la vitesse devenait infinie, la position `NaN`,
+  et le dessin s'arrêtait sur une exception à chaque image (le trou de
+  `data-hole-*` restait celui du premier cadrage par défaut).
+
+## `src/app/shared/space-scene/rules/planets/label-placement.rules.ts`
+
+- Un nom de planète cherche une place hors du disque du trou, à 4 px près,
+  comme il cherche une place libre parmi les panneaux et les autres noms. Le
+  renderer ne lui donne le trou que caméra arrivée (à 0,05 de sa visée) et
+  les noms voulus : pendant un déplacement ou un effacement, un nom garde la
+  place de l'ancienne règle plutôt que de sauter en plein vol. Sans cette
+  condition, huit empreintes du bureau bougeaient (les passages vers et
+  depuis l'à-propos), que D30 garde.
+
+## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`, la tablette
+
+- Debout, à côté d'un panneau (`sidePanelLeft`), l'approche garde le disque
+  (2,4 rayons) à 12 px du bord gauche : elle décale le trou vers la droite
+  s'il le faut, puis réduit l'échelle à la place restante devant le panneau.
+  Au chapitre 3 d'une fiche, à 820 × 1180, le disque sortait à 7 px du bord.
+  Couché, le disque déborde à gauche par dessin : rien ne change.
+
+## `src/app/shared/space-scene/engine/motions/camera.motion.ts`
+
+- Un repos qui change compte comme un mouvement de la caméra. Le repos
+  s'amortit après que la caméra a lu sa visée : sous le mouvement réduit, une
+  nouvelle mesure (le titre de l'accueil qui apparaît, par exemple) entrait
+  dans le repos sans que la caméra la rejoigne, et la boucle s'arrêtait,
+  faute de mouvement. Le trou restait au repos d'avant, et la capture
+  alternait d'un lancement à l'autre selon l'ordre des mesures.
+- La caméra est dite arrivée quand, après le pas de l'image, elle est à moins
+  de 0,05 de sa visée (`frame.arrived`) : mesurée avant le pas, l'image du
+  saut du mouvement réduit était dessinée comme en route, et restait la
+  dernière.
+
 ## `src/app/shared/space-scene/engine/renderers/hole-mark.renderer.ts`
 
 - La scène écrit le centre et le rayon du trou, en pixels CSS au dixième,
@@ -81,6 +143,9 @@ et de `src/testing/`, rangées par unité (D10).
   aussi l'arrivée, l'approche et le gros plan (qui prennent l'élévation du
   repos, et des orbites ajustées sur lui). Aucune autre empreinte ne bouge :
   les autres dispositions sont couchées.
+- D30 ne change que l'arrivée du téléphone : un nom posé sur le trou au repos
+  cherche désormais une autre place. `PHONE_LAYOUT` n'a pas de chrome, donc
+  pas de repos déplacé, et la fiche n'y est pas debout à côté d'un panneau.
 
 ## `src/app/shared/space-scene/engine/space-scene.engine.spec.ts`
 

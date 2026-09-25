@@ -17,6 +17,18 @@ et de `src/testing/`, rangées par unité (D10).
   (D26).
 - Les hauts de bandeau sont optionnels dans `SceneLayout` : un rectangle qui
   ne les donne pas garde le cadrage à droite, au pixel près.
+- `panelBandTop` est le haut du plus haut bandeau parmi toutes les ancres
+  montrées, sauf les deux barres, quel que soit leur rôle : l'index et
+  l'à-propos s'inscrivent sans rôle (`''`), la page introuvable dans
+  l'emplacement de la fiche. `sidePanelLeft` n'existe que debout (hauteur
+  plus grande que la largeur) : le bord gauche du plus à gauche des panneaux
+  hauts d'au moins un quart de l'écran et qui commencent après son premier
+  quart (`SIDE_PANEL`). Le rail de contact et la courte fenêtre de la page
+  introuvable, à la tablette, n'en sont pas. Couché, rien ne change.
+- La vitre repliée tient dans son emplacement (voir `pages/observatory/`) :
+  le haut du bandeau devient celui de sa barre, et la caméra glisse vers le
+  cadrage au grand ciel. Le glissement est celui de toute visée (0,55 s de
+  demi-vie), immédiat sous le mouvement réduit.
 
 ## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`
 
@@ -28,6 +40,53 @@ et de `src/testing/`, rangées par unité (D10).
   visé (`BodyOffset`) : ceux du cran pour l'approche, ceux du repos pour le
   gros plan. Le gros plan dessine l'objet 6 % plus petit (l'ouverture) : le
   corps y tombe un peu plus près de l'objet que visé, dans la marge.
+
+- Debout, quand l'échelle du repos bute sur son plafond (0,42) et laisse de
+  la hauteur libre, le repos se relève (`UPRIGHT_REST`, élévation 0,6 et
+  roulis -0,45) dans cette seule marge : le facteur vertical ne dépasse pas
+  ce que la bande libre permet à l'échelle plafonnée, donc le trou garde sa
+  taille. Les quatre vedettes s'étagent au lieu de s'aligner, et leurs noms
+  ne se touchent plus (mesuré à 320, 360 et 390 px, sous les deux moteurs).
+  Le roulis compte autant que l'élévation : à 320 px, les deux planètes du
+  milieu étaient à la même hauteur et leurs noms, posés de part et d'autre,
+  se chevauchaient. Couché, ou quand l'échelle n'est pas plafonnée (le
+  bureau, la tablette couchée), le repos est celui d'avant.
+
+## `src/app/shared/space-scene/rules/camera/free-sky.rules.ts`
+
+- La vue d'ensemble, l'à-propos et la page introuvable montrent l'objet
+  entier. Avec un bandeau en bas, son trou se centre dans la bande de ciel
+  (sous la barre du haut, au-dessus du bandeau) et au milieu de la largeur ;
+  debout avec un panneau à droite (la tablette), dans l'espace à gauche du
+  panneau, 16 px avant lui. L'échelle tient l'orbite extérieure dans cet
+  espace, moins 28 px pour le bouton de la planète (48 px), par l'étendue
+  exacte de l'ellipse tournée (`discSpan`, élévation, aplatissement et
+  roulis) ; elle peut doubler celle du cadrage fixe, pas plus. Sans bandeau
+  ni panneau à droite, le cadrage fixe est rendu tel quel : le bureau, la
+  tablette couchée et le téléphone couché ne bougent pas.
+
+## `src/app/shared/space-scene/engine/renderers/hole-mark.renderer.ts`
+
+- La scène écrit le centre et le rayon du trou, en pixels CSS au dixième,
+  dans `data-hole-x`, `data-hole-y` et `data-hole-radius` de sa scène
+  (`.stage`) : l'e2e lit là où la caméra pose l'objet, que le canvas ne dit
+  pas. L'écriture ne se fait que si la valeur change, dans le DOM et non dans
+  un signal, comme les boutons des planètes.
+
+## `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts`
+
+- Les cinq empreintes du téléphone changent : `PHONE_LAYOUT` porte
+  désormais `panelBandTop` (430), la vue d'ensemble et l'à-propos se
+  cadrent au-dessus de lui, et le repos debout se relève, ce qui déplace
+  aussi l'arrivée, l'approche et le gros plan (qui prennent l'élévation du
+  repos, et des orbites ajustées sur lui). Aucune autre empreinte ne bouge :
+  les autres dispositions sont couchées.
+
+## `src/app/shared/space-scene/engine/space-scene.engine.spec.ts`
+
+- La densité après une rotation se compare à une scène jumelle, au même
+  instant : le nombre de grains dessinés varie d'une image à l'autre selon
+  ceux qui passent derrière le trou, plus nombreux quand le repos se relève.
 
 ## `src/app/shared/space-scene/engine/motions/grains.motion.ts`
 

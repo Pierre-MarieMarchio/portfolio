@@ -785,3 +785,148 @@ for (const glassPage of GLASS_PAGES.filter(({ name }) =>
     ).toBeLessThanOrEqual(0);
   });
 }
+
+type Hole = { readonly x: number; readonly y: number; readonly radius: number };
+
+const holeOf = (page: Page): Promise<Hole> =>
+  page.locator('app-space-scene .stage').evaluate((stage) => ({
+    x: Number(stage.dataset['holeX']),
+    y: Number(stage.dataset['holeY']),
+    radius: Number(stage.dataset['holeRadius']),
+  }));
+
+const planetButtonsOf = (page: Page): Locator =>
+  page.locator('app-planet-buttons button');
+
+const WHOLE_OBJECT_PAGES = [
+  { name: 'index', path: '/projets', hasPlanets: true },
+  { name: 'about', path: '/a-propos', hasPlanets: false },
+  { name: 'not found', path: '/nulle-part', hasPlanets: false },
+] as const;
+
+const isBetween = (edges: Edges, top: number, bottom: number): boolean =>
+  edges.top >= top && edges.bottom <= bottom;
+
+for (const { name, path, hasPlanets } of WHOLE_OBJECT_PAGES) {
+  test(`frames the whole object above the lowered glass, ${name}`, async ({
+    page,
+  }, testInfo) => {
+    skipOffPortrait(testInfo);
+    await openHydrated(page, path);
+    await settle(page);
+    await expect(openWindowOf(page), 'one open glass').toHaveCount(1);
+    const barBottom = (await edgesOf(pageBarOf(page))).bottom;
+    const glassTop = (await edgesOf(openWindowOf(page))).top;
+    const width = page.viewportSize()?.width ?? 0;
+
+    await expect
+      .poll(async () => {
+        const hole = await holeOf(page);
+        return (
+          hole.radius > 0 &&
+          hole.x - hole.radius >= 0 &&
+          hole.x + hole.radius <= width &&
+          isBetween(
+            {
+              left: 0,
+              right: 0,
+              top: hole.y - hole.radius,
+              bottom: hole.y + hole.radius,
+            },
+            barBottom,
+            glassTop,
+          )
+        );
+      }, 'the hole between the page bar and the glass')
+      .toBe(true);
+
+    if (hasPlanets) {
+      const buttons = planetButtonsOf(page);
+      await expect
+        .poll(() => buttons.count(), 'planet buttons')
+        .toBeGreaterThan(0);
+      await expect
+        .poll(async () => {
+          const edges = await Promise.all(
+            (await buttons.all()).map((button) => edgesOf(button)),
+          );
+          return edges
+            .filter(
+              (box) =>
+                !isBetween(box, barBottom, glassTop) ||
+                box.left < -EDGE_TOLERANCE_PX ||
+                box.right > width + EDGE_TOLERANCE_PX,
+            )
+            .map((box) => `${String(box.left)},${String(box.top)}`);
+        }, 'planet buttons outside the sky above the glass')
+        .toEqual([]);
+    }
+  });
+}
+
+const FOLDED_DROP_SHARE = 0.15;
+
+test('lowers the object when the sheet folds, and raises it back', async ({
+  page,
+}, testInfo) => {
+  testInfo.skip(sizeOf(testInfo) !== 'phone', 'measured at phone');
+  await openHydrated(page, '/projet/bkone');
+  await settle(page);
+  await expect(openWindowOf(page), 'the sheet').toHaveCount(1);
+  const height = page.viewportSize()?.height ?? 0;
+  await expect.poll(async () => (await holeOf(page)).radius).toBeGreaterThan(0);
+  const lowered = (await holeOf(page)).y;
+
+  await foldGlass(page);
+
+  await expect
+    .poll(async () => (await holeOf(page)).y - lowered, 'drop, in px')
+    .toBeGreaterThanOrEqual(FOLDED_DROP_SHARE * height);
+
+  const unfold = openWindowOf(page).locator('.titlebar button[aria-expanded]');
+  await unfold.tap();
+  await expect(unfold, 'unfolded').toHaveAttribute('aria-expanded', 'true');
+
+  await expect
+    .poll(async () => Math.abs((await holeOf(page)).y - lowered), 'back, in px')
+    .toBeLessThanOrEqual(EDGE_TOLERANCE_PX);
+});
+
+const FEATURED_COUNT = 4;
+
+test('keeps the names of the featured planets apart on an upright phone', async ({
+  page,
+}, testInfo) => {
+  skipOffPortrait(testInfo);
+  await openHydrated(page, '/');
+  await settle(page);
+  const labels = page.locator('app-space-scene .label');
+  await expect
+    .poll(
+      () =>
+        labels.evaluateAll(
+          (nodes, count) =>
+            nodes
+              .slice(0, count)
+              .filter((node) => Number(getComputedStyle(node).opacity) > 0)
+              .length,
+          FEATURED_COUNT,
+        ),
+      'featured names shown',
+    )
+    .toBe(FEATURED_COUNT);
+
+  const boxes = await Promise.all(
+    (await labels.all())
+      .slice(0, FEATURED_COUNT)
+      .map((label) => edgesOf(label)),
+  );
+  const overlaps = boxes.flatMap((box, index) =>
+    boxes
+      .map((other, at) => ({ other, at }))
+      .filter(({ other, at }) => at > index && isOverlapping(box, other))
+      .map(({ at }) => `${String(index)} over ${String(at)}`),
+  );
+
+  expect(overlaps, 'names over each other').toEqual([]);
+});

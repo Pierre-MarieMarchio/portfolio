@@ -12,6 +12,7 @@ import { FALLBACK_VIEWPORT } from '../../models/scene-constants.model';
 import type { SceneState } from '../scene-state.rules';
 import { Orbit, positionOrbit } from '../scene-bodies.rules';
 import { flattening, rollFlatten } from './projection.rules';
+import { freeSkyOf, outermostReach, wholeInFreeSky } from './free-sky.rules';
 
 export interface FramingScene {
   rest: Frame;
@@ -39,10 +40,10 @@ export const framingScene = (
 export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
   switch (state.framing) {
     case 'aside': {
-      return ASIDE_FRAME;
+      return wholeObjectFraming(ASIDE_FRAME, scene);
     }
     case 'overview': {
-      return OVERVIEW_FRAME;
+      return wholeObjectFraming(OVERVIEW_FRAME, scene);
     }
     case 'approach': {
       return approachFraming(state, scene);
@@ -54,6 +55,15 @@ export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
       return scene.rest;
     }
   }
+};
+
+const wholeObjectFraming = (frame: Frame, scene: FramingScene): Frame => {
+  const dims = scene.dims;
+  const reach = outermostReach(scene.orbits);
+  const sky = dims ? freeSkyOf(scene.layout, dims.w / dims.dpr) : null;
+  return dims && sky && reach > 0
+    ? wholeInFreeSky(frame, { dims, sky, reach })
+    : frame;
 };
 
 const approachFraming = (state: SceneState, scene: FramingScene): Frame => {

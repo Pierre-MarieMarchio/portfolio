@@ -284,7 +284,11 @@ nomme l'unité qu'elle concerne.
 - Couchée, la vitre prend son emplacement, que la page met à la moitié
   droite, de haut en bas, sans montée : le corps défile comme au bureau.
   Repliée, elle se réduit à sa barre, en bas de sa place, debout comme
-  couchée.
+  couchée. Debout, la vitre repliée et son conteneur repassent dans le flux
+  (`position: static`) : l'emplacement prend la hauteur de la barre, et
+  l'ancre que la caméra lit suit le repli sans mesurer la barre. La règle
+  est écrite hors de `.glass--rising`, et gagne par l'ordre à spécificité
+  égale : sous ce sélecteur, la feuille dépassait son budget de 4 kB.
 - Une fenêtre ancrée en bas (`anchor="bottom"`, l'aperçu) reste une petite
   vitre basse : ni conteneur de défilement, ni voile ; elle garde ses boîtes,
   comme au bureau, et l'emplacement la borne. Les règles de la vitre qui

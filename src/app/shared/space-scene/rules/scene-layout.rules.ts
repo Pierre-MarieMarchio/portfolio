@@ -24,6 +24,18 @@ export const isBottomBand = (
   rect.width >= viewport.width * BOTTOM_BAND.widthShare &&
   rect.top >= viewport.height * BOTTOM_BAND.topShare;
 
+const SIDE_PANEL = { leftShare: 0.25, heightShare: 0.25 } as const;
+
+const isSidePanel = (
+  rect: PanelBox,
+  viewport: SceneLayout['viewport'],
+): boolean =>
+  rect.left >= viewport.width * SIDE_PANEL.leftShare &&
+  rect.height >= viewport.height * SIDE_PANEL.heightShare;
+
+const isPortrait = (viewport: SceneLayout['viewport']): boolean =>
+  viewport.height > viewport.width;
+
 const bandTop = (
   rect: PanelBox | null,
   viewport: SceneLayout['viewport'],
@@ -48,7 +60,40 @@ export function sceneLayout(
     closeUpEdge: closeUp ? closeUp.left : null,
     approachBandTop: bandTop(approach, viewport),
     closeUpBandTop: bandTop(closeUp, viewport),
+    ...windowBounds(anchors, viewport),
   };
+}
+
+function windowBounds(
+  anchors: readonly PanelAnchor[],
+  viewport: SceneLayout['viewport'],
+): Pick<SceneLayout, 'panelBandTop' | 'sidePanelLeft'> {
+  const windows = anchors
+    .filter(
+      (anchor) =>
+        anchor.role !== 'top-bar' &&
+        anchor.role !== 'bottom-bar' &&
+        isShown(anchor),
+    )
+    .map((anchor) => anchor.rect);
+  const bands = windows.filter((rect) => isBottomBand(rect, viewport));
+  const sides = isPortrait(viewport)
+    ? windows.filter(
+        (rect) => !isBottomBand(rect, viewport) && isSidePanel(rect, viewport),
+      )
+    : [];
+  return {
+    panelBandTop: smallestOf(bands.map((rect) => rect.top)),
+    sidePanelLeft: smallestOf(sides.map((rect) => rect.left)),
+  };
+}
+
+function smallestOf(values: readonly number[]): number | null {
+  return values.length > 0 ? Math.min(...values) : null;
+}
+
+function isShown(anchor: PanelAnchor): boolean {
+  return anchor.rect.width > 0 && anchor.rect.height > 0;
 }
 
 function panelOf({ rect, opacity }: PanelAnchor): PanelRect {
@@ -67,8 +112,7 @@ function lastShown(
   role: Exclude<ScenePanelRole, ''>,
 ): PanelBox | null {
   const shown = anchors.filter(
-    (anchor) =>
-      anchor.role === role && anchor.rect.width > 0 && anchor.rect.height > 0,
+    (anchor) => anchor.role === role && isShown(anchor),
   );
   return shown.at(-1)?.rect ?? null;
 }

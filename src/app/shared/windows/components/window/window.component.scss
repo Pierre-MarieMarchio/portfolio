@@ -37,7 +37,6 @@ $bottom-reserve: var(--glass-bottom-reserve, 0px);
   display: contents;
 }
 
-.shade,
 .lead,
 .tail {
   display: none;
@@ -160,6 +159,8 @@ h2 {
 
     .window {
       flex: 1 1 auto;
+      background: var(--vitre-pane);
+      backdrop-filter: var(--glass-blur-pane);
     }
 
     &.glass--folded .window {
@@ -169,6 +170,8 @@ h2 {
   }
 
   .titlebar {
+    gap: 4px;
+    padding-right: 0;
     cursor: default;
     touch-action: manipulation;
   }
@@ -177,26 +180,21 @@ h2 {
     display: none;
   }
 
-  .meta {
-    flex: 1 1 0;
+  h2 {
+    flex: 0 1 auto;
     min-width: 0;
+    letter-spacing: var(--ls-caps);
+  }
+
+  .meta {
+    flex: 1 0 auto;
     text-align: right;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
 @include formats.phone-portrait {
   .glass--rising {
     timeline-scope: --glass-rise;
-
-    .shade {
-      position: absolute;
-      inset: 0;
-      display: block;
-      animation: glass-shade linear both;
-      animation-timeline: --glass-rise;
-    }
 
     .rail {
       overflow-y: auto;
@@ -209,6 +207,8 @@ h2 {
     .lead {
       display: block;
       flex: 0 0 calc(var(--glass-lowered) * 100%);
+      animation: glass-shade linear both;
+      animation-timeline: --glass-rise;
     }
 
     .tail {

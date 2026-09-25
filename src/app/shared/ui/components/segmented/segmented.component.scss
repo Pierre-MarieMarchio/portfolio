@@ -1,4 +1,5 @@
 @use 'mixins/controls';
+@use 'mixins/formats';
 @use 'mixins/motion';
 
 :host {
@@ -43,6 +44,26 @@ button {
 
   [data-active='true'] > & {
     color: var(--sig);
+  }
+}
+
+@include formats.phone {
+  ul {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  li {
+    flex: 0 0 auto;
+  }
+
+  button {
+    gap: 4px;
+    padding: 5px 4px;
+    font-size: var(--m1);
+    letter-spacing: normal;
   }
 }
 

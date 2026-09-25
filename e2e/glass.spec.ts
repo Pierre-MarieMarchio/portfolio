@@ -123,16 +123,108 @@ const raiseGlass = async (page: Page, browserName: string): Promise<void> => {
     .toBeLessThan(RAISED_TOP_BELOW_PX);
 };
 
-const shadeBlurOf = (page: Page): Promise<number> =>
+const skyBlurAboveOf = (page: Page): Promise<number> =>
   page.evaluate(() => {
-    const shade = document.querySelector('.glass .shade');
-    if (!shade) {
-      throw new Error('expected a shade');
+    const lead = document.querySelector('.glass .lead');
+    if (!lead) {
+      throw new Error('expected the sky above the glass');
     }
-    const filter = getComputedStyle(shade).backdropFilter;
+    const filter = getComputedStyle(lead).backdropFilter;
     const blur = /blur\(([\d.]+)px\)/.exec(filter);
     return blur ? Number(blur[1]) : 0;
   });
+
+type SkyReading = { readonly spread: number; readonly contrast: number };
+
+const SKY_PAGES = [
+  { name: 'sheet', path: '/projet/bkone', spreadWithTwoFilters: 0.00245 },
+  { name: 'about', path: '/a-propos', spreadWithTwoFilters: 0.00166 },
+] as const;
+const SKY_SIZE = 'phone';
+const SKY_ENGINE = 'chromium';
+const MIN_SPREAD_GAIN = 1.25;
+const MIN_INK_CONTRAST = 4.5;
+const BRIGHT_PERCENTILE = 0.999;
+const CONTENT_HIDDEN =
+  'section.window { color: transparent !important; } section.window .body * { visibility: hidden !important; }';
+
+const skyUnderTheBody = async (page: Page): Promise<SkyReading> => {
+  await page.addStyleTag({ content: CONTENT_HIDDEN });
+  const body = await boxOf(glassOf(page).locator('.body'));
+  const shot = await page.screenshot({ clip: body, animations: 'disabled' });
+  return page.evaluate(
+    async ({ png, percentile }) => {
+      const linear = Array.from({ length: 256 }, (_, value) => {
+        const share = value / 255;
+        return share <= 0.04045
+          ? share / 12.92
+          : ((share + 0.055) / 1.055) ** 2.4;
+      });
+      const luminanceAt = (data: Uint8ClampedArray, at: number): number =>
+        0.2126 * (linear[data[at] ?? 0] ?? 0) +
+        0.7152 * (linear[data[at + 1] ?? 0] ?? 0) +
+        0.0722 * (linear[data[at + 2] ?? 0] ?? 0);
+      const image = new Image();
+      image.src = `data:image/png;base64,${png}`;
+      await image.decode();
+      const board = document.createElement('canvas');
+      board.width = image.width;
+      board.height = image.height;
+      const pen = board.getContext('2d');
+      if (!pen) {
+        throw new Error('expected a 2d context');
+      }
+      pen.drawImage(image, 0, 0);
+      const pixels = pen.getImageData(0, 0, board.width, board.height).data;
+      const levels: number[] = [];
+      for (let at = 0; at < pixels.length; at += 4) {
+        levels.push(luminanceAt(pixels, at));
+      }
+      levels.sort((a, b) => a - b);
+      const mean =
+        levels.reduce((sum, level) => sum + level, 0) / levels.length;
+      const variance =
+        levels.reduce((sum, level) => sum + (level - mean) ** 2, 0) /
+        levels.length;
+      const bright =
+        levels[
+          Math.min(levels.length - 1, Math.floor(levels.length * percentile))
+        ] ?? 0;
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--ink-2)';
+      document.body.append(probe);
+      pen.fillStyle = getComputedStyle(probe).color;
+      probe.remove();
+      pen.fillRect(0, 0, 1, 1);
+      const ink = luminanceAt(pen.getImageData(0, 0, 1, 1).data, 0);
+      return {
+        spread: Math.sqrt(variance),
+        contrast: (ink + 0.05) / (bright + 0.05),
+      };
+    },
+    { png: shot.toString('base64'), percentile: BRIGHT_PERCENTILE },
+  );
+};
+
+const filtersUnderTheBody = (page: Page): Promise<string[]> =>
+  glassOf(page)
+    .locator('.body')
+    .evaluate((body, tolerance) => {
+      const area = body.getBoundingClientRect();
+      const isUnder = (box: DOMRect): boolean =>
+        box.left < area.right - tolerance &&
+        area.left < box.right - tolerance &&
+        box.top < area.bottom - tolerance &&
+        area.top < box.bottom - tolerance;
+      return [...document.querySelectorAll<HTMLElement>('body *')]
+        .filter(
+          (element) =>
+            !['', 'none'].includes(
+              getComputedStyle(element).getPropertyValue('backdrop-filter'),
+            ) && isUnder(element.getBoundingClientRect()),
+        )
+        .map((element) => [element.localName, ...element.classList].join('.'));
+    }, EDGE_TOLERANCE_PX);
 
 const railTopsAfterMidwayScroll = (
   page: Page,
@@ -280,19 +372,37 @@ for (const { name, path } of PAGES) {
     await expect(glass.locator('.body'), 'the body is back').toHaveCount(1);
   });
 
-  test(`blurs the scene more as the glass rises, ${name}`, async ({
+  test(`blurs the sky above the glass more as it rises, ${name}`, async ({
     page,
     browserName,
   }, testInfo) => {
     skipOffPortrait(testInfo);
     await openGlass(page, path);
-    const lowered = await shadeBlurOf(page);
+    const lowered = await skyBlurAboveOf(page);
 
     await raiseGlass(page, browserName);
 
     await expect
-      .poll(() => shadeBlurOf(page), 'shade blur raised, in px')
+      .poll(() => skyBlurAboveOf(page), 'sky blur above, raised, in px')
       .toBeGreaterThan(lowered);
+  });
+
+  test(`lays one filter under the body of the glass, ${name}`, async ({
+    page,
+    browserName,
+  }, testInfo) => {
+    skipOffPhone(testInfo);
+    await openGlass(page, path);
+    expect(await filtersUnderTheBody(page), 'filters, low').toEqual([
+      'section.window',
+    ]);
+
+    if (PORTRAIT_SIZES.has(sizeOf(testInfo))) {
+      await raiseGlass(page, browserName);
+      expect(await filtersUnderTheBody(page), 'filters, raised').toEqual([
+        'section.window',
+      ]);
+    }
   });
 
   test(`gives the glass the right half in landscape, ${name}`, async ({
@@ -308,6 +418,30 @@ for (const { name, path } of PAGES) {
     expect(box.x + box.width, 'right edge').toBeCloseTo(width, 0);
     expect(box.y, 'top edge').toBeCloseTo(0, 0);
     expect(box.y + box.height, 'bottom edge').toBeCloseTo(height, 0);
+  });
+}
+
+for (const { name, path, spreadWithTwoFilters } of SKY_PAGES) {
+  test(`keeps the sky readable under the raised glass, ${name}`, async ({
+    page,
+    browserName,
+  }, testInfo) => {
+    testInfo.skip(
+      sizeOf(testInfo) !== SKY_SIZE || browserName !== SKY_ENGINE,
+      'measured in Chromium at 390 by 844',
+    );
+    await openGlass(page, path);
+    await raiseGlass(page, browserName);
+
+    const sky = await skyUnderTheBody(page);
+
+    expect(
+      sky.spread,
+      'luminance spread under the body',
+    ).toBeGreaterThanOrEqual(MIN_SPREAD_GAIN * spreadWithTwoFilters);
+    expect(sky.contrast, 'ink-2 over the brightest sky').toBeGreaterThanOrEqual(
+      MIN_INK_CONTRAST,
+    );
   });
 }
 

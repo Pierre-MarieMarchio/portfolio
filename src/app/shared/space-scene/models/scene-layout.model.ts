@@ -6,6 +6,8 @@ export interface PanelRect {
   readonly opacity: number;
 }
 
+export type LayoutBox = Omit<PanelRect, 'opacity'>;
+
 export interface SceneLayout {
   readonly canvas: { readonly left: number; readonly top: number };
   readonly viewport: { readonly width: number; readonly height: number };
@@ -18,6 +20,8 @@ export interface SceneLayout {
   readonly closeUpBandTop?: number | null;
   readonly panelBandTop?: number | null;
   readonly sidePanelLeft?: number | null;
+  readonly cornerPanelLeft?: number | null;
+  readonly topBar?: LayoutBox | null;
   readonly chrome?: readonly PanelRect[];
 }
 

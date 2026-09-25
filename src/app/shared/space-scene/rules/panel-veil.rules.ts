@@ -26,6 +26,21 @@ export const panelZones = (layout: SceneLayout, dpr: number): Zone[] => {
     }));
 };
 
+export const topBarZone = (layout: SceneLayout, dpr: number): Zone | null => {
+  const bar = layout.topBar;
+  if (!bar) {
+    return null;
+  }
+  const { left, top } = layout.canvas;
+  return {
+    l: (bar.left - left) * dpr,
+    r: (bar.right - left) * dpr,
+    t: (bar.top - top) * dpr,
+    b: (bar.bottom - top) * dpr,
+    o: 1,
+  };
+};
+
 export const veilAt = (
   zones: readonly Zone[],
   fade: number,

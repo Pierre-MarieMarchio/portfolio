@@ -917,3 +917,117 @@ describe('SpaceSceneEngine, at rest on a phone lying down', () => {
     expect(moved.radius).toBeCloseTo(settled.hole().radius, 0);
   }, 60_000);
 });
+
+const SMALL_LYING = { width: 568, height: 320 } as const;
+const SMALL_LYING_GLASS = 244;
+const SMALL_LYING_BAR = rectOf(0, 0, SMALL_LYING_GLASS, 56);
+const SMALL_LYING_TITLE = rectOf(23, 68, 198, 139);
+const SMALL_LYING_CONTACT = rectOf(194, 270, 44, 44);
+
+const lyingGlassLayout = (
+  role: 'close-up-edge' | '',
+  hasTitle: boolean,
+): SceneLayout =>
+  sceneLayout({ left: 0, top: 0 }, SMALL_LYING, [
+    { rect: SMALL_LYING_BAR, opacity: '1', role: 'top-bar' },
+    ...(hasTitle
+      ? [{ rect: SMALL_LYING_TITLE, opacity: '1', role: 'chrome' as const }]
+      : []),
+    { rect: SMALL_LYING_CONTACT, opacity: '1', role: 'chrome' },
+    {
+      rect: rectOf(
+        SMALL_LYING_GLASS,
+        0,
+        SMALL_LYING.width - SMALL_LYING_GLASS,
+        SMALL_LYING.height,
+      ),
+      opacity: '1',
+      role,
+    },
+  ]);
+
+describe('SpaceSceneEngine, beside a glass lying on the right', () => {
+  it('centres the close-up hole in the free sky left of the glass, clear of the chrome', () => {
+    const scene = markedScene(lyingGlassLayout('close-up-edge', true), 3);
+    scene.set({ reduced: true });
+    scene.run(1000);
+    scene.set({
+      reduced: true,
+      direction: { framing: { kind: 'close-up', body: bodyId(0) } },
+    });
+    scene.run(2000);
+    const hole = scene.hole();
+
+    expect(hole.radius).toBeGreaterThan(0);
+    expect(hole.x - hole.radius, 'left edge').toBeGreaterThanOrEqual(0);
+    expect(hole.y + hole.radius, 'bottom edge').toBeLessThanOrEqual(
+      SMALL_LYING.height,
+    );
+    expect(hole.x + hole.radius, 'left of the glass').toBeLessThanOrEqual(
+      SMALL_LYING_GLASS,
+    );
+    for (const [name, box] of [
+      ['bar', SMALL_LYING_BAR],
+      ['title', SMALL_LYING_TITLE],
+      ['contact', SMALL_LYING_CONTACT],
+    ] as const) {
+      expect(isHoleOver(hole, box), `under the ${name}`).toBe(false);
+    }
+  }, 60_000);
+
+  it('keeps every planet of the overview below the bar', () => {
+    const scene = markedScene(lyingGlassLayout('', false), 3);
+    scene.run(PAST_CROSSING_MS);
+    scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
+    scene.run(4000);
+    for (const rank of SCENE_INPUTS.bodies.keys()) {
+      const at = buttonAt(scene.styles(), rank);
+
+      expect(at.y - BUTTON_HALF).toBeGreaterThanOrEqual(SMALL_LYING_BAR.bottom);
+    }
+  }, 60_000);
+
+  it.each([0, 1, 2, 3])(
+    'writes the name of lit figure %i below the bar',
+    (litFigure) => {
+      const dpr = 2;
+      const barBottom = SMALL_LYING_BAR.bottom * dpr;
+      const scene = mountEngineScene({
+        layout: lyingGlassLayout('', false),
+        dpr,
+      });
+      scene.run(PAST_CROSSING_MS);
+      scene.set({
+        direction: {
+          framing: { kind: 'aside' },
+          presence: 'hidden',
+          labels: 'none',
+          figuresShown: true,
+          litFigure,
+        },
+      });
+      const log = scene.run(4000);
+      const named: { y: number; isHung: boolean }[] = [];
+      let isHung = false;
+      for (const line of log) {
+        if (line.startsWith('sky.textBaseline=')) {
+          isHung = line === 'sky.textBaseline=top';
+        }
+        const text = /^sky\.fillText\(([A-ZÉ]+),([\d.-]+),([\d.-]+)\)$/.exec(
+          line,
+        );
+        if (text) {
+          named.push({ y: Number(text[3]), isHung });
+        }
+      }
+      const fontSize = Math.round(11 * dpr);
+
+      expect(named.length, 'names drawn').toBeGreaterThan(0);
+      for (const { y, isHung: hangs } of named) {
+        const top = hangs ? y : y - fontSize;
+        expect(top).toBeGreaterThanOrEqual(barBottom);
+      }
+    },
+    60_000,
+  );
+});

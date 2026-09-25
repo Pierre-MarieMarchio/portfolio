@@ -7,9 +7,11 @@ import type { SceneFrame } from '../../rules/scene-frame.rules';
 import { CameraMotion } from './camera.motion';
 import { ClockMotion } from './clock.motion';
 import { GrainsMotion } from './grains.motion';
+import { ZoomMotion } from './zoom.motion';
 
 export class SceneMotion {
   public readonly camera = new CameraMotion();
+  public readonly zoom = new ZoomMotion();
   public readonly grains: GrainsMotion;
   private readonly clock: ClockMotion;
 
@@ -23,12 +25,20 @@ export class SceneMotion {
   }
 
   public get hasMoved(): boolean {
-    return this.clock.hasMoved || this.camera.hasMoved || this.grains.hasMoved;
+    return (
+      this.clock.hasMoved ||
+      this.camera.hasMoved ||
+      this.grains.hasMoved ||
+      this.zoom.hasMoved
+    );
   }
 
   public get isSettled(): boolean {
     return (
-      this.clock.isSettled && this.camera.isSettled && this.grains.isSettled
+      this.clock.isSettled &&
+      this.camera.isSettled &&
+      this.grains.isSettled &&
+      this.zoom.isSettled
     );
   }
 
@@ -50,6 +60,7 @@ export class SceneMotion {
     this.camera.easeOpening(dt, state.reduced, isCloseUp(state));
     this.grains.update(dt, state.reduced);
     this.camera.update(dt, target, state);
+    this.zoom.update(dt, state.reduced);
     this.clock.update(dt, state, isVisible);
   }
 
@@ -58,6 +69,7 @@ export class SceneMotion {
     const trv = this.clock.traveling(state.reduced);
     frame.trv = trv;
     this.camera.lay(frame, trv);
+    this.zoom.lay(frame);
     frame.entry = state.reduced ? 1 : easeOut(this.grains.entry);
     frame.time = this.clock.time;
     frame.phase = this.clock.phase;

@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { AnimatedCanvasService } from '../../services/animated-canvas.service';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
+import { ZoomGestureDirective } from '../../directives/zoom-gesture.directive';
 import { SpaceSceneEngine } from '../../engine/space-scene.engine';
 import {
   RESTING_DIRECTION,
@@ -35,7 +36,7 @@ const DENSITY = 3800;
 
 @Component({
   selector: 'app-space-scene',
-  imports: [TurnGestureDirective],
+  imports: [TurnGestureDirective, ZoomGestureDirective],
   providers: [SceneTargetsService],
   templateUrl: './space-scene.component.html',
   styleUrl: './space-scene.component.scss',

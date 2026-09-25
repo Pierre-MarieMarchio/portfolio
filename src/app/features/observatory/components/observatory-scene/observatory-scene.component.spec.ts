@@ -242,11 +242,12 @@ describe('ObservatorySceneComponent', () => {
   it('absorbs the click that ends a drag of more than 6 px, not after a click', async () => {
     const { host, clicks } = await mount();
     const pointer = (type: string, x: number, y: number): void => {
-      const event = new MouseEvent(type, {
+      const event = new PointerEvent(type, {
         bubbles: true,
         clientX: x,
         clientY: y,
         button: 0,
+        isPrimary: true,
       });
       host.dispatchEvent(event);
     };
@@ -271,11 +272,12 @@ describe('ObservatorySceneComponent', () => {
     document.body.append(panel);
     const pointer = (type: string, x: number): void => {
       panel.dispatchEvent(
-        new MouseEvent(type, {
+        new PointerEvent(type, {
           bubbles: true,
           clientX: x,
           clientY: 0,
           button: 0,
+          isPrimary: true,
         }),
       );
     };

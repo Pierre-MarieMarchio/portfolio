@@ -41,14 +41,22 @@ const hearClick = (): void => {
 const pointer = (
   target: EventTarget,
   type: string,
-  options: { x?: number; y?: number; button?: number } = {},
+  options: {
+    x?: number;
+    y?: number;
+    button?: number;
+    id?: number;
+    isPrimary?: boolean;
+  } = {},
 ): void => {
   target.dispatchEvent(
-    new MouseEvent(type, {
+    new PointerEvent(type, {
       bubbles: true,
       clientX: options.x ?? 0,
       clientY: options.y ?? 0,
       button: options.button ?? 0,
+      pointerId: options.id ?? 1,
+      isPrimary: options.isPrimary ?? true,
     }),
   );
 };
@@ -189,6 +197,21 @@ describe('TurnGestureDirective', () => {
       expect(clicks()).toBe(1);
     },
   );
+
+  it('never turns with a second finger, nor lets go when it lifts', async () => {
+    const scene = new SceneDouble();
+    const { host } = await mount(scene);
+
+    pointer(host, 'pointerdown', { x: 10, y: 20, id: 1 });
+    pointer(host, 'pointerdown', { x: 60, y: 20, id: 2, isPrimary: false });
+    pointer(host, 'pointermove', { x: 80, y: 30, id: 2, isPrimary: false });
+    pointer(host, 'pointerup', { x: 80, y: 30, id: 2, isPrimary: false });
+    pointer(host, 'pointermove', { x: 12, y: 24, id: 1 });
+
+    expect(scene.grabs).toEqual([[10, 20]]);
+    expect(scene.turns).toEqual([[12, 24]]);
+    expect(scene.releases).toBe(0);
+  });
 
   it('answers the main button only', async () => {
     const scene = new SceneDouble();

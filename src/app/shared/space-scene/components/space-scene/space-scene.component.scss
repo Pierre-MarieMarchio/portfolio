@@ -1,3 +1,4 @@
+@use 'mixins/formats';
 @use 'mixins/motion';
 @use 'mixins/type';
 
@@ -27,6 +28,21 @@
 
 .stage {
   z-index: 1;
+}
+
+@mixin sky-takes-the-hand {
+  .sky {
+    pointer-events: auto;
+    touch-action: none;
+  }
+}
+
+@include formats.phone {
+  @include sky-takes-the-hand;
+}
+
+@include formats.tablet {
+  @include sky-takes-the-hand;
 }
 
 .fallback {

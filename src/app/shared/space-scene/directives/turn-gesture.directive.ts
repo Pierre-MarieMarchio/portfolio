@@ -1,47 +1,42 @@
 import { DestroyRef, Directive, inject, input } from '@angular/core';
 import { BrowserWindowService, CursorService } from '@app/core/services';
 import { SpaceSceneEngine } from '../engine/space-scene.engine';
+import { isOnSky } from '../rules/sky-touch.rules';
+import { ClickAbsorberService } from '../services/click-absorber.service';
 
 export type TurnableScene = Pick<SpaceSceneEngine, 'grab' | 'turn' | 'release'>;
-
-const OWN_GESTURES =
-  '[data-panel], [data-scene-target], a, input, textarea, select';
 
 @Directive({ selector: '[appTurnGesture]' })
 export class TurnGestureDirective {
   private readonly browserWindow = inject(BrowserWindowService);
   private readonly cursor = inject(CursorService);
+  private readonly absorber = inject(ClickAbsorberService);
 
   public readonly appTurnGesture = input<TurnableScene | null>(null);
 
   private readonly gesture: (() => void)[] = [];
-  private stopAbsorbing: () => void = () => {};
 
   constructor() {
     const stopGrabbing = this.browserWindow.on(
       'pointerdown',
       (event) => {
-        this.stopAbsorbing();
-        this.grab(event);
+        this.absorber.stop();
+        if (event.isPrimary) {
+          this.grab(event);
+        }
       },
       { capture: true },
     );
     inject(DestroyRef).onDestroy(() => {
       stopGrabbing();
       this.endGesture();
-      this.stopAbsorbing();
+      this.absorber.stop();
     });
   }
 
   private grab(event: PointerEvent): void {
     const scene = this.appTurnGesture();
-    const target = event.target instanceof Element ? event.target : null;
-    if (
-      !scene ||
-      event.button !== 0 ||
-      !target ||
-      target.closest(OWN_GESTURES)
-    ) {
+    if (!scene || event.button !== 0 || !isOnSky(event)) {
       return;
     }
     if (!scene.grab(event.clientX, event.clientY)) {
@@ -49,19 +44,26 @@ export class TurnGestureDirective {
     }
     this.endGesture();
     this.cursor.set('grabbing');
+    const hand = event.pointerId;
     this.gesture.push(
       this.browserWindow.on(
         'pointermove',
         (move) => {
-          scene.turn(move.clientX, move.clientY);
+          if (move.pointerId === hand) {
+            scene.turn(move.clientX, move.clientY);
+          }
         },
         { passive: true },
       ),
-      this.browserWindow.on('pointerup', () => {
-        this.release(scene);
+      this.browserWindow.on('pointerup', (up) => {
+        if (up.pointerId === hand) {
+          this.release(scene);
+        }
       }),
-      this.browserWindow.on('pointercancel', () => {
-        this.release(scene);
+      this.browserWindow.on('pointercancel', (cancel) => {
+        if (cancel.pointerId === hand) {
+          this.release(scene);
+        }
       }),
     );
   }
@@ -70,25 +72,8 @@ export class TurnGestureDirective {
     const wasDrag = scene.release();
     this.endGesture();
     if (wasDrag) {
-      this.absorbNextClick();
+      this.absorber.absorbNext();
     }
-  }
-
-  private absorbNextClick(): void {
-    this.stopAbsorbing();
-    const stop = this.browserWindow.on(
-      'click',
-      (click) => {
-        click.stopPropagation();
-        click.preventDefault();
-        this.stopAbsorbing();
-      },
-      { capture: true },
-    );
-    this.stopAbsorbing = () => {
-      stop();
-      this.stopAbsorbing = () => {};
-    };
   }
 
   private endGesture(): void {

@@ -735,3 +735,27 @@ pied. Le mettre dans le menu de la barre : un seul toucher de plus pour un
 contact, et deux actions dans un même bouton. Couché, le mettre dans la
 barre : à 568 px, la moitié gauche ne tient pas la langue, la navigation et
 le « @ » sur une ligne.
+
+## 2026-09-25 — Sous la vitre, un seul filtre (D28, amende D25)
+
+**Décision.** Au téléphone, la vitre qui monte ne pose qu'un filtre sur le
+ciel qu'elle couvre : le sien, `--glass-blur-pane` (`blur(4px)
+brightness(0.7) saturate(1.08)`), sur `--vitre-pane`, la teinte de `--vitre`
+à 62 %. La couche `.shade`, qui couvrait tout l'écran, disparaît : le flou et
+l'assombrissement qui suivent la montée (D25) passent sur `.lead`, le ciel
+resté au-dessus de la vitre. Au téléphone, les segmentés tiennent sur une
+ligne (resserrés, et défilants dans leur boîte en dernier recours), et dans
+la barre de titre, c'est le titre qui se tronque, jamais le compteur.
+
+**Raison.** Vitre haute, on ne voyait plus rien du ciel : sous Chromium,
+le filtre de la fenêtre voyait celui de l'ombre, et deux flous et un
+assombrissement de 0,55 s'empilaient. Mesuré contenu masqué, à 390 × 844, le
+ciel sous le corps gagne un tiers d'écart de luminance (× 1,3 sur une fiche,
+× 1,35 sur l'à-propos). `--ink-2` y garde 5,0:1 au moins sur le point le
+plus clair.
+
+**Écarté.** Un ciel plus net encore : un balayage de neuf réglages (flou,
+luminosité, teinte) montre qu'au-delà de × 2 le contraste passe sous 4,5:1.
+Mesurer le flou sous WebKit : celui de Playwright sous Linux ne dessine pas
+`backdrop-filter` (témoin : `brightness(0.2)` sur du blanc reste blanc).
+Le rendu se juge sous Chromium et sur un iPhone.

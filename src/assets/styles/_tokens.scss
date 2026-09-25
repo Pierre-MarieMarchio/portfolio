@@ -8,7 +8,9 @@
   --line: oklch(0.33 0.018 260);
   --accent: oklch(0.76 0.12 230);
   --sig: oklch(0.82 0.14 74);
-  --vitre: color-mix(in oklab, oklch(0.175 0.014 265) 72%, transparent);
+  --vitre-tint: oklch(0.175 0.014 265);
+  --vitre: color-mix(in oklab, var(--vitre-tint) 72%, transparent);
+  --vitre-pane: color-mix(in oklab, var(--vitre-tint) 62%, transparent);
   --vitre-2: color-mix(in oklab, oklch(0.3 0.02 262) 30%, transparent);
 
   --font: 'Instrument Sans', -apple-system, 'Segoe UI', Helvetica, sans-serif;
@@ -43,6 +45,7 @@
 
   --glass-blur: blur(10px) saturate(1.1);
   --glass-blur-window: blur(11px) saturate(1.08);
+  --glass-blur-pane: blur(4px) brightness(0.7) saturate(1.08);
   --glass-shade-lowered: blur(0px) brightness(1);
   --glass-shade-raised: blur(8px) brightness(0.55);
   --glass-lowered: 0.6;

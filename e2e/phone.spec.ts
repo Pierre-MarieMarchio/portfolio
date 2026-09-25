@@ -706,3 +706,82 @@ for (const { kind, path } of [
     }
   });
 }
+
+const segmentedRowsOf = (page: Page) =>
+  openWindowOf(page)
+    .locator('app-segmented')
+    .evaluateAll((sets) =>
+      sets.map((set) => ({
+        tops: new Set(
+          [...set.querySelectorAll('button')].map((button) =>
+            Math.round(button.getBoundingClientRect().top),
+          ),
+        ).size,
+        pageOverflow:
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      })),
+    );
+
+for (const glassPage of GLASS_PAGES.filter(({ name }) =>
+  ['index', 'about'].includes(name),
+)) {
+  test(`holds every segmented of the glass on one row, ${glassPage.name}`, async ({
+    page,
+  }, testInfo) => {
+    skipOffPhone(testInfo);
+    await openGlassPage(page, glassPage);
+
+    const rows = await segmentedRowsOf(page);
+
+    expect(rows.length, 'segmented sets').toBeGreaterThan(0);
+    expect(
+      rows.map(({ tops }) => tops),
+      'rows of each set',
+    ).toEqual(rows.map(() => 1));
+    expect(
+      Math.max(...rows.map(({ pageOverflow }) => pageOverflow)),
+      'page scroll sideways, in px',
+    ).toBeLessThanOrEqual(0);
+  });
+}
+
+for (const glassPage of GLASS_PAGES.filter(({ name }) => name !== 'about')) {
+  test(`shows the counter of the glass bar whole, ${glassPage.name}`, async ({
+    page,
+  }, testInfo) => {
+    skipOffPhone(testInfo);
+    await openGlassPage(page, glassPage);
+
+    const meta = openWindowOf(page).locator('.titlebar .meta');
+
+    await expect(meta, 'the counter').toBeVisible();
+    expect(
+      await meta.evaluate(
+        (element) => element.scrollWidth - element.clientWidth,
+      ),
+      'counter cut off, in px',
+    ).toBeLessThanOrEqual(0);
+  });
+}
+
+for (const glassPage of GLASS_PAGES.filter(({ name }) =>
+  ['index', 'about'].includes(name),
+)) {
+  test(`shows a short glass title whole at 320, ${glassPage.name}`, async ({
+    page,
+  }, testInfo) => {
+    testInfo.skip(sizeOf(testInfo) !== 'phone-xs', 'the smallest phone');
+    await openGlassPage(page, glassPage);
+
+    const title = openWindowOf(page).locator('.titlebar h2');
+
+    await expect(title, 'the title').toBeVisible();
+    expect(
+      await title.evaluate(
+        (element) => element.scrollWidth - element.clientWidth,
+      ),
+      'title cut off, in px',
+    ).toBeLessThanOrEqual(0);
+  });
+}

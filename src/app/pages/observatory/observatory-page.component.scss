@@ -144,6 +144,11 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
     bottom: var(--dock-reserve);
     max-height: calc(45% - var(--dock-reserve));
   }
+
+  .slot:has(.glass--folded) {
+    top: auto;
+    bottom: var(--dock-reserve);
+  }
 }
 
 @include formats.phone-landscape {

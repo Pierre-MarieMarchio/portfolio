@@ -217,6 +217,11 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   téléphone : sinon sa place d'arrivée, vide, compterait comme un panneau et
   effacerait les planètes du bas de l'écran. `:empty` suffit,
   puisqu'un `@if` faux ne laisse que des commentaires, que `:empty` ignore.
+- Debout, un emplacement dont la vitre est repliée (`:has(.glass--folded)`)
+  quitte sa place d'arrivée et se pose au-dessus de la réserve du dock, haut
+  de la seule barre : le haut du bandeau que la caméra lit devient celui de
+  la barre repliée, et l'objet reprend l'écran. Déplié, il revient à
+  60 %.
 - La vitre montée s'arrête 6 px sous la barre de pages
   (`--glass-raised-top`, lu sur `--head-bottom`) ; repliée, elle se pose
   au-dessus de la rangée du bas (`--glass-bottom-reserve`, une cible de 44 px

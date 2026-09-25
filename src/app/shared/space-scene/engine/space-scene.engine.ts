@@ -112,6 +112,11 @@ export class SpaceSceneEngine {
     this.request();
   }
 
+  public setHoleMark(node: HTMLElement | null): void {
+    this.renderer.holeMark.setNode(node);
+    this.request();
+  }
+
   public setLines(lines: readonly HTMLElement[]): void {
     if (this.renderer.labels.setLines(lines)) {
       this.request();

@@ -15,7 +15,7 @@ import {
   framingScene,
   FramingScene,
 } from '../rules/camera/framing.rules';
-import { panelZones, Zone } from '../rules/panel-veil.rules';
+import { panelZones, topBarZone, Zone } from '../rules/panel-veil.rules';
 import { restInFreeSky } from '../rules/camera/free-sky.rules';
 import {
   diskOnScreen,
@@ -54,6 +54,7 @@ export class SpaceSceneEngine {
   private h = 0;
   private dpr = 1;
   private zones: Zone[] = [];
+  private topBar: Zone | null = null;
   private layout: SceneLayout | null = null;
   private disk: DiskOnScreen | null = null;
   private pointer: { x: number; y: number } | null = null;
@@ -142,6 +143,7 @@ export class SpaceSceneEngine {
       ),
     );
     this.zones = panelZones(layout, this.dpr);
+    this.topBar = topBarZone(layout, this.dpr);
     this.request();
   }
 
@@ -151,6 +153,7 @@ export class SpaceSceneEngine {
     this.dpr = dpr;
     if (this.layout) {
       this.zones = panelZones(this.layout, dpr);
+      this.topBar = topBarZone(this.layout, dpr);
     }
     this.needsDraw = true;
     this.draw();
@@ -309,6 +312,7 @@ export class SpaceSceneEngine {
     frame.dpr = this.dpr;
     frame.pointer = this.pointer;
     frame.zones = this.zones;
+    frame.topBar = this.topBar;
     frame.fade = 22 * this.dpr;
     frame.orbits = this.orbits;
     this.motion.lay(frame);

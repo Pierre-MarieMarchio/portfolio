@@ -31,7 +31,7 @@ export const freeSkyOf = (
       bottom: bandTop - layout.canvas.top,
     };
   }
-  const sideLeft = layout.sidePanelLeft;
+  const sideLeft = layout.sidePanelLeft ?? layout.cornerPanelLeft;
   if (typeof sideLeft === 'number') {
     return {
       left: 0,
@@ -222,4 +222,57 @@ export const restInFreeSky = (
   return chrome.length === 0 || isBandClear
     ? band
     : (widestRest(chrome, viewport) ?? band);
+};
+
+export interface HoleRoom {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+}
+
+const holeRoomOf = (room: Box): HoleRoom => ({
+  x: (room.left + room.right) / 2,
+  y: (room.top + room.bottom) / 2,
+  radius:
+    Math.min(room.right - room.left, room.bottom - room.top) / 2 -
+    REST_SKY.clearance,
+});
+
+export const holeRoomBeside = (
+  layout: SceneLayout | null,
+  panelLeft: number,
+): HoleRoom | null => {
+  const viewport = viewportOf(layout);
+  const panel = {
+    left: panelLeft - (layout?.canvas.left ?? 0),
+    top: 0,
+    right: viewport.width,
+    bottom: viewport.height,
+  };
+  let best: { readonly hole: HoleRoom; readonly area: number } | null = null;
+  for (const room of emptyRooms([...chromeOnCanvas(layout), panel], viewport)) {
+    const hole = holeRoomOf(room);
+    const area = areaOf(room);
+    const isRoomier =
+      !best ||
+      hole.radius > best.hole.radius ||
+      (hole.radius === best.hole.radius && area > best.area);
+    if (isRoomier) {
+      best = { hole, area };
+    }
+  }
+  return best && best.hole.radius > 0 ? best.hole : null;
+};
+
+export const closeUpInRoom = (
+  frame: Frame,
+  { dims, room }: { readonly dims: Dims; readonly room: HoleRoom },
+): Frame => {
+  const { w, h, dpr } = dims;
+  return {
+    ...frame,
+    s: Math.min(frame.s, (room.radius * dpr) / referenceRadius(w, h, 1)),
+    x: (room.x * dpr) / w,
+    y: (room.y * dpr) / h,
+  };
 };

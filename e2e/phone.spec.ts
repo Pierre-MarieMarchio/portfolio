@@ -1115,6 +1115,146 @@ for (const size of [{ width: 640, height: 360 }, SMALL_LANDSCAPE] as const) {
   });
 }
 
+const skipOffLying = (testInfo: TestInfo): void => {
+  testInfo.skip(
+    sizeOf(testInfo) !== 'phone-landscape',
+    'the phone, lying down',
+  );
+};
+
+const sizeName = (size: { width: number; height: number }): string =>
+  `${String(size.width)}×${String(size.height)}`;
+
+for (const size of LANDSCAPE_HOMES) {
+  test(`holds the home title and the preview's hole left of the glass lying down, ${sizeName(size)}`, async ({
+    page,
+  }, testInfo) => {
+    skipOffLying(testInfo);
+    await page.setViewportSize(size);
+    await openHydrated(page, '/');
+    await settle(page);
+    await expect(contactToggleOf(page), 'revealed').toBeVisible();
+    await openPreview(page);
+    await expectHoleSettled(page);
+    const title = page.locator('app-home-title');
+    const titleEdges = await edgesOf(title);
+    const glass = await edgesOf(openWindowOf(page));
+    const hole = await holeOf(page);
+    const chrome = Object.entries({
+      title: titleEdges,
+      'page bar': await edgesOf(pageBarOf(page)),
+      '@': await edgesOf(contactToggleOf(page)),
+      dock: await shownEdgesOf(dockOf(page)),
+    }).flatMap(([name, edges]) => (edges ? [{ name, edges }] : []));
+    const titleCut = await title.evaluate(
+      (element) => element.scrollWidth - element.clientWidth,
+    );
+
+    expect(
+      [
+        ...(titleEdges.right <= glass.left ? [] : ['title under the glass']),
+        ...(titleCut > 0 ? ['title overflows its box'] : []),
+        ...(isOnScreen(page, titleEdges) ? [] : ['title off screen']),
+        ...(hole.radius > 0 ? [] : ['no hole']),
+        ...(isOnScreen(page, holeEdgesOf(hole)) ? [] : ['hole off screen']),
+        ...(hole.x + hole.radius <= glass.left ? [] : ['hole under the glass']),
+        ...chrome
+          .filter((part) => isDiscOver(hole, part.edges))
+          .map((part) => `hole over the ${part.name}`),
+      ],
+      'the title and the hole in the sky left of the glass',
+    ).toEqual([]);
+  });
+}
+
+const BELOW_THE_BAR_PAGES = GLASS_PAGES.filter(({ name }) =>
+  ['index', 'about'].includes(name),
+);
+
+for (const size of LANDSCAPE_HOMES) {
+  test(`keeps the planets and the hole below the page bar lying down, ${sizeName(size)}`, async ({
+    page,
+  }, testInfo) => {
+    skipOffLying(testInfo);
+    await page.setViewportSize(size);
+    const faults: string[] = [];
+    for (const glassPage of BELOW_THE_BAR_PAGES) {
+      await openGlassPage(page, glassPage);
+      await expectHoleSettled(page);
+      const barBottom = (await edgesOf(pageBarOf(page))).bottom;
+      const hole = await holeOf(page);
+      const buttons = await planetButtonsOf(page).evaluateAll((nodes) =>
+        nodes
+          .map((node) => node.getBoundingClientRect())
+          .filter((box) => box.width > 0 && box.height > 0)
+          .map((box) => box.top),
+      );
+      faults.push(
+        ...(hole.y - hole.radius >= barBottom
+          ? []
+          : [`${glassPage.name}: hole under the page bar`]),
+        ...buttons
+          .filter((top) => top < barBottom)
+          .map(
+            (top) =>
+              `${glassPage.name}: planet button at ${String(Math.round(top))} under the page bar`,
+          ),
+      );
+    }
+
+    expect(faults, 'faults').toEqual([]);
+  });
+}
+
+const shownFeaturedNamesOf = (
+  page: Page,
+): Promise<(Edges & { name: string })[]> =>
+  page.locator('app-space-scene .label').evaluateAll(
+    (nodes, count) =>
+      nodes
+        .slice(0, count)
+        .filter((node) => Number(getComputedStyle(node).opacity) > 0)
+        .map((node) => {
+          const box = node.getBoundingClientRect();
+          return {
+            name: node.textContent.trim(),
+            left: box.left,
+            top: box.top,
+            right: box.right,
+            bottom: box.bottom,
+          };
+        }),
+    FEATURED_COUNT,
+  );
+
+test('keeps the featured names apart on the home lying down, at every size', async ({
+  page,
+}, testInfo) => {
+  skipOffLying(testInfo);
+  const faults: string[] = [];
+  for (const size of LANDSCAPE_HOMES) {
+    await page.setViewportSize(size);
+    await openHydrated(page, '/');
+    await settle(page);
+    await expect(contactToggleOf(page), 'revealed').toBeVisible();
+    await expectHoleSettled(page);
+    const names = await shownFeaturedNamesOf(page);
+    if (names.length < 2) {
+      faults.push(`${sizeName(size)}: fewer than two names shown`);
+    }
+    faults.push(
+      ...names.flatMap((name, index) =>
+        names
+          .slice(index + 1)
+          .filter((other) => isOverlapping(name, other))
+          .map((other) => `${sizeName(size)}: ${name.name} over ${other.name}`),
+      ),
+    );
+  }
+
+  expect(faults, 'names over each other').toEqual([]);
+});
+
 test('shows the short glass titles whole at 568×320, the page bar beside the glass', async ({
   page,
 }, testInfo) => {

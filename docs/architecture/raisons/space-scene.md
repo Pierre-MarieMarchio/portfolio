@@ -263,3 +263,63 @@ et de `src/testing/`, rangées par unité (D10).
 - Les textes de chaque couche et les liens sont fournis d'un coup : un spec de
   composant a besoin des mots, pas du chargement d'un chunk. Le vrai
   branchement (`provideI18n`) est exercé par `src/integration/i18n.spec.ts`.
+
+## `src/app/shared/space-scene/engine/motions/zoom.motion.ts`
+
+- Le facteur se pose après la caméra, sur `cx`, `cy` et `radius` : tout ce
+  qui se dessine autour du trou (disque, orbites, planètes, noms, comètes,
+  ombre du ciel) suit sans rien savoir du zoom. Le ciel de fond ne bouge
+  pas ; les grains gardent leur taille et s'écartent.
+- Le zoom s'écrit comme un point fixe (l'ancre) et un facteur :
+  `x' = x · f + ancre · (1 − f)`. À 1, `lay` ne touche à rien, ce qui garde
+  le golden à l'identique au bit près.
+- Pendant un pincement, le facteur suit les doigts sans amorti ; relâché, il
+  reste. Le double toucher et le retour à 1 s'amortissent comme la caméra
+  (demi-vie 0,55 s) et se posent à 0,002 du but, le seuil de `easeOpening` :
+  à 0,0002, la boucle tournait encore sept secondes pour un écart que l'œil
+  ne voit pas.
+- Un changement de taille du canvas remet le facteur à 1, l'ancre suivant
+  les nouvelles proportions, et réveille la boucle : `resize` trace une image
+  mais ne relance pas l'animation, et la boucle arrêtée gardait le zoom.
+- L'objet `hole` est à lui et réutilisé : pas d'allocation par image.
+
+## `src/app/shared/space-scene/rules/camera/zoom.rules.ts`
+
+- `anchorKeeping` garde le point pris sous les doigts sous leur milieu,
+  puis borne le décalage pour que le ciel zoomé couvre encore le canvas.
+  Ancre et décalage se déduisent l'un de l'autre, et à 1 le décalage borné
+  vaut 0 : relâcher à 1 rend le cadrage de la vue, sans reste.
+- `isSameFraming` compare le genre de cadrage, le corps visé, le chapitre et
+  la section allumée : un survol ou une sélection au relevé ne remettent pas
+  le facteur à 1.
+
+## `src/app/shared/space-scene/directives/zoom-gesture.directive.ts`
+
+- Seuls les doigts comptent (`pointerType: 'touch'`), et seulement hors du
+  format `desktop` : un écran tactile de bureau garde le pincement natif.
+- Un doigt compte s'il se pose sur le ciel ou sur une cible de la scène
+  (`[data-scene-target]`, `isOnScene`) ; le double toucher, lui, ne compte
+  que les taps posés sur le ciel (`isOnSky`) : deux taps sur une planète
+  restent à la planète, qui révèle puis ouvre. Les boutons de planète
+  prennent `touch-action: none` au téléphone et à la tablette, sans quoi un
+  doigt posé sur l'un d'eux rendrait le pincement à la page.
+- Un toucher est un tap s'il dure moins de 300 ms et bouge de moins de 6 px ;
+  deux taps à moins de 320 ms et 32 px font un double toucher. Un geste qui
+  a pincé ne compte jamais comme tap.
+- Le clic avalé après un pincement passe par `ClickAbsorberService`, le même
+  que le tour de l'objet : une seule écoute à la fois, levée au prochain
+  appui.
+
+## `src/app/shared/space-scene/components/space-scene/space-scene.component.scss`
+
+- Aux formats `phone` et `tablet`, le canvas du ciel reçoit le pointeur
+  (`pointer-events: auto`) et porte `touch-action: none`. C'est le plus bas
+  des calques positionnés : il ne prend que les touchers qui tombaient avant
+  sur `.scene`, et la règle ne s'hérite pas vers la vitre, le chrome ou les
+  planètes, qui sont ses voisins, pas ses enfants.
+
+## `src/app/shared/space-scene/engine/frame-loop.engine.ts`
+
+- La boucle d'images (réveil, arrêt, visibilité, pas de temps borné à 60 ms)
+  sort du moteur à l'identique : le moteur dépassait sa taille permise avec
+  l'API du zoom. `EngineHost` y vit et reste exporté par le moteur.

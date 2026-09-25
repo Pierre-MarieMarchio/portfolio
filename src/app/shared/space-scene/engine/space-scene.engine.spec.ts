@@ -26,6 +26,7 @@ import {
   bodyId,
   mountEngineScene,
   SCENE_INPUTS,
+  SceneChange,
   sceneBodies,
 } from '@testing/fixtures/engine-scene.fixture';
 import { sceneLayout } from '../rules/scene-layout.rules';
@@ -1083,4 +1084,153 @@ describe('SpaceSceneEngine, beside a glass lying on the right', () => {
     },
     60_000,
   );
+});
+
+const PHONE = { width: 390, height: 844 };
+const CLOSE_LOOK = 2.2;
+const EASED_MS = 6000;
+
+const phoneHome = (): SceneLayout =>
+  sceneLayout({ left: 0, top: 0 }, PHONE, [
+    { rect: rectOf(0, 0, PHONE.width, TOP_BAR), opacity: '1', role: 'top-bar' },
+  ]);
+
+const homeUpClose = ({ direction, ...change }: SceneChange = {}) => {
+  const scene = markedScene(phoneHome(), 2, {
+    ...SCENE_INPUTS,
+    ...change,
+    direction: { ...SCENE_INPUTS.direction, ...direction },
+  });
+  scene.run(PAST_CROSSING_MS);
+  const pinch = (at: { x: number; y: number }, ratio: number): void => {
+    expect(scene.engine.holdZoom(at.x, at.y)).toBe(true);
+    scene.engine.stretchZoom(at.x, at.y, ratio);
+    scene.engine.releaseZoom();
+    scene.run(FRAME_MS);
+  };
+  return { ...scene, pinch };
+};
+
+describe('SpaceSceneEngine, looked at up close', () => {
+  it('brings the object closer about the point under the fingers', () => {
+    const scene = homeUpClose();
+    const before = scene.hole();
+    const at = { x: before.x + 40, y: before.y + 30 };
+
+    scene.pinch(at, 2);
+    const after = scene.hole();
+
+    expect(after.radius / before.radius).toBeCloseTo(2, 1);
+    expect(after.x).toBeCloseTo(at.x + (before.x - at.x) * 2, 0);
+    expect(after.y).toBeCloseTo(at.y + (before.y - at.y) * 2, 0);
+  });
+
+  it('keeps the factor once the fingers let go, and never goes past three', () => {
+    const scene = homeUpClose();
+    const before = scene.hole();
+    const at = { x: before.x, y: before.y };
+
+    scene.pinch(at, 2);
+    scene.run(EASED_MS);
+    expect(scene.hole().radius / before.radius).toBeCloseTo(2, 1);
+
+    scene.pinch(at, 3);
+    expect(scene.hole().radius / before.radius).toBeCloseTo(3, 1);
+
+    scene.pinch(at, 0.1);
+    expect(scene.hole().radius).toBeCloseTo(before.radius, 0);
+  });
+
+  it('eases to a close look about the hole on a double tap at rest, and back', () => {
+    const scene = homeUpClose();
+    const before = scene.hole();
+
+    expect(scene.engine.lookCloser()).toBe(true);
+    scene.run(FRAME_MS * 3);
+    const easing = scene.hole().radius / before.radius;
+    expect(easing).toBeGreaterThan(1);
+    expect(easing).toBeLessThan(CLOSE_LOOK - 0.1);
+
+    scene.run(EASED_MS);
+    const close = scene.hole();
+    expect(close.radius / before.radius).toBeCloseTo(CLOSE_LOOK, 1);
+    expect(close.x).toBeCloseTo(before.x, 0);
+    expect(close.y).toBeCloseTo(before.y, 0);
+
+    expect(scene.engine.lookCloser()).toBe(true);
+    scene.run(EASED_MS);
+    expect(scene.hole().radius).toBeCloseTo(before.radius, 0);
+  });
+
+  it('looks closer at once under reduced motion', () => {
+    const scene = homeUpClose({ reduced: true });
+    const before = scene.hole();
+
+    scene.engine.lookCloser();
+    scene.run(FRAME_MS);
+
+    expect(scene.hole().radius / before.radius).toBeCloseTo(CLOSE_LOOK, 1);
+  });
+
+  it('keeps the double tap for the rest of the home', () => {
+    const scene = homeUpClose({ direction: { framing: { kind: 'overview' } } });
+
+    expect(scene.engine.lookCloser()).toBe(false);
+  });
+
+  it('comes back to the framing of the next view', () => {
+    const overview: SceneChange = {
+      direction: { framing: { kind: 'overview' }, labels: 'tags' },
+    };
+    const unzoomed = homeUpClose(overview);
+    const scene = homeUpClose();
+    scene.engine.lookCloser();
+    scene.run(EASED_MS);
+
+    scene.set(overview);
+    scene.run(EASED_MS);
+
+    expect(scene.hole().radius).toBeCloseTo(unzoomed.hole().radius, 0);
+    expect(scene.hole().x).toBeCloseTo(unzoomed.hole().x, 0);
+  });
+
+  it('comes back to the framing when the screen turns', () => {
+    const scene = homeUpClose({ reduced: true });
+    const before = scene.hole();
+    scene.engine.lookCloser();
+    scene.run(FRAME_MS);
+
+    scene.engine.resize(PHONE.height * 2, PHONE.width * 2, 2);
+    scene.run(FRAME_MS);
+    scene.engine.resize(PHONE.width * 2, PHONE.height * 2, 2);
+    scene.run(FRAME_MS);
+
+    expect(scene.hole().radius).toBeCloseTo(before.radius, 0);
+  });
+
+  it('lets go of the turn when a second finger pinches', () => {
+    const scene = homeUpClose();
+    const hole = scene.hole();
+    const view = (): HandView => scene.engine as unknown as HandView;
+
+    expect(scene.engine.grab(hole.x + 60, hole.y)).toBe(true);
+    expect(view().turntable.held).toBe(true);
+    scene.engine.holdZoom(hole.x + 30, hole.y);
+
+    expect(view().turntable.held).toBe(false);
+  });
+
+  it('keeps the loop running while the factor eases, and stops it once still', () => {
+    const scene = homeUpClose();
+    scene.set({ paused: true });
+    scene.run(EASED_MS);
+    expect(scene.scheduled()).toBe(false);
+
+    scene.engine.lookCloser();
+    scene.run(FRAME_MS * 3);
+    expect(scene.scheduled()).toBe(true);
+
+    scene.run(EASED_MS);
+    expect(scene.scheduled()).toBe(false);
+  });
 });

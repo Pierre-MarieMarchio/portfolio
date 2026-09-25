@@ -861,3 +861,53 @@ empreintes du bureau bougeaient, dont le repos, où deux noms se couvrent de
 3,4 px dans la tolérance de 4 px. Descendre le nom de la constellation sous
 la barre en le gardant au-dessus de sa figure : il se poserait sur ses
 étoiles, qui commencent 16 px sous lui.
+
+## 2026-09-25 — Au doigt, on regarde l'objet de près (D32)
+
+**Décision.** Aux formats `phone` et `tablet`, deux doigts qui s'écartent sur
+le ciel rapprochent la caméra : l'échelle dessinée est multipliée par un
+facteur borné à [1, 3], et le point sous le milieu des doigts reste sous
+eux. Chaque doigt se pose sur le ciel (la scène, ou le bouton `.void` qui
+la couvre quand une fenêtre est ouverte) ou sur un bouton de planète ; une
+fenêtre, le châssis, un lien, un champ gardent leurs gestes, et un doigt qui
+s'y pose ne commence jamais un pincement. Un toucher seul sur une planète
+garde son effet (révéler, puis ouvrir) ; si un second doigt le rejoint, son
+clic est avalé. Relâcher garde le facteur. Sur l'accueil au repos, où
+aucun `.void` n'existe, un double toucher passe du cadrage de la vue à un
+regard proche (× 2,2) centré sur le trou, et retour. Le facteur revient à 1,
+avec l'amorti de la caméra, à chaque changement de cadrage (route, chapitre,
+section, aperçu) et de taille du canvas. Sous `prefers-reduced-motion`, le
+geste reste (c'est une manipulation directe) et s'applique sans amorti. Le
+facteur est posé sur l'image quand elle est tracée (`ZoomMotion.lay`), après
+la caméra : le crochet `data-hole-*` le reflète, et à 1 rien ne change, les
+empreintes du golden non plus. Le canvas du ciel, `.void` et les boutons
+de planète prennent `touch-action: none` à ces deux formats, et le canvas du ciel y reçoit le
+pointeur, pour que la règle ne touche que le ciel et pas ce qui est posé
+dessus. Un pincement avale le clic qui le suit : il ne referme jamais une
+fenêtre. Un second doigt met fin au tour de l'objet ; le tour ne suit que le
+doigt qui l'a commencé.
+
+**Raison.** Au téléphone, le trou fait 11 px de rayon à 320 × 568 et 25 à
+30 px vers 390 px de large : on ne le voyait plus de près. Le seul zoom
+était le pincement natif de la page, qui agrandit tout, barre et vitre
+comprises, et pixellise le canvas au lieu de rapprocher l'objet. Un zoom
+écrit redessine à la résolution du canvas et laisse le chrome à sa taille.
+Centrer le double toucher sur le trou plutôt que sur le point touché : le
+trou est trop petit pour être visé au doigt, et le cadrage l'a déjà posé
+dans le ciel libre (D29, D30), loin du chrome ; il y grandit sans bouger.
+Accepter les planètes sous les doigts : au téléphone, leurs cibles de 44 px
+entourent un trou de 11 à 30 px de rayon, et un pincement naturel sur
+l'objet en touche presque toujours une ; exiger le ciel sous les deux
+doigts faisait échouer le zoom là où il sert. Le détail est dans
+`raisons/space-scene.md`.
+
+**Écarté.** Garder le pincement natif de la page : il agrandit aussi la
+vitre et la barre, et l'objet reste flou. Mettre `touch-action: none` sur
+`.scene` : la règle s'étend à tous ses descendants, et la vitre perdait le
+zoom natif de son texte (son défilement, Chromium le rend aux conteneurs de
+défilement, WebKit sans garantie). Laisser glisser l'objet d'un bord à
+l'autre sous un doigt : le facteur ne décale jamais le ciel au-delà du bord
+du canvas, et à 1 il n'y a plus de décalage du tout. Un double toucher sur
+les autres vues : leur premier toucher tombe sur `.void`, qui remonte d'un
+cran. Au bureau, la molette ou le pincement du pavé tactile : rien ne le
+demande, et le bureau ne change pas (ni `touch-action`, ni captures).

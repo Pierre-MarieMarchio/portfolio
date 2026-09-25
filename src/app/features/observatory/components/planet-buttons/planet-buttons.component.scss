@@ -1,3 +1,5 @@
+@use 'mixins/formats';
+
 :host {
   display: contents;
 }
@@ -15,4 +17,16 @@
   border-radius: 50%;
   cursor: pointer;
   pointer-events: none;
+}
+
+@include formats.phone {
+  .body {
+    touch-action: none;
+  }
+}
+
+@include formats.tablet {
+  .body {
+    touch-action: none;
+  }
 }

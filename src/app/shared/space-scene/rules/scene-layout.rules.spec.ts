@@ -140,4 +140,45 @@ describe('sceneLayout', () => {
       expect(layout.approachBandTop).toBeNull();
     });
   });
+
+  describe('an open window, whatever its role', () => {
+    const PHONE = { width: 390, height: 844 };
+    const TABLET = { width: 820, height: 1180 };
+
+    it('keeps the top of the highest window along the bottom', () => {
+      const layout = sceneLayout(CANVAS, PHONE, [
+        anchor('', { left: 0, top: 506, width: 390, height: 338 }),
+        anchor('approach-edge', { left: 0, top: 600, width: 390, height: 244 }),
+      ]);
+
+      expect(layout.panelBandTop).toBe(506);
+    });
+
+    it('leaves the bars and the empty slots out of the band', () => {
+      const layout = sceneLayout(CANVAS, PHONE, [
+        anchor('bottom-bar', { left: 0, top: 540, width: 390, height: 220 }),
+        anchor('', { left: 0, top: 506, width: 390, height: 0 }),
+      ]);
+
+      expect(layout.panelBandTop).toBeNull();
+    });
+
+    it('reads a tall window on the right of an upright screen as a side panel', () => {
+      const layout = sceneLayout(CANVAS, TABLET, [
+        anchor('', { left: 317, top: 106, width: 470, height: 920 }),
+        anchor('', { left: 597, top: 1100, width: 190, height: 52 }),
+      ]);
+
+      expect(layout.sidePanelLeft).toBe(317);
+      expect(layout.panelBandTop).toBeNull();
+    });
+
+    it('reads no side panel on a screen lying down', () => {
+      const layout = sceneLayout(CANVAS, VIEWPORT, [
+        anchor('', { left: 540, top: 90, width: 700, height: 600 }),
+      ]);
+
+      expect(layout.sidePanelLeft).toBeNull();
+    });
+  });
 });

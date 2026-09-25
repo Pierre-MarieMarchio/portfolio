@@ -165,6 +165,7 @@ h2 {
 
     &.glass--folded .window {
       flex: 0 0 auto;
+      height: auto;
       margin-top: auto;
     }
   }
@@ -230,16 +231,11 @@ h2 {
     .rail[data-rest='end'] .body {
       overflow-y: auto;
     }
+  }
 
-    &.glass--folded {
-      .lead {
-        flex-grow: 1;
-      }
-
-      .window {
-        height: auto;
-      }
-    }
+  .glass--folded,
+  .glass--folded .rail {
+    position: static;
   }
 }
 

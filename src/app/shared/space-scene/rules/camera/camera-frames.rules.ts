@@ -58,6 +58,8 @@ export const referenceRadius = (w: number, h: number, s: number): number =>
 export const verticalFactor = (ev: number, roll: number): number =>
   opening(ev) + Math.abs(Math.sin(roll));
 
+const REST_SCALE_MAX = 0.42;
+
 export interface RestMeasure {
   readonly y: number;
   readonly s: number;
@@ -65,6 +67,20 @@ export interface RestMeasure {
   readonly ev: number;
   readonly freeHalf: number;
 }
+
+const UPRIGHT_REST = { ev: 0.6, i: -0.45 } as const;
+
+const uprightTilt = (
+  roomFactor: number,
+  flat: Pick<Frame, 'ev' | 'i'>,
+): Pick<Frame, 'ev' | 'i'> => {
+  const ev = Math.min(
+    UPRIGHT_REST.ev,
+    (roomFactor - Math.abs(Math.sin(UPRIGHT_REST.i)) - opening(0)) /
+      (opening(1) - opening(0)),
+  );
+  return ev > flat.ev ? { ev, i: UPRIGHT_REST.i } : flat;
+};
 
 export const measureRest = (
   viewport: { readonly width: number; readonly height: number },
@@ -81,14 +97,15 @@ export const measureRest = (
   const y = clamp((top + bottom) / 2 / vh, 0.14, 0.72);
   const tight = clamp(1 - freeHalf / 260, 0, 1);
   const i = REST_FRAME.i + 0.3 * tight;
-  const ev = Math.max(0.12, REST_FRAME.ev - 0.16 * tight);
-  const fv = verticalFactor(ev, i);
-  const s = clamp(
-    (freeHalf - 30) / (6.6 * fv) / unitRadius(vw, vh),
-    0.07,
-    0.42,
-  );
-  return { y, s, i, ev, freeHalf };
+  const flat = Math.max(0.12, REST_FRAME.ev - 0.16 * tight);
+  const budget = (freeHalf - 30) / 6.6 / unitRadius(vw, vh);
+  const fitted = budget / verticalFactor(flat, i);
+  const s = clamp(fitted, 0.07, REST_SCALE_MAX);
+  const tilt =
+    vh > vw && fitted > REST_SCALE_MAX
+      ? uprightTilt(budget / s, { ev: flat, i })
+      : { ev: flat, i };
+  return { y, s, i: tilt.i, ev: tilt.ev, freeHalf };
 };
 
 interface OrbitAim {

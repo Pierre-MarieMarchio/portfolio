@@ -117,6 +117,7 @@ const PHONE_LAYOUT: SceneLayout = {
   closeUpEdge: 0,
   approachBandTop: 430,
   closeUpBandTop: 430,
+  panelBandTop: 430,
 };
 
 const NARROW_LAYOUT: SceneLayout = {
@@ -294,11 +295,11 @@ const SCENES_GOLDEN = {
     approach: '318c3ecc',
   },
   phone: {
-    arrival: '5d0f1c63',
-    overview: '6bea4b02',
-    approach: '9f7ffa73',
-    'close-up': 'a2ac970a',
-    aside: 'd2c829bf',
+    arrival: '587d3571',
+    overview: '81b82e52',
+    approach: 'ff1beec4',
+    'close-up': 'be6d19aa',
+    aside: '3e060612',
   },
   measuredLabels: {
     arrival: '29a2446b',

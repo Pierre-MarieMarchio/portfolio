@@ -5,6 +5,7 @@ import type { SceneFrame } from '../../rules/scene-frame.rules';
 import { CometsRenderer } from './sky/comets.renderer';
 import { ConstellationsRenderer } from './sky/constellations.renderer';
 import { GrainsRenderer } from './grains.renderer';
+import { HoleMarkRenderer } from './hole-mark.renderer';
 import { OrbitsRenderer } from './orbits.renderer';
 import { PlanetLabelsRenderer } from './planet-labels.renderer';
 import { PlanetsRenderer } from './planets.renderer';
@@ -28,6 +29,7 @@ const skyOf = (
 
 export class SceneRenderer {
   public readonly labels: PlanetLabelsRenderer;
+  public readonly holeMark = new HoleMarkRenderer();
   private readonly grains: GrainsRenderer;
   private readonly orbits: OrbitsRenderer;
   private readonly planets: PlanetsRenderer;
@@ -58,5 +60,6 @@ export class SceneRenderer {
     this.comets?.draw(frame);
     ctx.globalAlpha = 1;
     this.sky?.draw(frame);
+    this.holeMark.draw(frame);
   }
 }

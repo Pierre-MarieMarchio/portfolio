@@ -45,6 +45,32 @@ describe('scene camera', () => {
       }
     });
 
+    it.each([
+      { width: 390, height: 844, rule: 221 },
+      { width: 360, height: 780, rule: 221 },
+      { width: 320, height: 568, rule: 133 },
+    ])(
+      'raises an upright phone’s rest, the hole as big as before ($width × $height)',
+      ({ width, height, rule }) => {
+        const upright = measureRest({ width, height }, 56, rule);
+
+        expect(upright.ev).toBeGreaterThan(REST_FRAME.ev + 0.1);
+        expect(upright.s).toBeCloseTo(0.42, 9);
+      },
+    );
+
+    it('keeps the rest of a screen lying down', () => {
+      for (const viewport of [
+        { width: 844, height: 390 },
+        { width: 1180, height: 820 },
+        { width: 1440, height: 900 },
+      ]) {
+        expect(measureRest(viewport, 56, 90).ev).toBeLessThanOrEqual(
+          REST_FRAME.ev,
+        );
+      }
+    });
+
     it('lays the system down as the free band narrows', () => {
       const tall = measureRest({ width: 1280, height: 1000 }, 72, 56);
       const low = measureRest({ width: 1280, height: 420 }, 72, 56);

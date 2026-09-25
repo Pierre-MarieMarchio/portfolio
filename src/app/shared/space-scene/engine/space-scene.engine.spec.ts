@@ -642,12 +642,229 @@ describe('SpaceSceneEngine, grain density', () => {
   });
 
   it('keeps the density across a rotation, the area being the same', () => {
-    const { engine, step, grainsDrawn } = mountSized(390, 844);
-    const before = grainsDrawn();
+    const rotated = mountSized(390, 844);
+    const unturned = mountSized(390, 844);
 
-    engine.setViewportArea(844 * 390);
-    step(4000);
+    rotated.engine.setViewportArea(844 * 390);
+    rotated.step(4000);
+    unturned.step(4000);
 
-    expect(grainsDrawn()).toBeCloseTo(before, -1);
+    expect(rotated.grainsDrawn()).toBe(unturned.grainsDrawn());
   });
+});
+
+const GLASS_TOP_SHARE = 0.6;
+const BUTTON_HALF = 24;
+
+const glassLayout = (
+  width: number,
+  height: number,
+  glassTop = Math.round(height * GLASS_TOP_SHARE),
+): SceneLayout =>
+  sceneLayout({ left: 0, top: 0 }, { width, height }, [
+    { rect: rectOf(0, 0, width, TOP_BAR), opacity: '1', role: 'top-bar' },
+    {
+      rect: rectOf(0, glassTop, width, height - glassTop),
+      opacity: '1',
+      role: '',
+    },
+  ]);
+
+const WHOLE_OBJECT_SCENES: readonly (readonly [
+  string,
+  Partial<SceneDirection>,
+])[] = [
+  ['overview', { framing: { kind: 'overview' }, labels: 'tags' }],
+  [
+    'aside',
+    {
+      framing: { kind: 'aside' },
+      presence: 'hidden',
+      labels: 'none',
+      figuresShown: true,
+    },
+  ],
+  [
+    'not-found',
+    {
+      framing: { kind: 'overview' },
+      presence: 'hidden',
+      labels: 'none',
+      turnable: false,
+    },
+  ],
+];
+
+interface HoleSeen {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+}
+
+const markedScene = (layout: SceneLayout, dpr: number) => {
+  const scene = mountEngineScene({ layout, dpr });
+  const mark = document.createElement('div');
+  scene.engine.setHoleMark(mark);
+  const hole = (): HoleSeen => ({
+    x: Number(mark.dataset['holeX']),
+    y: Number(mark.dataset['holeY']),
+    radius: Number(mark.dataset['holeRadius']),
+  });
+  const outerReach = (): number =>
+    Math.max(
+      ...(scene.engine as unknown as HandView).orbits.map((orbit) => orbit.rb),
+    );
+  return { ...scene, hole, outerReach };
+};
+
+const UPRIGHT_PHONES = [
+  ...PORTRAITS,
+  { width: 320, height: 568, dpr: 2 },
+] as const;
+
+describe('SpaceSceneEngine, the whole object above a window along the bottom', () => {
+  it.each(UPRIGHT_PHONES)(
+    'centres the hole in the sky band and keeps the outer orbit within the width ($width × $height, dpr $dpr)',
+    (screen) => {
+      const glassTop = Math.round(screen.height * GLASS_TOP_SHARE);
+      const scene = markedScene(
+        glassLayout(screen.width, screen.height),
+        screen.dpr,
+      );
+      scene.run(PAST_CROSSING_MS);
+      for (const [name, direction] of WHOLE_OBJECT_SCENES) {
+        scene.set({ direction });
+        scene.run(4000);
+        const hole = scene.hole();
+        const reach = scene.outerReach() * hole.radius;
+
+        expect(hole.y, `${name}, below the bar`).toBeGreaterThan(TOP_BAR);
+        expect(hole.y, `${name}, above the glass`).toBeLessThan(glassTop);
+        expect(hole.x - reach, `${name}, left edge`).toBeGreaterThanOrEqual(0);
+        expect(hole.x + reach, `${name}, right edge`).toBeLessThanOrEqual(
+          screen.width,
+        );
+      }
+    },
+    60_000,
+  );
+
+  it.each(UPRIGHT_PHONES)(
+    'keeps every planet of the overview between the bar and the glass ($width × $height, dpr $dpr)',
+    (screen) => {
+      const glassTop = Math.round(screen.height * GLASS_TOP_SHARE);
+      const scene = markedScene(
+        glassLayout(screen.width, screen.height),
+        screen.dpr,
+      );
+      scene.run(PAST_CROSSING_MS);
+      scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
+      scene.run(4000);
+      for (const rank of SCENE_INPUTS.bodies.keys()) {
+        const at = buttonAt(scene.styles(), rank);
+
+        expect(at.y - BUTTON_HALF).toBeGreaterThanOrEqual(TOP_BAR);
+        expect(at.y + BUTTON_HALF).toBeLessThanOrEqual(glassTop);
+        expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
+        expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(screen.width);
+      }
+    },
+    60_000,
+  );
+
+  it('glides lower when the glass folds, and back when it unfolds', () => {
+    const { width, height } = { width: 390, height: 844 };
+    const scene = markedScene(glassLayout(width, height), 3);
+    scene.run(PAST_CROSSING_MS);
+    scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
+    scene.run(4000);
+    const lowered = scene.hole().y;
+
+    scene.engine.setLayout(glassLayout(width, height, height - 57));
+    scene.run(FRAME_MS);
+    const firstStep = scene.hole().y;
+    scene.run(4000);
+    const folded = scene.hole().y;
+
+    scene.engine.setLayout(glassLayout(width, height));
+    scene.run(4000);
+
+    expect(folded - lowered).toBeGreaterThan(0.15 * height);
+    expect(firstStep - lowered).toBeGreaterThan(0);
+    expect(firstStep - lowered).toBeLessThan(0.2 * (folded - lowered));
+    expect(scene.hole().y).toBeCloseTo(lowered, 0);
+  });
+
+  it('follows the folded glass at once under reduced motion', () => {
+    const { width, height } = { width: 390, height: 844 };
+    const scene = markedScene(glassLayout(width, height), 3);
+    scene.set({
+      direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {},
+      reduced: true,
+    });
+    scene.run(1000);
+    const lowered = scene.hole().y;
+    scene.engine.setLayout(glassLayout(width, height, height - 57));
+    scene.run(FRAME_MS);
+    const firstStep = scene.hole().y;
+    scene.run(2000);
+
+    expect(firstStep - lowered).toBeGreaterThan(0.15 * height);
+    expect(firstStep).toBeCloseTo(scene.hole().y, 0);
+  });
+});
+
+const TABLET_UPRIGHT = { width: 820, height: 1180, dpr: 2 } as const;
+const TABLET_PANEL_LEFT = 317;
+
+const sidePanelLayout = (): SceneLayout =>
+  sceneLayout(
+    { left: 0, top: 0 },
+    { width: TABLET_UPRIGHT.width, height: TABLET_UPRIGHT.height },
+    [
+      { rect: rectOf(381, 40, 406, 52), opacity: '1', role: 'top-bar' },
+      {
+        rect: rectOf(TABLET_PANEL_LEFT, 106, 470, 920),
+        opacity: '1',
+        role: '',
+      },
+    ],
+  );
+
+describe('SpaceSceneEngine, the whole object beside a window on an upright tablet', () => {
+  it('keeps the hole left of the window, and on screen', () => {
+    const scene = markedScene(sidePanelLayout(), TABLET_UPRIGHT.dpr);
+    scene.run(PAST_CROSSING_MS);
+    for (const [name, direction] of WHOLE_OBJECT_SCENES) {
+      scene.set({ direction });
+      scene.run(4000);
+      const hole = scene.hole();
+
+      expect(hole.x, `${name}, left of the window`).toBeLessThan(
+        TABLET_PANEL_LEFT,
+      );
+      expect(hole.x - hole.radius, `${name}, left edge`).toBeGreaterThanOrEqual(
+        0,
+      );
+      expect(hole.y - hole.radius, `${name}, top edge`).toBeGreaterThanOrEqual(
+        0,
+      );
+      expect(hole.y + hole.radius, `${name}, bottom edge`).toBeLessThanOrEqual(
+        TABLET_UPRIGHT.height,
+      );
+    }
+  }, 60_000);
+
+  it('keeps every planet of the overview left of the window', () => {
+    const scene = markedScene(sidePanelLayout(), TABLET_UPRIGHT.dpr);
+    scene.run(PAST_CROSSING_MS);
+    scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
+    scene.run(4000);
+    for (const rank of SCENE_INPUTS.bodies.keys()) {
+      const at = buttonAt(scene.styles(), rank);
+
+      expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
+      expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(TABLET_PANEL_LEFT);
+    }
+  }, 60_000);
 });

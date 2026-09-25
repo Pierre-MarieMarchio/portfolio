@@ -92,6 +92,11 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   de la page. Il arrive avec le reste de l'accueil.
 - Retenu par sa seule opacité : il ne prend pas le pointeur, et il garde le
   focus d'arrivée.
+- Couché, il s'arrête avant la place de la vitre (`--glass-width`, moins une
+  gouttière de chaque côté) et le métier y passe à la ligne, comme debout.
+  L'aperçu se pose sur l'accueil sans cacher le titre : avant D31, à 640 et
+  568 px, « Développeur .NET et Angular » passait sous la vitre. À
+  844 × 390, le titre tient déjà sur une ligne et ne bouge pas.
 
 ## `features/observatory/components/intro-card/`
 

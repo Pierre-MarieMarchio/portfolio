@@ -9,7 +9,12 @@ import {
   CONSTELLATIONS,
   Figure,
 } from '../../../rules/sky/constellations.rules';
-import { figureLabelFont } from '../../../rules/sky/figure-label.rules';
+import {
+  figureLabelFont,
+  figureLabelSpacing,
+  figureNameAt,
+} from '../../../rules/sky/figure-label.rules';
+import type { Zone } from '../../../rules/panel-veil.rules';
 import { PAN_PARALLAX, SKY_DRIFT } from '../../../models/scene-constants.model';
 
 interface ConstellationsArgs {
@@ -23,6 +28,7 @@ interface ConstellationsArgs {
   readonly lit: readonly number[];
   readonly hole: ScreenHole | null;
   readonly labels: readonly string[];
+  readonly topBar: Zone | null;
 }
 
 interface ConstellationsLayer {
@@ -163,14 +169,19 @@ const nameFigure = (
   label: string,
 ): void => {
   const { ctx, args } = layer;
-  const top = Math.min(...points.map((p) => p[1]));
-  const left = Math.min(...points.map((p) => p[0]));
+  const text = label.toUpperCase();
   ctx.globalAlpha = on * args.shown * 0.9 * args.entry;
   ctx.fillStyle = '#ffffff';
   ctx.font = figureLabelFont(args.dpr);
-  ctx.textBaseline = 'bottom';
-  ctx.letterSpacing = '0.14em';
-  ctx.fillText(label.toUpperCase(), left, top - 16 * args.dpr);
+  const name = figureNameAt(points, {
+    bar: args.topBar,
+    dpr: args.dpr,
+    text,
+    measure: (shown) => ctx.measureText(shown).width,
+  });
+  ctx.textBaseline = name.baseline;
+  ctx.letterSpacing = figureLabelSpacing;
+  ctx.fillText(text, name.x, name.y);
   ctx.letterSpacing = '0px';
 };
 
@@ -194,6 +205,7 @@ export class ConstellationsRenderer {
       lit: frame.lit,
       hole: frame.hole,
       labels: frame.state.figureNames,
+      topBar: frame.topBar,
     });
   }
 }

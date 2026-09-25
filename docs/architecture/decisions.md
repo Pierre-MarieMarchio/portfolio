@@ -826,3 +826,38 @@ reste sans avertissement ; le seuil d'erreur (1 MB) ne bouge pas. Le test
 « keeps the sky readable under the raised glass » demande un gain de
 × 1,15 au lieu de × 1,25 : le ciel est tiré à chaque chargement, et le gain
 mesuré va de × 1,24 à × 1,29, si bien que × 1,25 échouait une fois sur dix.
+
+## 2026-09-25 — Couché, le ciel commence sous la barre et finit à la vitre (D31, étend D29 et D30)
+
+**Décision.** Le moteur reconnaît une vitre couchée à sa seule géométrie :
+sur un écran couché, un panneau latéral qui touche le bord droit et le bas
+de l'écran (`cornerPanelLeft`, `scene-layout.rules.ts`). Il garde aussi la
+boîte de la barre du haut (`topBar`). Avec une vitre au coin, la vue
+d'ensemble, l'à-propos et la page introuvable cadrent l'objet dans le ciel
+libre de D29 : sous la barre, à gauche de la vitre. Le gros plan de
+l'aperçu centre le trou dans le plus grand rectangle vide que le chrome et
+la vitre laissent (`holeRoomBeside`), l'échelle réduite seulement s'il n'y
+tient pas. Le nom d'une constellation allumée passe sous sa figure quand,
+au-dessus, il croiserait la barre. Couché, le titre de l'accueil s'arrête
+avant la vitre et passe à la ligne. Entre deux noms de planète, l'écart se
+mesure de centre à centre.
+
+**Raison.** Couché, D29 laissait les cadrages fixes : à 568 × 320, un bouton
+de planète de la vue d'ensemble passait sous la barre, et le nom « PROFIL »
+s'écrivait à 15 px du haut, sous elle. L'aperçu ouvert, la vitre couvrait
+la fin du titre à 640 et 568 px, et le gros plan posait le trou sous le
+titre et à moitié sous la vitre, aux quatre tailles. Les noms se mesuraient
+de bord gauche à bord gauche : de largeurs différentes, ils se couvraient
+(9 px à 640 × 360). Le détail est dans `raisons/space-scene.md` et
+`raisons/bureau-et-pages.md`.
+
+**Écarté.** Étendre `sidePanelLeft` au téléphone couché : il tient aussi le
+disque de l'approche sur l'écran, et les fiches couchées auraient changé
+sans défaut à corriger. Garder le cadrage fixe en le descendant sous la
+barre : il aurait fallu une seconde règle à côté du ciel libre, qui tient
+déjà la hauteur et la largeur. Mesurer les noms par un vrai test de boîtes,
+sans tolérance, ou l'écart aux panneaux de centre à centre aussi : sept
+empreintes du bureau bougeaient, dont le repos, où deux noms se couvrent de
+3,4 px dans la tolérance de 4 px. Descendre le nom de la constellation sous
+la barre en le gardant au-dessus de sa figure : il se poserait sur ses
+étoiles, qui commencent 16 px sous lui.

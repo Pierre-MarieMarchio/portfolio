@@ -32,6 +32,7 @@ export interface SceneFrame {
   lit: readonly number[];
   pointer: { readonly x: number; readonly y: number } | null;
   hole: ScreenHole;
+  arrived: boolean;
   zones: readonly Zone[];
   fade: number;
   orbits: readonly Orbit[];
@@ -69,6 +70,7 @@ export const sceneFrame = (
     lit: [],
     pointer: null,
     hole: { cx: 0, cy: 0, radius: 0 },
+    arrived: true,
     zones: [],
     fade: 0,
     orbits: [],

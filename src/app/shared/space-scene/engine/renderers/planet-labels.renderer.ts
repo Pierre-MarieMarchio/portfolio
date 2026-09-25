@@ -94,7 +94,18 @@ export class PlanetLabelsRenderer {
       w: (z.r - z.l) / dpr,
       h: (z.b - z.t) / dpr,
     }));
-    this.stage = { w: frame.w / dpr, h: frame.h / dpr };
+    this.stage = {
+      w: frame.w / dpr,
+      h: frame.h / dpr,
+      hole:
+        frame.arrived && frame.state.marksShown
+          ? {
+              x: frame.hole.cx / dpr,
+              y: frame.hole.cy / dpr,
+              radius: frame.hole.radius / dpr,
+            }
+          : undefined,
+    };
     this.panels = zones.map((z) => ({
       l: z.l / dpr,
       r: z.r / dpr,

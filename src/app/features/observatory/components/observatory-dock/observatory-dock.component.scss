@@ -20,7 +20,7 @@
 
 @include formats.phone-landscape {
   :host {
-    right: calc(50% + 2 * var(--s1) + var(--target));
+    right: calc(var(--glass-width, 50vw) + 2 * var(--s1) + var(--target));
   }
 }
 

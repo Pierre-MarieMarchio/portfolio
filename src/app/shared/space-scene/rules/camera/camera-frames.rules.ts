@@ -58,56 +58,6 @@ export const referenceRadius = (w: number, h: number, s: number): number =>
 export const verticalFactor = (ev: number, roll: number): number =>
   opening(ev) + Math.abs(Math.sin(roll));
 
-const REST_SCALE_MAX = 0.42;
-
-export interface RestMeasure {
-  readonly y: number;
-  readonly s: number;
-  readonly i: number;
-  readonly ev: number;
-  readonly freeHalf: number;
-}
-
-const UPRIGHT_REST = { ev: 0.6, i: -0.45 } as const;
-
-const uprightTilt = (
-  roomFactor: number,
-  flat: Pick<Frame, 'ev' | 'i'>,
-): Pick<Frame, 'ev' | 'i'> => {
-  const ev = Math.min(
-    UPRIGHT_REST.ev,
-    (roomFactor - Math.abs(Math.sin(UPRIGHT_REST.i)) - opening(0)) /
-      (opening(1) - opening(0)),
-  );
-  return ev > flat.ev ? { ev, i: UPRIGHT_REST.i } : flat;
-};
-
-export const measureRest = (
-  viewport: { readonly width: number; readonly height: number },
-  headHeight: number | null,
-  ruleHeight: number | null,
-): RestMeasure => {
-  const vh = viewport.height || FALLBACK_VIEWPORT.height;
-  const vw = viewport.width || FALLBACK_VIEWPORT.width;
-  const top = (headHeight ?? 72) + Math.min(40, vh * 0.05) + 18;
-  const margin = Math.max(74, Math.min(92, vh * 0.09));
-  const band = (ruleHeight ?? 56) + margin;
-  const bottom = vh - band - 18;
-  const freeHalf = Math.max(26, (bottom - top) / 2);
-  const y = clamp((top + bottom) / 2 / vh, 0.14, 0.72);
-  const tight = clamp(1 - freeHalf / 260, 0, 1);
-  const i = REST_FRAME.i + 0.3 * tight;
-  const flat = Math.max(0.12, REST_FRAME.ev - 0.16 * tight);
-  const budget = (freeHalf - 30) / 6.6 / unitRadius(vw, vh);
-  const fitted = budget / verticalFactor(flat, i);
-  const s = clamp(fitted, 0.07, REST_SCALE_MAX);
-  const tilt =
-    vh > vw && fitted > REST_SCALE_MAX
-      ? uprightTilt(budget / s, { ev: flat, i })
-      : { ev: flat, i };
-  return { y, s, i: tilt.i, ev: tilt.ev, freeHalf };
-};
-
 interface OrbitAim {
   readonly ang: number;
   readonly v: number;
@@ -147,10 +97,13 @@ interface ApproachArgs {
   readonly orbit: OrbitAim | null;
   readonly panelLeft: number | null;
   readonly band: SkyBand | null;
+  readonly isDiscHeld?: boolean;
   readonly phase: number;
   readonly azim: number;
   readonly offset: BodyOffset;
 }
+
+const DISC_ON_SCREEN = { reach: 2.4, gutter: 12 } as const;
 
 interface Aimed {
   readonly frame: MutableFrame;
@@ -196,8 +149,39 @@ const approachBesidePanel = (
     args.panelLeft === null ? d.w * 0.54 : (args.panelLeft - 96) * d.dpr;
   const room = Math.max(150, edge - cxPx);
   const radius = shrinkToRoom(frame, baseRadius, room);
-  frame.az = approachAzimuth(orbit, approach, room / (orbit.rb * radius), args);
+  const held = args.isDiscHeld
+    ? holdDiscOnScreen(frame, { dims: d, baseRadius, radius, edge })
+    : { room, radius };
+  frame.az = approachAzimuth(
+    orbit,
+    approach,
+    held.room / (orbit.rb * held.radius),
+    args,
+  );
   return frame;
+};
+
+const holdDiscOnScreen = (
+  frame: MutableFrame,
+  {
+    dims: d,
+    baseRadius,
+    radius,
+    edge,
+  }: {
+    readonly dims: Dims;
+    readonly baseRadius: number;
+    readonly radius: number;
+    readonly edge: number;
+  },
+): { readonly room: number; readonly radius: number } => {
+  const discLeft = (r: number): number =>
+    DISC_ON_SCREEN.reach * r + DISC_ON_SCREEN.gutter * d.dpr;
+  const cxPx = Math.max(frame.x * d.w, discLeft(radius));
+  const room = Math.max(150, edge - cxPx);
+  const held = shrinkToRoom(frame, baseRadius, room);
+  frame.x = cxPx / d.w;
+  return { room, radius: held };
 };
 
 const approachAboveBand = (

@@ -133,11 +133,13 @@ svg {
 
 @include formats.phone-landscape {
   :host {
-    right: calc(50% + var(--s1));
+    right: calc(var(--glass-width, 50vw) + var(--s1));
   }
 
   .links {
-    width: calc(50vw - 3 * var(--s1) - var(--target));
+    width: calc(
+      100vw - var(--glass-width, 50vw) - 3 * var(--s1) - var(--target)
+    );
   }
 }
 

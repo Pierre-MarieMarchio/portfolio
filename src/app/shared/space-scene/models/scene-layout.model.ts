@@ -18,7 +18,8 @@ export interface SceneLayout {
   readonly closeUpBandTop?: number | null;
   readonly panelBandTop?: number | null;
   readonly sidePanelLeft?: number | null;
+  readonly chrome?: readonly PanelRect[];
 }
 
 export type ScenePanelRole =
-  '' | 'top-bar' | 'bottom-bar' | 'approach-edge' | 'close-up-edge';
+  '' | 'top-bar' | 'bottom-bar' | 'approach-edge' | 'close-up-edge' | 'chrome';

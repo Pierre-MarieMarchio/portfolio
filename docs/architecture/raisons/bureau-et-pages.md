@@ -236,6 +236,23 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   que la caméra cadre la planète au-dessus (D26).
 - Le dock suit le bouton de contact dans la rangée du bas : une rangée, deux
   rôles, et une seule réserve à tenir pour la vitre repliée.
+- Couchée, la vitre prend la moitié droite, mais au moins 324 px
+  (`--glass-width`, D30) : à 568 px, la moitié (284 px) tronquait
+  « PROJETS » de 35 px ; sa barre de titre en demande 317. La barre de
+  pages, le « @ » et le dock se rangent à gauche de cette largeur, pas de la
+  moitié : à 568 px, la barre tient dans 244 px parce que ses onglets n'ont
+  que 2 px de marge et ses parties aucun écart (239 px mesurés, marges
+  comprises). La règle des vedettes, seule sur l'accueil, garde la moitié
+  droite. En anglais, « PROJECTS » et son compteur demandent 12 px de plus :
+  à 568 px, ce titre-là se tronque encore.
+- L'aperçu couché reste posé en bas de son emplacement, mais au plus haut de
+  l'écran (`max-height: 100%`) : à 640 × 360, sa hauteur naturelle (436 px)
+  le faisait monter au-dessus du haut, sa barre de titre hors de l'écran. Son
+  corps défile, comme debout.
+- Le titre de l'accueil, le rail de contact et le dock s'inscrivent comme
+  `chrome` : la scène les compte parmi les panneaux, comme avant, et le repos
+  de l'accueil les évite (D30). Le dock, vide, n'a pas de hauteur et ne
+  compte pas.
 
 ## `pages/resolvers/page-head.resolver.ts`
 

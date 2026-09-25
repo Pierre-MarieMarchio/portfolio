@@ -1,5 +1,10 @@
 <canvas #sky class="sky" aria-hidden="true"></canvas>
-<div #stage class="stage" [appTurnGesture]="engine()">
+<div
+  #stage
+  class="stage"
+  [appTurnGesture]="engine()"
+  [appZoomGesture]="engine()"
+>
   <canvas #matter class="matter" aria-hidden="true"></canvas>
   @if (failed()) {
     <div class="fallback" aria-hidden="true"></div>

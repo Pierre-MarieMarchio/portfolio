@@ -15,10 +15,10 @@ import {
 import {
   APPROACHES,
   Frame,
-  measureRest,
   REST_FRAME,
   referenceRadius,
 } from '../rules/camera/camera-frames.rules';
+import { measureRest } from '../rules/camera/rest-frame.rules';
 import { TRAVELING_END } from '../rules/camera/traveling.rules';
 import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
@@ -274,7 +274,7 @@ const restOf = (w: number, h: number): { frame: Frame; freeHalf: number } => {
 const fitted = (w: number, h: number): number[] => {
   const { frame, freeHalf } = restOf(w, h);
   const orbits = placeOrbits(7);
-  fitOrbits(orbits, { w, h, dpr: 1 }, frame, freeHalf);
+  fitOrbits(orbits, { w, h, dpr: 1 }, frame, { freeHalf });
   return orbits.map((orbit) => orbit.rb);
 };
 
@@ -306,7 +306,7 @@ describe('fitOrbits', () => {
       const h = 780 * dpr;
       const { frame, freeHalf } = restOf(360, 780);
       const orbits = placeOrbits(7);
-      fitOrbits(orbits, { w, h, dpr }, frame, freeHalf);
+      fitOrbits(orbits, { w, h, dpr }, frame, { freeHalf });
       const view = {
         flatten: flattening(frame.ev),
         cr: Math.cos(frame.i),
@@ -866,5 +866,54 @@ describe('SpaceSceneEngine, the whole object beside a window on an upright table
       expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
       expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(TABLET_PANEL_LEFT);
     }
+  }, 60_000);
+});
+
+const LYING_PHONE = { width: 844, height: 390 } as const;
+const LYING_TITLE = rectOf(34, 68, 348, 95);
+const LYING_RULE = rectOf(428, 251, 404, 133);
+
+const lyingHomeLayout = (hasTitle: boolean): SceneLayout =>
+  sceneLayout({ left: 0, top: 0 }, LYING_PHONE, [
+    { rect: rectOf(0, 0, 422, 56), opacity: '1', role: 'top-bar' },
+    ...(hasTitle
+      ? [{ rect: LYING_TITLE, opacity: '1', role: 'chrome' as const }]
+      : []),
+    { rect: LYING_RULE, opacity: '1', role: 'bottom-bar' },
+  ]);
+
+const isHoleOver = (hole: HoleSeen, box: ReturnType<typeof rectOf>): boolean =>
+  Math.hypot(
+    hole.x - Math.min(Math.max(hole.x, box.left), box.right),
+    hole.y - Math.min(Math.max(hole.y, box.top), box.bottom),
+  ) < hole.radius;
+
+describe('SpaceSceneEngine, at rest on a phone lying down', () => {
+  it('rests in the free sky, clear of the title and the rule, the hole larger', () => {
+    const scene = markedScene(lyingHomeLayout(true), 3);
+    scene.run(PAST_CROSSING_MS);
+    const hole = scene.hole();
+
+    expect(isHoleOver(hole, LYING_TITLE), 'under the title').toBe(false);
+    expect(isHoleOver(hole, LYING_RULE), 'over the rule').toBe(false);
+    expect(hole.radius).toBeGreaterThan(20);
+  }, 60_000);
+
+  it('follows a new rest at once under reduced motion', () => {
+    const scene = markedScene(lyingHomeLayout(false), 3);
+    scene.set({ reduced: true });
+    scene.run(1000);
+    const before = scene.hole();
+
+    scene.engine.setLayout(lyingHomeLayout(true));
+    scene.run(1000);
+    const moved = scene.hole();
+    const settled = markedScene(lyingHomeLayout(true), 3);
+    settled.set({ reduced: true });
+    settled.run(1000);
+
+    expect(moved.x - before.x, 'moved').toBeGreaterThan(50);
+    expect(moved.x).toBeCloseTo(settled.hole().x, 0);
+    expect(moved.radius).toBeCloseTo(settled.hole().radius, 0);
   }, 60_000);
 });

@@ -20,7 +20,29 @@ export interface PanelEdges {
 export interface Stage {
   readonly w: number;
   readonly h: number;
+  readonly hole?: HoleDisc;
 }
+
+export interface HoleDisc {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+}
+
+const HOLE_CLEARANCE = 4;
+
+const isOverHole = (
+  hole: HoleDisc | undefined,
+  box: { readonly x: number; readonly y: number },
+  size: { readonly w: number; readonly h: number },
+): boolean => {
+  if (!hole) {
+    return false;
+  }
+  const dx = hole.x - clamp(hole.x, box.x, box.x + size.w);
+  const dy = hole.y - clamp(hole.y, box.y - size.h / 2, box.y + size.h / 2);
+  return Math.hypot(dx, dy) < hole.radius + HOLE_CLEARANCE;
+};
 
 export function placeTag(
   planet: { readonly x: number; readonly y: number; readonly gap: number },
@@ -70,6 +92,7 @@ export function placeName(
   const boundY = (y2: number): number =>
     clamp(y2, lh / 2 + 2, stageH - lh / 2 - 2);
   const isTaken = (x2: number, y2: number): boolean =>
+    isOverHole(stage.hole, { x: x2, y: y2 }, size) ||
     taken.some(
       (q) =>
         Math.abs(q.x - x2) < (q.w + lw) / 2 - 4 &&

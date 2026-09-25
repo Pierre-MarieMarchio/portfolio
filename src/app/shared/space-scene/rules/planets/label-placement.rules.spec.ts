@@ -104,3 +104,23 @@ describe('placeName', () => {
     expect(taken).toHaveLength(1);
   });
 });
+
+describe('placeName, beside the hole', () => {
+  const HOLE = { x: 400, y: 400, radius: 60 };
+  const isCrossing = (at: { x: number; y: number }): boolean => {
+    const dx = HOLE.x - Math.min(Math.max(HOLE.x, at.x), at.x + SIZE.w);
+    const dy =
+      HOLE.y - Math.min(Math.max(HOLE.y, at.y - SIZE.h / 2), at.y + SIZE.h / 2);
+    return Math.hypot(dx, dy) < HOLE.radius;
+  };
+
+  it('keeps a name off the disc of the hole', () => {
+    const inward = { ...planet(460, 395), objectRadius: 40 };
+    expect(isCrossing(placeName(inward, SIZE, STAGE, []))).toBe(true);
+
+    const placed = placeName(inward, SIZE, { ...STAGE, hole: HOLE }, []);
+
+    expect(placed.free).toBe(true);
+    expect(isCrossing(placed)).toBe(false);
+  });
+});

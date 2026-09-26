@@ -18,6 +18,7 @@ import {
 } from '../rules/camera/framing.rules';
 import { panelZones, topBarZone, Zone } from '../rules/panel-veil.rules';
 import { restInFreeSky } from '../rules/camera/free-sky.rules';
+import { figureRoomOf } from '../rules/sky/figure-room.rules';
 import {
   clientOnCanvas,
   diskOnScreen,
@@ -323,6 +324,7 @@ export class SpaceSceneEngine {
     frame.pointer = this.pointer;
     frame.zones = this.zones;
     frame.topBar = this.topBar;
+    frame.figureRoom = figureRoomOf(this.layout, this.w, this.dpr);
     frame.fade = 22 * this.dpr;
     frame.orbits = this.orbits;
     this.motion.lay(frame);

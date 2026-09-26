@@ -170,6 +170,11 @@ h2 {
     }
   }
 
+  .glass--folded,
+  .glass--folded .rail {
+    position: static;
+  }
+
   .titlebar {
     gap: 4px;
     padding-right: 0;
@@ -231,11 +236,6 @@ h2 {
     .rail[data-rest='end'] .body {
       overflow-y: auto;
     }
-  }
-
-  .glass--folded,
-  .glass--folded .rail {
-    position: static;
   }
 }
 

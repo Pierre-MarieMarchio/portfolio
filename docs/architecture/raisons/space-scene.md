@@ -31,6 +31,18 @@ et de `src/testing/`, rangées par unité (D10).
   244,0 → 568,320 à 568 × 320) ; aucune fenêtre du bureau ni de la tablette
   couchée ne l'est (bord droit à 44 px de l'écran, bas à 76 px au moins).
   La scène reconnaît ainsi la vitre couchée sans lire le format (D31).
+- `cornerBandTop` n'existe que couché : le haut du plus haut panneau bas
+  (haut sous le milieu), trop court pour être latéral, collé au bord droit
+  et au bas de l'écran. C'est la vitre repliée couchée (mesurée 316,303 →
+  640,360) ; l'aperçu couché, plus haut qu'un quart de l'écran, est un
+  panneau au coin, pas un bandeau. Le ciel libre (`freeSkyOf`) y prend toute
+  la largeur au-dessus de ce bandeau, comme au-dessus de la vitre debout ;
+  l'approche de la fiche y centre la paire trou-planète, pas la planète
+  seule (`isPairCentred`) : centrer la planète, comme debout, poussait le
+  trou vers la gauche. Mesuré, le trou avance de 25 % de la largeur sur
+  l'index et de 13 à 14 % sur la fiche, aux quatre tailles, entier. Rendre
+  `isBottomBand` plus large aurait déplacé l'approche et le gros plan du
+  téléphone debout (D33).
 - `topBar` garde la boîte de la barre du haut, et pas seulement sa hauteur :
   couchée, elle ne couvre que la moitié gauche, et un nom de constellation
   n'a à s'en écarter que s'il la croise.
@@ -91,6 +103,19 @@ et de `src/testing/`, rangées par unité (D10).
   par rapport au trou, parfois sous la vitre : le contrat ne tient que le
   trou.
 
+- Debout, au-dessus d'un bandeau, le gros plan qui poserait son trou sur le
+  chrome (le titre de l'accueil, sous l'aperçu) déplace ensemble le trou et
+  la planète visée (`closeUpClearOfChrome`, dans `framing.rules.ts`) : la
+  boîte de la paire (le trou et ses 12 px, le bouton de 48 px de la
+  planète) se pose au centre de la plus grande pièce vide entre le chrome et
+  le bandeau (`chromeRooms`), l'échelle cédant par dixièmes, jusqu'à la
+  moitié, si aucune ne la tient. Déplacer le trou seul, comme couché, posait
+  la planète sous l'aperçu à 320 × 568. Mesuré : le trou passe de 31 à
+  22 px de rayon à 320 × 568, garde 34 px à 360 × 640 ; aux quatre tailles
+  debout, il sort du titre. Un gros plan déjà clair du chrome ne bouge pas,
+  ni celui du golden, sans chrome. La recherche vit dans `framing.rules.ts` :
+  `rules/camera/` a déjà ses huit fichiers, et `free-sky.rules.ts` n'en
+  exporte que les pièces.
 - Le repos de l'accueil garde la bande entre la barre et la règle
   (`measureRest`) tant qu'elle tient le trou à 12 px du chrome (barre,
   règle, titre, contact, dock) et que l'échelle n'y bute pas sur son
@@ -140,6 +165,43 @@ et de `src/testing/`, rangées par unité (D10).
   boîtes, sans tolérance, les déplaçait aussi : le repos du golden du bureau
   a deux noms qui se couvrent de 3,4 px, dans la tolérance.
 
+- Aux formats `phone` et `tablet` seulement (`SceneInputs.touch`, lu par le
+  composant sur `DisplayFormatService`), un nom de planète, caméra arrivée,
+  évite aussi le disque dessiné et le bouton de 48 px de chaque autre
+  planète. Le disque est l'ellipse de `drawnDisc` (`pointer.rules.ts`) :
+  2,4 rayons dans son plan, la portée que `DISC_ON_SCREEN` garde déjà sur
+  l'écran, aplatie par l'ouverture et le roulis, et 1,3 rayon au moins en
+  hauteur pour l'anneau lentillé ; le test est exact (le rectangle du nom
+  ramené dans le repère du disque). Sans la condition du format, neuf
+  empreintes du bureau bougeaient : au bureau aussi, une planète qui passe
+  devant le trou pendant un tour à la main pose son nom sur le disque. Le
+  bureau garde donc l'ancienne règle, au pixel près.
+- Au doigt, quand aucune rangée de la recherche ordinaire (pas de la hauteur
+  d'un nom) n'est libre, le nom essaie les rangées posées juste au-dessus et
+  au-dessous de chaque bouton (`rowsClearOf`) : à 320 × 568, les quatre
+  boutons tiennent en 65 px sous le titre, et les seules places sont les
+  bandes étroites au-dessus et au-dessous d'eux ; sans elles, aucun des
+  quatre noms ne s'affichait.
+- Au doigt aussi, l'écart entre deux noms n'a plus de tolérance : les 4 px
+  de D31 laissaient « Skyted Companion » et « Template .NET » se toucher de
+  3 px sous WebKit à 780 × 360.
+
+## `src/app/shared/space-scene/rules/sky/figure-room.rules.ts`
+
+- Quand la scène a un ciel libre (`freeSkyOf` : un bandeau, un panneau
+  latéral debout, une vitre au coin), la figure allumée et son nom se
+  rangent dans ce ciel, rentré de 8 px (`figureRoomOf`) : sous la barre, au
+  gauche ou au-dessus de la vitre, dans l'écran. La figure glisse, décalée
+  de sa part d'allumage : elle rejoint sa place à mesure qu'elle s'allume,
+  et le nom, pendant ce glissement, reste serré dans le ciel
+  (`nameInRoom`). Le nom se pose au-dessus de la figure, sinon au-dessous,
+  puis la paire s'écarte du disque (à gauche, à droite, au-dessus,
+  au-dessous de sa boîte) jusqu'à ce que le nom ne le croise plus. Avant, à
+  390 × 844, « COMPÉTENCES » commençait à x = 0 et la figure sortait à
+  gauche ; à 780 × 360 elle passait sous la barre ; à 568 × 320,
+  « PARCOURS » traversait le disque. Sans ciel libre (le bureau), la figure
+  garde sa place et son nom la règle de D31.
+
 ## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`, la tablette
 
 - Debout, à côté d'un panneau (`sidePanelLeft`), l'approche garde le disque
@@ -168,6 +230,10 @@ et de `src/testing/`, rangées par unité (D10).
   (`.stage`) : l'e2e lit là où la caméra pose l'objet, que le canvas ne dit
   pas. L'écriture ne se fait que si la valeur change, dans le DOM et non dans
   un signal, comme les boutons des planètes.
+- Le disque dessiné s'y écrit aussi (`data-disc-width`, `data-disc-height`,
+  les demi-axes en pixels CSS, et `data-disc-roll`, le roulis en radians) :
+  l'e2e vérifie qu'un nom ne le croise pas avec la même géométrie que le
+  moteur.
 
 ## `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts`
 
@@ -184,6 +250,11 @@ et de `src/testing/`, rangées par unité (D10).
   au coin, ni boîte de barre (`topBar`), et leurs noms ont tous une même
   largeur (120 px par défaut, ou la taille mesurée donnée à tous), où l'écart
   de centre à centre est celui de bord à bord.
+- D33 ne change que l'à-propos du téléphone (`aside`) : `PHONE_LAYOUT` a un
+  bandeau, donc un ciel libre, où la figure allumée se range. Les
+  dispositions du bureau n'ont pas de ciel libre, et le golden ne passe pas
+  `touch` : les noms y gardent l'ancienne règle, et l'arrivée du téléphone
+  ne bouge pas.
 
 ## `src/app/shared/space-scene/engine/space-scene.engine.spec.ts`
 

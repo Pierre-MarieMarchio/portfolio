@@ -13,6 +13,7 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
+import { DisplayFormatService } from '@app/core/services';
 import { AnimatedCanvasService } from '../../services/animated-canvas.service';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
 import { ZoomGestureDirective } from '../../directives/zoom-gesture.directive';
@@ -45,6 +46,7 @@ export class SpaceSceneComponent {
   private readonly canvas = inject(AnimatedCanvasService);
   private readonly surroundings = inject(SCENE_SURROUNDINGS);
   private readonly targets = inject(SceneTargetsService);
+  private readonly display = inject(DisplayFormatService);
 
   public readonly bodies = input<readonly SceneBody[]>([]);
   public readonly direction = input<SceneDirection>(RESTING_DIRECTION);
@@ -110,6 +112,7 @@ export class SpaceSceneComponent {
       figureNames: this.figureNames(),
       paused: this.paused(),
       reduced: this.reduced(),
+      touch: this.display.format() !== 'desktop',
     };
   }
 

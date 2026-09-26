@@ -10,10 +10,22 @@ import {
   Figure,
 } from '../../../rules/sky/constellations.rules';
 import {
+  FigureName,
   figureLabelFont,
   figureLabelSpacing,
   figureNameAt,
+  figureNameSize,
 } from '../../../rules/sky/figure-label.rules';
+import {
+  figureInRoom,
+  nameInRoom,
+  SkyRoom,
+} from '../../../rules/sky/figure-room.rules';
+import {
+  diskOnScreen,
+  drawnDisc,
+  DrawnDisc,
+} from '../../../rules/camera/pointer.rules';
 import type { Zone } from '../../../rules/panel-veil.rules';
 import { PAN_PARALLAX, SKY_DRIFT } from '../../../models/scene-constants.model';
 
@@ -29,6 +41,8 @@ interface ConstellationsArgs {
   readonly hole: ScreenHole | null;
   readonly labels: readonly string[];
   readonly topBar: Zone | null;
+  readonly room: SkyRoom | null;
+  readonly disc: DrawnDisc | null;
 }
 
 interface ConstellationsLayer {
@@ -81,7 +95,9 @@ const drawFigure = (
     return;
   }
   const light = { on, alpha };
-  const points = figurePoints(layer, figure);
+  const label = (layer.args.labels[k] ?? '').toUpperCase();
+  const placed = placeFigure(layer, figurePoints(layer, figure), on, label);
+  const points = placed.points;
   strokeFigure(layer, figure, points, light);
   for (const [i, point] of points.entries()) {
     if (!isHidden(layer, point)) {
@@ -92,7 +108,45 @@ const drawFigure = (
   if (on < 0.12) {
     return;
   }
-  nameFigure(layer, points, on, layer.args.labels[k] ?? '');
+  nameFigure(layer, placed, on, label);
+};
+
+interface PlacedFigure {
+  readonly points: readonly FigurePoint[];
+  readonly name: FigureName | null;
+}
+
+const placeFigure = (
+  layer: ConstellationsLayer,
+  points: readonly FigurePoint[],
+  on: number,
+  text: string,
+): PlacedFigure => {
+  const { ctx, args } = layer;
+  if (!args.room || on < 0.12) {
+    return { points, name: null };
+  }
+  ctx.font = figureLabelFont(args.dpr);
+  const size = figureNameSize(text, args.dpr, (shown) => {
+    ctx.letterSpacing = '0px';
+    return ctx.measureText(shown).width;
+  });
+  const fit = figureInRoom(points, {
+    room: args.room,
+    disc: args.disc,
+    name: size,
+    dpr: args.dpr,
+  });
+  const dx = fit.dx * on;
+  const dy = fit.dy * on;
+  return {
+    points: points.map(([x, y]) => [x + dx, y + dy] as const),
+    name: nameInRoom(
+      { ...fit.name, x: fit.name.x + dx, y: fit.name.y + dy },
+      size,
+      args.room,
+    ),
+  };
 };
 
 const figurePoints = (
@@ -164,21 +218,22 @@ const drawFigureStar = (
 
 const nameFigure = (
   layer: ConstellationsLayer,
-  points: readonly FigurePoint[],
+  { points, name: fitted }: PlacedFigure,
   on: number,
-  label: string,
+  text: string,
 ): void => {
   const { ctx, args } = layer;
-  const text = label.toUpperCase();
   ctx.globalAlpha = on * args.shown * 0.9 * args.entry;
   ctx.fillStyle = '#ffffff';
   ctx.font = figureLabelFont(args.dpr);
-  const name = figureNameAt(points, {
-    bar: args.topBar,
-    dpr: args.dpr,
-    text,
-    measure: (shown) => ctx.measureText(shown).width,
-  });
+  const name =
+    fitted ??
+    figureNameAt(points, {
+      bar: args.topBar,
+      dpr: args.dpr,
+      text,
+      measure: (shown) => ctx.measureText(shown).width,
+    });
   ctx.textBaseline = name.baseline;
   ctx.letterSpacing = figureLabelSpacing;
   ctx.fillText(text, name.x, name.y);
@@ -206,6 +261,8 @@ export class ConstellationsRenderer {
       hole: frame.hole,
       labels: frame.state.figureNames,
       topBar: frame.topBar,
+      room: frame.figureRoom,
+      disc: frame.figureRoom ? drawnDisc(diskOnScreen(frame), 1) : null,
     });
   }
 }

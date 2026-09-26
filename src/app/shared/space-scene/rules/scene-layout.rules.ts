@@ -87,7 +87,10 @@ export function sceneLayout(
 function windowBounds(
   anchors: readonly PanelAnchor[],
   viewport: SceneLayout['viewport'],
-): Pick<SceneLayout, 'panelBandTop' | 'sidePanelLeft' | 'cornerPanelLeft'> {
+): Pick<
+  SceneLayout,
+  'panelBandTop' | 'sidePanelLeft' | 'cornerPanelLeft' | 'cornerBandTop'
+> {
   const windows = anchors
     .filter(
       (anchor) =>
@@ -105,10 +108,19 @@ function windowBounds(
   const corners = isUpright
     ? []
     : sidePanels.filter((rect) => isFlushInCorner(rect, viewport));
+  const cornerBands = isUpright
+    ? []
+    : windows.filter(
+        (rect) =>
+          !isSidePanel(rect, viewport) &&
+          rect.top >= viewport.height * BOTTOM_BAND.topShare &&
+          isFlushInCorner(rect, viewport),
+      );
   return {
     panelBandTop: smallestOf(bands.map((rect) => rect.top)),
     sidePanelLeft: smallestOf(sides.map((rect) => rect.left)),
     cornerPanelLeft: smallestOf(corners.map((rect) => rect.left)),
+    cornerBandTop: smallestOf(cornerBands.map((rect) => rect.top)),
   };
 }
 

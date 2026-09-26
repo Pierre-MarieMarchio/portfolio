@@ -7,6 +7,15 @@ et de `src/testing/`, rangées par unité (D10).
 
 - Le système de la maquette est gardé tel quel : ses sept orbites
   (`ORBIT_REFERENCE_COUNT`) sont celles de l'export.
+- Au téléphone (D35), `fitOrbits` mesure la place en rayons d'un trou deux
+  fois plus grand (`PHONE_ORBITS.growth`), puisque le cadrage le double : les
+  orbites gardent à peu près leur taille à l'écran au lieu de doubler avec
+  lui. Elles ne descendent pas sous 3,2 rayons (la plus proche) ni sous 4,8
+  (la plus lointaine) : un corps reste à 2,9 rayons au moins de l'empreinte
+  du disque, et les orbites extérieures peuvent sortir de l'écran. La
+  fonction rend l'orbite extérieure qu'aurait donnée la règle d'avant, pour
+  que la vue d'ensemble et l'à-propos du téléphone partent de leur échelle
+  d'aujourd'hui avant de la doubler.
 
 ## `src/app/shared/space-scene/rules/scene-layout.rules.ts`
 
@@ -93,29 +102,12 @@ et de `src/testing/`, rangées par unité (D10).
   264 px de haut. Sans bandeau, ni panneau à droite, ni vitre au coin, le
   cadrage fixe est rendu tel quel : le bureau et la tablette couchée ne
   bougent pas.
-- Au gros plan, à côté d'une vitre couchée, le trou se centre dans le plus
-  grand rectangle vide que le chrome et la vitre laissent (`holeRoomBeside`,
-  la découpe de `restInFreeSky`), celui où le plus grand disque tient à
-  12 px de ses bords ; l'échelle du gros plan ne baisse que si ce disque
-  est plus petit que son trou (`closeUpInRoom`). Mesuré, le trou garde son
-  rayon (62 px à 844 × 390, 33 px à 568 × 320) et passe sous le titre, à
-  gauche du « @ ». La planète visée reste où l'angle du gros plan la pose
-  par rapport au trou, parfois sous la vitre : le contrat ne tient que le
-  trou.
-
-- Debout, au-dessus d'un bandeau, le gros plan qui poserait son trou sur le
-  chrome (le titre de l'accueil, sous l'aperçu) déplace ensemble le trou et
-  la planète visée (`closeUpClearOfChrome`, dans `framing.rules.ts`) : la
-  boîte de la paire (le trou et ses 12 px, le bouton de 48 px de la
-  planète) se pose au centre de la plus grande pièce vide entre le chrome et
-  le bandeau (`chromeRooms`), l'échelle cédant par dixièmes, jusqu'à la
-  moitié, si aucune ne la tient. Déplacer le trou seul, comme couché, posait
-  la planète sous l'aperçu à 320 × 568. Mesuré : le trou passe de 31 à
-  22 px de rayon à 320 × 568, garde 34 px à 360 × 640 ; aux quatre tailles
-  debout, il sort du titre. Un gros plan déjà clair du chrome ne bouge pas,
-  ni celui du golden, sans chrome. La recherche vit dans `framing.rules.ts` :
-  `rules/camera/` a déjà ses huit fichiers, et `free-sky.rules.ts` n'en
-  exporte que les pièces.
+- Le gros plan à côté d'une vitre couchée (`holeRoomBeside`, D31) et le
+  gros plan debout rangé loin du chrome (`closeUpClearOfChrome`, D33) ne
+  servaient qu'au téléphone, seul à avoir une vitre au coin ou un bandeau :
+  ils sont retirés, et le cadrage du trou au téléphone les remplace
+  (`hole-focus.rules.ts`, D35). Le gros plan du bureau et de la tablette
+  reste `closeUpFrame`, tel quel.
 - Le repos de l'accueil garde la bande entre la barre et la règle
   (`measureRest`) tant qu'elle tient le trou à 12 px du chrome (barre,
   règle, titre, contact, dock) et que l'échelle n'y bute pas sur son
@@ -234,6 +226,10 @@ et de `src/testing/`, rangées par unité (D10).
   les demi-axes en pixels CSS, et `data-disc-roll`, le roulis en radians) :
   l'e2e vérifie qu'un nom ne le croise pas avec la même géométrie que le
   moteur.
+- `data-target-x` et `data-target-y` disent où est dessinée la planète visée
+  (approche d'une fiche, gros plan de l'aperçu), après la répulsion ; vides
+  sinon. La fiche n'a pas de bouton de planète (D27) : l'e2e lit là le point
+  qu'elle doit garder à l'écran, au-dessus ou à gauche de la vitre (D35).
 
 ## `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts`
 
@@ -255,9 +251,19 @@ et de `src/testing/`, rangées par unité (D10).
   dispositions du bureau n'ont pas de ciel libre, et le golden ne passe pas
   `touch` : les noms y gardent l'ancienne règle, et l'arrivée du téléphone
   ne bouge pas.
+- D35 change les cinq empreintes du téléphone, et elles seules : le test
+  passe désormais le format `phone`, qui double le trou de chaque vue dans
+  le ciel libre, resserre les orbites sur le trou agrandi et ne nomme que la
+  planète visée. Les autres dispositions ne passent pas de format (le bureau
+  par défaut) et gardent leurs empreintes. Le gros plan du téléphone ne passe
+  plus par `closeUpClearOfChrome` : sans chrome dans `PHONE_LAYOUT`, cette
+  règle ne le touchait pas.
 
 ## `src/app/shared/space-scene/engine/space-scene.engine.spec.ts`
 
+- Le gros plan à côté d'une vitre couchée se teste au format `phone` : la
+  règle qui le rangeait loin du chrome (`holeRoomBeside`, D31) est remplacée
+  par celle du trou au téléphone (D35), qui ne s'applique qu'à ce format.
 - La densité après une rotation se compare à une scène jumelle, au même
   instant : le nombre de grains dessinés varie d'une image à l'autre selon
   ceux qui passent derrière le trou, plus nombreux quand le repos se relève.
@@ -394,3 +400,52 @@ et de `src/testing/`, rangées par unité (D10).
 - La boucle d'images (réveil, arrêt, visibilité, pas de temps borné à 60 ms)
   sort du moteur à l'identique : le moteur dépassait sa taille permise avec
   l'API du zoom. `EngineHost` y vit et reste exporté par le moteur.
+
+## `src/app/shared/space-scene/rules/hole-focus.rules.ts`
+
+- Au téléphone (D35), chaque vue part du cadrage d'aujourd'hui et fait
+  grandir le trou jusqu'à deux fois son rayon, tant que son disque dessiné
+  (2,4 rayons, la même ellipse que `drawnDisc`) tient dans une pièce vide du
+  ciel, à 12 px de ses bords. Les pièces sont les rectangles vides que
+  laissent le chrome et la vitre, prolongée jusqu'au bord de l'écran
+  (`skyRooms`) ; elles se recalculent quand la disposition change, pas à
+  chaque image (`FramingScene.sky`).
+- Le rayon qui tient se calcule sans itérer : l'étendue du groupe (disque,
+  planète visée, son nom) est, sur chaque axe, un maximum de fonctions
+  affines du rayon, et chaque paire bord haut / bord bas donne une borne.
+- Avec une planète visée (fiche, aperçu, rangée choisie de l'index, planète
+  touchée à l'accueil), le groupe comprend son bouton (24 px) et une place
+  pour son nom, sous elle, au-dessus, ou à côté. Treize angles sur l'avant
+  du disque sont essayés, plus celui d'aujourd'hui ; une planète à moins de
+  2,9 rayons de l'empreinte du disque est écartée. À rayon égal, l'angle
+  d'aujourd'hui gagne, puis le plus proche, puis la pièce la plus proche du
+  trou : le cadrage ne tourne que s'il le faut.
+- Le nom réservé sous ou au-dessus de la planète se place centré, ou décalé
+  vers l'extérieur du trou ; `placeName` essaie les mêmes places dans le même
+  ordre quand ses deux flancs sont pris (`stacks`).
+- Si le nom ne tient nulle part, la planète seule est réservée. Une vue ne
+  devient jamais plus petite qu'aujourd'hui, sauf le gros plan de l'aperçu :
+  couché, le ciel sous le titre n'a pas la place d'un trou de la taille
+  d'aujourd'hui avec sa planète et son nom, et le trou rapetisse plutôt que
+  de passer sous le titre ou de cacher la planète.
+- La fiche couchée à 844 × 390 s'arrête sous la plus grande taille que son
+  disque seul permettrait (77 px au lieu de 85) : la planète et son nom
+  doivent tenir à gauche de la vitre avec lui.
+
+## `src/app/shared/space-scene/rules/planets/planet-focus.rules.ts`
+
+- Au téléphone (`isSparse`, D35), un nom ne s'écrit que pour la planète qui
+  compte : celle que le doigt désigne au repos, celle du gros plan, celle de
+  l'approche. Les numéros de l'index ne s'écrivent que pour la rangée
+  choisie ou désignée. Les boutons des autres planètes restent.
+
+## `src/app/shared/space-scene/rules/planets/label-placement.rules.ts`
+
+- Au téléphone, un nom se mesure aux panneaux boîte contre boîte (de centre
+  à centre), comme entre deux noms : mesuré de bord gauche à bord gauche, un
+  nom à gauche de la vitre couchée la croisait tant qu'il n'était pas à la
+  moitié de sa largeur, et la fiche couchée n'en écrivait aucun. Le bureau et
+  la tablette gardent l'ancienne mesure (D31).
+- Quand ses deux flancs sont pris, un nom du téléphone se pose sous sa
+  planète, puis au-dessus, centré ou décalé vers l'extérieur, sans trait de
+  rappel.

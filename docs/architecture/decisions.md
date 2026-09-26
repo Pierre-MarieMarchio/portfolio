@@ -961,3 +961,58 @@ corps n'est plus le seul à défiler, et `remember-scroll` perd son élément.
 Une vitre qui arrive plus haut quand son contenu tient : le CSS ne sait pas
 comparer un contenu à une part d'écran, et les longues vitres doivent
 arriver à 60 %.
+
+## 2026-09-26 — Au téléphone, le trou noir est le sujet ; les noms se font rares (D35, étend D33, amende D29 à D31)
+
+**Décision.** C'est la décision de l'opérateur, après avoir regardé le site
+sur un écran de téléphone : « ça fait petit et chargé ». Au format `phone`
+seulement, debout comme couché, le moteur reçoit le format par une nouvelle
+entrée (`format`, qui remplace `touch` ; `touch` s'en déduit), et le cadrage
+le lit pour cette présentation seule : la tablette et le bureau gardent
+leurs cadrages. Chaque vue (accueil, aperçu, index, fiche, à-propos,
+introuvable) part de son cadrage d'aujourd'hui et fait grandir le trou
+jusqu'à deux fois son rayon, tant que son disque dessiné tient dans une
+pièce vide du ciel, à 12 px du chrome, de la vitre et des bords ; il ne
+devient jamais plus petit qu'aujourd'hui, sauf le gros plan de l'aperçu
+(`hole-focus.rules.ts`). Les orbites se règlent sur ce trou agrandi, pas
+plus près que 3,2 rayons pour la plus proche ni 4,8 pour la plus lointaine,
+et peuvent sortir de l'écran. Seule la planète qui compte est nommée : au
+repos de l'accueil, aucune, puis celle qu'un premier toucher désigne ;
+l'aperçu, la sienne ; la fiche, la sienne, couchée aussi ; l'index, la
+rangée choisie. Cette planète et la place de son nom entrent dans le
+cadrage : le trou, la planète et son nom tiennent ensemble dans le ciel, et
+l'objet tourne pour l'y amener s'il le faut. La scène écrit où la planète
+visée est dessinée (`data-target-x`, `data-target-y`).
+
+**Raison.** Le trou faisait 11 px de rayon à 320 × 568 et 25 px à
+390 × 844 sur l'accueil, entouré de quatre noms. Mesurés au repos, en
+mouvement réduit, avant puis après (en px) :
+
+| Taille    | accueil     | index       | fiche       | à-propos    | introuvable |
+| --------- | ----------- | ----------- | ----------- | ----------- | ----------- |
+| 320 × 568 | 11,2 → 22,4 | 29,1 → 58,2 | 25,8 → 51,7 | 33,0 → 62,3 | 29,1 → 58,2 |
+| 360 × 780 | 22,9 → 45,8 | 32,7 → 65,5 | 29,1 → 58,1 | 37,1 → 74,2 | 32,7 → 65,5 |
+| 390 × 844 | 24,8 → 49,6 | 35,5 → 70,9 | 31,5 → 63,0 | 40,2 → 80,4 | 35,5 → 70,9 |
+| 568 × 320 | 18,8 → 37,6 | 13,1 → 26,1 | 45,9 → 46,9 | 19,3 → 38,7 | 13,1 → 26,1 |
+| 640 × 360 | 20,7 → 41,5 | 18,5 → 37,1 | 51,7 → 62,3 | 23,1 → 46,1 | 18,5 → 37,1 |
+| 844 × 390 | 29,2 → 58,5 | 26,6 → 53,2 | 54,2 → 77,3 | 25,9 → 51,7 | 26,6 → 53,2 |
+
+La fiche couchée bute sur le disque qui tient à gauche de la vitre (568 et
+640 de large), ou sur la planète et son nom qui doivent tenir avec lui
+(844 de large, 77 px au lieu de 85). Les règles du gros plan couché
+(`holeRoomBeside`, D31) et debout (`closeUpClearOfChrome`, D33) ne servaient
+qu'au téléphone : elles sont retirées. Le détail est dans
+`raisons/space-scene.md`.
+
+**Écarté.** Un aperçu couché aussi grand qu'aujourd'hui : sous le titre, le
+ciel n'a pas la place du trou avec sa planète et son nom (le trou passe de
+33 à 18 px de rayon à 568 × 320, de 45 à 22 à 640 × 360, de 62 à 55 à
+844 × 390) ; aujourd'hui il passait sous le titre et la planète n'était pas
+visible. Garder les orbites d'aujourd'hui en rayons : autour d'un trou de
+50 px à 390 × 844, de 4,1 à 6,9 rayons, elles passaient à 200 à 340 px du
+centre, sur un écran de 390 px. Les garder en pixels : à 320 × 568, la
+planète de l'aperçu passait à moins de 2,9 rayons du disque, à tous les
+angles. Ne pas faire tourner
+l'objet au premier toucher : la planète au bord de l'écran, contre le
+disque, n'avait nulle part où écrire son nom. Relever le seuil du bundle :
+il reste sous 520 kB (519,2 kB).

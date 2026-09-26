@@ -10,6 +10,7 @@ import {
 import {
   isHighlighted,
   isNamed,
+  isTagShown,
   PlanetBody,
 } from '../../rules/planets/planet-focus.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
@@ -93,6 +94,11 @@ export class PlanetLabelsRenderer {
     }));
   }
 
+  public sizeOf(i: number): { readonly w: number; readonly h: number } {
+    const size = this.labelSizes[i];
+    return { w: size?.w || 120, h: size?.h || 20 };
+  }
+
   public begin(
     frame: SceneFrame,
     bodies: readonly { readonly sx: number; readonly sy: number }[],
@@ -118,6 +124,7 @@ export class PlanetLabelsRenderer {
         : undefined,
       disc: isClearing ? drawnDisc(diskOnScreen(frame), dpr) : undefined,
       bodies: isClearing ? bodiesOf(bodies, dpr) : undefined,
+      stacks: frame.state.phone,
     };
     this.panels = zones.map((z) => ({
       l: z.l / dpr,
@@ -242,7 +249,7 @@ export class PlanetLabelsRenderer {
       this.panels,
     );
     let opacity = '0';
-    if (!body.isCovered && !tag.onText) {
+    if (!body.isCovered && !tag.onText && isTagShown(frame.focus, i)) {
       opacity = isHighlighted(frame.focus, i) ? '1' : '0.8';
     }
     this.writeLabel(
@@ -284,7 +291,7 @@ export class PlanetLabelsRenderer {
       `translate(${String(place.x)}px,${String(place.y - lh / 2)}px)`,
       opacity,
     );
-    if (isVisible) {
+    if (isVisible && place.dir !== 0) {
       this.stroke(body, frame, place, lw);
     }
   }

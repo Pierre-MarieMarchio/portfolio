@@ -22,6 +22,7 @@ export interface SceneState {
   readonly paused: boolean;
   readonly reduced: boolean;
   readonly touch: boolean;
+  readonly phone: boolean;
 }
 
 export const NO_STATE: SceneState = {
@@ -41,6 +42,7 @@ export const NO_STATE: SceneState = {
   paused: false,
   reduced: false,
   touch: false,
+  phone: false,
 };
 
 const rankOf = (bodies: readonly SceneBody[], id: string | null): number =>
@@ -75,7 +77,7 @@ export const sceneState = ({
   figureNames,
   paused,
   reduced,
-  touch = false,
+  format = 'desktop',
 }: SceneInputs): SceneState => {
   const framing = framed(bodies, direction.framing);
   const presence = direction.presence;
@@ -95,7 +97,8 @@ export const sceneState = ({
     figureNames,
     paused,
     reduced,
-    touch,
+    touch: format !== 'desktop',
+    phone: format === 'phone',
   };
 };
 

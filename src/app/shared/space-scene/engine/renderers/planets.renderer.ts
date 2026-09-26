@@ -65,6 +65,7 @@ export class PlanetsRenderer {
       focus.shown,
       Math.min(PLANET_GAP * frame.dpr, frame.radius * 1.1),
     );
+    this.aim(frame, planets[focus.read >= 0 ? focus.read : focus.active]);
     this.labels.begin(frame, planets.slice(0, focus.shown));
     for (let i = 0; i < focus.shown; i++) {
       const planet = planets[i];
@@ -75,6 +76,13 @@ export class PlanetsRenderer {
     for (let i = focus.shown; i < this.labels.nodeCount; i++) {
       this.labels.hide(i);
     }
+  }
+
+  private aim(frame: SceneFrame, planet: PlanetOnScreen | undefined): void {
+    const aim = frame.aim;
+    aim.isShown = planet !== undefined && frame.marks > 0.02;
+    aim.x = (planet?.sx ?? 0) / frame.dpr;
+    aim.y = (planet?.sy ?? 0) / frame.dpr;
   }
 
   private place(frame: SceneFrame): PlanetOnScreen[] {

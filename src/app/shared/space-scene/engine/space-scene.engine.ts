@@ -66,6 +66,7 @@ export class SpaceSceneEngine {
   private readonly framing: FramingScene = framingScene(
     this.motion.camera.rest,
     (i) => this.turntable.orbitTurn(i),
+    (i) => this.renderer.labels.sizeOf(i),
   );
   private readonly frame: SceneFrame;
   private readonly renderer: SceneRenderer;
@@ -270,34 +271,29 @@ export class SpaceSceneEngine {
   }
 
   private fitOrbits(): void {
-    this.motion.camera.fit(this.orbits, {
+    const reach = this.motion.camera.fit(this.orbits, {
       w: this.w,
       h: this.h,
       dpr: this.dpr,
+      isPhone: this.state.phone,
     });
+    this.framing.reach = this.state.phone ? reach : null;
   }
 
   private step(dt: number, isVisible: boolean): boolean {
     this.advance(dt, isVisible);
-    if (this.hasMoved() && isVisible) {
+    const hasMoved = this.motion.hasMoved || this.isTurning || this.needsDraw;
+    if (hasMoved && isVisible) {
       this.draw();
       this.needsDraw = false;
     }
-    return this.isMoving();
+    return !this.motion.isSettled || this.turntable.held || this.isTurning;
   }
 
   private advance(dt: number, isVisible: boolean): void {
     this.fitOrbits();
     this.motion.advance(dt, this.state, this.target(), isVisible);
     this.isTurning = this.turntable.step(dt, this.state.reduced, this.orbits);
-  }
-
-  private hasMoved(): boolean {
-    return this.motion.hasMoved || this.isTurning || this.needsDraw;
-  }
-
-  private isMoving(): boolean {
-    return !this.motion.isSettled || this.turntable.held || this.isTurning;
   }
 
   private target(): Frame {

@@ -1,3 +1,4 @@
+import { clamp } from '@app/core/helpers';
 import {
   Dims,
   Frame,
@@ -172,16 +173,36 @@ export const positionOrbit = (
 
 const NARROWEST_ORBIT = 0.1;
 
+const PHONE_ORBITS = { growth: 2, rMin: 3.2, rMax: 4.8 } as const;
+
+const orbitSpread = (
+  room: number,
+  isPhone: boolean,
+): { readonly rMin: number; readonly rMax: number } => {
+  if (isPhone) {
+    const rMax = clamp(room, PHONE_ORBITS.rMax, 6.9);
+    return { rMin: clamp(rMax * 0.74, PHONE_ORBITS.rMin, 4.9), rMax };
+  }
+  const isRoomy = room >= 4.6;
+  const rMax = isRoomy ? Math.min(6.9, room) : Math.max(0, room);
+  const rMin = isRoomy
+    ? Math.max(4.1, Math.min(rMax * 0.74, 4.9))
+    : rMax * 0.74;
+  return { rMin, rMax };
+};
+
 export const fitOrbits = (
   orbits: readonly Orbit[],
-  dims: Dims,
+  dims: Dims & { readonly isPhone?: boolean },
   rest: Frame,
   free: Pick<RestMeasure, 'freeHalf' | 'sideHalf'> | null,
-): void => {
+): number => {
   const { w, h, dpr } = dims;
   const cx = w * rest.x;
   const cy = h * rest.y;
-  const radius = referenceRadius(w, h, rest.s);
+  const isPhone = dims.isPhone === true;
+  const radius =
+    referenceRadius(w, h, rest.s) * (isPhone ? PHONE_ORBITS.growth : 1);
   const side = free?.sideHalf;
   const maxH =
     (side === undefined ? Math.min(cx, w - cx) - 74 * dpr : side * dpr) /
@@ -189,15 +210,12 @@ export const fitOrbits = (
   const half = free === null ? Math.min(cy, h - cy) : free.freeHalf * dpr;
   const maxV = (half - 30 * dpr) / (radius * verticalFactor(rest.ev, rest.i));
   const room = Math.min(maxH, maxV);
-  const isRoomy = room >= 4.6;
-  const rMax = isRoomy ? Math.min(6.9, room) : Math.max(0, room);
-  const rMin = isRoomy
-    ? Math.max(4.1, Math.min(rMax * 0.74, 4.9))
-    : rMax * 0.74;
+  const { rMin, rMax } = orbitSpread(room, isPhone);
   for (const orbit of orbits) {
     orbit.rb = rMin + orbit.k * (rMax - rMin);
     orbit.v = 0.075 * Math.pow(1.3 / Math.max(orbit.rb, NARROWEST_ORBIT), 1.5);
   }
+  return isPhone ? orbitSpread(room * PHONE_ORBITS.growth, false).rMax : rMax;
 };
 
 export const ORBIT_REFERENCE_COUNT = 7;

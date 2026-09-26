@@ -117,8 +117,11 @@ export class CameraMotion {
     this.measure = measure;
   }
 
-  public fit(orbits: readonly Orbit[], dims: Dims): void {
-    fitOrbits(orbits, dims, this.restFrame, this.measure);
+  public fit(
+    orbits: readonly Orbit[],
+    dims: Dims & { readonly isPhone: boolean },
+  ): number {
+    return fitOrbits(orbits, dims, this.restFrame, this.measure);
   }
 
   public startOpen(isOpen: boolean): void {

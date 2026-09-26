@@ -33,6 +33,7 @@ export interface SceneFrame {
   lit: readonly number[];
   pointer: { readonly x: number; readonly y: number } | null;
   hole: ScreenHole;
+  readonly aim: { x: number; y: number; isShown: boolean };
   arrived: boolean;
   zones: readonly Zone[];
   topBar: Zone | null;
@@ -73,6 +74,7 @@ export const sceneFrame = (
     lit: [],
     pointer: null,
     hole: { cx: 0, cy: 0, radius: 0 },
+    aim: { x: 0, y: 0, isShown: false },
     arrived: true,
     zones: [],
     topBar: null,

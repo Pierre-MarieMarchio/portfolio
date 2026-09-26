@@ -203,6 +203,25 @@ describe('sceneLayout', () => {
       expect(floating.cornerPanelLeft).toBeNull();
       expect(upright.cornerPanelLeft).toBeNull();
     });
+
+    it('reads a glass folded to its bar in the bottom right of a screen lying down as a corner band', () => {
+      const LYING = { width: 568, height: 320 };
+      const folded = sceneLayout(CANVAS, LYING, [
+        anchor('', { left: 244, top: 263, width: 324, height: 57 }),
+      ]);
+      const open = sceneLayout(CANVAS, LYING, [
+        anchor('', { left: 244, top: 0, width: 324, height: 320 }),
+      ]);
+      const upright = sceneLayout(CANVAS, TABLET, [
+        anchor('', { left: 317, top: 1120, width: 503, height: 60 }),
+      ]);
+
+      expect(folded.cornerBandTop).toBe(263);
+      expect(folded.cornerPanelLeft).toBeNull();
+      expect(folded.panelBandTop).toBeNull();
+      expect(open.cornerBandTop).toBeNull();
+      expect(upright.cornerBandTop).toBeNull();
+    });
   });
 });
 

@@ -145,3 +145,69 @@ describe('placeName, beside the hole', () => {
     expect(isCrossing(placed)).toBe(false);
   });
 });
+
+const boxOf = (at: { x: number; y: number }) => ({
+  l: at.x,
+  r: at.x + SIZE.w,
+  t: at.y - SIZE.h / 2,
+  b: at.y + SIZE.h / 2,
+});
+
+const walls = (): TakenPlace[] => [
+  { x: 0, y: 100, w: 4000, h: 100 },
+  { x: 0, y: 285, w: 4000, h: 40 },
+];
+
+describe('placeName, on a touch screen', () => {
+  const DISC = { x: 400, y: 400, rx: 150, ry: 40, cos: 1, sin: 0 };
+  const isInDisc = (at: { x: number; y: number }): boolean => {
+    const edges = boxOf(at);
+    const dx = Math.min(Math.max(DISC.x, edges.l), edges.r) - DISC.x;
+    const dy = Math.min(Math.max(DISC.y, edges.t), edges.b) - DISC.y;
+    return (dx / DISC.rx) ** 2 + (dy / DISC.ry) ** 2 < 1;
+  };
+
+  it('keeps a name off the drawn disc, not only off the hole', () => {
+    const inward = { ...planet(470, 410), objectRadius: 40 };
+    expect(isInDisc(placeName(inward, SIZE, STAGE, []))).toBe(true);
+
+    const placed = placeName(inward, SIZE, { ...STAGE, disc: DISC }, []);
+
+    expect(placed.free).toBe(true);
+    expect(isInDisc(placed)).toBe(false);
+  });
+
+  it('keeps a name off the button of another planet, not its own', () => {
+    const own = { ...planet(900, 300), rank: 0 };
+    const first = placeName(own, SIZE, STAGE, []);
+    const other = { x: first.x + 40, y: first.y };
+    const isOverOther = (at: { x: number; y: number }): boolean => {
+      const edges = boxOf(at);
+      return (
+        edges.l < other.x + 24 &&
+        edges.r > other.x - 24 &&
+        edges.t < other.y + 24 &&
+        edges.b > other.y - 24
+      );
+    };
+    const bodies = [{ x: 900, y: 300 }, other];
+
+    const placed = placeName(own, SIZE, { ...STAGE, bodies }, []);
+
+    expect(isOverOther(first)).toBe(true);
+    expect(placed.free).toBe(true);
+    expect(isOverOther(placed)).toBe(false);
+  });
+
+  it('finds the narrow row just clear of a cluster of buttons', () => {
+    const stage = { w: 320, h: 400 };
+    const bodies = [
+      { x: 110, y: 200 },
+      { x: 200, y: 210 },
+    ];
+    const own = { ...planet(110, 200), rank: 0 };
+    const placed = placeName(own, SIZE, { ...stage, bodies }, walls());
+
+    expect(placed.free).toBe(true);
+  });
+});

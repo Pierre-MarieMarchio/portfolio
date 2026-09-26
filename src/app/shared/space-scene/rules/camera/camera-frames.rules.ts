@@ -98,6 +98,7 @@ interface ApproachArgs {
   readonly panelLeft: number | null;
   readonly band: SkyBand | null;
   readonly isDiscHeld?: boolean;
+  readonly isPairCentred?: boolean;
   readonly phase: number;
   readonly azim: number;
   readonly offset: BodyOffset;
@@ -193,7 +194,9 @@ const approachAboveBand = (
   const room = d.w / 2;
   const radius = shrinkToRoom(frame, unitRadius(d.w, d.h), room);
   frame.az = approachAzimuth(orbit, approach, room / (orbit.rb * radius), args);
-  return centreInBand(frame, args.offset(frame.az, frame), radius, {
+  const offset = args.offset(frame.az, frame);
+  const share = args.isPairCentred ? 0.5 : 1;
+  return centreInBand(frame, { nx: offset.nx * share, ny: offset.ny }, radius, {
     dims: d,
     band,
   });

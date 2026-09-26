@@ -22,7 +22,7 @@ export const freeSkyOf = (
     return null;
   }
   const top = (layout.topBarHeight ?? 0) - layout.canvas.top;
-  const bandTop = layout.panelBandTop;
+  const bandTop = layout.panelBandTop ?? layout.cornerBandTop;
   if (typeof bandTop === 'number') {
     return {
       left: 0,
@@ -95,10 +95,10 @@ export const wholeInFreeSky = (
 
 const REST_SKY = { clearance: 12, inset: 8, reach: 30, leader: 48 } as const;
 
-type Box = Pick<PanelRect, 'left' | 'top' | 'right' | 'bottom'>;
+export type Box = Pick<PanelRect, 'left' | 'top' | 'right' | 'bottom'>;
 
 const isHoleClear = (
-  rest: RestMeasure,
+  rest: Pick<RestMeasure, 'x' | 'y' | 's'>,
   viewport: SceneLayout['viewport'],
   chrome: readonly Box[],
 ): boolean => {
@@ -173,7 +173,7 @@ const restInRoom = (
   });
 };
 
-const areaOf = (room: Box): number =>
+export const areaOf = (room: Box): number =>
   (room.right - room.left) * (room.bottom - room.top);
 
 const chromeOnCanvas = (layout: SceneLayout | null): Box[] => {
@@ -187,7 +187,9 @@ const chromeOnCanvas = (layout: SceneLayout | null): Box[] => {
   }));
 };
 
-const viewportOf = (layout: SceneLayout | null): SceneLayout['viewport'] => ({
+export const viewportOf = (
+  layout: SceneLayout | null,
+): SceneLayout['viewport'] => ({
   width: layout?.viewport.width || FALLBACK_VIEWPORT.width,
   height: layout?.viewport.height || FALLBACK_VIEWPORT.height,
 });
@@ -238,6 +240,19 @@ const holeRoomOf = (room: Box): HoleRoom => ({
     REST_SKY.clearance,
 });
 
+export const chromeRooms = (layout: SceneLayout | null, obstacle: Box): Box[] =>
+  emptyRooms([...chromeOnCanvas(layout), obstacle], viewportOf(layout));
+
+export const isClearOfChrome = (
+  layout: SceneLayout | null,
+  frame: Pick<Frame, 'x' | 'y' | 's'>,
+): boolean => {
+  const chrome = chromeOnCanvas(layout);
+  return chrome.length === 0 || isHoleClear(frame, viewportOf(layout), chrome);
+};
+
+export const CHROME_CLEARANCE = REST_SKY.clearance;
+
 export const holeRoomBeside = (
   layout: SceneLayout | null,
   panelLeft: number,
@@ -250,7 +265,7 @@ export const holeRoomBeside = (
     bottom: viewport.height,
   };
   let best: { readonly hole: HoleRoom; readonly area: number } | null = null;
-  for (const room of emptyRooms([...chromeOnCanvas(layout), panel], viewport)) {
+  for (const room of chromeRooms(layout, panel)) {
     const hole = holeRoomOf(room);
     const area = areaOf(room);
     const isRoomier =

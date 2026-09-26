@@ -37,19 +37,13 @@ $bottom-reserve: var(--glass-bottom-reserve, 0px);
   display: contents;
 }
 
-.lead,
-.tail {
-  display: none;
-}
-
 .window {
   @include controls.glass(var(--glass-blur-window));
 
   display: flex;
   flex-direction: column;
   min-height: 0;
-  height: auto;
-  overflow: hidden;
+  overflow: clip;
   pointer-events: auto;
   text-align: left;
   animation: window-rise 560ms both;
@@ -60,7 +54,7 @@ $bottom-reserve: var(--glass-bottom-reserve, 0px);
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 5px 5px var(--s2);
+  padding: var(--window-bar-padding);
   border-bottom: 1px solid var(--line);
   cursor: grab;
   touch-action: none;
@@ -133,10 +127,10 @@ h2 {
   flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s2) var(--s3);
+  gap: var(--window-footer-gap);
   align-items: center;
   border-top: 1px solid var(--line);
-  padding: var(--s2);
+  padding: var(--window-footer-padding);
 
   &:empty {
     display: none;
@@ -165,7 +159,6 @@ h2 {
 
     &.glass--folded .window {
       flex: 0 0 auto;
-      height: auto;
       margin-top: auto;
     }
   }
@@ -177,7 +170,6 @@ h2 {
 
   .titlebar {
     gap: 4px;
-    padding-right: 0;
     cursor: default;
     touch-action: manipulation;
   }
@@ -211,20 +203,18 @@ h2 {
     }
 
     .lead {
-      display: block;
       flex: 0 0 calc(var(--glass-lowered) * 100%);
       animation: glass-shade linear both;
       animation-timeline: --glass-rise;
     }
 
     .tail {
-      display: block;
       flex: 0 0 $bottom-reserve;
     }
 
     .window {
-      flex: 0 0 auto;
-      height: calc(100% - #{$raised-top} - #{$bottom-reserve});
+      flex: 1 0 auto;
+      max-height: calc(100% - #{$raised-top} - #{$bottom-reserve});
       border-inline-width: 0;
     }
 

@@ -330,6 +330,22 @@ describe('fitOrbits', () => {
     },
   );
 
+  it('keeps every orbit of a phone clear of its grown disc, the outer ones free to leave the screen', () => {
+    const { frame, freeHalf } = restOf(375, 667);
+    const orbits = placeOrbits(7);
+    const todayReach = fitOrbits(
+      orbits,
+      { w: 375, h: 667, dpr: 1, isPhone: true },
+      frame,
+      { freeHalf },
+    );
+    const radii = orbits.map((orbit) => orbit.rb);
+
+    expect(Math.min(...radii)).toBeGreaterThanOrEqual(3.2);
+    expect(Math.max(...radii)).toBeGreaterThanOrEqual(4.8);
+    expect(todayReach).toBeCloseTo(Math.max(...fitted(375, 667)), 6);
+  });
+
   it('keeps the inner orbit inside the outer one, whatever the room', () => {
     for (const [w, h] of [
       [1280, 800],
@@ -1003,10 +1019,11 @@ const lyingGlassLayout = (
 describe('SpaceSceneEngine, beside a glass lying on the right', () => {
   it('centres the close-up hole in the free sky left of the glass, clear of the chrome', () => {
     const scene = markedScene(lyingGlassLayout('close-up-edge', true), 3);
-    scene.set({ reduced: true });
+    scene.set({ reduced: true, format: 'phone' });
     scene.run(1000);
     scene.set({
       reduced: true,
+      format: 'phone',
       direction: { framing: { kind: 'close-up', body: bodyId(0) } },
     });
     scene.run(2000);
@@ -1232,5 +1249,147 @@ describe('SpaceSceneEngine, looked at up close', () => {
 
     scene.run(EASED_MS);
     expect(scene.scheduled()).toBe(false);
+  });
+});
+
+const PHONE_SCREEN = { width: 390, height: 844, dpr: 3 } as const;
+const PHONE_GLASS_TOP = Math.round(PHONE_SCREEN.height * GLASS_TOP_SHARE);
+const FREE_SKY_MARGIN = 12;
+
+const phoneScene = (
+  format: 'phone' | 'tablet',
+  direction: Partial<SceneDirection>,
+  hasGlass = true,
+) => {
+  const { width, height, dpr } = PHONE_SCREEN;
+  const bars = sceneLayout({ left: 0, top: 0 }, { width, height }, [
+    { rect: rectOf(0, 0, width, TOP_BAR), opacity: '1', role: 'top-bar' },
+  ]);
+  const scene = markedScene(hasGlass ? glassLayout(width, height) : bars, dpr, {
+    ...SCENE_INPUTS,
+    format,
+    reduced: true,
+  });
+  scene.set({ format, reduced: true, direction });
+  scene.run(2000);
+  return scene;
+};
+
+const labelOpacities = (scene: ReturnType<typeof phoneScene>): number[] =>
+  scene
+    .styles()
+    .slice(SCENE_INPUTS.bodies.length, 2 * SCENE_INPUTS.bodies.length)
+    .map((css) => Number(/opacity: ([\d.]+)/.exec(css)?.[1] ?? 0));
+
+const shownLabels = (scene: ReturnType<typeof phoneScene>): number[] =>
+  labelOpacities(scene).flatMap((opacity, rank) => (opacity > 0 ? [rank] : []));
+
+const discBoxOf = (mark: DOMStringMap) => {
+  const x = Number(mark['holeX']);
+  const y = Number(mark['holeY']);
+  const rx = Number(mark['discWidth']);
+  const ry = Number(mark['discHeight']);
+  const roll = Number(mark['discRoll']);
+  const across = Math.hypot(rx * Math.cos(roll), ry * Math.sin(roll));
+  const down = Math.hypot(rx * Math.sin(roll), ry * Math.cos(roll));
+  return {
+    left: x - across,
+    right: x + across,
+    top: y - down,
+    bottom: y + down,
+  };
+};
+
+const markOf = (scene: ReturnType<typeof phoneScene>): DOMStringMap => {
+  const mark = document.createElement('div');
+  scene.engine.setHoleMark(mark);
+  scene.run(FRAME_MS);
+  return mark.dataset;
+};
+
+const PHONE_VIEWS: readonly (readonly [string, Partial<SceneDirection>])[] = [
+  ...WHOLE_OBJECT_SCENES,
+  [
+    'approach',
+    {
+      framing: { kind: 'approach', body: bodyId(6), step: 0 },
+      turnable: false,
+    },
+  ],
+];
+
+describe('SpaceSceneEngine, the hole as the subject of a phone', () => {
+  it.each(PHONE_VIEWS)(
+    'draws the hole of the %s twice as large as the tablet does, its disc in the free sky',
+    (_name, direction) => {
+      const tablet = phoneScene('tablet', direction).hole();
+      const phone = phoneScene('phone', direction);
+      const disc = discBoxOf(markOf(phone));
+
+      expect(phone.hole().radius).toBeGreaterThanOrEqual(
+        2 * tablet.radius - 0.2,
+      );
+      expect(disc.left).toBeGreaterThanOrEqual(FREE_SKY_MARGIN - 0.5);
+      expect(disc.right).toBeLessThanOrEqual(
+        PHONE_SCREEN.width - FREE_SKY_MARGIN + 0.5,
+      );
+      expect(disc.top).toBeGreaterThanOrEqual(TOP_BAR + FREE_SKY_MARGIN - 0.5);
+      expect(disc.bottom).toBeLessThanOrEqual(
+        PHONE_GLASS_TOP - FREE_SKY_MARGIN + 0.5,
+      );
+    },
+    60_000,
+  );
+
+  it('draws the hole at rest twice as large as the tablet does', () => {
+    const tablet = phoneScene('tablet', {}, false).hole();
+    const phone = phoneScene('phone', {}, false).hole();
+
+    expect(phone.radius).toBeGreaterThanOrEqual(2 * tablet.radius - 0.2);
+  });
+
+  it('writes where the approached planet is drawn, on screen and above the glass', () => {
+    const [, approach] = PHONE_VIEWS.at(-1) ?? ['', {}];
+    const mark = markOf(phoneScene('phone', approach));
+    const x = Number(mark['targetX']);
+    const y = Number(mark['targetY']);
+
+    expect(x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
+    expect(x + BUTTON_HALF).toBeLessThanOrEqual(PHONE_SCREEN.width);
+    expect(y - BUTTON_HALF).toBeGreaterThanOrEqual(TOP_BAR);
+    expect(y + BUTTON_HALF).toBeLessThanOrEqual(PHONE_GLASS_TOP);
+  });
+
+  it('names no planet at rest, and only the one a finger points at', () => {
+    expect(shownLabels(phoneScene('phone', {}, false))).toEqual([]);
+    expect(
+      shownLabels(phoneScene('phone', { emphasised: bodyId(1) }, false)),
+    ).toEqual([1]);
+    expect(shownLabels(phoneScene('tablet', {}, false)).length).toBeGreaterThan(
+      1,
+    );
+  });
+
+  it('names the approached planet of a sheet beside a lying glass, and only it', () => {
+    const [, approach] = PHONE_VIEWS.at(-1) ?? ['', {}];
+    const inputs: SceneInputs = {
+      ...SCENE_INPUTS,
+      format: 'phone',
+      reduced: true,
+    };
+    const scene = markedScene(lyingGlassLayout('', false), 1, inputs);
+    scene.set({ format: 'phone', reduced: true, direction: approach });
+    scene.run(2000);
+
+    expect(shownLabels(scene)).toEqual([6]);
+  });
+
+  it('numbers no planet of the overview until one is selected', () => {
+    const [, overview] = WHOLE_OBJECT_SCENES[0] ?? ['', {}];
+
+    expect(shownLabels(phoneScene('phone', overview))).toEqual([]);
+    expect(
+      shownLabels(phoneScene('phone', { ...overview, ringed: bodyId(2) })),
+    ).toEqual([2]);
   });
 });

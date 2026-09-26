@@ -116,6 +116,27 @@ describe('placeName', () => {
     expect(taken).toHaveLength(1);
   });
 
+  it('stacks a phone name under its planet, outward, when both flanks are taken', () => {
+    const taken: TakenPlace[] = [
+      { x: 1000, y: 300, w: 280, h: 400, isName: true },
+      { x: 450, y: 300, w: 400, h: 400, isName: true },
+    ];
+    const stage = {
+      ...STAGE,
+      stacks: true,
+      hole: { x: 700, y: 300, radius: 20 },
+    };
+    const stacked = placeName(planet(900, 300), SIZE, stage, taken);
+
+    expect(stacked.free).toBe(true);
+    expect(stacked.dir).toBe(0);
+    expect(stacked.y).toBeGreaterThan(300 + 24);
+    expect(stacked.x).toBeGreaterThanOrEqual(900 - SIZE.w / 2);
+    expect(placeName(planet(900, 300), SIZE, STAGE, [...taken]).free).toBe(
+      false,
+    );
+  });
+
   it('places an unnamed body without searching or taking a place', () => {
     const taken: TakenPlace[] = [{ x: 0, y: 0, w: 4000, h: 4000 }];
 

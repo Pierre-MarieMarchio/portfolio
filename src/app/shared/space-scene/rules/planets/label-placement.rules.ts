@@ -25,6 +25,7 @@ export interface Stage {
   readonly hole?: HoleDisc;
   readonly disc?: DrawnDisc;
   readonly bodies?: readonly BodyMark[];
+  readonly stacks?: boolean;
 }
 
 export interface BodyMark {
@@ -75,8 +76,15 @@ const isOverBody = (
   );
 };
 
-const offsetAcross = (place: TakenPlace, x: number, width: number): number =>
-  place.isName ? place.x + place.w / 2 - (x + width / 2) : place.x - x;
+const offsetAcross = (
+  place: TakenPlace,
+  x: number,
+  width: number,
+  isBoxed?: boolean,
+): number =>
+  place.isName || isBoxed
+    ? place.x + place.w / 2 - (x + width / 2)
+    : place.x - x;
 
 const isOverHole = (
   hole: HoleDisc | undefined,
@@ -122,8 +130,7 @@ export function placeName(
 ): { x: number; y: number; dir: number; free: boolean } {
   const { x: px, y: py } = planet;
   const { w: lw, h: lh } = size;
-  const stageW = stage.w;
-  const stageH = stage.h;
+  const { w: stageW, h: stageH } = stage;
   const elbow = elbowOf(planet, lw, stageW);
   const rise = (py <= stageH / 2 ? -1 : 1) * 24;
   const hasRoomRight = px + elbow + ELBOW_GAP + lw <= stageW;
@@ -158,15 +165,44 @@ export function placeName(
       return isTaken(placeX(d), at) ? null : at;
     },
   );
-  if (!found) {
+  const place = found
+    ? { x: placeX(found.dir), y: found.y, dir: found.dir }
+    : stackedPlace(planet, size, stage, isTaken);
+  if (!place) {
     return { ...first, free: false };
   }
-  const x = placeX(found.dir);
-  taken.push({ x, y: found.y, w: lw, h: lh, isName: true });
-  return { x, y: found.y, dir: found.dir, free: true };
+  taken.push({ x: place.x, y: place.y, w: lw, h: lh, isName: true });
+  return { ...place, free: true };
 }
 
 type RowFit = (row: number) => number | null;
+
+function stackedPlace(
+  planet: { readonly x: number; readonly y: number },
+  size: { readonly w: number; readonly h: number },
+  stage: Stage,
+  isTaken: (x: number, y: number) => boolean,
+): { x: number; y: number; dir: number } | null {
+  if (!stage.stacks) {
+    return null;
+  }
+  const isOutRight = planet.x >= (stage.hole?.x ?? stage.w / 2);
+  const lift = BODY_TARGET_HALF + size.h / 2 + 2;
+  const lefts = [
+    planet.x - size.w / 2,
+    isOutRight
+      ? planet.x - BODY_TARGET_HALF
+      : planet.x + BODY_TARGET_HALF - size.w,
+  ].map((left) => clamp(left, 2, stage.w - size.w - 2));
+  for (const y of [planet.y + lift, planet.y - lift]) {
+    const isInside = y - size.h / 2 >= 2 && y + size.h / 2 <= stage.h - 2;
+    const x = lefts.find((left) => isInside && !isTaken(left, y));
+    if (x !== undefined) {
+      return { x, y, dir: 0 };
+    }
+  }
+  return null;
+}
 
 function takenTest(
   stage: Stage,
@@ -182,8 +218,8 @@ function takenTest(
     isOverBody(stage.bodies, rank, { x, y }, size) ||
     taken.some(
       (q) =>
-        Math.abs(offsetAcross(q, x, lw)) < (q.w + lw) / 2 - slack &&
-        Math.abs(q.y - y) < (q.h + lh) / 2 + 4,
+        Math.abs(offsetAcross(q, x, lw, stage.stacks)) <
+          (q.w + lw) / 2 - slack && Math.abs(q.y - y) < (q.h + lh) / 2 + 4,
     );
 }
 

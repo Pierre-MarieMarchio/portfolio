@@ -22,7 +22,7 @@ export const diskOnScreen = (frame: SceneFrame): DiskOnScreen => ({
 });
 
 export const DISC_REACH = 2.4;
-const LENS_REACH = 1.3;
+export const LENS_REACH = 1.3;
 
 export interface DrawnDisc {
   readonly x: number;

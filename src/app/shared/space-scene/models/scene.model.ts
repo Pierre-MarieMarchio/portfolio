@@ -1,3 +1,5 @@
+import type { DisplayFormat } from '@app/core/models';
+
 export type CameraFraming =
   | { readonly kind: 'rest' }
   | { readonly kind: 'overview' }
@@ -47,5 +49,5 @@ export interface SceneInputs {
   readonly figureNames: readonly string[];
   readonly paused: boolean;
   readonly reduced: boolean;
-  readonly touch?: boolean;
+  readonly format?: DisplayFormat;
 }

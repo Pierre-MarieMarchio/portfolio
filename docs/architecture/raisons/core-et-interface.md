@@ -253,14 +253,16 @@ nomme l'unité qu'elle concerne.
   double toucher reste un repli, pas un zoom.
 - Au téléphone, la fenêtre est une vitre, par le CSS seul : les deux
   enveloppes (`.glass`, `.rail`) et les deux calques (`.shade`, `.lead`)
-  sont dans le DOM à tous les formats, en `display: contents` ou `none`
-  hors du téléphone. Un bloc structurel qui dépendrait du format changerait
+  sont dans le DOM à tous les formats, en `display: contents`, ou vides et
+  sans hauteur, hors du téléphone. Un bloc structurel qui dépendrait du format changerait
   le HTML prérendu, qui vaut `desktop`. Au bureau et à la tablette, la
   fenêtre garde donc ses boîtes, et leurs captures ne bougent pas.
 - La vitre debout est un conteneur de défilement : un espace transparent de
-  `--glass-lowered` (`.lead`, 60 %), la fenêtre, haute de l'écran moins
-  `--glass-raised-top` et `--glass-bottom-reserve`, puis cette réserve
-  (`.tail`). L'appelant pose ces trois propriétés et `--glass-inset`, la
+  `--glass-lowered` (`.lead`, 60 %), la fenêtre, puis la réserve du bas
+  (`.tail`). La fenêtre prend la hauteur de son contenu, au plus l'écran
+  moins `--glass-raised-top` et `--glass-bottom-reserve`, au moins le reste
+  sous `.lead` : un contenu court ne monte pas, un contenu long monte comme
+  en D25 (D34). L'appelant pose ces trois propriétés et `--glass-inset`, la
   place de la vitre dans son emplacement : la vitre ne sait rien de la barre
   de pages ni de la rangée du bas. Sans elles, elle couvre l'emplacement et
   monte à 12 px du haut, comme en D25. Faire défiler ce conteneur fait monter la vitre, avec l'élan

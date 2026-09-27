@@ -104,6 +104,40 @@ const at = <T>(items: readonly T[], index: number): T => {
   return item;
 };
 
+const touch = (type: string, x: number, y: number, at: number): Event => {
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    clientX: x,
+    clientY: y,
+    pointerId: 1,
+    isPrimary: true,
+    pointerType: 'touch',
+  });
+  Object.defineProperty(event, 'timeStamp', { value: at });
+  return event;
+};
+
+const drag = (on: Element, dx: number, dy: number): void => {
+  on.dispatchEvent(touch('pointerdown', 100, 100, 0));
+  on.dispatchEvent(touch('pointermove', 100 + dx / 2, 100 + dy / 2, 150));
+  on.dispatchEvent(touch('pointermove', 100 + dx, 100 + dy, 300));
+  on.dispatchEvent(touch('pointerup', 100 + dx, 100 + dy, 310));
+};
+
+const tap = (on: Element): void => {
+  on.dispatchEvent(touch('pointerdown', 100, 10, 0));
+  on.dispatchEvent(touch('pointerup', 100, 10, 50));
+};
+
+const mountOnPhone = async (restorers: (() => void)[]) => {
+  restorers.push(stubViewport(390, 844));
+  const mounted = await mount();
+  const heading = mounted.host.querySelector('.titlebar h2') as HTMLElement;
+  const collapse = at(titlebarButtons(mounted.host), 1);
+  return { ...mounted, heading, collapse };
+};
+
 describe('WindowComponent', () => {
   const restorers: Array<() => void> = [];
 
@@ -461,6 +495,80 @@ describe('WindowComponent', () => {
       await fixture.whenStable();
 
       expect(bodyOf(host).scrollTop).toBe(0);
+    });
+  });
+
+  describe('at the phone format', () => {
+    it('folds when its title bar is pulled down', async () => {
+      const { fixture, host, heading, collapse } =
+        await mountOnPhone(restorers);
+
+      drag(heading, 0, 80);
+      await fixture.whenStable();
+
+      expect(collapse.getAttribute('aria-expanded')).toBe('false');
+      expect(host.querySelector('.body')).toBeNull();
+    });
+
+    it('unfolds on a lift or a tap of its folded bar', async () => {
+      const { fixture, heading, collapse } = await mountOnPhone(restorers);
+      collapse.click();
+      await fixture.whenStable();
+
+      drag(heading, 0, -60);
+      await fixture.whenStable();
+      const afterLift = collapse.getAttribute('aria-expanded');
+      collapse.click();
+      await fixture.whenStable();
+      tap(heading);
+      await fixture.whenStable();
+
+      expect(afterLift).toBe('true');
+      expect(collapse.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('stays open when its folded bar is tapped twice in a row', async () => {
+      const { fixture, heading, collapse } = await mountOnPhone(restorers);
+      collapse.click();
+      await fixture.whenStable();
+
+      tap(heading);
+      await fixture.whenStable();
+      tap(heading);
+      await fixture.whenStable();
+
+      expect(collapse.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('emits swiped when its body is swiped sideways', async () => {
+      const { fixture, host } = await mountOnPhone(restorers);
+      const swipes: string[] = [];
+      fixture.componentInstance.swiped.subscribe((direction) =>
+        swipes.push(direction),
+      );
+
+      drag(bodyOf(host), -80, 4);
+      drag(bodyOf(host), 80, 4);
+
+      expect(swipes).toEqual(['next', 'previous']);
+    });
+
+    it('neither folds nor swipes at the desktop format', async () => {
+      restorers.push(stubViewport(1200, 800));
+      const { fixture, host } = await mount();
+      const heading = host.querySelector('.titlebar h2') as HTMLElement;
+      const swipes: string[] = [];
+      fixture.componentInstance.swiped.subscribe((direction) =>
+        swipes.push(direction),
+      );
+
+      drag(bodyOf(host), -80, 4);
+      heading.dispatchEvent(touch('pointerdown', 100, 100, 0));
+      heading.dispatchEvent(touch('pointerup', 100, 200, 300));
+      await fixture.whenStable();
+
+      expect(swipes).toEqual([]);
+      expect(host.querySelector('.body')).not.toBeNull();
     });
   });
 });

@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { WindowComponent } from '@shared/windows/components';
 import {
   loadProjects,
   provideProjects,
@@ -146,4 +148,26 @@ describe('ProjectPreviewComponent', () => {
     expect(pinToggled).toBe(1);
     expect(closed).toBe(1);
   });
+
+  it.each([
+    ['proj-2', 'next', ['proj-3']],
+    ['proj-2', 'previous', ['proj-1']],
+    ['proj-4', 'next', []],
+    ['proj-1', 'previous', []],
+  ] as const)(
+    'turns a swipe on %s towards %s into the neighbouring featured project, within bounds',
+    async (slug, direction, emitted) => {
+      const { fixture } = await mount({ slug });
+      const values: string[] = [];
+      fixture.componentInstance.chosen.subscribe((value: string) =>
+        values.push(value),
+      );
+      const window = fixture.debugElement.query(By.directive(WindowComponent))
+        .componentInstance as WindowComponent;
+
+      window.swiped.emit(direction);
+
+      expect(values).toEqual(emitted);
+    },
+  );
 });

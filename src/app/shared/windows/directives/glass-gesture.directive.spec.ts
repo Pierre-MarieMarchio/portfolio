@@ -1,0 +1,559 @@
+import { Component, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import {
+  GlassGesturesDirective,
+  glassGestureOf,
+  glassIntentOf,
+  swipeFollowOf,
+} from './glass-gesture.directive';
+import { GlassPress, GlassRelease } from '../models/glass-gesture.model';
+
+const OPEN_ON_BAR: GlassPress = {
+  zone: 'bar',
+  isFolded: false,
+  canPull: true,
+  isOnSideScroller: false,
+};
+
+const pressOn = (overrides: Partial<GlassPress>): GlassPress => ({
+  ...OPEN_ON_BAR,
+  ...overrides,
+});
+
+const FOLDED = pressOn({ isFolded: true, canPull: false });
+const ON_BODY = pressOn({ zone: 'body' });
+
+const released = (overrides: Partial<GlassRelease>): GlassRelease => ({
+  dx: 0,
+  dy: 0,
+  vx: 0,
+  vy: 0,
+  ...overrides,
+});
+
+describe('glassIntentOf', () => {
+  it('waits while the finger stays within 6 px', () => {
+    expect(glassIntentOf(OPEN_ON_BAR, 3, 5)).toBe('pending');
+  });
+
+  it('pulls an open glass down when its press can pull', () => {
+    expect(glassIntentOf(OPEN_ON_BAR, 1, 8)).toBe('pull');
+    expect(glassIntentOf(ON_BODY, 0, 10)).toBe('pull');
+  });
+
+  it('leaves a downward drag to the native scroll when the press cannot pull', () => {
+    expect(glassIntentOf(pressOn({ canPull: false }), 0, 10)).toBe('native');
+    expect(
+      glassIntentOf(pressOn({ zone: 'toolbar', canPull: false }), 0, 10),
+    ).toBe('native');
+  });
+
+  it('leaves an upward drag of an open glass to the native scroll', () => {
+    expect(glassIntentOf(OPEN_ON_BAR, 0, -10)).toBe('native');
+    expect(glassIntentOf(ON_BODY, 0, -10)).toBe('native');
+  });
+
+  it('lifts a folded glass up from its bar', () => {
+    expect(glassIntentOf(FOLDED, 2, -9)).toBe('lift');
+    expect(glassIntentOf(FOLDED, 0, 9)).toBe('native');
+  });
+
+  it('swipes sideways from the toolbar or the body of an open glass', () => {
+    expect(glassIntentOf(pressOn({ zone: 'toolbar' }), -9, 2)).toBe('swipe');
+    expect(
+      glassIntentOf(pressOn({ zone: 'body', canPull: false }), 9, -2),
+    ).toBe('swipe');
+  });
+
+  it('leaves a sideways drag to an element that scrolls sideways itself', () => {
+    const onScroller = pressOn({ zone: 'toolbar', isOnSideScroller: true });
+
+    expect(glassIntentOf(onScroller, -12, 0)).toBe('native');
+  });
+
+  it('does not swipe from the bar, nor a folded glass', () => {
+    expect(glassIntentOf(OPEN_ON_BAR, 12, 0)).toBe('native');
+    expect(
+      glassIntentOf(pressOn({ zone: 'body', isFolded: true }), 12, 0),
+    ).toBe('native');
+  });
+});
+
+describe('glassGestureOf', () => {
+  it('folds a pull of 64 px or more', () => {
+    expect(glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 64 }))).toBe(
+      'fold',
+    );
+    expect(glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 63 }))).toBe(
+      'none',
+    );
+  });
+
+  it('folds a short pull let go faster than 0.6 px/ms downwards', () => {
+    expect(
+      glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 20, vy: 0.61 })),
+    ).toBe('fold');
+    expect(
+      glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 20, vy: 0.6 })),
+    ).toBe('none');
+    expect(
+      glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 20, vy: -0.9 })),
+    ).toBe('none');
+  });
+
+  it('unfolds a lift of 48 px or more, or let go faster than 0.6 px/ms upwards', () => {
+    expect(glassGestureOf('lift', FOLDED, released({ dy: -48 }))).toBe(
+      'unfold',
+    );
+    expect(glassGestureOf('lift', FOLDED, released({ dy: -47 }))).toBe('none');
+    expect(
+      glassGestureOf('lift', FOLDED, released({ dy: -12, vy: -0.7 })),
+    ).toBe('unfold');
+  });
+
+  it('unfolds a folded glass on a tap of its bar, and nothing else', () => {
+    expect(glassGestureOf('pending', FOLDED, released({ dx: 2 }))).toBe(
+      'unfold',
+    );
+    expect(glassGestureOf('pending', OPEN_ON_BAR, released({}))).toBe('none');
+    expect(
+      glassGestureOf(
+        'pending',
+        pressOn({ zone: 'body', isFolded: true }),
+        released({}),
+      ),
+    ).toBe('none');
+  });
+
+  it('turns a swipe to the left into next, to the right into previous', () => {
+    expect(glassGestureOf('swipe', ON_BODY, released({ dx: -56 }))).toBe(
+      'next',
+    );
+    expect(glassGestureOf('swipe', ON_BODY, released({ dx: 56 }))).toBe(
+      'previous',
+    );
+    expect(glassGestureOf('swipe', ON_BODY, released({ dx: -55 }))).toBe(
+      'none',
+    );
+  });
+
+  it('asks a swipe to be more than 1.5 times as wide as it is tall', () => {
+    expect(
+      glassGestureOf('swipe', ON_BODY, released({ dx: -90, dy: 60 })),
+    ).toBe('none');
+    expect(
+      glassGestureOf('swipe', ON_BODY, released({ dx: -91, dy: 60 })),
+    ).toBe('next');
+  });
+
+  it('turns a short swipe let go faster than 0.5 px/ms into a step', () => {
+    expect(
+      glassGestureOf('swipe', ON_BODY, released({ dx: -20, vx: -0.51 })),
+    ).toBe('next');
+    expect(
+      glassGestureOf('swipe', ON_BODY, released({ dx: 20, vx: 0.51 })),
+    ).toBe('previous');
+    expect(
+      glassGestureOf('swipe', ON_BODY, released({ dx: -20, vx: 0.9 })),
+    ).toBe('none');
+  });
+
+  it('never acts on a native drag', () => {
+    expect(
+      glassGestureOf('native', OPEN_ON_BAR, released({ dy: 200, vy: 3 })),
+    ).toBe('none');
+  });
+});
+
+describe('swipeFollowOf', () => {
+  it('follows the finger less and less, never beyond 24 px', () => {
+    expect(swipeFollowOf(0)).toBe(0);
+    expect(swipeFollowOf(20)).toBeGreaterThan(0);
+    expect(swipeFollowOf(20)).toBeLessThan(20);
+    expect(swipeFollowOf(400)).toBeLessThanOrEqual(24);
+    expect(swipeFollowOf(-4000)).toBeGreaterThanOrEqual(-24);
+    expect(swipeFollowOf(-40)).toBe(-swipeFollowOf(40));
+  });
+});
+
+const stubViewport = (width: number, height: number): (() => void) => {
+  const descriptors = (['innerWidth', 'innerHeight'] as const).map(
+    (key) => [key, Object.getOwnPropertyDescriptor(window, key)] as const,
+  );
+  Object.defineProperty(window, 'innerWidth', {
+    value: width,
+    configurable: true,
+  });
+  Object.defineProperty(window, 'innerHeight', {
+    value: height,
+    configurable: true,
+  });
+  return () => {
+    for (const [key, descriptor] of descriptors) {
+      if (descriptor) {
+        Object.defineProperty(window, key, descriptor);
+      }
+    }
+  };
+};
+
+const stubMotion = (isReduced: boolean): (() => void) => {
+  const descriptor = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) => ({
+      matches: query.includes('reduce') ? isReduced : false,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }),
+  });
+  return () => {
+    if (descriptor) {
+      Object.defineProperty(window, 'matchMedia', descriptor);
+    } else {
+      Reflect.deleteProperty(window, 'matchMedia');
+    }
+  };
+};
+
+const stubNumber = (
+  element: Element,
+  key: 'scrollTop' | 'scrollWidth' | 'clientWidth',
+  value: number,
+): void => {
+  Object.defineProperty(element, key, { value, configurable: true });
+};
+
+interface Touch {
+  readonly x: number;
+  readonly y: number;
+  readonly at: number;
+  readonly id?: number;
+}
+
+const pointer = (type: string, { x, y, at, id = 1 }: Touch): Event => {
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    clientX: x,
+    clientY: y,
+    pointerId: id,
+    pointerType: 'touch',
+    isPrimary: id === 1,
+  });
+  Object.defineProperty(event, 'timeStamp', { value: at });
+  return event;
+};
+
+const drag = (on: Element, path: readonly Touch[]): void => {
+  const [first, ...rest] = path;
+  if (!first) {
+    return;
+  }
+  on.dispatchEvent(pointer('pointerdown', first));
+  for (const step of rest) {
+    on.dispatchEvent(pointer('pointermove', step));
+  }
+  on.dispatchEvent(pointer('pointerup', rest.at(-1) ?? first));
+};
+
+const slow = (dx: number, dy: number): Touch[] => [
+  { x: 200, y: 100, at: 0 },
+  { x: 200 + dx / 2, y: 100 + dy / 2, at: 200 },
+  { x: 200 + dx, y: 100 + dy, at: 400 },
+];
+
+const isTouchMoveHeld = (on: Element): boolean => {
+  const event = new TouchEvent('touchmove', {
+    bubbles: true,
+    cancelable: true,
+  });
+  on.dispatchEvent(event);
+  return event.defaultPrevented;
+};
+
+@Component({
+  imports: [GlassGesturesDirective],
+  template: `
+    <div class="rail">
+      <section
+        [appGlassGestures]="folded()"
+        (glassGesture)="gestures.push($event)"
+      >
+        <div class="bar" data-glass-zone="bar">
+          <span class="grip">grip</span>
+          <button type="button">button</button>
+        </div>
+        <div class="toolbar" data-glass-zone="toolbar">
+          <ul class="strip" style="overflow-x: auto">
+            <li class="item">item</li>
+          </ul>
+        </div>
+        <div class="body" data-glass-zone="body">
+          <p class="text">text</p>
+          <button type="button" class="link" (click)="clicks = clicks + 1">
+            link
+          </button>
+        </div>
+        <div class="footer">footer</div>
+      </section>
+    </div>
+  `,
+})
+class GlassHost {
+  public readonly folded = signal(false);
+  public readonly gestures: string[] = [];
+  public clicks = 0;
+}
+
+describe('GlassGesturesDirective', () => {
+  const restorers: (() => void)[] = [];
+
+  afterEach(() => {
+    while (restorers.length > 0) {
+      restorers.pop()?.();
+    }
+  });
+
+  const setup = async ({
+    width = 390,
+    isReduced = false,
+    isFolded = false,
+  } = {}) => {
+    restorers.push(stubViewport(width, 844), stubMotion(isReduced));
+    TestBed.configureTestingModule({ imports: [GlassHost] });
+    const fixture = TestBed.createComponent(GlassHost);
+    fixture.componentInstance.folded.set(isFolded);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const find = (selector: string): HTMLElement =>
+      host.querySelector(selector) as HTMLElement;
+    return {
+      fixture,
+      find,
+      drag,
+      gestures: fixture.componentInstance.gestures,
+    };
+  };
+
+  it('folds on a pull of 64 px down the bar', async () => {
+    const { find, drag, gestures } = await setup();
+
+    drag(find('.grip'), slow(0, 64));
+
+    expect(gestures).toEqual(['fold']);
+  });
+
+  it('folds on a short pull down the bar let go fast', async () => {
+    const { find, drag, gestures } = await setup();
+
+    drag(find('.grip'), [
+      { x: 200, y: 100, at: 0 },
+      { x: 200, y: 110, at: 10 },
+      { x: 200, y: 130, at: 30 },
+    ]);
+
+    expect(gestures).toEqual(['fold']);
+  });
+
+  it('lets a short slow pull go back to its place', async () => {
+    const { find, drag, gestures } = await setup();
+    const section = find('section');
+
+    drag(find('.grip'), slow(0, 40));
+
+    expect(gestures).toEqual([]);
+    expect(section.style.transform).toBe('');
+    expect(section.classList).toContain('glass-return');
+  });
+
+  it('moves the glass down with the finger while it is pulled', async () => {
+    const { find } = await setup();
+    const grip = find('.grip');
+    const section = find('section');
+
+    grip.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    grip.dispatchEvent(pointer('pointermove', { x: 200, y: 130, at: 50 }));
+
+    expect(section.style.transform).toBe('translateY(30px)');
+  });
+
+  it('neither follows the finger nor animates back under reduced motion', async () => {
+    const { find, drag, gestures } = await setup({ isReduced: true });
+    const grip = find('.grip');
+    const section = find('section');
+
+    grip.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    grip.dispatchEvent(pointer('pointermove', { x: 200, y: 130, at: 50 }));
+    const transform = section.style.transform;
+    grip.dispatchEvent(pointer('pointerup', { x: 200, y: 130, at: 400 }));
+    drag(grip, slow(0, 64));
+
+    expect(transform).toBe('');
+    expect(section.classList).not.toContain('glass-return');
+    expect(gestures).toEqual(['fold']);
+  });
+
+  it('does not start from a button of the bar', async () => {
+    const { find, drag, gestures } = await setup();
+
+    drag(find('button'), slow(0, 120));
+
+    expect(gestures).toEqual([]);
+  });
+
+  it('pulls from the body only when the body is at the top of its content', async () => {
+    const { find, drag, gestures } = await setup();
+
+    drag(find('.text'), slow(0, 80));
+    stubNumber(find('.body'), 'scrollTop', 40);
+    drag(find('.text'), slow(0, 80));
+
+    expect(gestures).toEqual(['fold']);
+  });
+
+  it('does not fold a raised glass, whose rail has scrolled', async () => {
+    const { find, drag, gestures } = await setup();
+    stubNumber(find('.rail'), 'scrollTop', 300);
+
+    drag(find('.grip'), slow(0, 120));
+
+    expect(gestures).toEqual([]);
+  });
+
+  it('unfolds a folded glass on a lift of 48 px, or on a tap of its bar', async () => {
+    const { find, drag, gestures } = await setup({ isFolded: true });
+
+    drag(find('.grip'), slow(0, -48));
+    drag(find('.grip'), [{ x: 200, y: 100, at: 1000 }]);
+
+    expect(gestures).toEqual(['unfold', 'unfold']);
+  });
+
+  it('turns a swipe on the body or the toolbar into next or previous', async () => {
+    const { find, drag, gestures } = await setup();
+
+    drag(find('.text'), slow(-60, 10));
+    drag(find('.item'), slow(60, -10));
+
+    expect(gestures).toEqual(['next', 'previous']);
+  });
+
+  it('moves the body a little with a swipe, never beyond 24 px', async () => {
+    const { find } = await setup();
+    const text = find('.text');
+    const body = find('.body');
+
+    text.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    text.dispatchEvent(pointer('pointermove', { x: -300, y: 100, at: 50 }));
+    const followed = Number.parseFloat(
+      body.style.transform.replace('translateX(', ''),
+    );
+    text.dispatchEvent(pointer('pointerup', { x: -300, y: 100, at: 60 }));
+
+    expect(followed).toBeLessThan(0);
+    expect(followed).toBeGreaterThanOrEqual(-24);
+    expect(body.style.transform).toBe('');
+  });
+
+  it('leaves a swipe to an element that scrolls sideways itself', async () => {
+    const { find, drag, gestures } = await setup();
+    const strip = find('.strip');
+    stubNumber(strip, 'scrollWidth', 600);
+    stubNumber(strip, 'clientWidth', 300);
+
+    drag(find('.item'), slow(-80, 0));
+
+    expect(gestures).toEqual([]);
+  });
+
+  it('does not swipe from the footer', async () => {
+    const { find, drag, gestures } = await setup();
+
+    drag(find('.footer'), slow(-80, 0));
+
+    expect(gestures).toEqual([]);
+  });
+
+  it('drops the gesture when a second finger comes down', async () => {
+    const { find, gestures } = await setup();
+    const text = find('.text');
+    const body = find('.body');
+
+    text.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    text.dispatchEvent(pointer('pointermove', { x: 150, y: 100, at: 50 }));
+    text.dispatchEvent(
+      pointer('pointerdown', { x: 260, y: 100, at: 60, id: 2 }),
+    );
+    text.dispatchEvent(pointer('pointermove', { x: 100, y: 100, at: 90 }));
+    text.dispatchEvent(pointer('pointerup', { x: 100, y: 100, at: 400 }));
+
+    expect(gestures).toEqual([]);
+    expect(body.style.transform).toBe('');
+  });
+
+  it('holds the touch from the native scroll only while the drag is its own', async () => {
+    const { find } = await setup();
+    const grip = find('.grip');
+    const text = find('.text');
+
+    grip.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    grip.dispatchEvent(pointer('pointermove', { x: 200, y: 120, at: 20 }));
+    const isPullHeld = isTouchMoveHeld(grip);
+    grip.dispatchEvent(pointer('pointerup', { x: 200, y: 120, at: 400 }));
+    text.dispatchEvent(pointer('pointerdown', { x: 200, y: 300, at: 500 }));
+    text.dispatchEvent(pointer('pointermove', { x: 200, y: 260, at: 520 }));
+    const isRiseHeld = isTouchMoveHeld(text);
+
+    expect(isPullHeld).toBe(true);
+    expect(isRiseHeld).toBe(false);
+  });
+
+  it('does nothing outside the phone format', async () => {
+    const { find, drag, gestures } = await setup({ width: 1200 });
+
+    drag(find('.grip'), slow(0, 120));
+    drag(find('.text'), slow(-120, 0));
+
+    expect(gestures).toEqual([]);
+    expect(find('section').style.transform).toBe('');
+  });
+
+  it('swallows the click that follows a drag of more than 6 px, once', async () => {
+    const { fixture, find, drag } = await setup();
+    const link = find('.link');
+
+    drag(link, slow(-3, 4));
+    link.click();
+    drag(link, slow(-40, 0));
+    link.click();
+    link.click();
+
+    expect(fixture.componentInstance.clicks).toBe(2);
+  });
+
+  it('swallows the click that follows a second finger', async () => {
+    const { fixture, find } = await setup();
+    const link = find('.link');
+
+    link.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    link.dispatchEvent(
+      pointer('pointerdown', { x: 240, y: 100, at: 10, id: 2 }),
+    );
+    link.dispatchEvent(pointer('pointerup', { x: 240, y: 100, at: 20, id: 2 }));
+    link.dispatchEvent(pointer('pointerup', { x: 200, y: 100, at: 30 }));
+    link.click();
+
+    expect(fixture.componentInstance.clicks).toBe(0);
+  });
+
+  it('keeps every click outside the phone format', async () => {
+    const { fixture, find, drag } = await setup({ width: 1200 });
+    const link = find('.link');
+
+    drag(link, slow(-80, 0));
+    link.click();
+
+    expect(fixture.componentInstance.clicks).toBe(1);
+  });
+});

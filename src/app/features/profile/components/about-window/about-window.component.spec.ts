@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { WindowComponent } from '@shared/windows/components';
 import { AboutWindowComponent } from './about-window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -367,4 +369,26 @@ describe('AboutWindowComponent', () => {
     expect(pinToggled).toBe(1);
     expect(closed).toBe(1);
   });
+
+  it.each([
+    [1, 'next', [2]],
+    [1, 'previous', [0]],
+    [3, 'next', []],
+    [0, 'previous', []],
+  ] as const)(
+    'turns a swipe on part %i towards %s into the neighbouring part, within bounds',
+    async (part, direction, emitted) => {
+      const { fixture } = await mount({ part });
+      const values: number[] = [];
+      fixture.componentInstance.partChange.subscribe((value: number) =>
+        values.push(value),
+      );
+      const window = fixture.debugElement.query(By.directive(WindowComponent))
+        .componentInstance as WindowComponent;
+
+      window.swiped.emit(direction);
+
+      expect(values).toEqual(emitted);
+    },
+  );
 });

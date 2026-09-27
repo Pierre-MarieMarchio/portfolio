@@ -4,6 +4,7 @@ import { twoDigits } from '@app/core/helpers';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
+import { SwipeDirection } from '@shared/windows/models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
@@ -112,5 +113,12 @@ export class ProjectDetailComponent {
 
   protected advance(): void {
     this.chapterChange.emit(Math.min(this.chapter() + 1, this.last()));
+  }
+
+  protected step(direction: SwipeDirection): void {
+    const target = this.chapter() + (direction === 'next' ? 1 : -1);
+    if (target >= 0 && target <= this.last()) {
+      this.chapterChange.emit(target);
+    }
   }
 }

@@ -10,7 +10,11 @@ import {
   viewChild,
 } from '@angular/core';
 import { LANGS } from '@app/core/models';
-import { DisplayFormatService, LocaleService } from '@app/core/services';
+import {
+  DisplayFormatService,
+  LocaleService,
+  PhoneCodeService,
+} from '@app/core/services';
 import {
   FeaturedBarComponent,
   ProjectListComponent,
@@ -59,7 +63,10 @@ import { HomeTitleComponent } from '../../features/observatory/components/home-t
 import { IntroCardComponent } from '../../features/observatory/components/intro-card/intro-card.component';
 import { NotFoundWindowComponent } from '../../features/observatory/components/not-found-window/not-found-window.component';
 import { OBSERVATORY_IDS } from '../../features/observatory/models/observatory-ids.model';
-import { StackedWindowDirective } from '@shared/windows/directives';
+import {
+  loadGlassGestures,
+  StackedWindowDirective,
+} from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
 
 @Component({
@@ -221,6 +228,7 @@ export class ObservatoryPageComponent {
 
   constructor() {
     inject(DisplayFormatService).publishOnRoot();
+    inject(PhoneCodeService).load(loadGlassGestures);
     afterNextRender(() => {
       this.landed = true;
       this.arrivalController.start(

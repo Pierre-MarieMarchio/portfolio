@@ -33,6 +33,7 @@ const ROLE_OF = {
   engine: 'engine',
   motion: 'motions',
   renderer: 'renderers',
+  tracker: 'trackers',
 };
 
 const CLASS_SUFFIXES = new Set([
@@ -47,6 +48,7 @@ const CLASS_SUFFIXES = new Set([
   'engine',
   'motion',
   'renderer',
+  'tracker',
 ]);
 
 /** @type {Record<string, string[]>} */
@@ -84,7 +86,15 @@ const ROLES_IN = {
     'models',
     'data',
   ],
-  'shared/windows': ['components', 'directives', 'services', 'models', 'ports'],
+  'shared/windows': [
+    'components',
+    'directives',
+    'services',
+    'rules',
+    'trackers',
+    'models',
+    'ports',
+  ],
   'shared/space-scene': [
     'components',
     'directives',

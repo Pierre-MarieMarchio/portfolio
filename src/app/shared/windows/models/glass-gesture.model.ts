@@ -19,3 +19,11 @@ export interface GlassRelease {
   readonly vx: number;
   readonly vy: number;
 }
+
+export interface GlassSurface {
+  readonly isPhone: () => boolean;
+  readonly isFolded: () => boolean;
+  readonly isFollowing: () => boolean;
+  readonly overflowX: (element: Element) => string;
+  readonly answer: (gesture: GlassGesture) => void;
+}

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WindowComponent } from './window.component';
+import { loadGlassGestures } from '../../directives/glass-gesture.directive';
 import { WindowSize } from '../../models/window.model';
 import { ScrollMemoryService } from '../../services/scroll-memory.service';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
@@ -133,6 +134,8 @@ const tap = (on: Element): void => {
 const mountOnPhone = async (restorers: (() => void)[]) => {
   restorers.push(stubViewport(390, 844));
   const mounted = await mount();
+  await loadGlassGestures();
+  await mounted.fixture.whenStable();
   const heading = mounted.host.querySelector('.titlebar h2') as HTMLElement;
   const collapse = at(titlebarButtons(mounted.host), 1);
   return { ...mounted, heading, collapse };

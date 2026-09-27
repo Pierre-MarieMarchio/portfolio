@@ -191,6 +191,13 @@ injection Angular : les dépendances arrivent par le constructeur.
 | `.motion`   | ce qui évolue à chaque image : caméra, rotation, grains | créée par l'engine, `update(dt)`  |
 | `.renderer` | dessine une couche                                      | créée par l'engine, `draw(frame)` |
 
+Hors de la scène, un seul rôle s'instancie avec `new`, et c'est aussi le
+seul qu'on charge à part, au format `phone` (D39) :
+
+| Suffixe    | Ce que c'est                                                                                          | Comment on s'en sert                                  | Ne fait jamais                                        |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `.tracker` | suit un geste du pointeur sur un élément et dit ce qu'il décide ; ce qu'il lit arrive au constructeur | créé par sa directive, qui lui passe chaque événement | injecter, être importé en valeur hors d'un `import()` |
+
 **Les tests**, dans `src/testing/` pour ce qui est partagé : `.spec` (un
 test ; `.golden.spec` pour l'empreinte de la scène), `.fixture` (des données
 d'exemple bâties avec les vraies règles), `.double` (une fausse
@@ -228,6 +235,7 @@ qu'Angular ne connaît pas demande une entrée au journal.
 | `models/`       | `.model`                                                         | un fichier par sujet                                    |
 | `data/`         | `.data`                                                          | un fichier par ensemble ; au-delà de 8, un sous-dossier |
 | `engine/`       | `.engine`, et `motions/` (`.motion`), `renderers/` (`.renderer`) | la scène canvas seulement                               |
+| `trackers/`     | `.tracker`                                                       | un fichier par geste                                    |
 
 Les specs restent à côté du fichier qu'elles testent (convention
 d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
@@ -239,7 +247,7 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `core/`               | `services/` `ports/` `strategies/` `interceptors/` `models/` `rules/` `helpers/` `signals/`                                                   |
 | `shared/ui/`          | `components/` `directives/` `pipes/` `services/` `validators/` `signals/` `ports/` `models/` `data/`                                          |
-| `shared/windows/`     | `components/` `directives/` `services/` `models/` `ports/`                                                                                    |
+| `shared/windows/`     | `components/` `directives/` `services/` `rules/` `trackers/` `models/` `ports/`                                                               |
 | `shared/space-scene/` | `components/` `directives/` `services/` `engine/` `rules/` `models/` `ports/`                                                                 |
 | `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `observatory` |
 | `features/common/`    | `ports/` `models/` (types seuls)                                                                                                              |
@@ -310,6 +318,13 @@ services pour un seul besoin appelle une façade propre à ce besoin.
   `core/models/display-format.model.ts`). Son dossier à lui :
   `core/services/browser/` est à huit sources, et le format est une règle
   posée sur le navigateur, pas un accès de plus.
+- **`PhoneCodeService`** (`phone-code.service.ts`). But : charger à la
+  demande le code qui ne sert qu'au format `phone`. Contrat :
+  `load(importer)`, appelé dans un contexte d'injection, rend un signal qui
+  vaut `null` puis le module chargé. L'`import()` part dès que le format vaut
+  `phone`, au démarrage du client ou au passage à `phone`, une seule fois ;
+  jamais à la tablette, au bureau ni au serveur, où le format vaut `desktop`.
+  Un chargement qui échoue se redemande au prochain passage à `phone` (D39).
 - La disposition ne lit pas ce signal : elle suit les mixins de
   `src/assets/styles/mixins/_formats.scss`, qui disent la même règle en
   media queries. Aucun bloc structurel ne dépend du format au premier rendu.
@@ -371,6 +386,9 @@ contenait remonte dans une feature ou devient générique.
 | `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                           | `appRememberScroll` (clé), `resetOn`                                                                                      |
 | `scroll-stops.directive.ts` `ScrollStopsDirective`       | faire reposer une zone qui défile à son début ou à sa fin, du côté où on l'a poussée ; dire où elle repose | `appScrollStops` ; écrit `data-rest` (`start`, `end`)                                                                     |
 | `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                 | `save(key, top)`, `read(key)`                                                                                             |
+| `glass-gesture.directive.ts` `GlassGesturesDirective`    | au format `phone`, tirer la vitre et la balayer d'un chapitre à l'autre (D37)                              | `appGlassGestures` (repliée ou non) ; `glassGesture`                                                                      |
+| `glass-gesture.tracker.ts` `GlassGestureTracker`         | suivre le toucher sur la vitre, la faire suivre le doigt, avaler le clic qui suit un glisser               | `take(event)`                                                                                                             |
+| `glass-gesture.rules.ts`                                 | décider le geste : `glassIntentOf`, `glassGestureOf`, `swipeFollowOf`                                      | pures                                                                                                                     |
 
 - `FitHeightDirective` calcule depuis la **position de mise en page**
   (`offsetTop`), que le glissement ne change pas, puisqu'il passe par un
@@ -386,6 +404,12 @@ contenait remonte dans une feature ou devient générique.
   de la vitre en propriétés CSS (`--glass-inset`, `--glass-raised-top`,
   `--glass-bottom-reserve`) ; la part basse est un jeton, `--glass-lowered`
   (D27).
+- Le geste de la vitre est chargé à part (D39). La directive reste dans le
+  bundle initial ; elle demande son tracker à `PhoneCodeService`, et le bureau
+  le demande aussi à son démarrage, avant qu'une vitre s'ouvre. Tant qu'il
+  n'est pas là, elle retient au téléphone chaque événement du pointeur et les
+  lui rejoue, dans l'ordre, à son arrivée. Le tracker et la règle ne sont
+  importés que par l'`import()` de la directive.
 - `resetOn` remplace les deux effets « remonter en haut » écrits dans la
   fiche et dans « à propos ».
 - Les marges passées en dur (76, 88) deviennent `--window-reserve`, posée par
@@ -581,6 +605,14 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 | `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `matter/`, `planets/`, `sky/` |
 | `engine/`                                                     | la boucle et ses couches (D11)                                                                                     |
 
+- Au format `phone`, le trou noir est le sujet (D35) : `hole-focus.rules.ts`
+  (`holeInFocus`, `skyRooms`) le grandit et le range dans le ciel libre. Ce
+  code est chargé à part (D39) : `SpaceSceneComponent` le demande à
+  `PhoneCodeService` et le donne à l'engine avec ses entrées
+  (`SceneInputs.holeFocus`, de forme `HoleFocusRules`), qui le passe au
+  cadrage. Tant qu'il n'est pas là, la scène cadre sans lui ; à son
+  arrivée, la caméra y va par son amorti ordinaire. Les bancs de l'engine le
+  donnent avant la première image.
 - **`SceneDirection`** : `framing` (`rest`, `overview`, `aside`,
   `close-up` sur un corps, `approach` d'un corps à un pas donné),
   `presence` des corps (`shown`, `held` jusqu'à leur entrée, que le
@@ -675,7 +707,7 @@ src/app/
   core/models/                                 display-format.model · lang.model
   core/rules/                                  display-format.rules · draft.rules · localize.rules
   core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
-  core/services/device/                        display-format.service
+  core/services/device/                        display-format.service · phone-code.service
   core/services/errors/                        console-error-handler.service
   core/services/head/                          document-head.service
   core/services/i18n/                          locale.service
@@ -709,7 +741,7 @@ src/app/
   features/projects/data/projects/             bkone.data · ngx-statewise.data · skyted-app.data · skyted-companion.data · skyted-voice.data · speakey.data · template-dotnet.data · trainways.data
   features/projects/models/                    project-catalog.model · project-detail.model · project-family.model · project.model
   features/projects/ports/                     projects-texts.port
-  features/projects/rules/                     project-labels.rules · ranking.rules
+  features/projects/rules/                     featured-pick.rules · project-labels.rules · ranking.rules
   features/projects/services/                  projects-repository.service
   features/projects/states/projects/           projects.action · projects.effect · projects.manager · projects.state · projects.updater
   i18n/data/                                   en-profile.data · en.data · fr-profile.data · fr.data · paths.data
@@ -722,19 +754,19 @@ src/app/
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component
   shared/space-scene/components/space-scene/   space-scene.component
-  shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
-  shared/space-scene/engine/                   space-scene.engine
-  shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · star-flow.motion · turntable.motion
-  shared/space-scene/engine/renderers/         grains.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
-  shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · sky.renderer · star-sky.renderer
+  shared/space-scene/directives/               scene-target.directive · turn-gesture.directive · zoom-gesture.directive
+  shared/space-scene/engine/                   frame-loop.engine · space-scene.engine
+  shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · star-flow.motion · turntable.motion · zoom.motion
+  shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
+  shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
   shared/space-scene/models/                   scene-constants.model · scene-layout.model · scene.model
   shared/space-scene/ports/                    scene-surroundings.port
-  shared/space-scene/rules/                    canvas-resolution.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
-  shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · pointer.rules · projection.rules · traveling.rules
+  shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules · sky-touch.rules
+  shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
   shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
-  shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules
-  shared/space-scene/rules/sky/                comets.rules · constellations.rules · figure-label.rules · star-field.rules
-  shared/space-scene/services/                 animated-canvas.service · scene-targets.service
+  shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
+  shared/space-scene/rules/sky/                comets.rules · constellations.rules · figure-label.rules · figure-room.rules · star-field.rules · trail-steps.rules
+  shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-targets.service
   shared/ui/components/language-switch/        language-switch.component
   shared/ui/components/main-nav/               main-nav.component
   shared/ui/components/segmented/              segmented.component
@@ -746,10 +778,12 @@ src/app/
   shared/ui/services/                          layout-anchors.service · view-focus.service
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
-  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · remember-scroll.directive · scroll-stops.directive · stacked-window.directive
-  shared/windows/models/                       window.model
+  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · glass-gesture.directive · remember-scroll.directive · scroll-stops.directive · stacked-window.directive
+  shared/windows/models/                       glass-gesture.model · window.model
   shared/windows/ports/                        window-texts.port
+  shared/windows/rules/                        glass-gesture.rules
   shared/windows/services/                     scroll-memory.service · window-stack.service
+  shared/windows/trackers/                     glass-gesture.tracker
 ```
 
 ## 6. Comment on en est arrivé là

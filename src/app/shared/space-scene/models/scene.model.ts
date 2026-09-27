@@ -1,4 +1,5 @@
 import type { DisplayFormat } from '@app/core/models';
+import type { HoleFocusRules } from '../rules/camera/framing.rules';
 
 export type CameraFraming =
   | { readonly kind: 'rest' }
@@ -50,4 +51,5 @@ export interface SceneInputs {
   readonly paused: boolean;
   readonly reduced: boolean;
   readonly format?: DisplayFormat;
+  readonly holeFocus?: HoleFocusRules | null;
 }

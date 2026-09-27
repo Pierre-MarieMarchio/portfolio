@@ -13,7 +13,7 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { DisplayFormatService } from '@app/core/services';
+import { DisplayFormatService, PhoneCodeService } from '@app/core/services';
 import { AnimatedCanvasService } from '../../services/animated-canvas.service';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
 import { ZoomGestureDirective } from '../../directives/zoom-gesture.directive';
@@ -36,6 +36,8 @@ import {
 
 const DENSITY = 3800;
 
+export const loadHoleFocus = () => import('../../rules/hole-focus.rules');
+
 @Component({
   selector: 'app-space-scene',
   imports: [TurnGestureDirective, ZoomGestureDirective],
@@ -48,6 +50,7 @@ export class SpaceSceneComponent {
   private readonly surroundings = inject(SCENE_SURROUNDINGS);
   private readonly targets = inject(SceneTargetsService);
   private readonly display = inject(DisplayFormatService);
+  private readonly holeFocus = inject(PhoneCodeService).load(loadHoleFocus);
 
   public readonly bodies = input<readonly SceneBody[]>([]);
   public readonly direction = input<SceneDirection>(RESTING_DIRECTION);
@@ -114,6 +117,7 @@ export class SpaceSceneComponent {
       paused: this.paused(),
       reduced: this.reduced(),
       format: this.display.format(),
+      holeFocus: this.holeFocus(),
     };
   }
 

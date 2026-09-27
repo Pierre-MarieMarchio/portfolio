@@ -145,10 +145,6 @@ export const EN_PROFILE: ProfileTexts = {
         { year: '2023', fact: draft('Apple Foundation Program, Simplon') },
         { year: '2021 – 2023', fact: draft('Teaching myself to code') },
         {
-          year: '2020',
-          fact: draft('Bachelor’s degree in archaeology, Toulouse'),
-        },
-        {
           year: '2016 – 2021',
           fact: draft('Archaeologist on excavation sites'),
         },

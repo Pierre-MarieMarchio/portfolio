@@ -8,8 +8,9 @@ flux d'état unidirectionnel.
 > État actuel : **la base**. Les pages sont volontairement nues. La maquette
 > (« la station ») viendra se poser sur cette base, sans en changer la structure.
 
-La documentation de référence est dans [`docs/`](docs/README.md) :
-l'architecture dans `docs/architecture/`, le design dans `docs/maquette/`.
+La documentation de référence est dans `docs/` : l'architecture dans
+`docs/architecture/` (organisation, décisions, raisons), le contenu dans
+[`docs/contenu.md`](docs/contenu.md).
 
 ## Démarrer
 

@@ -92,13 +92,8 @@ testem.log
 *.swo
 *~
 .history/
-# VS Code: the shared settings are committed, the rest is personal.
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/*.code-snippets
+# VS Code: editor settings, tasks and launch files are personal.
+.vscode/
 
 # --- AI assistants ---------------------------------------------------------------
 # Local development tools, never imposed on whoever clones this repository:
@@ -113,6 +108,13 @@ CLAUDE.local.md
 **/CLAUDE.local.md
 # Framing and task documents produced by the local workflow
 docs/workstreams/
+# Documents about building the project stay local: design references,
+# audits, wording notes and the docs index. Only the architecture and the
+# content guide are committed.
+docs/maquette/
+docs/audit/
+docs/wording/
+docs/README.md
 # Cross-tool instruction files
 AGENTS.md
 **/AGENTS.md

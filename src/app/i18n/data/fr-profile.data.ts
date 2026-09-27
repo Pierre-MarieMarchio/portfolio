@@ -117,10 +117,6 @@ export const FR_PROFILE: ProfileTexts = {
         { year: '2023', fact: 'Apple Foundation Program, Simplon' },
         { year: '2021 – 2023', fact: 'Autoformation au développement' },
         {
-          year: '2020',
-          fact: 'Licence d’archéologie, université Toulouse-Jean Jaurès',
-        },
-        {
           year: '2016 – 2021',
           fact: 'Archéologue sur des chantiers de fouilles',
         },

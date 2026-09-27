@@ -231,9 +231,12 @@ nomme l'unité qu'elle concerne.
 
 ## `src/app/shared/windows/components/window/`
 
-- La barre de titre est une poignée pour le pointeur seul, qui ne prend pas
-  le focus : replier a son propre bouton, et déplacer n'a pas d'équivalent au
-  clavier dans la maquette.
+- La barre de titre est une poignée pour la souris et le doigt, qui ne prend
+  pas le focus : replier a son propre bouton, et déplacer n'a pas
+  d'équivalent au clavier dans la maquette.
+- La barre garde `touch-action: none` : sans elle, le navigateur prend le
+  glisser du doigt pour un défilement (il annule le pointeur), et WebKit le
+  double toucher pour un zoom.
 - L'ouverture joue sur `translate`, pas `transform` : `transform` appartient
   au glissement, et une animation en `fill-mode: both` écraserait la
   position que le lecteur a choisie.
@@ -250,6 +253,31 @@ nomme l'unité qu'elle concerne.
   bascule pas.
 - Dans le spec, `innerWidth` et `innerHeight` sont des accesseurs en lecture
   seule : on les redéfinit, puis on les restaure.
+
+## `src/app/shared/windows/directives/double-press.directive.ts`
+
+- Le double toucher replie la fenêtre comme le double-clic. On ne peut pas
+  attendre `dblclick` : Chromium en produit un sous le toucher, WebKit
+  jamais (mesuré sous Playwright, tactile émulé). Le double toucher se lit
+  donc sur les pointeurs qui ne sont pas une souris.
+- Après une pression qui n'était pas celle d'une souris, `dblclick` est
+  ignoré : sinon Chromium replierait puis déplierait d'un seul geste. Il
+  compte aussi les clics au-delà de deux (3, 4…) : un second double toucher
+  aussitôt après le premier ne lui donnerait plus de `dblclick`.
+- Deux touchers comptent s'ils tombent à moins de 350 ms et de 24 px l'un de
+  l'autre ; un toucher qui a bougé de plus de 10 px est un glisser, pas un
+  toucher. Une pression sur un bouton ou un lien ne compte pas.
+
+## `src/app/shared/windows/directives/draggable.directive.ts`
+
+- Après un redimensionnement ou une rotation, une fenêtre déplacée est
+  ramenée dans les bornes du glisser, calculées sur la nouvelle mise en page.
+  Une fenêtre jamais déplacée reste où la mise en page la pose : son
+  `transform` reste vide, et les captures du bureau ne changent pas.
+- Le décalage est arrondi au pixel à l'intérieur des bornes, jamais au-delà :
+  arrondi après coup, il pouvait laisser 149,5 px à l'écran au lieu de 150.
+- Les bornes comptent le cadre de la fenêtre : les 150 px visibles sur le
+  côté comprennent sa bordure d'un pixel.
 
 ## `src/styles.scss`
 

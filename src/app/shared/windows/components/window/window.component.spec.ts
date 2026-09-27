@@ -281,6 +281,31 @@ describe('WindowComponent', () => {
 
       expect(collapse.getAttribute('aria-expanded')).toBe('false');
     });
+
+    it('toggles on a double tap of the titlebar', async () => {
+      const { fixture, host } = await mount();
+      const heading = host.querySelector('.titlebar h2') as HTMLElement;
+      const collapse = at(titlebarButtons(host), 1);
+
+      for (const type of [
+        'pointerdown',
+        'pointerup',
+        'pointerdown',
+        'pointerup',
+      ]) {
+        heading.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            clientX: 40,
+            clientY: 10,
+            pointerType: 'touch',
+          }),
+        );
+      }
+      await fixture.whenStable();
+
+      expect(collapse.getAttribute('aria-expanded')).toBe('false');
+    });
   });
 
   describe('close button', () => {

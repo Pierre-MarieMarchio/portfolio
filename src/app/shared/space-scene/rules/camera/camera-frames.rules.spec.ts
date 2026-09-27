@@ -12,6 +12,8 @@ import { ARRIVED, traveling } from './traveling.rules';
 const growthRate = (t: number): number =>
   (traveling(t + 0.01, false).grow - traveling(t - 0.01, false).grow) / 0.02;
 
+const noOffset = (): { nx: number; ny: number } => ({ nx: 0, ny: 0 });
+
 const isFiniteNumbers = (frame: Frame): boolean =>
   Object.values(frame).every((value) => Number.isFinite(value));
 
@@ -66,8 +68,10 @@ describe('scene camera', () => {
               dims: withDims,
               orbit: withDims ? orbit : null,
               panelLeft,
+              band: null,
               phase: 12.5,
               azim: 7,
+              offset: noOffset,
             });
             expect(isFiniteNumbers(frame)).toBe(true);
           }
@@ -83,8 +87,10 @@ describe('scene camera', () => {
         dims,
         orbit,
         panelLeft: 407,
+        band: null,
         phase: 3,
         azim: 40,
+        offset: noOffset,
       });
       expect(Math.abs(frame.az - 40)).toBeLessThanOrEqual(Math.PI);
     });
@@ -96,6 +102,7 @@ describe('scene camera', () => {
           dims,
           orbit,
           panelLeft,
+          band: null,
           phase: 1,
           azim: 0,
           offset: () => ({ nx: 1e6, ny: -1e6 }),

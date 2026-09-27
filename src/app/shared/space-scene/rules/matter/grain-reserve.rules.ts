@@ -1,5 +1,6 @@
 import { clamp, finiteOr, gaussian, TAU } from '@app/core/helpers';
 import { Grain } from '../scene-bodies.rules';
+import { REFERENCE_VIEWPORT } from '../../models/scene-constants.model';
 
 interface GrainShape {
   readonly u: number;
@@ -12,6 +13,13 @@ interface GrainShape {
 export const RESERVE = 1.9;
 
 const PART_BASE = 1 / RESERVE;
+
+export const densityShare = (viewportArea: number): number =>
+  clamp(
+    viewportArea / (REFERENCE_VIEWPORT.width * REFERENCE_VIEWPORT.height),
+    0.42,
+    1,
+  );
 
 export const litShare = (
   homeScale: number,

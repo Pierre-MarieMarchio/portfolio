@@ -46,11 +46,9 @@ export class GrainsRenderer {
     this.motion.begin(frame);
     this.alphaNow = -1;
     this.colorNow = '';
-    const share = litShare(
-      this.camera.rest.s,
-      this.camera.pose.scale,
-      frame.trv.grow,
-    );
+    const share =
+      litShare(this.camera.rest.s, this.camera.pose.scale, frame.trv.grow) *
+      this.motion.density;
     this.pose = {
       phase: frame.phase,
       entry: frame.entry,

@@ -176,17 +176,36 @@
 
 @include formats.phone {
   .columns,
-  .row,
-  .opened {
-    column-gap: var(--s2);
+  .opened > :first-child,
+  .row:not([data-selected='true']) :is(.stack, .role) {
+    display: none;
   }
 
-  .columns > span,
-  .project,
+  .row {
+    grid-template-columns: 3.4ch minmax(0, 1fr);
+    gap: var(--s1) var(--s2);
+    padding-block: var(--s2);
+  }
+
+  .project {
+    display: contents;
+  }
+
   .proof,
+  .stack,
   .role {
-    overflow-wrap: anywhere;
-    hyphens: auto;
+    grid-column: 1 / -1;
+  }
+
+  .stack,
+  .role {
+    order: 1;
+  }
+
+  .opened {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 var(--s2) var(--s2);
+    margin-left: 0;
   }
 }
 

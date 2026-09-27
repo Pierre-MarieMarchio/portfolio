@@ -1201,3 +1201,30 @@ laisseraient ces images au dégradé par traînée, le coût que D36 a retiré.
 
 **Budget.** Le bundle initial passe de 529,9 à 524,6 kB ; le seuil
 d'avertissement reste à 530 kB.
+
+## 2026-09-27 — Au téléphone, le relevé est une liste de cartes (D40, amende D34)
+
+**Décision.** Au format `phone`, debout et couché, le relevé n'affiche plus
+l'en-tête des colonnes et chaque rangée devient une carte pleine largeur :
+le numéro et le titre (avec « lu ») sur la première ligne, la preuve sur
+toute la largeur en dessous. La pile et le rôle ne se montrent qu'à la
+carte ouverte, sous la preuve, avant le bloc ouvert, qui perd sa colonne
+vide et s'aligne sur la preuve. Toucher la carte est le `toggle` du bureau,
+avec la même sélection et les mêmes états. Le gabarit ne change pas : la
+disposition est dans la feuille du composant (`display: contents` sur le
+bloc du projet, `order` pour mettre la pile sous la preuve). La coupure des
+mots que D34 posait sur le relevé du téléphone est retirée. C'est la
+tâche 9 du cadrage.
+
+**Raison.** À 390 px, le tableau de quatre colonnes coupait ses mots
+(« En dévelop-pement ») et serrait le plus la preuve, qui est la colonne à
+lire d'abord. Sur une seule colonne, les mots des faits tiennent entiers,
+et la coupure n'a plus de raison d'être. Rester dans le même composant
+évite d'avoir deux relevés à tenir d'accord ; la feuille suffit, parce que
+la rangée porte déjà tous ses faits.
+
+**Écarté.** Un gabarit par format (un `@if` sur le format) : le prérendu
+ne connaît pas le format, et deux gabarits divergeraient. Déplacer la pile
+après la preuve dans le gabarit : au bureau, elle se lit sous le titre,
+dans la colonne du projet. Garder la preuve dans une colonne étroite à
+côté du titre : c'est ce qui la coupait.

@@ -149,6 +149,9 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
 - Survol et sélection se disent de la même façon : un seul jeu d'états.
 - Dans le spec, chaque projet a des faits distincts, pour qu'une ligne se
   reconnaisse à son propre texte.
+- Au téléphone, la même rangée devient une carte par la seule feuille : la
+  pile passe sous la preuve par `order`, parce que le gabarit, lu au bureau,
+  la garde sous le titre (D40).
 
 ## `features/projects/components/project-preview/`
 

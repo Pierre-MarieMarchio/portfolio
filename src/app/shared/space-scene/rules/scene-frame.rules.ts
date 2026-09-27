@@ -5,6 +5,7 @@ import { ScreenHole } from './camera/projection.rules';
 import { ARRIVED, Traveling } from './camera/traveling.rules';
 import { noFocus, PlanetFocus } from './planets/planet-focus.rules';
 import { veilAt, Zone } from './panel-veil.rules';
+import type { SkyRoom } from './sky/figure-room.rules';
 
 export interface SceneFrame {
   state: SceneState;
@@ -35,6 +36,7 @@ export interface SceneFrame {
   arrived: boolean;
   zones: readonly Zone[];
   topBar: Zone | null;
+  figureRoom: SkyRoom | null;
   fade: number;
   orbits: readonly Orbit[];
   readonly focus: PlanetFocus;
@@ -74,6 +76,7 @@ export const sceneFrame = (
     arrived: true,
     zones: [],
     topBar: null,
+    figureRoom: null,
     fade: 0,
     orbits: [],
     focus: noFocus(),

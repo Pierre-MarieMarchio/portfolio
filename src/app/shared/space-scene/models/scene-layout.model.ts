@@ -21,6 +21,7 @@ export interface SceneLayout {
   readonly panelBandTop?: number | null;
   readonly sidePanelLeft?: number | null;
   readonly cornerPanelLeft?: number | null;
+  readonly cornerBandTop?: number | null;
   readonly topBar?: LayoutBox | null;
   readonly chrome?: readonly PanelRect[];
 }

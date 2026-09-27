@@ -47,4 +47,5 @@ export interface SceneInputs {
   readonly figureNames: readonly string[];
   readonly paused: boolean;
   readonly reduced: boolean;
+  readonly touch?: boolean;
 }

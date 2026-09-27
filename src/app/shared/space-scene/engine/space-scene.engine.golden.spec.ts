@@ -299,7 +299,7 @@ const SCENES_GOLDEN = {
     overview: '81b82e52',
     approach: 'ff1beec4',
     'close-up': 'be6d19aa',
-    aside: '3e060612',
+    aside: '71096df3',
   },
   measuredLabels: {
     arrival: '29a2446b',

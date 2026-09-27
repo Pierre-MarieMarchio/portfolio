@@ -187,6 +187,10 @@ $glass-landscape-min: 324px;
     top: auto;
     max-height: 100%;
   }
+
+  .slot:has(.glass--folded) {
+    top: auto;
+  }
 }
 
 @include motion.reduced {

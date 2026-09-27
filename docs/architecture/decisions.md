@@ -911,3 +911,28 @@ du canvas, et à 1 il n'y a plus de décalage du tout. Un double toucher sur
 les autres vues : leur premier toucher tombe sur `.void`, qui remonte d'un
 cran. Au bureau, la molette ou le pincement du pavé tactile : rien ne le
 demande, et le bureau ne change pas (ni `touch-action`, ni captures).
+
+## 2026-09-26 — Au doigt, les noms évitent le disque ; le ciel libre range la figure et reprend la vitre repliée (D33, étend D29 à D31)
+
+**Décision.** La scène reçoit le format par une entrée, `touch` (vrai aux
+formats `phone` et `tablet`), et ne s'en sert que pour les noms de
+planètes : caméra arrivée, un nom évite aussi le disque dessiné (l'ellipse
+de 2,4 rayons de `drawnDisc`, écrite sur `.stage` en `data-disc-*`) et le
+bouton de chaque autre planète. Debout, le gros plan qui poserait son trou
+sur le chrome range le trou et sa planète ensemble dans la plus grande pièce
+vide au-dessus du bandeau. Avec un ciel libre, la figure allumée de
+l'à-propos et son nom s'y rangent, hors du disque. Couchée, la vitre repliée
+n'est plus que sa barre ; la scène la lit comme un bandeau au coin
+(`cornerBandTop`) et reprend toute la largeur au-dessus.
+
+**Raison.** Sur les captures du téléphone et de la tablette, des noms
+traversaient le disque ou une autre planète, le trou de l'aperçu passait
+sous le titre, la figure allumée sortait de l'écran ou passait sous la
+barre, et la vitre repliée couchée laissait la moitié droite vide. Le détail
+est dans `raisons/space-scene.md` et `raisons/bureau-et-pages.md`.
+
+**Écarté.** La même règle des noms au bureau : neuf empreintes bougeaient
+(D30 et D31 les gardent). Lire le format dans le moteur : il le reçoit comme
+`reduced`, et le cadrage, lui, ne le lit toujours pas (D30). Élargir
+`isBottomBand` à la barre repliée : l'approche centrerait la planète et
+pousserait le trou à gauche, et l'approche debout aurait changé.

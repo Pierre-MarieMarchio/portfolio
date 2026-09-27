@@ -1,4 +1,5 @@
 import {
+  BodyMark,
   LEADER_START,
   PanelEdges,
   placeName,
@@ -12,6 +13,7 @@ import {
   PlanetBody,
 } from '../../rules/planets/planet-focus.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
+import { diskOnScreen, drawnDisc } from '../../rules/camera/pointer.rules';
 
 type NamePlace = ReturnType<typeof placeName>;
 
@@ -30,6 +32,11 @@ const written = (): Written => ({
   tab: 99,
   opacity: '',
 });
+
+const bodiesOf = (
+  bodies: readonly { readonly sx: number; readonly sy: number }[],
+  dpr: number,
+): BodyMark[] => bodies.map((body) => ({ x: body.sx / dpr, y: body.sy / dpr }));
 
 export class PlanetLabelsRenderer {
   private buttons: readonly HTMLElement[] = [];
@@ -86,7 +93,10 @@ export class PlanetLabelsRenderer {
     }));
   }
 
-  public begin(frame: SceneFrame): void {
+  public begin(
+    frame: SceneFrame,
+    bodies: readonly { readonly sx: number; readonly sy: number }[],
+  ): void {
     const { zones, dpr } = frame;
     this.places = zones.map((z) => ({
       x: z.l / dpr,
@@ -94,17 +104,20 @@ export class PlanetLabelsRenderer {
       w: (z.r - z.l) / dpr,
       h: (z.b - z.t) / dpr,
     }));
+    const isSettled = frame.arrived && frame.state.marksShown;
+    const isClearing = isSettled && frame.state.touch;
     this.stage = {
       w: frame.w / dpr,
       h: frame.h / dpr,
-      hole:
-        frame.arrived && frame.state.marksShown
-          ? {
-              x: frame.hole.cx / dpr,
-              y: frame.hole.cy / dpr,
-              radius: frame.hole.radius / dpr,
-            }
-          : undefined,
+      hole: isSettled
+        ? {
+            x: frame.hole.cx / dpr,
+            y: frame.hole.cy / dpr,
+            radius: frame.hole.radius / dpr,
+          }
+        : undefined,
+      disc: isClearing ? drawnDisc(diskOnScreen(frame), dpr) : undefined,
+      bodies: isClearing ? bodiesOf(bodies, dpr) : undefined,
     };
     this.panels = zones.map((z) => ({
       l: z.l / dpr,
@@ -255,6 +268,7 @@ export class PlanetLabelsRenderer {
         objectRadius: frame.radius,
         dpr,
         named: isNamedHere,
+        rank: i,
       },
       { w: lw, h: lh },
       this.stage,

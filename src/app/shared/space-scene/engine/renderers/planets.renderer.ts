@@ -65,7 +65,7 @@ export class PlanetsRenderer {
       focus.shown,
       Math.min(PLANET_GAP * frame.dpr, frame.radius * 1.1),
     );
-    this.labels.begin(frame);
+    this.labels.begin(frame, planets.slice(0, focus.shown));
     for (let i = 0; i < focus.shown; i++) {
       const planet = planets[i];
       if (planet) {

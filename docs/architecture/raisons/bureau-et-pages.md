@@ -227,6 +227,12 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   de la seule barre : le haut du bandeau que la caméra lit devient celui de
   la barre repliée, et l'objet reprend l'écran. Déplié, il revient à
   60 %.
+- Couchée, la vitre repliée fait de même (D33) : l'emplacement perd son
+  haut (`top: auto`) et se réduit à la barre, en bas à droite ; la vitre et
+  son rail passent en `position: static` aux deux orientations (la règle
+  n'était écrite que debout, dans `window.component.scss`). Avant, la
+  moitié droite restait un panneau au coin et l'objet restait à gauche, le
+  trou coupé à x = 0 sur la fiche.
 - La vitre montée s'arrête 6 px sous la barre de pages
   (`--glass-raised-top`, lu sur `--head-bottom`) ; repliée, elle se pose
   au-dessus de la rangée du bas (`--glass-bottom-reserve`, une cible de 44 px

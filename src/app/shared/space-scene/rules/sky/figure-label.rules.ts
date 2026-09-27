@@ -12,6 +12,19 @@ export const figureLabelFont = (dpr: number): string =>
 
 export const figureLabelSpacing = `${String(FIGURE_LABEL_SPACING)}em`;
 
+export const figureNameSize = (
+  text: string,
+  dpr: number,
+  measure: (text: string) => number,
+): { w: number; h: number; gap: number } => {
+  const size = labelPixels(dpr);
+  return {
+    w: measure(text) + text.length * FIGURE_LABEL_SPACING * size,
+    h: size,
+    gap: NAME_GAP * dpr,
+  };
+};
+
 export interface FigureName {
   readonly x: number;
   readonly y: number;

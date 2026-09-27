@@ -1,11 +1,11 @@
 import {
   approachFrame,
   ASIDE_FRAME,
+  orbitAngle,
   closeUpFrame,
   Dims,
   Frame,
   OVERVIEW_FRAME,
-  referenceRadius,
   SkyBand,
 } from './camera-frames.rules';
 import type { SceneLayout } from '../../models/scene-layout.model';
@@ -14,18 +14,12 @@ import type { SceneState } from '../scene-state.rules';
 import { Orbit, positionOrbit } from '../scene-bodies.rules';
 import { flattening, rollFlatten } from './projection.rules';
 import {
-  areaOf,
   Box,
-  CHROME_CLEARANCE,
-  chromeRooms,
-  closeUpInRoom,
   freeSkyOf,
-  holeRoomBeside,
-  isClearOfChrome,
   outermostReach,
-  viewportOf,
   wholeInFreeSky,
 } from './free-sky.rules';
+import { FocusAim, holeInFocus, skyRooms } from '../hole-focus.rules';
 
 export interface FramingScene {
   rest: Frame;
@@ -34,12 +28,16 @@ export interface FramingScene {
   orbits: readonly Orbit[];
   phase: number;
   azim: number;
+  sky: { layout: SceneLayout | null; rooms: readonly Box[] };
+  reach: number | null;
   readonly orbitTurn: (i: number) => number;
+  readonly nameOf: (i: number) => FocusAim['name'];
 }
 
 export const framingScene = (
   rest: Frame,
   orbitTurn: (i: number) => number,
+  nameOf: (i: number) => FocusAim['name'],
 ): FramingScene => ({
   rest,
   dims: null,
@@ -47,10 +45,59 @@ export const framingScene = (
   orbits: [],
   phase: 0,
   azim: 0,
+  sky: { layout: null, rooms: [] },
+  reach: null,
   orbitTurn,
+  nameOf,
 });
 
 export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
+  const frame = viewFraming(state, scene);
+  const dims = scene.dims;
+  return state.phone && dims
+    ? holeInFocus(frame, {
+        dims,
+        rooms: skyRoomsOf(scene),
+        isCloseUp: state.framing === 'close-up',
+        aim: aimOf(state, scene),
+      })
+    : frame;
+};
+
+const skyRoomsOf = (scene: FramingScene): readonly Box[] => {
+  if (scene.sky.layout !== scene.layout) {
+    scene.sky = { layout: scene.layout, rooms: skyRooms(scene.layout) };
+  }
+  return scene.sky.rooms;
+};
+
+const aimedRank = (state: SceneState): number => {
+  switch (state.framing) {
+    case 'overview': {
+      return state.ringed;
+    }
+    case 'rest': {
+      return state.emphasised;
+    }
+    default: {
+      return state.framed;
+    }
+  }
+};
+
+const aimOf = (state: SceneState, scene: FramingScene): FocusAim | null => {
+  const rank = aimedRank(state);
+  const orbit = scene.orbits[rank];
+  return orbit && state.framing !== 'aside'
+    ? {
+        angle: orbitAngle(orbit, scene.phase),
+        name: scene.nameOf(rank),
+        offset: (az, tilt) => offsetSeen(scene, rank, az, tilt),
+      }
+    : null;
+};
+
+const viewFraming = (state: SceneState, scene: FramingScene): Frame => {
   switch (state.framing) {
     case 'aside': {
       return wholeObjectFraming(ASIDE_FRAME, scene);
@@ -62,7 +109,7 @@ export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
       return approachFraming(state, scene);
     }
     case 'close-up': {
-      return closeUpFraming(state, scene);
+      return closeUpBeside(state, scene);
     }
     case 'rest': {
       return scene.rest;
@@ -72,7 +119,8 @@ export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
 
 const wholeObjectFraming = (frame: Frame, scene: FramingScene): Frame => {
   const dims = scene.dims;
-  const reach = outermostReach(scene.orbits);
+  const outermost = outermostReach(scene.orbits);
+  const reach = outermost > 0 ? (scene.reach ?? outermost) : 0;
   const sky = dims ? freeSkyOf(scene.layout, dims.w / dims.dpr) : null;
   return dims && sky && reach > 0
     ? wholeInFreeSky(frame, { dims, sky, reach })
@@ -105,24 +153,6 @@ const approachBandOf = (
   const cornerTop = layout?.cornerBandTop;
   const isFolded = typeof bandTop !== 'number' && typeof cornerTop === 'number';
   return { band: skyBand(layout, isFolded ? cornerTop : bandTop), isFolded };
-};
-
-const closeUpFraming = (state: SceneState, scene: FramingScene): Frame => {
-  const frame = closeUpBeside(state, scene);
-  const corner = scene.layout?.cornerPanelLeft;
-  const bandTop = scene.layout?.closeUpBandTop;
-  if (typeof corner !== 'number') {
-    return typeof bandTop === 'number'
-      ? (closeUpClearOfChrome(scene.layout, frame, {
-          bandTop,
-          offset: offsetSeen(scene, state.framed, frame.az, scene.rest),
-        }) ?? frame)
-      : frame;
-  }
-  const room = holeRoomBeside(scene.layout, corner);
-  return room && scene.dims
-    ? closeUpInRoom(frame, { dims: scene.dims, room })
-    : frame;
 };
 
 const closeUpBeside = (state: SceneState, scene: FramingScene): Frame => {
@@ -175,71 +205,4 @@ const offsetSeen = (
     },
     { nx: 0, ny: 0 },
   );
-};
-
-const PAIR = { planetReach: 24, shares: [1, 0.9, 0.8, 0.7, 0.6, 0.5] } as const;
-
-const pairBoxOf = (
-  radius: number,
-  offset: { readonly nx: number; readonly ny: number },
-): Box => {
-  const reach = radius + CHROME_CLEARANCE;
-  const px = offset.nx * radius;
-  const py = offset.ny * radius;
-  return {
-    left: Math.min(-reach, px - PAIR.planetReach),
-    right: Math.max(reach, px + PAIR.planetReach),
-    top: Math.min(-reach, py - PAIR.planetReach),
-    bottom: Math.max(reach, py + PAIR.planetReach),
-  };
-};
-
-const roomHolding = (rooms: readonly Box[], pair: Box): Box | null => {
-  let best: Box | null = null;
-  for (const room of rooms) {
-    const isHolding =
-      room.right - room.left >= pair.right - pair.left &&
-      room.bottom - room.top >= pair.bottom - pair.top;
-    if (isHolding && (!best || areaOf(room) > areaOf(best))) {
-      best = room;
-    }
-  }
-  return best;
-};
-
-export const closeUpClearOfChrome = (
-  layout: SceneLayout | null,
-  frame: Frame,
-  {
-    bandTop,
-    offset,
-  }: {
-    readonly bandTop: number;
-    readonly offset: { readonly nx: number; readonly ny: number };
-  },
-): Frame | null => {
-  if (isClearOfChrome(layout, frame)) {
-    return null;
-  }
-  const { width, height } = viewportOf(layout);
-  const rooms = chromeRooms(layout, {
-    left: 0,
-    top: bandTop - (layout?.canvas.top ?? 0),
-    right: width,
-    bottom: height,
-  });
-  for (const share of PAIR.shares) {
-    const s = frame.s * share;
-    const pair = pairBoxOf(referenceRadius(width, height, s), offset);
-    const room = roomHolding(rooms, pair);
-    if (room) {
-      return {
-        ...frame,
-        s,
-        x: (room.left + room.right - pair.left - pair.right) / 2 / width,
-        y: (room.top + room.bottom - pair.top - pair.bottom) / 2 / height,
-      };
-    }
-  }
-  return null;
 };

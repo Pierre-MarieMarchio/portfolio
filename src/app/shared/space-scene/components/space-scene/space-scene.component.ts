@@ -112,7 +112,7 @@ export class SpaceSceneComponent {
       figureNames: this.figureNames(),
       paused: this.paused(),
       reduced: this.reduced(),
-      touch: this.display.format() !== 'desktop',
+      format: this.display.format(),
     };
   }
 

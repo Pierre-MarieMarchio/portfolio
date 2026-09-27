@@ -8,6 +8,7 @@ export interface PlanetFocus {
   isOverview: boolean;
   isTagged: boolean;
   isApproached: boolean;
+  isSparse: boolean;
   read: number;
   ringed: number;
   faintFrom: number;
@@ -36,6 +37,7 @@ export const noFocus = (): PlanetFocus => ({
   isOverview: false,
   isTagged: false,
   isApproached: false,
+  isSparse: false,
   read: -1,
   ringed: -1,
   faintFrom: 0,
@@ -56,6 +58,7 @@ export const focusOn = (
   focus.isOverview = framing === 'overview';
   focus.isTagged = state.isTagged;
   focus.isApproached = framing === 'approach';
+  focus.isSparse = state.phone;
   focus.read = focus.isApproached ? state.framed : -1;
   focus.ringed = state.ringed;
   focus.faintFrom = state.faintFrom;
@@ -114,5 +117,11 @@ export const isNamed = (focus: PlanetFocus, body: PlanetBody): boolean => {
   if (body.isCold || body.rising < 0.75) {
     return false;
   }
-  return focus.isOpen ? focus.active === i : !body.isShaded;
+  if (focus.isOpen) {
+    return focus.active === i;
+  }
+  return focus.isSparse ? focus.emphasised === i : !body.isShaded;
 };
+
+export const isTagShown = (focus: PlanetFocus, i: number): boolean =>
+  !focus.isSparse || focus.ringed === i || focus.emphasised === i;

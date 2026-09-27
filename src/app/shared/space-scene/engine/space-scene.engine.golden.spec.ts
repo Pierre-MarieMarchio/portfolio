@@ -178,7 +178,11 @@ describe('SpaceSceneEngine, the scenes the first golden left out', () => {
   }, 60_000);
 
   it('draws on a phone', () => {
-    const scene = mount({ layout: PHONE_LAYOUT, dpr: 3 });
+    const scene = mount({
+      layout: PHONE_LAYOUT,
+      dpr: 3,
+      inputs: { ...SCENE_INPUTS, format: 'phone' },
+    });
     const drawn: Record<string, string> = {};
     drawn['arrival'] = scene.print(ARRIVED);
     scene.set(overview(0));
@@ -295,11 +299,11 @@ const SCENES_GOLDEN = {
     approach: '318c3ecc',
   },
   phone: {
-    arrival: 'e757d049',
-    overview: '81b82e52',
-    approach: 'ff1beec4',
-    'close-up': 'be6d19aa',
-    aside: '71096df3',
+    arrival: 'd836e7ba',
+    overview: '93a2a123',
+    approach: '49495936',
+    'close-up': '0b6c30fa',
+    aside: 'b2347b6f',
   },
   measuredLabels: {
     arrival: '29a2446b',

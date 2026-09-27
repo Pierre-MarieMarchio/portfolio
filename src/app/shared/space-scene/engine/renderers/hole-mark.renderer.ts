@@ -8,6 +8,8 @@ const HOLE_ATTRIBUTES = [
   'data-disc-width',
   'data-disc-height',
   'data-disc-roll',
+  'data-target-x',
+  'data-target-y',
 ];
 
 export class HoleMarkRenderer {
@@ -24,7 +26,7 @@ export class HoleMarkRenderer {
     if (!node) {
       return;
     }
-    const { hole, dpr } = frame;
+    const { hole, dpr, aim } = frame;
     const disc = drawnDisc(diskOnScreen(frame), dpr);
     const values = [
       ...[hole.cx, hole.cy, hole.radius].map((value) =>
@@ -33,6 +35,7 @@ export class HoleMarkRenderer {
       disc.rx.toFixed(1),
       disc.ry.toFixed(1),
       Math.atan2(disc.sin, disc.cos).toFixed(3),
+      ...[aim.x, aim.y].map((value) => (aim.isShown ? value.toFixed(1) : '')),
     ];
     for (const [k, name] of HOLE_ATTRIBUTES.entries()) {
       const value = values[k] ?? '';

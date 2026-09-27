@@ -295,7 +295,7 @@ const SCENES_GOLDEN = {
     approach: '318c3ecc',
   },
   phone: {
-    arrival: '587d3571',
+    arrival: 'e757d049',
     overview: '81b82e52',
     approach: 'ff1beec4',
     'close-up': 'be6d19aa',

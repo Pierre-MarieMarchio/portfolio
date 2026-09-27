@@ -5,6 +5,7 @@ import {
   referenceRadius,
   verticalFactor,
 } from './camera/camera-frames.rules';
+import type { RestMeasure } from './camera/rest-frame.rules';
 import { DISK_LIFT, ORBIT_RATE } from '../models/scene-constants.model';
 import { opening } from './camera/projection.rules';
 
@@ -169,18 +170,23 @@ export const positionOrbit = (
   return out;
 };
 
+const NARROWEST_ORBIT = 0.1;
+
 export const fitOrbits = (
   orbits: readonly Orbit[],
   dims: Dims,
   rest: Frame,
-  freeHalf: number | null,
+  free: Pick<RestMeasure, 'freeHalf' | 'sideHalf'> | null,
 ): void => {
   const { w, h, dpr } = dims;
   const cx = w * rest.x;
   const cy = h * rest.y;
   const radius = referenceRadius(w, h, rest.s);
-  const maxH = (Math.min(cx, w - cx) - 74 * dpr) / radius;
-  const half = freeHalf === null ? Math.min(cy, h - cy) : freeHalf * dpr;
+  const side = free?.sideHalf;
+  const maxH =
+    (side === undefined ? Math.min(cx, w - cx) - 74 * dpr : side * dpr) /
+    radius;
+  const half = free === null ? Math.min(cy, h - cy) : free.freeHalf * dpr;
   const maxV = (half - 30 * dpr) / (radius * verticalFactor(rest.ev, rest.i));
   const room = Math.min(maxH, maxV);
   const isRoomy = room >= 4.6;
@@ -190,7 +196,7 @@ export const fitOrbits = (
     : rMax * 0.74;
   for (const orbit of orbits) {
     orbit.rb = rMin + orbit.k * (rMax - rMin);
-    orbit.v = 0.075 * Math.pow(1.3 / orbit.rb, 1.5);
+    orbit.v = 0.075 * Math.pow(1.3 / Math.max(orbit.rb, NARROWEST_ORBIT), 1.5);
   }
 };
 

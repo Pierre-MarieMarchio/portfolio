@@ -66,6 +66,12 @@ nav {
   }
 }
 
+@include formats.phone-landscape {
+  nav a {
+    padding: 0 2px;
+  }
+}
+
 @include motion.reduced {
   nav {
     animation: none;

@@ -2,10 +2,10 @@ import {
   Dims,
   Frame,
   REST_FRAME,
-  RestMeasure,
   isFiniteFrame,
   referenceRadius,
 } from '../../rules/camera/camera-frames.rules';
+import type { RestMeasure } from '../../rules/camera/rest-frame.rules';
 import { CONSTELLATIONS } from '../../rules/sky/constellations.rules';
 import {
   clamp,
@@ -21,6 +21,8 @@ import {
 import { fitOrbits, Orbit } from '../../rules/scene-bodies.rules';
 import { Traveling } from '../../rules/camera/traveling.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
+
+const ARRIVED_WITHIN = 0.05;
 
 interface CameraPose {
   readonly roll: number;
@@ -53,6 +55,7 @@ export class CameraMotion {
   private openTarget = 0;
   private hasOpenedMoved = false;
   private isMoving = false;
+  private isArrived = true;
   private left = 0;
 
   public get pose(): CameraPose {
@@ -82,6 +85,7 @@ export class CameraMotion {
   public measureRest(measure: RestMeasure): void {
     if (!this.measure) {
       Object.assign(this.restFrame, {
+        x: measure.x,
         y: measure.y,
         s: measure.s,
         i: measure.i,
@@ -92,7 +96,7 @@ export class CameraMotion {
   }
 
   public fit(orbits: readonly Orbit[], dims: Dims): void {
-    fitOrbits(orbits, dims, this.restFrame, this.freeHalf);
+    fitOrbits(orbits, dims, this.restFrame, this.measure);
   }
 
   public startOpen(isOpen: boolean): void {
@@ -126,12 +130,13 @@ export class CameraMotion {
     this.left = this.distanceTo(aim);
     const before = this.sum();
     const kc = isReduced ? 1 : halfLifeStep(dt, 0.55);
-    this.easeRest(dt, isReduced);
+    const hasRestMoved = this.easeRest(dt, isReduced);
     this.ease(aim, kc);
+    this.isArrived = this.distanceTo(aim) < ARRIVED_WITHIN;
     this.now.marks += (marks - this.now.marks) * kc;
     this.now.figures += (figures - this.now.figures) * kc;
     this.light(lit, kc);
-    this.isMoving = Math.abs(before - this.sum()) > 0.0002;
+    this.isMoving = hasRestMoved || Math.abs(before - this.sum()) > 0.0002;
   }
 
   public lay(frame: SceneFrame, trv: Traveling): void {
@@ -150,6 +155,7 @@ export class CameraMotion {
     frame.cr = Math.cos(roll);
     frame.sr = Math.sin(roll);
     frame.hole = { cx: frame.cx, cy: frame.cy, radius: frame.radius };
+    frame.arrived = this.isArrived;
     frame.closeUp = this.opened;
     frame.marks = finiteOr(now.marks, 1);
     frame.figures = finiteOr(now.figures, 0);
@@ -187,17 +193,22 @@ export class CameraMotion {
     );
   }
 
-  private easeRest(dt: number, isReduced: boolean): void {
+  private easeRest(dt: number, isReduced: boolean): boolean {
     const measure = this.measure;
     if (!measure) {
-      return;
+      return false;
     }
     const km = isReduced ? 1 : halfLifeStep(dt, 0.75);
     const rest = this.restFrame;
+    const before = rest.x + rest.y + rest.s + rest.i + rest.ev;
+    rest.x += (measure.x - rest.x) * km;
     rest.y += (measure.y - rest.y) * km;
     rest.s += (measure.s - rest.s) * km;
     rest.i += (measure.i - rest.i) * km;
     rest.ev += (measure.ev - rest.ev) * km;
+    return (
+      Math.abs(before - (rest.x + rest.y + rest.s + rest.i + rest.ev)) > 0.0002
+    );
   }
 
   private ease(aim: Frame, kc: number): void {

@@ -11,7 +11,7 @@ import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
 import { LayoutAnchorsService } from '@shared/ui/services';
-import { PhoneCodeService } from '@app/core/services';
+import { FormatCodeService } from '@app/core/services';
 import { loadGlassGestures } from '@shared/windows/directives';
 import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
 import { ObservatoryPageComponent } from './observatory-page.component';
@@ -39,7 +39,7 @@ describe('StationComponent', () => {
   const mount = async (
     options: {
       reducedMotion?: boolean;
-      phoneCode?: Pick<PhoneCodeService, 'load'>;
+      formatCode?: Pick<FormatCodeService, 'load'>;
       address?: string;
     } = {},
   ) => {
@@ -58,8 +58,8 @@ describe('StationComponent', () => {
       providers: [
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(ENTRIES, [ObservatoryEffect]),
-        options.phoneCode
-          ? [{ provide: PhoneCodeService, useValue: options.phoneCode }]
+        options.formatCode
+          ? [{ provide: FormatCodeService, useValue: options.formatCode }]
           : [],
       ],
     });
@@ -624,9 +624,9 @@ describe('StationComponent', () => {
 
   it('asks for the code of the glass gestures as it starts, before any window opens', async () => {
     const load = vi.fn(() => signal(null).asReadonly());
-    const { host } = await mount({ phoneCode: { load } });
+    const { host } = await mount({ formatCode: { load } });
 
     expect(host.querySelector('app-window')).toBeNull();
-    expect(load).toHaveBeenCalledWith(loadGlassGestures);
+    expect(load).toHaveBeenCalledWith(['phone'], loadGlassGestures);
   });
 });

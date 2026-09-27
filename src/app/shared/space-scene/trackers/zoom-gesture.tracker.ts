@@ -1,13 +1,10 @@
-import { DestroyRef, Directive, inject, input } from '@angular/core';
-import { BrowserWindowService, DisplayFormatService } from '@app/core/services';
-import { SpaceSceneEngine } from '../engine/space-scene.engine';
-import { isOnScene, isOnSky } from '../rules/sky-touch.rules';
-import { ClickAbsorberService } from '../services/click-absorber.service';
-
-export type ZoomableScene = Pick<
-  SpaceSceneEngine,
-  'holdZoom' | 'stretchZoom' | 'releaseZoom' | 'lookCloser'
->;
+import type {
+  ClickAbsorber,
+  LookableScene,
+  SceneLook,
+  WindowEvents,
+} from '../models/scene-look.model';
+import { isOnScene, isOnSky } from '../rules/gestures/sky-touch.rules';
 
 const TAP_WITHIN_PX = 6;
 const TAP_WITHIN_MS = 300;
@@ -23,13 +20,8 @@ interface Touch {
   readonly isOnSky: boolean;
 }
 
-@Directive({ selector: '[appZoomGesture]' })
-export class ZoomGestureDirective {
-  private readonly browserWindow = inject(BrowserWindowService);
-  private readonly display = inject(DisplayFormatService);
-  private readonly absorber = inject(ClickAbsorberService);
-
-  public readonly appZoomGesture = input<ZoomableScene | null>(null);
+export class ZoomGestureTracker implements SceneLook {
+  public readonly pan = null;
 
   private readonly touches = new Map<number, Touch>();
   private readonly following: (() => void)[] = [];
@@ -37,29 +29,31 @@ export class ZoomGestureDirective {
   private hasPinched = false;
   private lastTap: { x: number; y: number; time: number } | null = null;
 
-  constructor() {
-    const stopTouching = this.browserWindow.on(
+  private readonly stopTouching: () => void;
+
+  constructor(
+    private readonly scene: LookableScene,
+    private readonly events: WindowEvents,
+    private readonly absorber: ClickAbsorber,
+  ) {
+    this.stopTouching = events.onWindow(
       'pointerdown',
       (event) => {
         this.press(event);
       },
       { capture: true },
     );
-    inject(DestroyRef).onDestroy(() => {
-      stopTouching();
-      this.endGesture();
-      this.absorber.stop();
-    });
+  }
+
+  public stop(): void {
+    this.stopTouching();
+    this.endGesture();
+    this.absorber.stop();
   }
 
   private press(event: PointerEvent): void {
-    const scene = this.appZoomGesture();
-    if (
-      !scene ||
-      event.pointerType !== 'touch' ||
-      this.display.format() === 'desktop' ||
-      !isOnScene(event)
-    ) {
+    const scene = this.scene;
+    if (event.pointerType !== 'touch' || !isOnScene(event)) {
       return;
     }
     if (this.touches.size === 0) {
@@ -78,26 +72,26 @@ export class ZoomGestureDirective {
     }
   }
 
-  private follow(scene: ZoomableScene): void {
+  private follow(scene: LookableScene): void {
     this.hasPinched = false;
     this.following.push(
-      this.browserWindow.on(
+      this.events.onWindow(
         'pointermove',
         (move) => {
           this.move(scene, move);
         },
         { passive: true },
       ),
-      this.browserWindow.on('pointerup', (up) => {
+      this.events.onWindow('pointerup', (up) => {
         this.lift(scene, up, true);
       }),
-      this.browserWindow.on('pointercancel', (cancel) => {
+      this.events.onWindow('pointercancel', (cancel) => {
         this.lift(scene, cancel, false);
       }),
     );
   }
 
-  private startPinch(scene: ZoomableScene): void {
+  private startPinch(scene: LookableScene): void {
     const [a, b] = this.touches.values();
     if (!a || !b) {
       return;
@@ -110,7 +104,7 @@ export class ZoomGestureDirective {
     }
   }
 
-  private move(scene: ZoomableScene, event: PointerEvent): void {
+  private move(scene: LookableScene, event: PointerEvent): void {
     const touch = this.touches.get(event.pointerId);
     if (!touch) {
       return;
@@ -125,7 +119,7 @@ export class ZoomGestureDirective {
     }
   }
 
-  private lift(scene: ZoomableScene, event: PointerEvent, isUp: boolean): void {
+  private lift(scene: LookableScene, event: PointerEvent, isUp: boolean): void {
     const touch = this.touches.get(event.pointerId);
     if (!touch) {
       return;
@@ -146,7 +140,7 @@ export class ZoomGestureDirective {
     this.endGesture();
   }
 
-  private tapped(scene: ZoomableScene, event: PointerEvent): void {
+  private tapped(scene: LookableScene, event: PointerEvent): void {
     const last = this.lastTap;
     if (
       last &&

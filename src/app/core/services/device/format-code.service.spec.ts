@@ -1,6 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { PhoneCodeService } from './phone-code.service';
+import type { DisplayFormat } from '../../models/display-format.model';
+import { FormatCodeService } from './format-code.service';
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
@@ -12,26 +13,37 @@ const stubTouch = () => {
   }));
 };
 
+const stubMouse = () => {
+  vi.stubGlobal('matchMedia', () => ({
+    matches: false,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+};
+
 const resizeTo = (width: number, height: number) => {
   vi.stubGlobal('innerWidth', width);
   vi.stubGlobal('innerHeight', height);
   window.dispatchEvent(new Event('resize'));
 };
 
-const CODE = { name: 'phone code' };
+const CODE = { name: 'format code' };
 
-const loadOn = (platform: 'browser' | 'server') => {
+const loadOn = (
+  platform: 'browser' | 'server',
+  formats: readonly DisplayFormat[] = ['phone'],
+) => {
   TestBed.configureTestingModule({
     providers: [{ provide: PLATFORM_ID, useValue: platform }],
   });
   const importer = vi.fn(() => Promise.resolve(CODE));
   const loaded = TestBed.runInInjectionContext(() =>
-    TestBed.inject(PhoneCodeService).load(importer),
+    TestBed.inject(FormatCodeService).load(formats, importer),
   );
   return { importer, loaded };
 };
 
-describe('PhoneCodeService', () => {
+describe('FormatCodeService', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     vi.unstubAllGlobals();
@@ -51,7 +63,7 @@ describe('PhoneCodeService', () => {
     expect(loaded()).toBe(CODE);
   });
 
-  it('never asks for it on a tablet or a desktop', async () => {
+  it('never asks for the code of the phone on a tablet or a desktop', async () => {
     stubTouch();
     resizeTo(1024, 768);
     const tablet = loadOn('browser');
@@ -97,7 +109,7 @@ describe('PhoneCodeService', () => {
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValue(CODE);
     const loaded = TestBed.runInInjectionContext(() =>
-      TestBed.inject(PhoneCodeService).load(importer),
+      TestBed.inject(FormatCodeService).load(['phone'], importer),
     );
     TestBed.tick();
     await Promise.resolve();
@@ -110,5 +122,65 @@ describe('PhoneCodeService', () => {
 
     expect(importer).toHaveBeenCalledTimes(2);
     expect(loaded()).toBe(CODE);
+  });
+
+  it('asks for the code of the desktop once the client starts as a desktop', async () => {
+    stubMouse();
+    resizeTo(1280, 800);
+    const { importer, loaded } = loadOn('browser', ['desktop']);
+
+    TestBed.tick();
+    await Promise.resolve();
+    TestBed.tick();
+
+    expect(importer).toHaveBeenCalledTimes(1);
+    expect(loaded()).toBe(CODE);
+  });
+
+  it('never asks for the code of the desktop on a phone or a tablet', async () => {
+    stubTouch();
+    resizeTo(390, 844);
+    const phone = loadOn('browser', ['desktop']);
+    TestBed.tick();
+    resizeTo(1024, 768);
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(phone.importer).not.toHaveBeenCalled();
+    expect(phone.loaded()).toBeNull();
+  });
+
+  it('never asks for the code of the desktop on the server, which answers as a desktop', async () => {
+    const { importer, loaded } = loadOn('server', ['desktop']);
+
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(importer).not.toHaveBeenCalled();
+    expect(loaded()).toBeNull();
+  });
+
+  it('asks for the code of the fingers once at a phone or a tablet, and never at a desktop', async () => {
+    stubTouch();
+    resizeTo(1024, 768);
+    const { importer, loaded } = loadOn('browser', ['phone', 'tablet']);
+    TestBed.tick();
+    resizeTo(390, 844);
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(importer).toHaveBeenCalledTimes(1);
+    expect(loaded()).toBe(CODE);
+
+    TestBed.resetTestingModule();
+    vi.unstubAllGlobals();
+    stubMouse();
+    resizeTo(1280, 800);
+    const desktop = loadOn('browser', ['phone', 'tablet']);
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(desktop.importer).not.toHaveBeenCalled();
+    expect(desktop.loaded()).toBeNull();
   });
 });

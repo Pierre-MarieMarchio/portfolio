@@ -192,11 +192,12 @@ injection Angular : les dépendances arrivent par le constructeur.
 | `.renderer` | dessine une couche                                      | créée par l'engine, `draw(frame)` |
 
 Hors de la scène, un seul rôle s'instancie avec `new`, et c'est aussi le
-seul qu'on charge à part, au format `phone` (D39) :
+seul qu'on charge à part, aux seuls formats qui s'en servent (`phone`, D39 ;
+le doigt et le bureau, D43) :
 
-| Suffixe    | Ce que c'est                                                                                          | Comment on s'en sert                                  | Ne fait jamais                                        |
-| ---------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
-| `.tracker` | suit un geste du pointeur sur un élément et dit ce qu'il décide ; ce qu'il lit arrive au constructeur | créé par sa directive, qui lui passe chaque événement | injecter, être importé en valeur hors d'un `import()` |
+| Suffixe    | Ce que c'est                                                                                          | Comment on s'en sert                                                                                                | Ne fait jamais                                        |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `.tracker` | suit un geste du pointeur sur un élément et dit ce qu'il décide ; ce qu'il lit arrive au constructeur | créé par sa directive ou par l'enveloppe de son composant, qui lui passe chaque événement ou l'écoute du navigateur | injecter, être importé en valeur hors d'un `import()` |
 
 **Les tests**, dans `src/testing/` pour ce qui est partagé : `.spec` (un
 test ; `.golden.spec` pour l'empreinte de la scène), `.fixture` (des données
@@ -248,7 +249,7 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
 | `core/`               | `services/` `ports/` `strategies/` `interceptors/` `models/` `rules/` `helpers/` `signals/`                                                   |
 | `shared/ui/`          | `components/` `directives/` `pipes/` `services/` `validators/` `signals/` `ports/` `models/` `data/`                                          |
 | `shared/windows/`     | `components/` `directives/` `services/` `rules/` `trackers/` `models/` `ports/`                                                               |
-| `shared/space-scene/` | `components/` `directives/` `services/` `engine/` `rules/` `models/` `ports/`                                                                 |
+| `shared/space-scene/` | `components/` `directives/` `services/` `engine/` `rules/` `trackers/` `models/` `ports/`                                                     |
 | `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `observatory` |
 | `features/common/`    | `ports/` `models/` (types seuls)                                                                                                              |
 | `i18n/`               | `services/` `providers/` `guards/` `models/` `rules/` `data/`                                                                                 |
@@ -318,13 +319,14 @@ services pour un seul besoin appelle une façade propre à ce besoin.
   `core/models/display-format.model.ts`). Son dossier à lui :
   `core/services/browser/` est à huit sources, et le format est une règle
   posée sur le navigateur, pas un accès de plus.
-- **`PhoneCodeService`** (`phone-code.service.ts`). But : charger à la
-  demande le code qui ne sert qu'au format `phone`. Contrat :
-  `load(importer)`, appelé dans un contexte d'injection, rend un signal qui
-  vaut `null` puis le module chargé. L'`import()` part dès que le format vaut
-  `phone`, au démarrage du client ou au passage à `phone`, une seule fois ;
-  jamais à la tablette, au bureau ni au serveur, où le format vaut `desktop`.
-  Un chargement qui échoue se redemande au prochain passage à `phone` (D39).
+- **`FormatCodeService`** (`format-code.service.ts`, ex-`PhoneCodeService`).
+  But : charger à la demande le code qui ne sert qu'à certains formats.
+  Contrat : `load(formats, importer)`, appelé dans un contexte d'injection,
+  rend un signal qui vaut `null` puis le module chargé. L'`import()` part dès
+  que le format est l'un de `formats`, au démarrage du client ou au passage
+  à l'un d'eux, une seule fois ; jamais aux autres formats, ni au serveur,
+  qui répond `desktop` mais ne charge rien. Un chargement qui échoue se
+  redemande au prochain passage à l'un de ces formats (D39, D43).
 - La disposition ne lit pas ce signal : elle suit les mixins de
   `src/assets/styles/mixins/_formats.scss`, qui disent la même règle en
   media queries. Aucun bloc structurel ne dépend du format au premier rendu.
@@ -405,7 +407,8 @@ contenait remonte dans une feature ou devient générique.
   `--glass-bottom-reserve`) ; la part basse est un jeton, `--glass-lowered`
   (D27).
 - Le geste de la vitre est chargé à part (D39). La directive reste dans le
-  bundle initial ; elle demande son tracker à `PhoneCodeService`, et le bureau
+  bundle initial ; elle demande son tracker à `FormatCodeService` pour le
+  format `phone`, et le bureau
   le demande aussi à son démarrage, avant qu'une vitre s'ouvre. Tant qu'il
   n'est pas là, elle retient au téléphone chaque événement du pointeur et les
   lui rejoue, dans l'ordre, à son arrivée. Le tracker et la règle ne sont
@@ -593,26 +596,41 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
 La scène canvas, sans un mot du portfolio. Son API parle de cadrages, de
 corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 
-| Unité                                                         | But                                                                                                                |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `components/space-scene/` `SpaceSceneComponent`               | démarrer et arrêter la scène, lui passer les corps, la direction et les noms des figures                           |
-| `directives/turn-gesture.directive.ts` `TurnGestureDirective` | tourner la scène en la faisant glisser ; absorber le clic qui termine un glissement                                |
-| `directives/scene-target.directive.ts` `SceneTargetDirective` | inscrire un élément comme cible d'un corps, dans l'ordre du document (le rang)                                     |
-| `services/scene-targets.service.ts` `SceneTargetsService`     | le registre des cibles, fourni par `SpaceSceneComponent`                                                           |
-| `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                               |
-| `models/scene.model.ts`                                       | `SceneBody`, `SceneDirection`, `CameraFraming`, `BodiesPresence`, `LabelStyle`                                     |
-| `models/scene-layout.model.ts`                                | `SceneLayout`, `PanelRect`, `ScenePanelRole`                                                                       |
-| `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `matter/`, `planets/`, `sky/` |
-| `engine/`                                                     | la boucle et ses couches (D11)                                                                                     |
+| Unité                                                         | But                                                                                                                             |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `components/space-scene/` `SpaceSceneComponent`               | démarrer et arrêter la scène, lui passer les corps, la direction et les noms des figures                                        |
+| `directives/turn-gesture.directive.ts` `TurnGestureDirective` | tourner la scène en la faisant glisser ; absorber le clic qui termine un glissement                                             |
+| `trackers/zoom-gesture.tracker.ts` `ZoomGestureTracker`       | aux formats `phone` et `tablet`, rapprocher la caméra au pincement et au double toucher de l'accueil (D32, D43)                 |
+| `trackers/sky-look.tracker.ts` `SkyLookTracker`               | au format `desktop`, rapprocher la caméra à la molette et la déplacer au clic molette (D43)                                     |
+| `services/scene-look.service.ts` `SceneLookService`           | charger les gestes du ciel du format et les démarrer, fourni par `SpaceSceneComponent`                                          |
+| `directives/scene-target.directive.ts` `SceneTargetDirective` | inscrire un élément comme cible d'un corps, dans l'ordre du document (le rang)                                                  |
+| `services/scene-targets.service.ts` `SceneTargetsService`     | le registre des cibles, fourni par `SpaceSceneComponent`                                                                        |
+| `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                                            |
+| `models/scene.model.ts`                                       | `SceneBody`, `SceneDirection`, `CameraFraming`, `BodiesPresence`, `LabelStyle`                                                  |
+| `models/scene-layout.model.ts`                                | `SceneLayout`, `PanelRect`, `ScenePanelRole`                                                                                    |
+| `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `gestures/`, `matter/`, `planets/`, `sky/` |
+| `engine/`                                                     | la boucle et ses couches (D11)                                                                                                  |
 
 - Au format `phone`, le trou noir est le sujet (D35) : `hole-focus.rules.ts`
   (`holeInFocus`, `skyRooms`) le grandit et le range dans le ciel libre. Ce
   code est chargé à part (D39) : `SpaceSceneComponent` le demande à
-  `PhoneCodeService` et le donne à l'engine avec ses entrées
+  `FormatCodeService` pour le format `phone` et le donne à l'engine avec ses entrées
   (`SceneInputs.holeFocus`, de forme `HoleFocusRules`), qui le passe au
   cadrage. Tant qu'il n'est pas là, la scène cadre sans lui ; à son
   arrivée, la caméra y va par son amorti ordinaire. Les bancs de l'engine le
   donnent avant la première image.
+- Les gestes du ciel sont chargés à part, par format (D43) : au doigt
+  (`phone`, `tablet`), le pincement et le double toucher,
+  `ZoomGestureTracker` ; au bureau, la molette et le clic molette,
+  `SkyLookTracker`, avec `SkyPanMotion` (`engine/motions/sky-pan.motion.ts`)
+  et `sky-look.rules.ts` (`rules/gestures/`). `SceneLookService` les demande
+  à `FormatCodeService` ; il rend à chaque tracker une fonction de départ
+  (`StartLook`, `models/scene-look.model.ts`). Un seul effet de
+  `SpaceSceneComponent`, l'enveloppe, démarre celui du format courant quand
+  l'engine et son code sont là, l'arrête au changement de format et à la
+  destruction, et donne le décalage du bureau à l'engine avec ses entrées
+  (`SceneInputs.pan`, de forme `SkyPan`), qui le pose après le facteur du
+  zoom (`ZoomMotion.pan`). Un geste fait avant l'arrivée du code est perdu.
 - **`SceneDirection`** : `framing` (`rest`, `overview`, `aside`,
   `close-up` sur un corps, `approach` d'un corps à un pas donné),
   `presence` des corps (`shown`, `held` jusqu'à leur entrée, que le
@@ -707,7 +725,7 @@ src/app/
   core/models/                                 display-format.model · lang.model
   core/rules/                                  display-format.rules · draft.rules · localize.rules
   core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
-  core/services/device/                        display-format.service · phone-code.service
+  core/services/device/                        display-format.service · format-code.service
   core/services/errors/                        console-error-handler.service
   core/services/head/                          document-head.service
   core/services/i18n/                          locale.service
@@ -754,20 +772,22 @@ src/app/
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component
   shared/space-scene/components/space-scene/   space-scene.component
-  shared/space-scene/directives/               scene-target.directive · turn-gesture.directive · zoom-gesture.directive
+  shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
   shared/space-scene/engine/                   frame-loop.engine · space-scene.engine
-  shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · star-flow.motion · turntable.motion · zoom.motion
+  shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · sky-pan.motion · star-flow.motion · turntable.motion · zoom.motion
   shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
   shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · figure-strokes.renderer · figure-targets.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
-  shared/space-scene/models/                   scene-constants.model · scene-layout.model · scene.model
+  shared/space-scene/models/                   scene-constants.model · scene-layout.model · scene-look.model · scene.model
   shared/space-scene/ports/                    scene-surroundings.port
-  shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules · sky-touch.rules
+  shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
   shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
+  shared/space-scene/rules/gestures/           sky-look.rules · sky-touch.rules
   shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
   shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
   shared/space-scene/rules/figures/            constellations.rules · figure-arrangement.rules · figure-label.rules · figure-room.rules · figure-target.rules · phone-figures.rules
   shared/space-scene/rules/sky/                comets.rules · star-field.rules · trail-steps.rules
-  shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-targets.service
+  shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-look.service · scene-targets.service
+  shared/space-scene/trackers/                 sky-look.tracker · zoom-gesture.tracker
   shared/ui/components/language-switch/        language-switch.component
   shared/ui/components/main-nav/               main-nav.component
   shared/ui/components/segmented/              segmented.component

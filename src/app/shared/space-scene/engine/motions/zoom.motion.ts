@@ -11,6 +11,14 @@ import type { SceneFrame } from '../../rules/scene-frame.rules';
 
 const SNAP_WITHIN = 0.002;
 
+export interface SkyPan {
+  readonly hasMoved: boolean;
+  readonly isSettled: boolean;
+  reset(): void;
+  update(dt: number, isReduced: boolean): void;
+  lay(frame: SceneFrame): void;
+}
+
 export class ZoomMotion {
   private now = ZOOM_MIN;
   private aim = ZOOM_MIN;
@@ -21,17 +29,22 @@ export class ZoomMotion {
   private step = 0;
   private grip: { x: number; y: number; factor: number } | null = null;
   private readonly hole = { cx: 0, cy: 0, radius: 0 };
+  public pan: SkyPan | null = null;
 
   public get held(): boolean {
     return this.grip !== null;
   }
 
   public get hasMoved(): boolean {
-    return this.step > 0;
+    return this.step > 0 || this.pan?.hasMoved === true;
   }
 
   public get isSettled(): boolean {
-    return this.grip === null && this.now === this.aim;
+    return (
+      this.grip === null &&
+      this.now === this.aim &&
+      this.pan?.isSettled !== false
+    );
   }
 
   public resize(width: number, height: number): boolean {
@@ -51,6 +64,7 @@ export class ZoomMotion {
   public reset(): void {
     this.grip = null;
     this.aim = ZOOM_MIN;
+    this.pan?.reset();
   }
 
   public hold(x: number, y: number): void {
@@ -100,13 +114,18 @@ export class ZoomMotion {
       }
     }
     this.step = Math.abs(this.now - before);
+    this.pan?.update(dt, isReduced);
   }
 
   public lay(frame: SceneFrame): void {
     const factor = this.now;
-    if (factor === ZOOM_MIN) {
-      return;
+    if (factor !== ZOOM_MIN) {
+      this.layFactor(frame, factor);
     }
+    this.pan?.lay(frame);
+  }
+
+  private layFactor(frame: SceneFrame, factor: number): void {
     frame.cx = zoomedAt(frame.cx, this.anchorX, factor);
     frame.cy = zoomedAt(frame.cy, this.anchorY, factor);
     frame.radius *= factor;

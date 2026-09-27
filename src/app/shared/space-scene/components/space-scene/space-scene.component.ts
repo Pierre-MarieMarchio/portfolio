@@ -14,11 +14,12 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { DisplayFormatService, PhoneCodeService } from '@app/core/services';
+import { DisplayFormatService, FormatCodeService } from '@app/core/services';
 import { AnimatedCanvasService } from '../../services/animated-canvas.service';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
-import { ZoomGestureDirective } from '../../directives/zoom-gesture.directive';
 import { SpaceSceneEngine } from '../../engine/space-scene.engine';
+import type { SkyPan } from '../../engine/motions/zoom.motion';
+import { SceneLookService } from '../../services/scene-look.service';
 import {
   RESTING_DIRECTION,
   SceneBody,
@@ -42,8 +43,8 @@ export const loadHoleFocus = () => import('../../rules/hole-focus.rules');
 
 @Component({
   selector: 'app-space-scene',
-  imports: [TurnGestureDirective, ZoomGestureDirective],
-  providers: [SceneTargetsService],
+  imports: [TurnGestureDirective],
+  providers: [SceneTargetsService, SceneLookService],
   templateUrl: './space-scene.component.html',
   styleUrl: './space-scene.component.scss',
 })
@@ -52,7 +53,11 @@ export class SpaceSceneComponent {
   private readonly surroundings = inject(SCENE_SURROUNDINGS);
   private readonly targets = inject(SceneTargetsService);
   private readonly display = inject(DisplayFormatService);
-  private readonly holeFocus = inject(PhoneCodeService).load(loadHoleFocus);
+  private readonly holeFocus = inject(FormatCodeService).load(
+    ['phone'],
+    loadHoleFocus,
+  );
+  private readonly look = inject(SceneLookService);
 
   public readonly bodies = input<readonly SceneBody[]>([]);
   public readonly direction = input<SceneDirection>(RESTING_DIRECTION);
@@ -64,6 +69,7 @@ export class SpaceSceneComponent {
   protected readonly failed = signal(false);
   protected readonly running = signal(false);
   private readonly reduced = signal(true);
+  private readonly pan = signal<SkyPan | null>(null);
 
   public readonly animated = computed(() => this.running() && !this.reduced());
 
@@ -97,6 +103,19 @@ export class SpaceSceneComponent {
       });
     });
 
+    effect((onCleanup) => {
+      const engine = this.engine();
+      const look = engine ? this.look.start(engine) : null;
+      if (!look) {
+        return;
+      }
+      this.pan.set(look.pan);
+      onCleanup(() => {
+        look.stop();
+        this.pan.set(null);
+      });
+    });
+
     afterEveryRender({
       read: () => {
         this.giveNodes();
@@ -126,6 +145,7 @@ export class SpaceSceneComponent {
       reduced: this.reduced(),
       format: this.display.format(),
       holeFocus: this.holeFocus(),
+      pan: this.pan(),
     };
   }
 

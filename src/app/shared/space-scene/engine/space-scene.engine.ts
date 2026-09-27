@@ -28,7 +28,7 @@ import {
 } from '../rules/camera/pointer.rules';
 import { SceneFrame, sceneFrame } from '../rules/scene-frame.rules';
 import { NO_STATE, SceneState, sceneState } from '../rules/scene-state.rules';
-import { canLookCloser, isSameFraming } from '../rules/camera/zoom.rules';
+import { canLookCloser } from '../rules/camera/zoom.rules';
 import type { SceneInputs, SkyFigures } from '../models/scene.model';
 import type { SceneLayout } from '../models/scene-layout.model';
 
@@ -95,12 +95,10 @@ export class SpaceSceneEngine {
     const state = sceneState(inputs);
     this.state = state;
     this.framing.holeFocus = inputs.holeFocus ?? null;
+    this.motion.zoom.pan = inputs.pan ?? null;
     this.frames.setTouch(state.touch);
     if (previous.count !== state.count || this.orbits.length === 0) {
       this.orbits = placeOrbits(state.count);
-    }
-    if (!isSameFraming(previous, state)) {
-      this.motion.zoom.reset();
     }
     this.motion.follow(previous, state);
     this.request();

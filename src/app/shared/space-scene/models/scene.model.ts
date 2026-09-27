@@ -1,4 +1,5 @@
 import type { DisplayFormat } from '@app/core/models';
+import type { SkyPan } from '../engine/motions/zoom.motion';
 import type { HoleFocusRules } from '../rules/camera/framing.rules';
 
 export type CameraFraming =
@@ -54,4 +55,5 @@ export interface SceneInputs {
   readonly reduced: boolean;
   readonly format?: DisplayFormat;
   readonly holeFocus?: HoleFocusRules | null;
+  readonly pan?: SkyPan | null;
 }

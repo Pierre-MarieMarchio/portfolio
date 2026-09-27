@@ -1,10 +1,9 @@
-import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { DisplayFormatService } from '@app/core/services';
-import type { DisplayFormat } from '@app/core/models';
-import { ZoomGestureDirective, ZoomableScene } from './zoom-gesture.directive';
+import type { LookableScene, WindowEvents } from '../models/scene-look.model';
+import { ClickAbsorberService } from '../services/click-absorber.service';
+import { ZoomGestureTracker } from './zoom-gesture.tracker';
 
-class SceneDouble implements ZoomableScene {
+class SceneDouble implements LookableScene {
   public canLook = true;
   public readonly holds: [number, number][] = [];
   public readonly stretches: [number, number, number][] = [];
@@ -28,15 +27,20 @@ class SceneDouble implements ZoomableScene {
     this.looks += 1;
     return this.canLook;
   }
+
+  public request(): void {}
 }
 
-@Component({
-  imports: [ZoomGestureDirective],
-  template: `<div [appZoomGesture]="scene()"></div>`,
-})
-class HostComponent {
-  public readonly scene = signal<ZoomableScene | null>(null);
-}
+const windowEvents: WindowEvents = {
+  onWindow: (type, handler, options) => {
+    window.addEventListener(type, handler, options);
+    return () => {
+      window.removeEventListener(type, handler, options);
+    };
+  },
+};
+
+const trackers: ZoomGestureTracker[] = [];
 
 interface Finger {
   readonly id?: number;
@@ -74,22 +78,14 @@ const tap = (target: EventTarget, finger: Finger = {}): void => {
   touch(target, 'pointerup', { ...finger, time: (finger.time ?? 0) + 60 });
 };
 
-const mount = async (
-  scene: ZoomableScene | null,
-  format: DisplayFormat = 'phone',
-) => {
-  TestBed.configureTestingModule({
-    imports: [HostComponent],
-    providers: [
-      { provide: DisplayFormatService, useValue: { format: () => format } },
-    ],
-  });
-  const fixture = TestBed.createComponent(HostComponent);
-  fixture.componentInstance.scene.set(scene);
-  await fixture.whenStable();
-  const host = fixture.nativeElement as HTMLElement;
+const mount = async (scene: SceneDouble) => {
+  const absorber = TestBed.inject(ClickAbsorberService);
+  const tracker = new ZoomGestureTracker(scene, windowEvents, absorber);
+  trackers.push(tracker);
+  const host = document.createElement('div');
   document.body.append(host);
-  return { fixture, host, clicks: () => clicksHeard };
+  await Promise.resolve();
+  return { tracker, host, clicks: () => clicksHeard };
 };
 
 const planetButton = (): HTMLElement => {
@@ -108,7 +104,7 @@ const pinch = (host: HTMLElement): void => {
   touch(host, 'pointerup', { id: 2, x: 160, y: 200 });
 };
 
-describe('ZoomGestureDirective', () => {
+describe('ZoomGestureTracker', () => {
   beforeEach(() => {
     clicksHeard = 0;
     document.addEventListener('click', hearClick);
@@ -116,6 +112,9 @@ describe('ZoomGestureDirective', () => {
 
   afterEach(() => {
     document.removeEventListener('click', hearClick);
+    for (const tracker of trackers.splice(0)) {
+      tracker.stop();
+    }
     TestBed.resetTestingModule();
     document.body.replaceChildren();
   });
@@ -326,33 +325,12 @@ describe('ZoomGestureDirective', () => {
     expect(scene.holds).toEqual([]);
   });
 
-  it('leaves the desktop as it was', async () => {
+  it('stops listening when stopped', async () => {
     const scene = new SceneDouble();
-    const { host } = await mount(scene, 'desktop');
-
-    pinch(host);
-    tap(host, { time: 0 });
-    tap(host, { time: 100 });
-
-    expect(scene.holds).toEqual([]);
-    expect(scene.looks).toBe(0);
-  });
-
-  it('does nothing before a scene is there', async () => {
-    const { host, clicks } = await mount(null);
-
-    pinch(host);
-    touch(host, 'click');
-
-    expect(clicks()).toBe(1);
-  });
-
-  it('stops listening when destroyed', async () => {
-    const scene = new SceneDouble();
-    const { host, fixture } = await mount(scene);
+    const { host, tracker } = await mount(scene);
 
     touch(host, 'pointerdown', { id: 1, x: 100, y: 200 });
-    fixture.destroy();
+    tracker.stop();
     touch(document.body, 'pointerdown', { id: 2, x: 140, y: 200 });
     touch(document.body, 'pointermove', { id: 2, x: 180, y: 200 });
 

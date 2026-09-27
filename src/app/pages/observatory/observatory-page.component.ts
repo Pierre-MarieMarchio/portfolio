@@ -13,7 +13,7 @@ import { LANGS } from '@app/core/models';
 import {
   DisplayFormatService,
   LocaleService,
-  PhoneCodeService,
+  FormatCodeService,
 } from '@app/core/services';
 import {
   FeaturedBarComponent,
@@ -235,7 +235,7 @@ export class ObservatoryPageComponent {
     const loaded = viewAtAddress(this.locale.path(), (at) => pathOf(at, lang));
     this.station.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
-    inject(PhoneCodeService).load(loadGlassGestures);
+    inject(FormatCodeService).load(['phone'], loadGlassGestures);
     afterNextRender(() => {
       this.landed = true;
       this.arrivalController.start(() => {

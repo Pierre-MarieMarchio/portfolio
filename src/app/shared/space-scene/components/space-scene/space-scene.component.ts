@@ -64,6 +64,7 @@ export class SpaceSceneComponent {
     viewChild.required<ElementRef<HTMLCanvasElement>>('sky');
   private readonly matter =
     viewChild.required<ElementRef<HTMLCanvasElement>>('matter');
+  private readonly stage = viewChild.required<ElementRef<HTMLElement>>('stage');
   private readonly labelNodes = viewChildren<ElementRef<HTMLElement>>('label');
 
   protected readonly engine = signal<SpaceSceneEngine | null>(null);
@@ -142,6 +143,7 @@ export class SpaceSceneComponent {
     this.engine.set(engine);
     engine.setInputs(untracked(() => this.snapshot()));
     this.giveNodes();
+    engine.setHoleMark(this.stage().nativeElement);
     this.resize();
     this.measure();
     this.watch(engine, matter);

@@ -759,3 +759,31 @@ luminosité, teinte) montre qu'au-delà de × 2 le contraste passe sous 4,5:1.
 Mesurer le flou sous WebKit : celui de Playwright sous Linux ne dessine pas
 `backdrop-filter` (témoin : `brightness(0.2)` sur du blanc reste blanc).
 Le rendu se juge sous Chromium et sur un iPhone.
+
+## 2026-09-25 — Chaque vue cadre dans le ciel libre (D29, étend D26)
+
+**Décision.** Le moteur reconnaît un bandeau du bas quel que soit le rôle de
+la fenêtre (`panelBandTop`), et un panneau latéral sur un écran debout
+(`sidePanelLeft`). Avec l'un ou l'autre, la vue d'ensemble (relevé), la vue
+de côté (à-propos) et la page introuvable centrent l'objet dans le ciel
+libre, entre la barre du haut et le bandeau, ou à gauche du panneau, et
+l'ajustent pour que l'orbite extérieure et ses planètes y tiennent
+(`free-sky.rules.ts`). Sans l'un ni l'autre, les cadrages constants restent
+tels quels. Repliée, la vitre du téléphone sort de son emplacement fixe :
+l'emplacement se réduit à sa barre, la scène lit ce nouveau bandeau, et la
+caméra y glisse avec son amorti ordinaire. Au repos de l'accueil, sur un
+écran debout déjà au plafond de taille, la caméra regarde de plus haut
+(élévation jusqu'à 0,6) : les planètes s'étagent, leurs libellés se
+séparent, et le trou noir garde sa taille. La scène écrit le centre et le
+rayon du trou noir sur `.stage` (`data-hole-*`), seulement quand ils
+changent, pour que les tests lisent le cadrage.
+
+**Raison.** D26 ne cadrait au-dessus de la vitre que l'approche et le gros
+plan. Au relevé, l'objet restait posé sur le haut de la vitre, ses numéros
+emmêlés, la moitié haute du ciel vide ; repliée, la vitre rendait l'écran
+sans que l'objet le reprenne. Un écran debout a de la hauteur à revendre :
+la dépenser en élévation démêle les libellés sans rapetisser l'objet.
+
+**Écarté.** Suivre la vitre qui monte (D26 l'écarte déjà). Resserrer la
+tolérance de placement des libellés : elle déplaçait les empreintes du
+bureau.

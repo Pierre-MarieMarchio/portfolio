@@ -16,6 +16,8 @@ export interface SceneLayout {
   readonly closeUpEdge: number | null;
   readonly approachBandTop?: number | null;
   readonly closeUpBandTop?: number | null;
+  readonly panelBandTop?: number | null;
+  readonly sidePanelLeft?: number | null;
 }
 
 export type ScenePanelRole =

@@ -86,6 +86,27 @@ describe('placeName', () => {
     expect(moved.dir).toBe(-1);
   });
 
+  it('keeps a name clear of a longer one it would start inside', () => {
+    const near = { ...planet(900, 300), objectRadius: 40 };
+    const own = placeName(near, SIZE, STAGE, []);
+    const longer = SIZE.w + 30;
+    const before: TakenPlace = {
+      x: own.x - longer + 9,
+      y: own.y,
+      w: longer,
+      h: SIZE.h,
+      isName: true,
+    };
+
+    const placed = placeName(near, SIZE, STAGE, [before]);
+
+    const isApart =
+      placed.x >= before.x + before.w ||
+      placed.x + SIZE.w <= before.x ||
+      Math.abs(placed.y - before.y) >= (before.h + SIZE.h) / 2;
+    expect(isApart).toBe(true);
+  });
+
   it('gives up when both flanks are taken, and takes nothing', () => {
     const taken: TakenPlace[] = [{ x: 640, y: 400, w: 4000, h: 4000 }];
 

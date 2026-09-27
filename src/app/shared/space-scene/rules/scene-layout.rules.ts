@@ -1,4 +1,5 @@
 import type {
+  LayoutBox,
   PanelRect,
   SceneLayout,
   ScenePanelRole,
@@ -33,6 +34,15 @@ const isSidePanel = (
   rect.left >= viewport.width * SIDE_PANEL.leftShare &&
   rect.height >= viewport.height * SIDE_PANEL.heightShare;
 
+const CORNER_TOLERANCE = 1;
+
+const isFlushInCorner = (
+  rect: PanelBox,
+  viewport: SceneLayout['viewport'],
+): boolean =>
+  rect.right >= viewport.width - CORNER_TOLERANCE &&
+  rect.bottom >= viewport.height - CORNER_TOLERANCE;
+
 const CHROME_ROLES: ReadonlySet<ScenePanelRole> = new Set([
   'top-bar',
   'bottom-bar',
@@ -61,6 +71,7 @@ export function sceneLayout(
     viewport,
     panels: anchors.map((anchor) => panelOf(anchor)),
     topBarHeight: topBar ? Math.round(topBar.height) : null,
+    topBar: topBar ? boxOf(topBar) : null,
     bottomBarHeight: bottomBar ? Math.round(bottomBar.height) : null,
     approachEdge: approach ? Math.round(approach.left) : null,
     closeUpEdge: closeUp ? closeUp.left : null,
@@ -76,7 +87,7 @@ export function sceneLayout(
 function windowBounds(
   anchors: readonly PanelAnchor[],
   viewport: SceneLayout['viewport'],
-): Pick<SceneLayout, 'panelBandTop' | 'sidePanelLeft'> {
+): Pick<SceneLayout, 'panelBandTop' | 'sidePanelLeft' | 'cornerPanelLeft'> {
   const windows = anchors
     .filter(
       (anchor) =>
@@ -86,14 +97,18 @@ function windowBounds(
     )
     .map((anchor) => anchor.rect);
   const bands = windows.filter((rect) => isBottomBand(rect, viewport));
-  const sides = isPortrait(viewport)
-    ? windows.filter(
-        (rect) => !isBottomBand(rect, viewport) && isSidePanel(rect, viewport),
-      )
-    : [];
+  const sidePanels = windows.filter(
+    (rect) => !isBottomBand(rect, viewport) && isSidePanel(rect, viewport),
+  );
+  const isUpright = isPortrait(viewport);
+  const sides = isUpright ? sidePanels : [];
+  const corners = isUpright
+    ? []
+    : sidePanels.filter((rect) => isFlushInCorner(rect, viewport));
   return {
     panelBandTop: smallestOf(bands.map((rect) => rect.top)),
     sidePanelLeft: smallestOf(sides.map((rect) => rect.left)),
+    cornerPanelLeft: smallestOf(corners.map((rect) => rect.left)),
   };
 }
 
@@ -103,6 +118,15 @@ function smallestOf(values: readonly number[]): number | null {
 
 function isShown(anchor: PanelAnchor): boolean {
   return anchor.rect.width > 0 && anchor.rect.height > 0;
+}
+
+function boxOf(rect: PanelBox): LayoutBox {
+  return {
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+  };
 }
 
 function panelOf({ rect, opacity }: PanelAnchor): PanelRect {

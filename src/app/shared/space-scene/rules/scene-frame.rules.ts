@@ -34,6 +34,7 @@ export interface SceneFrame {
   hole: ScreenHole;
   arrived: boolean;
   zones: readonly Zone[];
+  topBar: Zone | null;
   fade: number;
   orbits: readonly Orbit[];
   readonly focus: PlanetFocus;
@@ -72,6 +73,7 @@ export const sceneFrame = (
     hole: { cx: 0, cy: 0, radius: 0 },
     arrived: true,
     zones: [],
+    topBar: null,
     fade: 0,
     orbits: [],
     focus: noFocus(),

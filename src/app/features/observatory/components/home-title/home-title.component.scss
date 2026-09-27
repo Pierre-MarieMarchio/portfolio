@@ -18,6 +18,12 @@ $arrival-delay: 700ms;
   pointer-events: none;
 }
 
+@include formats.phone-landscape {
+  :host {
+    max-width: calc(100% - var(--glass-width) - 2 * var(--gutter));
+  }
+}
+
 :host([data-arrival='held']) {
   @include arrival.held($hide: false);
 }

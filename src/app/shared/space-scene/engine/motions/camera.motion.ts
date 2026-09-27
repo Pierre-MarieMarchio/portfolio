@@ -23,6 +23,18 @@ import { Traveling } from '../../rules/camera/traveling.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 
 const ARRIVED_WITHIN = 0.05;
+const STILL_WITHIN = 0.0002;
+const REST_KEYS = ['x', 'y', 's', 'i', 'ev'] as const;
+const POSE_KEYS = [
+  'roll',
+  'scale',
+  'camX',
+  'camY',
+  'elev',
+  'azim',
+  'marks',
+  'figures',
+] as const;
 
 interface CameraPose {
   readonly roll: number;
@@ -45,6 +57,16 @@ export class CameraMotion {
     azim: NaN,
     marks: NaN,
     figures: NaN,
+  };
+  private readonly was: { -readonly [K in keyof CameraPose]: number } = {
+    roll: 0,
+    scale: 0,
+    camX: 0,
+    camY: 0,
+    elev: 0,
+    azim: 0,
+    marks: 0,
+    figures: 0,
   };
   private readonly lights: number[] = [];
   private readonly restFrame: { -readonly [K in keyof Frame]: Frame[K] } = {
@@ -128,7 +150,7 @@ export class CameraMotion {
     }
     this.startOn(aim, marks, figures);
     this.left = this.distanceTo(aim);
-    const before = this.sum();
+    this.rememberPose();
     const kc = isReduced ? 1 : halfLifeStep(dt, 0.55);
     const hasRestMoved = this.easeRest(dt, isReduced);
     this.ease(aim, kc);
@@ -136,7 +158,7 @@ export class CameraMotion {
     this.now.marks += (marks - this.now.marks) * kc;
     this.now.figures += (figures - this.now.figures) * kc;
     this.light(lit, kc);
-    this.isMoving = hasRestMoved || Math.abs(before - this.sum()) > 0.0002;
+    this.isMoving = hasRestMoved || this.poseTravel() > STILL_WITHIN;
   }
 
   public lay(frame: SceneFrame, trv: Traveling): void {
@@ -200,15 +222,13 @@ export class CameraMotion {
     }
     const km = isReduced ? 1 : halfLifeStep(dt, 0.75);
     const rest = this.restFrame;
-    const before = rest.x + rest.y + rest.s + rest.i + rest.ev;
-    rest.x += (measure.x - rest.x) * km;
-    rest.y += (measure.y - rest.y) * km;
-    rest.s += (measure.s - rest.s) * km;
-    rest.i += (measure.i - rest.i) * km;
-    rest.ev += (measure.ev - rest.ev) * km;
-    return (
-      Math.abs(before - (rest.x + rest.y + rest.s + rest.i + rest.ev)) > 0.0002
-    );
+    let travelled = 0;
+    for (const key of REST_KEYS) {
+      const step = (measure[key] - rest[key]) * km;
+      rest[key] += step;
+      travelled += Math.abs(step);
+    }
+    return travelled > STILL_WITHIN;
   }
 
   private ease(aim: Frame, kc: number): void {
@@ -229,17 +249,17 @@ export class CameraMotion {
     }
   }
 
-  private sum(): number {
-    const now = this.now;
-    return (
-      now.roll +
-      now.scale +
-      now.camX +
-      now.camY +
-      now.elev +
-      now.marks +
-      now.azim +
-      now.figures
-    );
+  private rememberPose(): void {
+    for (const key of POSE_KEYS) {
+      this.was[key] = this.now[key];
+    }
+  }
+
+  private poseTravel(): number {
+    let travelled = 0;
+    for (const key of POSE_KEYS) {
+      travelled += Math.abs(this.now[key] - this.was[key]);
+    }
+    return travelled;
   }
 }

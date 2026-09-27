@@ -9,17 +9,17 @@ import {
   viewTitle,
 } from './pages/resolvers/page-head.resolver';
 import {
-  DesktopRouteComponent,
-  DesktopRouteData,
-} from './pages/desktop/desktop-route.component';
+  ObservatoryRouteComponent,
+  ObservatoryRouteData,
+} from './pages/observatory/observatory-route.component';
 
 function routesIn(lang: Lang): Route[] {
   const viewRoute = (view: 'home' | 'index' | 'about'): Route => ({
     path: PATHS[view][lang],
-    component: DesktopRouteComponent,
+    component: ObservatoryRouteComponent,
     canActivate: [loadCatalog],
     title: viewTitle(view),
-    data: { view } satisfies DesktopRouteData,
+    data: { view } satisfies ObservatoryRouteData,
     resolve: { description: viewDescription(view), alternates },
   });
   return [
@@ -27,10 +27,10 @@ function routesIn(lang: Lang): Route[] {
     viewRoute('index'),
     {
       path: `${PATHS.sheet[lang]}/:slug`,
-      component: DesktopRouteComponent,
+      component: ObservatoryRouteComponent,
       canActivate: [loadCatalog],
       title: sheetTitle,
-      data: { view: 'sheet' } satisfies DesktopRouteData,
+      data: { view: 'sheet' } satisfies ObservatoryRouteData,
       resolve: { description: sheetDescription, alternates },
     },
     viewRoute('about'),
@@ -40,10 +40,10 @@ function routesIn(lang: Lang): Route[] {
 function unknownIn(lang: Lang): Route {
   return {
     path: lang === 'en' ? 'en/**' : '**',
-    component: DesktopRouteComponent,
+    component: ObservatoryRouteComponent,
     canActivate: [loadCatalog],
     title: viewTitle('notFound'),
-    data: { view: 'not-found' } satisfies DesktopRouteData,
+    data: { view: 'not-found' } satisfies ObservatoryRouteData,
     resolve: { alternates },
   };
 }

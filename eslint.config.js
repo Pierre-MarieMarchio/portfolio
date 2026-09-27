@@ -10,7 +10,7 @@ import tseslint from 'typescript-eslint';
 
 const APP = 'src/app';
 
-const FEATURES = ['desktop', 'profile', 'projects'];
+const FEATURES = ['observatory', 'profile', 'projects'];
 
 const onDisk = readdirSync(`${APP}/features`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && entry.name !== 'common')

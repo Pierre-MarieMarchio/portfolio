@@ -9,7 +9,7 @@ import { LocaleService } from '@app/core/services';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ILinks, LINKS } from '@app/features/common';
-import { DESKTOP_TEXTS } from '@app/features/desktop/ports';
+import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { WINDOW_TEXTS } from '@shared/windows/ports';
 import { Catalog, PAGES_TEXTS } from '../models/catalog.model';
@@ -36,8 +36,8 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
       useFactory: () => slice('projects'),
     },
     {
-      provide: DESKTOP_TEXTS,
-      useFactory: () => slice('desktop'),
+      provide: OBSERVATORY_TEXTS,
+      useFactory: () => slice('observatory'),
     },
     {
       provide: PROFILE_TEXTS,

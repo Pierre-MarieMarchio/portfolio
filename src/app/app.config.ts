@@ -19,7 +19,7 @@ import { routes } from './app.routes';
 import { ConsoleErrorHandlerService } from '@app/core/services';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
-import { DesktopEffect } from './features/desktop/states';
+import { ObservatoryEffect } from './features/observatory/states';
 import { provideI18n } from './i18n';
 
 export const appConfig: ApplicationConfig = {
@@ -39,7 +39,7 @@ export const appConfig: ApplicationConfig = {
     { provide: TitleStrategy, useClass: RouteHeadStrategy },
     provideClientHydration(),
     provideStatewise({
-      effects: [ProjectsEffect, DesktopEffect],
+      effects: [ProjectsEffect, ObservatoryEffect],
     }),
 
     provideI18n(),

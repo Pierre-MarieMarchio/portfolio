@@ -5,7 +5,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { SITE_NAME } from '@app/core/services';
 import { RouteHeadStrategy } from '@app/core/strategies';
-import { DesktopEffect } from '@app/features/desktop/states';
+import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 import { CatalogLoaderService, provideI18n } from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
@@ -17,7 +17,7 @@ const harness = async () => {
     providers: [
       provideRouter(routes),
       { provide: TitleStrategy, useClass: RouteHeadStrategy },
-      provideStatewise({ effects: [ProjectsEffect, DesktopEffect] }),
+      provideStatewise({ effects: [ProjectsEffect, ObservatoryEffect] }),
       provideI18n(),
     ],
   });

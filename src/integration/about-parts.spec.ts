@@ -17,11 +17,11 @@ describe('the parts of "about"', () => {
       'Parcours',
       'Et après',
     ]);
-    expect(FR.desktop.object.parts).toEqual(partLabels(FR));
+    expect(FR.observatory.object.parts).toEqual(partLabels(FR));
   });
 
   it('reads the same order in English, window and sky alike', () => {
     expect(partLabels(EN)).toEqual(['Profile', 'Skills', 'Path', 'What next']);
-    expect(EN.desktop.object.parts).toEqual(partLabels(EN));
+    expect(EN.observatory.object.parts).toEqual(partLabels(EN));
   });
 });

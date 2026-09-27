@@ -15,5 +15,18 @@
         <span #label class="label" aria-hidden="true">{{ body.label }}</span>
       }
     }
+    @for (name of figureNames(); track $index) {
+      <button
+        #figure
+        type="button"
+        class="figure"
+        data-scene-figure
+        aria-hidden="true"
+        tabindex="-1"
+        [attr.aria-label]="name"
+        (pointerdown)="onFigurePress($event)"
+        (click)="onFigureClick($index, $event)"
+      ></button>
+    }
   }
 </div>

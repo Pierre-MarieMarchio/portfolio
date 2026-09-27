@@ -758,14 +758,15 @@ src/app/
   shared/space-scene/engine/                   frame-loop.engine · space-scene.engine
   shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · star-flow.motion · turntable.motion · zoom.motion
   shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
-  shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
+  shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · figure-strokes.renderer · figure-targets.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
   shared/space-scene/models/                   scene-constants.model · scene-layout.model · scene.model
   shared/space-scene/ports/                    scene-surroundings.port
   shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules · sky-touch.rules
   shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
   shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
   shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
-  shared/space-scene/rules/sky/                comets.rules · constellations.rules · figure-label.rules · figure-room.rules · star-field.rules · trail-steps.rules
+  shared/space-scene/rules/figures/            constellations.rules · figure-arrangement.rules · figure-label.rules · figure-room.rules · figure-target.rules · phone-figures.rules
+  shared/space-scene/rules/sky/                comets.rules · star-field.rules · trail-steps.rules
   shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-targets.service
   shared/ui/components/language-switch/        language-switch.component
   shared/ui/components/main-nav/               main-nav.component

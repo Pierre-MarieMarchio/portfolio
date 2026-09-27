@@ -42,7 +42,7 @@ interface FigureSpan {
   readonly b: number;
 }
 
-interface NameSize {
+export interface NameSize {
   readonly w: number;
   readonly h: number;
   readonly gap: number;
@@ -50,7 +50,7 @@ interface NameSize {
 
 const STAR_REACH = 3;
 
-const spanOf = (
+export const spanOf = (
   points: readonly (readonly [number, number])[],
   dpr: number,
 ): FigureSpan => {
@@ -63,7 +63,7 @@ const spanOf = (
   };
 };
 
-const nameBoxOf = (name: FigureName, size: NameSize): SkyRoom => ({
+export const nameBoxOf = (name: FigureName, size: NameSize): SkyRoom => ({
   l: name.x,
   r: name.x + size.w,
   t: name.baseline === 'bottom' ? name.y - size.h : name.y,
@@ -89,7 +89,7 @@ const namesOf = (
   ];
 };
 
-const unionOf = (a: SkyRoom, b: SkyRoom): SkyRoom => ({
+export const unionOf = (a: SkyRoom, b: SkyRoom): SkyRoom => ({
   l: Math.min(a.l, b.l),
   t: Math.min(a.t, b.t),
   r: Math.max(a.r, b.r),

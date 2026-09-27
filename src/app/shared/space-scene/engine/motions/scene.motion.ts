@@ -89,6 +89,7 @@ export class SceneMotion {
     const trv = this.clock.traveling(state.reduced);
     frame.trv = trv;
     this.camera.lay(frame, trv);
+    frame.unzoomedHole = frame.hole;
     this.zoom.lay(frame);
     frame.entry = state.reduced ? 1 : easeOut(this.grains.entry);
     frame.time = this.clock.time;

@@ -13,6 +13,7 @@ import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observator
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { PhoneCodeService } from '@app/core/services';
 import { loadGlassGestures } from '@shared/windows/directives';
+import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
 import { ObservatoryPageComponent } from './observatory-page.component';
 
 const arrivals = (host: HTMLElement) =>
@@ -262,6 +263,38 @@ describe('StationComponent', () => {
     const current = host.querySelectorAll('nav a[aria-current="page"]');
     expect(current).toHaveLength(1);
     expect(current[0]?.textContent?.trim()).toBe('À propos');
+  });
+
+  it('chooses the section of a figure touched in the sky, as the segmented control does', async () => {
+    const { fixture, station } = await mount();
+    station.syncRoute('about');
+    await fixture.whenStable();
+    const scene = fixture.debugElement.query(
+      (node) => node.componentInstance instanceof ObservatorySceneComponent,
+    ).componentInstance as ObservatorySceneComponent;
+
+    scene.figureChosen.emit(2);
+    await fixture.whenStable();
+
+    const about = fixture.debugElement.query(
+      (node) => node.componentInstance instanceof AboutWindowComponent,
+    ).componentInstance as AboutWindowComponent;
+    expect(station.section()).toBe(2);
+    expect(about.part()).toBe(2);
+  });
+
+  it('keeps the scene stage, where the figure targets live, a layer above the void and the sky', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+    const layerOf = (selector: string): string => {
+      const element = host.querySelector(selector);
+      return element ? getComputedStyle(element).zIndex : '';
+    };
+
+    expect(layerOf('.void')).toBe('var(--z-scene)');
+    expect(layerOf('app-space-scene .stage')).toBe('1');
+    expect(layerOf('app-space-scene .sky')).toBe('0');
   });
 
   it('shows the home heading only on the home view', async () => {

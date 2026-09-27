@@ -20,10 +20,12 @@ import {
   wholeInFreeSky,
 } from './free-sky.rules';
 import type { FocusAim, HoleFocus } from '../hole-focus.rules';
+import type { phoneFigures } from '../figures/phone-figures.rules';
 
 export interface HoleFocusRules {
   readonly holeInFocus: (frame: Frame, focus: HoleFocus) => Frame;
   readonly skyRooms: (layout: SceneLayout | null) => Box[];
+  readonly phoneFigures: typeof phoneFigures;
 }
 
 export interface FramingScene {

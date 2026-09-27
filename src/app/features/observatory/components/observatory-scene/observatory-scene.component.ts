@@ -50,6 +50,7 @@ export class ObservatorySceneComponent {
 
   public readonly bodyClicked = output<string>();
   public readonly bodyHovered = output<string | null>();
+  public readonly figureChosen = output<number>();
 
   private readonly scene = viewChild.required(SpaceSceneComponent);
 

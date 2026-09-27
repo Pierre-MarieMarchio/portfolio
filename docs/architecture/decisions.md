@@ -1255,3 +1255,56 @@ une coupe fait passer l'objet d'un point à sa taille pleine en une image.
 
 **Écarté.** Couper la traversée net au premier geste. Garder la carte sur
 toutes les vues. Rejouer la traversée à chaque retour sur l'accueil.
+
+## 2026-09-27 — À l'à-propos, les quatre figures se voient, se rangent au téléphone et se touchent (D42, étend D33)
+
+**Décision.** Dans la vue à-propos seulement, une figure non allumée se trace
+à 45 % d'éclat (20 % avant) et ses étoiles sont 25 % plus grosses ; l'allumée
+ne change pas, et toutes restent coupées par l'ombre. Hors de l'à-propos, le
+fondu de sortie repart des 20 % d'avant. Au format `phone`, debout et
+couché, les trois figures non allumées se rangent dans le ciel libre autour
+de l'allumée et de son nom, que D33 place comme avant : entières, écartées
+de 10 px l'une de l'autre, hors de l'ombre du trou quand le ciel le permet,
+hors du disque de préférence, au plus près de leur place d'origine, à une
+échelle commune qui descend par crans de 1 à 0,42 seulement s'il le faut.
+Une disposition se calcule par figure allumée, une fois par ciel (taille,
+ciel libre, trou avant le zoom) ; à chaque image, la place d'une figure est
+la moyenne de ces dispositions pesée par l'allumage : au changement de
+volet, elles glissent au rythme de la caméra. Au téléphone, les figures ne
+dérivent plus et ne suivent plus la parallaxe : le rangement tient sans se
+refaire. Ce code rejoint le morceau paresseux du téléphone (D39). À tous les
+formats, un `<button>` par figure, nommé par son volet, couvre la boîte de
+la figure (44 × 44 px au moins), positionné par `transform` depuis le tracé ;
+hors de l'à-propos, hors écran ou sous une vitre, il est inerte, hors
+tabulation et `aria-hidden`. La cible vit sur `.stage` (z-index 1), au-dessus
+du canvas du ciel qui prend le doigt (0, D32) et de `.void` (`--z-scene`,
+0), comme les boutons de planète. La figure allumée garde sa cible active :
+la toucher rechoisit son volet, sans effet, et une cible qui s'éteindrait à
+chaque choix changerait l'ordre de tabulation sous le doigt. Le toucher ou le clic choisit le volet par
+`chooseSection`, comme le segmenté ; un glisser de plus de 6 px n'est pas un
+clic ; un doigt posé dessus peut commencer un pincement (D32) et deux
+touchers n'y font pas un double toucher du ciel. Au bureau, sous le
+pointeur, une figure non allumée monte à 70 % et le curseur devient une
+main (`@media (hover: hover)`). La boucle ne s'arrête plus avant la fin du
+fondu des figures, même en pause.
+
+**Raison.** Le retour de l'opérateur, au bureau et au téléphone : « pour
+l'à-propos, les constellations doivent plus se voir non sélectionnées
+(revoir aussi leur position en mobile) et qu'elles ouvrent le bon menu si on
+clique dessus ». À 20 %, les trois figures non allumées ne se lisaient
+plus ; au téléphone debout, seule l'allumée tenait dans le ciel libre, les
+autres tombaient sous la vitre. `objet-canvas.md` §7 : « un ciel dont trois
+figures disparaissent n'est plus un ciel ». Dans Stellarium et Star Walk,
+toucher une figure la désigne ; le segmenté reste le chemin au clavier.
+
+**Écarté.** Ranger aussi la figure allumée : D33 la place, et le contrat la
+garde. Refaire le rangement à chaque image, ou sur le trou agrandi par le
+pincement : les figures se réorganisaient sous les doigts. Suivre le survol
+par `pointerenter` : le moteur suit déjà le pointeur, et les écouteurs
+pesaient dans le bundle initial. Ranger la tablette et le bureau : leurs
+positions tiennent.
+
+**Budget.** Le bundle initial passe de 526,2 à 529,9 kB (seuil
+d'avertissement à 530 kB) : les cibles et leur écriture servent à tous les
+formats et restent dans l'initial ; le rangement (4,7 kB) est dans
+`hole-focus-rules`, qui passe de 3,1 à 6,6 kB.

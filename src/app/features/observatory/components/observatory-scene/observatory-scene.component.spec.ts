@@ -3,6 +3,7 @@ import { LayoutAnchorsService } from '@shared/ui/services';
 import { ObservatorySceneComponent } from './observatory-scene.component';
 import { ObservatoryView, Planet } from '../../models';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
+import { OBSERVATORY_TEXTS } from '../../ports';
 
 const BODIES: readonly Planet[] = [
   { slug: 'voice', title: 'Skyted Voice', short: 'Skyted Voice' },
@@ -83,6 +84,10 @@ const mount = async (
   });
   fixture.componentInstance.bodyClicked.subscribe((slug) => clicked.push(slug));
   fixture.componentInstance.bodyHovered.subscribe((slug) => hovered.push(slug));
+  const chosen: number[] = [];
+  fixture.componentInstance.figureChosen.subscribe((figure) =>
+    chosen.push(figure),
+  );
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   return {
@@ -90,10 +95,14 @@ const mount = async (
     host,
     clicked,
     hovered,
+    chosen,
     lines,
     clicks: () => clicksHeard,
     buttons: () => [
       ...host.querySelectorAll<HTMLButtonElement>('button[data-scene-target]'),
+    ],
+    figures: () => [
+      ...host.querySelectorAll<HTMLButtonElement>('button[data-scene-figure]'),
     ],
   };
 };
@@ -314,5 +323,78 @@ describe('ObservatorySceneComponent', () => {
     expect(host.querySelector('.fallback')).not.toBeNull();
     expect(buttons()).toHaveLength(0);
     expect(fixture.componentInstance.animated()).toBe(false);
+  });
+
+  describe('the figures of the about view', () => {
+    it('lays one button per section, named after it', async () => {
+      const { figures } = await mount({ view: 'about' });
+      await frames();
+
+      expect(
+        figures().map((figure) => figure.getAttribute('aria-label')),
+      ).toEqual(TestBed.inject(OBSERVATORY_TEXTS)().object.parts);
+    });
+
+    it('lays the live targets on the stage, above the sky, where the pointer reaches them', async () => {
+      const { host, figures } = await mount({ view: 'about' });
+      await frames();
+      const stage = host.querySelector('.stage');
+      const sky = host.querySelector('.sky');
+      const live = figures().filter(
+        (figure) => figure.getAttribute('aria-hidden') === 'false',
+      );
+
+      expect(live.length).toBeGreaterThan(0);
+      for (const figure of live) {
+        expect(figure.parentElement).toBe(stage);
+        expect(getComputedStyle(figure).pointerEvents).toBe('auto');
+        expect(figure.tabIndex).toBe(0);
+      }
+      expect(Number(stage && getComputedStyle(stage).zIndex)).toBeGreaterThan(
+        Number(sky && getComputedStyle(sky).zIndex),
+      );
+    });
+
+    it('chooses the section of the figure clicked', async () => {
+      const { figures, chosen } = await mount({ view: 'about' });
+      await frames();
+
+      figures()[2]?.click();
+
+      expect(chosen).toEqual([2]);
+    });
+
+    it('does not choose a section at the end of a drag of more than 6 px', async () => {
+      const { figures, chosen } = await mount({ view: 'about' });
+      await frames();
+      const figure = figures()[1];
+
+      figure?.dispatchEvent(
+        new PointerEvent('pointerdown', { clientX: 100, clientY: 100 }),
+      );
+      figure?.dispatchEvent(
+        new MouseEvent('click', { clientX: 110, clientY: 100, detail: 1 }),
+      );
+      figure?.dispatchEvent(
+        new PointerEvent('pointerdown', { clientX: 100, clientY: 100 }),
+      );
+      figure?.dispatchEvent(
+        new MouseEvent('click', { clientX: 104, clientY: 103, detail: 1 }),
+      );
+
+      expect(chosen).toEqual([1]);
+    });
+
+    it('keeps every figure button inert out of the about view', async () => {
+      const { figures } = await mount({ view: 'home' });
+      await frames();
+
+      expect(figures()).toHaveLength(4);
+      for (const figure of figures()) {
+        expect(figure.getAttribute('aria-hidden')).toBe('true');
+        expect(figure.tabIndex).toBe(-1);
+        expect(figure.style.pointerEvents).toBe('none');
+      }
+    });
   });
 });

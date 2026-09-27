@@ -292,6 +292,30 @@ describe('ZoomGestureDirective', () => {
     expect(scene.holds).toEqual([]);
   });
 
+  it('pinches with a finger on a figure of the about view, and leaves its taps to the figure', async () => {
+    const scene = new SceneDouble();
+    const { host, clicks } = await mount(scene);
+    const figure = document.createElement('button');
+    figure.dataset['sceneFigure'] = '';
+    document.body.append(figure);
+
+    tap(figure, { time: 0 });
+    touch(figure, 'click');
+    tap(figure, { time: 100 });
+    touch(figure, 'click');
+    touch(figure, 'pointerdown', { id: 1, x: 100, y: 200, time: 1000 });
+    touch(host, 'pointerdown', { id: 2, x: 140, y: 200, time: 1000 });
+    touch(figure, 'pointermove', { id: 1, x: 80, y: 200, time: 1050 });
+    touch(host, 'pointermove', { id: 2, x: 160, y: 200, time: 1050 });
+    touch(figure, 'pointerup', { id: 1, x: 80, y: 200, time: 1100 });
+    touch(host, 'pointerup', { id: 2, x: 160, y: 200, time: 1100 });
+    touch(figure, 'click');
+
+    expect(scene.holds).toEqual([[120, 200]]);
+    expect(scene.looks).toBe(0);
+    expect(clicks()).toBe(2);
+  });
+
   it('answers the fingers only', async () => {
     const scene = new SceneDouble();
     const { host } = await mount(scene);

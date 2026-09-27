@@ -178,7 +178,7 @@ et de `src/testing/`, rangées par unité (D10).
   de D31 laissaient « Skyted Companion » et « Template .NET » se toucher de
   3 px sous WebKit à 780 × 360.
 
-## `src/app/shared/space-scene/rules/sky/figure-room.rules.ts`
+## `src/app/shared/space-scene/rules/figures/figure-room.rules.ts`
 
 - Quand la scène a un ciel libre (`freeSkyOf` : un bandeau, un panneau
   latéral debout, une vitre au coin), la figure allumée et son nom se
@@ -193,6 +193,64 @@ et de `src/testing/`, rangées par unité (D10).
   gauche ; à 780 × 360 elle passait sous la barre ; à 568 × 320,
   « PARCOURS » traversait le disque. Sans ciel libre (le bureau), la figure
   garde sa place et son nom la règle de D31.
+
+## `src/app/shared/space-scene/rules/figures/figure-arrangement.rules.ts`
+
+- Les figures non allumées se posent une à une, la plus grande d'abord, sur
+  la meilleure de 82 places (leur place d'origine ramenée dans le ciel, puis
+  une grille de 9 × 9), sans croiser la boîte déjà prise ni une figure déjà
+  posée, à 10 px près. Une place sur le disque coûte la diagonale du ciel :
+  toute place hors du disque passe devant. L'ombre du trou est d'abord
+  interdite, puis tolérée si aucune échelle ne tient sans elle. L'échelle,
+  commune à toutes, descend de 1 à 0,42 ; si rien ne tient, les figures sont
+  seulement ramenées dans le ciel.
+
+## `src/app/shared/space-scene/rules/figures/phone-figures.rules.ts`
+
+- Au téléphone (D42), une disposition se calcule pour chaque figure
+  allumée : l'allumée prend la place de `figureInRoom` (D33), sa boîte et
+  celle de son nom sont prises, les trois autres se rangent autour
+  (`arrangeFigures`), l'ombre comptée à 1,05 rayon plus la portée d'une
+  étoile.
+- Le rangement part des figures sans dérive ni parallaxe et du trou avant le
+  pincement : il ne se refait que si la taille, le ciel libre ou le trou
+  bougent d'un pixel, ou si les noms changent (`phoneFigures`). La place
+  dessinée est la moyenne des dispositions pesée par l'allumage de la
+  caméra, d'où le glissé au changement de volet. Ce module est dans le
+  morceau paresseux du téléphone (D39), par `hole-focus.rules.ts`.
+- Mesuré à 320 × 568, 390 × 844, 780 × 360 et 568 × 320 : les non allumées
+  tiennent entières à l'échelle 1, sauf à 568 × 320 (0,9 quand le Dragon
+  n'est pas allumé). À 320 × 568, le Dragon allumé perd 4 étoiles sur 9 sous
+  l'ombre : D33 n'écarte du disque que son nom.
+
+## `src/app/shared/space-scene/rules/figures/figure-target.rules.ts`
+
+- La cible d'une figure couvre la boîte de ses étoiles (portée comprise),
+  agrandie à 44 × 44 px autour de son centre. Elle est inerte hors de
+  l'à-propos (ou avant que les figures y soient à moitié montrées), si son
+  centre sort de l'écran ou tombe sous un panneau (`isUnderPanel`, la marge
+  des planètes).
+
+## `src/app/shared/space-scene/engine/renderers/sky/figure-targets.renderer.ts`
+
+- Une cible s'écrit d'une seule chaîne `style.cssText` (transform, largeur,
+  hauteur, `pointer-events: auto`), comparée à la précédente : une écriture
+  par changement, jamais de lecture. Inerte, elle ne garde que
+  `pointer-events: none`. `aria-hidden` et `tabIndex` s'écrivent à la
+  première image, puis au passage d'un état à l'autre : le gabarit les pose
+  inertes, et sans l'écriture de la première image une cible active dès
+  l'arrivée restait `aria-hidden`, hors tabulation, et la feuille lui
+  laissait `pointer-events: none` (mesuré au navigateur à 1280 × 800 et
+  390 × 844 : aucune cible ne recevait le pointeur).
+
+## `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts`
+
+- L'éclat de 45 % et le grossissement de 25 % ne valent que dans
+  l'à-propos : le fondu de sortie repart des 20 % d'avant, et les empreintes
+  du bureau hors de l'à-propos ne bougent pas (D42).
+- Le survol se lit sur le pointeur que le moteur suit déjà (`hoverPoint`,
+  sans le seuil du mouvement réduit que garde la lentille), dans la boîte de
+  la cible non inerte : une boîte par figure et par image, pas d'écouteur.
 
 ## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`, la tablette
 
@@ -214,6 +272,9 @@ et de `src/testing/`, rangées par unité (D10).
   de 0,05 de sa visée (`frame.arrived`) : mesurée avant le pas, l'image du
   saut du mouvement réduit était dessinée comme en route, et restait la
   dernière.
+- Le fondu des figures compte aussi comme un mouvement (D42) : en pause, la
+  caméra immobile arrêtait la boucle après une image, et la figure choisie
+  restait allumée à moitié (0,75 d'éclat mesuré au lieu de 0,95).
 
 ## `src/app/shared/space-scene/engine/renderers/hole-mark.renderer.ts`
 
@@ -348,7 +409,7 @@ et de `src/testing/`, rangées par unité (D10).
 - Le point de fuite ne devance le virage que de quelques pixels : le spec
   prend le centre de l'image pour lui.
 
-## `src/app/shared/space-scene/rules/sky/figure-label.rules.ts`
+## `src/app/shared/space-scene/rules/figures/figure-label.rules.ts`
 
 - Le nom d'une constellation allumée se pose au-dessus de sa figure, 16 px
   plus haut. S'il y croise la barre du haut (`topBar`), il passe sous la

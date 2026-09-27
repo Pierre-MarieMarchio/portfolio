@@ -82,10 +82,61 @@ main {
   z-index: calc(var(--z-window) + var(--stack, 1));
 }
 
+$foot-reserve: calc(var(--target) + 2 * var(--s1));
+
 @include formats.phone {
+  .bar {
+    top: var(--s1);
+    right: var(--s1);
+    max-width: calc(100% - 2 * var(--s1));
+    flex-wrap: nowrap;
+    gap: var(--s1);
+    padding: 0;
+  }
+
   .slot {
     inset: 0;
     width: auto;
+  }
+
+  .slot:empty,
+  .slot[data-docked='true'] {
+    display: none;
+  }
+}
+
+@include formats.phone-portrait {
+  .slot {
+    top: calc(var(--glass-lowered) * 100%);
+
+    --glass-inset: calc(
+        -100% * var(--glass-lowered) / (1 - var(--glass-lowered))
+      )
+      0 0;
+    --glass-raised-top: calc(var(--head-bottom, 0px) + var(--s1));
+    --glass-bottom-reserve: #{$foot-reserve};
+  }
+
+  .slot--preview {
+    top: auto;
+    bottom: $foot-reserve;
+    max-height: calc(45% - #{$foot-reserve});
+  }
+}
+
+@include formats.phone-landscape {
+  .bar {
+    right: auto;
+    left: var(--s1);
+    max-width: calc(50% - 2 * var(--s1));
+  }
+
+  .slot {
+    left: 50%;
+  }
+
+  .slot--preview {
+    top: auto;
   }
 }
 

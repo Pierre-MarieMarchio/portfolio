@@ -42,9 +42,19 @@ describe('stationUpdater', () => {
     expect(state.chapter()).toBe(0);
     expect(state.section()).toBe(0);
     expect(state.hovered()).toBeNull();
+    expect(state.lastSheet()).toBeNull();
   });
 
   describe('stationRouteSynced', () => {
+    it('remembers the last sheet opened once the reader leaves it', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'b' }));
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      expect(state.lastSheet()).toBe('b');
+    });
+
     it('resets nothing when the view and its slug are the same', () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
       statewise.dispatch(observatoryChapterChosen(2));

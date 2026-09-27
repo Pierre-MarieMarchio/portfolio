@@ -37,8 +37,11 @@ export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
     if (!state.pins().preview) {
       state.preview.set(null);
     }
-    if (view === 'sheet' && slug && !state.visited().includes(slug)) {
-      state.visited.update((visited) => [...visited, slug]);
+    if (view === 'sheet' && slug) {
+      state.lastSheet.set(slug);
+      if (!state.visited().includes(slug)) {
+        state.visited.update((visited) => [...visited, slug]);
+      }
     }
     if (view === 'index' && previous) {
       state.selected.set(previous);

@@ -15,6 +15,13 @@
   padding: 0 var(--s1) 0 var(--s2);
 }
 
+@include formats.phone {
+  .language {
+    padding: 0 0 0 var(--s1);
+    white-space: nowrap;
+  }
+}
+
 .here {
   color: var(--ink);
 }

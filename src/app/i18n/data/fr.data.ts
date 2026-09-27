@@ -95,6 +95,15 @@ export const FR: Catalog = {
       status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',
     },
+    dock: {
+      label: 'Fenêtres rangées',
+      windows: {
+        about: 'À propos',
+        index: 'Projets',
+        sheet: 'Fiche',
+        preview: 'Aperçu',
+      },
+    },
     notFound: {
       heading: 'Page introuvable',
       label: 'Page introuvable',

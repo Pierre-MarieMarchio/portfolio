@@ -222,7 +222,6 @@ describe('AboutWindowComponent', () => {
       '2024',
       '2023',
       '2021 – 2023',
-      '2020',
       '2016 – 2021',
     ]);
 
@@ -234,7 +233,6 @@ describe('AboutWindowComponent', () => {
       'Titre Développeur web',
       'Apple Foundation Program',
       'Autoformation',
-      'Licence d’archéologie',
       'Archéologue',
     ]) {
       const at = text.indexOf(fact, cursor + 1);

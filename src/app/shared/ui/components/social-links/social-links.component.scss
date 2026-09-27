@@ -1,5 +1,6 @@
 @use 'mixins/arrival';
 @use 'mixins/controls';
+@use 'mixins/formats';
 @use 'mixins/motion';
 
 $rise-duration: 1200ms;
@@ -50,9 +51,11 @@ a {
     color var(--t),
     border-color var(--t);
 
-  &:hover {
-    color: var(--accent);
-    border-color: var(--accent);
+  @include formats.can-hover {
+    &:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
   }
 }
 

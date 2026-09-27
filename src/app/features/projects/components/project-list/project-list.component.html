@@ -29,11 +29,10 @@
           [attr.aria-pressed]="row.isSelected"
           [attr.aria-label]="row.label"
           [attr.data-selected]="row.isSelected"
+          appHoverFocus
           (click)="toggle(row.slug)"
-          (mouseenter)="hoveredChange.emit(row.slug)"
-          (mouseleave)="hoveredChange.emit(null)"
-          (focus)="hoveredChange.emit(row.slug)"
-          (blur)="hoveredChange.emit(null)"
+          (entered)="hoveredChange.emit(row.slug)"
+          (exited)="hoveredChange.emit(null)"
         >
           <span
             class="number"

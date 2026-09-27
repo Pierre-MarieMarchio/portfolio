@@ -13,7 +13,10 @@ import { PROJECTS_TEXTS } from '../../ports';
 import { RankedProject } from '../../models';
 import { rowLabel } from '../../rules/project-labels.rules';
 import { Entrance } from '@shared/ui/models';
-import { LayoutAnchorDirective } from '@shared/ui/directives';
+import {
+  HoverFocusDirective,
+  LayoutAnchorDirective,
+} from '@shared/ui/directives';
 import { elementSize } from '@shared/ui/signals';
 
 const BELT_START_PERCENT = 2;
@@ -25,7 +28,7 @@ const LABEL_WIDTH_PX = 130;
 
 @Component({
   selector: 'app-featured-bar',
-  imports: [LayoutAnchorDirective, RouterLink],
+  imports: [HoverFocusDirective, LayoutAnchorDirective, RouterLink],
   templateUrl: './featured-bar.component.html',
   styleUrl: './featured-bar.component.scss',
   host: {

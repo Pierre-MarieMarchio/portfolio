@@ -936,3 +936,28 @@ est dans `raisons/space-scene.md` et `raisons/bureau-et-pages.md`.
 `reduced`, et le cadrage, lui, ne le lit toujours pas (D30). Élargir
 `isBottomBand` à la barre repliée : l'approche centrerait la planète et
 pousserait le trou à gauche, et l'approche debout aurait changé.
+
+## 2026-09-26 — Au téléphone, le pied de la vitre reste à l'écran et la vitre couchée serre son chrome (D34, amende D25 et D27)
+
+**Décision.** Debout, la vitre prend la hauteur de son contenu, entre le
+reste sous `.lead` et la hauteur montée : courte, elle se pose en bas,
+son pied à l'écran. Couchée, la barre de titre perd son retrait
+vertical, le pied le réduit à `--s1` et ne met plus d'écart entre ses deux
+lignes : trois jetons de `_tokens.scss` (`--window-bar-padding`,
+`--window-footer-padding`, `--window-footer-gap`) changent de valeur par
+format. Avec une entrée au dock, la page trace un filet `--line` au bas de
+la vitre, juste au-dessus du dock. Au téléphone, l'index coupe ses mots
+(césure, puis n'importe où) et resserre ses colonnes.
+
+**Raison.** Sur les captures, le lien de la 404 tombait sous l'écran,
+la vitre couchée ne montrait qu'une ligne de corps à 568 × 320, rien ne
+séparait la vitre du dock, et les colonnes de l'index se chevauchaient.
+Des jetons par format plutôt qu'un bloc de plus dans la fenêtre : son
+style est au plafond de 4 kB.
+
+**Écarté.** Un pied collé au bas visible : vitre basse, il couvrait la
+seule rangée de l'index qu'on voyait à 320 × 568. Faire défiler la barre d'outils avec le corps, couchée : le
+corps n'est plus le seul à défiler, et `remember-scroll` perd son élément.
+Une vitre qui arrive plus haut quand son contenu tient : le CSS ne sait pas
+comparer un contenu à une part d'écran, et les longues vitres doivent
+arriver à 60 %.

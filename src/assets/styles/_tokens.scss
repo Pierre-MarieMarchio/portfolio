@@ -1,3 +1,5 @@
+@use 'mixins/formats';
+
 :root {
   color-scheme: dark;
 
@@ -49,6 +51,9 @@
   --glass-shade-lowered: blur(0px) brightness(1);
   --glass-shade-raised: blur(8px) brightness(0.55);
   --glass-lowered: 0.6;
+  --window-bar-padding: 5px 5px 5px var(--s2);
+  --window-footer-padding: var(--s2);
+  --window-footer-gap: var(--s2) var(--s3);
 
   --t-duration: 180ms;
   --t: var(--t-duration) cubic-bezier(0.2, 0.6, 0.2, 1);
@@ -61,4 +66,18 @@
   --z-chrome: 20;
   --z-intro: 45;
   --z-skip: 60;
+}
+
+@include formats.phone {
+  :root {
+    --window-bar-padding: 5px 0 5px var(--s2);
+  }
+}
+
+@include formats.phone-landscape {
+  :root {
+    --window-bar-padding: 0 0 0 var(--s2);
+    --window-footer-padding: var(--s1) var(--s2);
+    --window-footer-gap: 0 var(--s3);
+  }
 }

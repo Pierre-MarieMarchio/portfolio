@@ -1,6 +1,7 @@
 import { clamp, finiteOr, halfLifeStep } from '@app/core/helpers';
 import { isCloseUp, SceneState } from '../../rules/scene-state.rules';
 import {
+  crossingPace,
   Traveling,
   traveling,
   TRAVELING_END,
@@ -16,6 +17,7 @@ export class ClockMotion {
   private isRunning = false;
   private isReduced = false;
   private hasIdleMoved = false;
+  private pace = 1;
   private trvTime = NaN;
   private trv: Traveling = traveling(0, false);
 
@@ -57,6 +59,10 @@ export class ClockMotion {
     this.elapsed = Math.max(this.elapsed, TRAVELING_END);
   }
 
+  public hurryCrossing(within: number): void {
+    this.pace = crossingPace(this.elapsed, within);
+  }
+
   public update(dt: number, state: SceneState, isVisible: boolean): void {
     const isReduced = state.reduced;
     this.isReduced = isReduced;
@@ -75,7 +81,10 @@ export class ClockMotion {
   }
 
   private run(dt: number, flyover: number, state: SceneState): void {
-    this.elapsed += dt;
+    this.elapsed += dt * this.pace;
+    if (this.elapsed >= TRAVELING_END) {
+      this.pace = 1;
+    }
     if (state.marksShown) {
       this.marksElapsed += dt;
     }

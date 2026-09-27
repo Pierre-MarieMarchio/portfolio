@@ -1,4 +1,6 @@
-<app-intro-card />
+@if (isOpening()) {
+  <app-intro-card />
+}
 
 <main tabindex="-1" [id]="ids.main">
   <section

@@ -82,7 +82,13 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   la traversée d'arrivée est attendue, comme dans la maquette. Le rappel
   d'arrivée ne court que lorsqu'un reste retenu est lâché, jamais quand il
   était montré d'emblée.
-- `timed` au prérendu, où le CSS seul fait entrer le reste.
+- Hors de l'accueil, l'arrivée vaut `shown` dès la vue lue, avant tout
+  démarrage : au prérendu comme au premier rendu du client, pour que la scène
+  sache dès sa première image qu'il n'y a pas de traversée (D41).
+- `timed` au prérendu de l'accueil, où le CSS seul fait entrer le reste.
+- L'ouverture (`isOpening`) dure tant que l'accueil n'a pas lâché son reste :
+  c'est elle qui monte la carte. Une fois l'arrivée montrée, elle ne revient
+  plus, même en revenant sur l'accueil (D41).
 - Quitter l'accueil est un signe de présence : cela lâche le reste retenu.
 - Fourni par le bureau : un par bureau, qui disparaît avec lui.
 
@@ -100,7 +106,8 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 
 ## `features/observatory/components/intro-card/`
 
-- La carte d'ouverture, une fois par visite, par-dessus tout. Rien ne
+- La carte d'ouverture, une fois, à l'arrivée par l'accueil (D41), par-dessus
+  tout. Rien ne
   l'attend : le contenu est dans le document dès la première image, et la
   carte s'efface d'elle-même en CSS, même sans JavaScript. Le script ne fait
   que la retirer au premier geste. Elle est cachée entièrement quand le
@@ -185,6 +192,11 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - Sur l'index, une planète sélectionne sa ligne et un second clic la lâche ;
   sur l'accueil, une planète vedette ouvre ou ferme l'aperçu, les seules que
   l'accueil montre.
+- Le bureau lit la vue dans l'adresse chargée avant son premier rendu
+  (`viewAtAddress`) : avec l'hydratation, la première navigation n'est pas
+  bloquante, et sans cela le premier rendu du client montrait l'accueil (sa
+  carte, sa traversée) sous toute autre adresse. La route la confirme
+  ensuite, sans rien changer (D41).
 - Le focus ne bouge qu'après le premier rendu dans un navigateur : avant, la
   vue peut encore changer pendant que la première adresse se pose, et ce
   n'est pas une navigation. Jamais au serveur, où il n'y a pas de focus.

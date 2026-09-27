@@ -1,5 +1,7 @@
 import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
 import {
+  AddressOf,
+  viewAtAddress,
   DockFrom,
   dockedOf,
   parentOf,
@@ -151,5 +153,49 @@ describe('dockedOf', () => {
         lastSheet: 'b',
       }),
     ).toEqual(['about', 'index', 'sheet']);
+  });
+});
+
+const FRENCH: AddressOf = (view) =>
+  ({ home: '/', index: '/projets', about: '/a-propos', sheet: '/projet' })[
+    view
+  ];
+const ENGLISH: AddressOf = (view) =>
+  ({
+    home: '/en',
+    index: '/en/projects',
+    about: '/en/about',
+    sheet: '/en/project',
+  })[view];
+
+describe('viewAtAddress', () => {
+  it.each<[string, AddressOf, ObservatoryView, string | null]>([
+    ['/', FRENCH, 'home', null],
+    ['', FRENCH, 'home', null],
+    ['/?from=mail', FRENCH, 'home', null],
+    ['/projets', FRENCH, 'index', null],
+    ['/projets/', FRENCH, 'index', null],
+    ['/a-propos#contact', FRENCH, 'about', null],
+    ['/projet/skyted-voice', FRENCH, 'sheet', 'skyted-voice'],
+    ['/en', ENGLISH, 'home', null],
+    ['/en/', ENGLISH, 'home', null],
+    ['/en/projects', ENGLISH, 'index', null],
+    ['/en/about', ENGLISH, 'about', null],
+    ['/en/project/skyted-voice/', ENGLISH, 'sheet', 'skyted-voice'],
+  ])('reads %s as the view it addresses', (path, addresses, view, slug) => {
+    expect(viewAtAddress(path, addresses)).toEqual({ view, slug });
+  });
+
+  it.each([
+    ['/nowhere', FRENCH],
+    ['/projet', FRENCH],
+    ['/projet/a/b', FRENCH],
+    ['/projets/more', FRENCH],
+    ['/en/nowhere', ENGLISH],
+  ])('reads %s as an unknown address', (path, addresses) => {
+    expect(viewAtAddress(path, addresses)).toEqual({
+      view: 'not-found',
+      slug: null,
+    });
   });
 });

@@ -23,6 +23,7 @@ export interface SceneState {
   readonly reduced: boolean;
   readonly touch: boolean;
   readonly phone: boolean;
+  readonly landed: boolean;
 }
 
 export const NO_STATE: SceneState = {
@@ -43,6 +44,7 @@ export const NO_STATE: SceneState = {
   reduced: false,
   touch: false,
   phone: false,
+  landed: false,
 };
 
 const rankOf = (bodies: readonly SceneBody[], id: string | null): number =>
@@ -99,6 +101,7 @@ export const sceneState = ({
     reduced,
     touch: format !== 'desktop',
     phone: format === 'phone',
+    landed: direction.landed,
   };
 };
 

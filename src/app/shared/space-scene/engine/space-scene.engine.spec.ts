@@ -1453,3 +1453,93 @@ describe('SpaceSceneEngine, on a phone whose framing code arrives late', () => {
     expect(after.y).toBeCloseTo(target.y, 0);
   });
 });
+
+describe('SpaceSceneEngine, under an interface already in', () => {
+  const LANDED: Partial<SceneInputs> = {
+    direction: { ...SHOWN, landed: true },
+  };
+
+  const mountMarked = (inputs: Partial<SceneInputs> = {}) => {
+    const scene = mountAt(inputs);
+    const mark = document.createElement('div');
+    scene.engine.setHoleMark(mark);
+    const probe = scene.engine as unknown as {
+      motion: {
+        clock: { time: number };
+        grains: { entry: number };
+      };
+    };
+    return {
+      ...scene,
+      radius: () => Number(mark.dataset['holeRadius']),
+      time: () => probe.motion.clock.time,
+      entry: () => probe.motion.grains.entry,
+    };
+  };
+
+  const settledRadius = (): number => {
+    const scene = mountMarked();
+    scene.step(PAST_CROSSING_MS);
+    return scene.radius();
+  };
+
+  it('does not cross when it opens landed: the object at its size from the first frame', () => {
+    const scene = mountMarked(LANDED);
+    scene.step(FRAME_MS);
+
+    expect(scene.time()).toBeGreaterThanOrEqual(TRAVELING_END);
+    expect(scene.radius()).toBeCloseTo(settledRadius(), 0);
+  });
+
+  it('draws nothing sized before its first frame has placed the camera', () => {
+    const { engine, step } = mountAt(LANDED);
+    const mark = document.createElement('div');
+    engine.setHoleMark(mark);
+
+    engine.resize(1280, 800, 1);
+    expect(mark.dataset['holeRadius']).toBeUndefined();
+
+    step(FRAME_MS);
+    expect(Number(mark.dataset['holeRadius'])).toBeCloseTo(settledRadius(), 0);
+  });
+
+  it('lights the matter in about 0.6 s when it opens landed', () => {
+    const scene = mountMarked(LANDED);
+    scene.step(300);
+    expect(scene.entry()).toBeLessThan(1);
+
+    scene.step(300 + FRAME_MS);
+    expect(scene.entry()).toBe(1);
+  });
+
+  it('finishes what is left of the crossing within 0.9 s once landed, without a jump', () => {
+    const scene = mountMarked();
+    scene.step(1000);
+    expect(scene.radius()).toBeLessThan(settledRadius() / 20);
+
+    scene.engine.setInputs({ ...FIXES_INPUTS, ...LANDED });
+    const full = settledRadius();
+    const radii: number[] = [];
+    for (let k = 0; k < Math.ceil(900 / FRAME_MS) + 1; k++) {
+      scene.step(FRAME_MS);
+      radii.push(scene.radius());
+    }
+
+    expect(scene.time()).toBeGreaterThanOrEqual(TRAVELING_END);
+    expect(scene.entry()).toBe(1);
+    const steps = radii.slice(1).map((radius, k) => radius - (radii[k] ?? 0));
+    expect(Math.max(...steps)).toBeLessThan(full / 4);
+    expect(radii.at(-1)).toBeCloseTo(full, -1);
+  });
+
+  it('leaves a finished crossing to its own clock', () => {
+    const scene = mountMarked();
+    scene.step(PAST_CROSSING_MS);
+    const before = scene.time();
+
+    scene.engine.setInputs({ ...FIXES_INPUTS, ...LANDED });
+    scene.step(FRAME_MS);
+
+    expect(scene.time() - before).toBeCloseTo(FRAME_MS / 1000, 6);
+  });
+});

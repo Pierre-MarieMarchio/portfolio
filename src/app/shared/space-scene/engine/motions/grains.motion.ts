@@ -1,6 +1,10 @@
 import { halfLifeStep } from '@app/core/helpers';
 import { CURSOR_REACH } from '../../models/scene-constants.model';
 import { Grain } from '../../rules/scene-bodies.rules';
+import {
+  hastenedEntrySpan,
+  MATTER_ENTRY_SPAN,
+} from '../../rules/matter/matter-entry.rules';
 import { TurntableMotion } from './turntable.motion';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 
@@ -8,6 +12,7 @@ const DENSITY_HALF_LIFE = 0.55;
 
 export class GrainsMotion {
   private arrival = 0;
+  private arrivalSpan = MATTER_ENTRY_SPAN;
   private hasArrivalMoved = false;
   private lit = 1;
   private litTarget = 1;
@@ -48,10 +53,17 @@ export class GrainsMotion {
     this.arrival = isReduced ? 1 : 0;
   }
 
+  public hasten(within: number): void {
+    this.arrivalSpan = hastenedEntrySpan(this.arrival, within);
+  }
+
   public update(dt: number, isReduced: boolean): void {
     const before = this.arrival;
     if (this.arrival < 1) {
-      this.arrival = Math.min(1, this.arrival + dt / (isReduced ? 0.001 : 6.2));
+      this.arrival = Math.min(
+        1,
+        this.arrival + dt / (isReduced ? 0.001 : this.arrivalSpan),
+      );
     }
     this.hasArrivalMoved = before !== this.arrival;
     this.easeDensity(dt, isReduced);

@@ -102,11 +102,7 @@ export class SpaceSceneEngine {
     if (!isSameFraming(previous, state)) {
       this.motion.zoom.reset();
     }
-    if (previous === NO_STATE) {
-      this.motion.start(state);
-    } else if (previous.reduced && !state.reduced) {
-      this.motion.skipCrossing();
-    }
+    this.motion.follow(previous, state);
     this.request();
   }
 
@@ -311,7 +307,7 @@ export class SpaceSceneEngine {
 
   private draw(): void {
     this.fitOrbits();
-    if (!this.w || !this.h) {
+    if (!this.w || !this.h || !this.motion.isDrawable) {
       return;
     }
     const frame = this.frame;

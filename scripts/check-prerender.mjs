@@ -37,7 +37,7 @@ const pagesIn = (lang, at) => [
     path: `/${at.home}`,
     file: join(at.home, 'index.html'),
     lang,
-    holds: ['<app-home-title', '<app-featured-bar'],
+    holds: ['<app-home-title', '<app-featured-bar', '<app-intro-card'],
     lacks: ['<app-window'],
   },
   {
@@ -45,21 +45,21 @@ const pagesIn = (lang, at) => [
     file: join(at.index, 'index.html'),
     lang,
     holds: ['<app-project-list', '<app-window'],
-    lacks: ['<app-home-title'],
+    lacks: ['<app-home-title', '<app-intro-card'],
   },
   {
     path: `/${at.about}`,
     file: join(at.about, 'index.html'),
     lang,
     holds: ['<app-about-window', '<app-window'],
-    lacks: ['<app-home-title'],
+    lacks: ['<app-home-title', '<app-intro-card'],
   },
   ...sheets.map((slug) => ({
     path: `/${at.sheet}/${slug}`,
     file: join(at.sheet, slug, 'index.html'),
     lang,
     holds: ['<app-project-detail', '<app-window'],
-    lacks: ['<app-home-title', '<app-not-found-window'],
+    lacks: ['<app-home-title', '<app-not-found-window', '<app-intro-card'],
   })),
 ];
 

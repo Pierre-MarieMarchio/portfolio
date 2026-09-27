@@ -25,6 +25,7 @@ export function sceneDirectionOf(scene: ObservatoryScene): SceneDirection {
     ...RESTING_DIRECTION,
     emphasised: scene.hovered,
     litFigure: scene.part,
+    landed: scene.revealed,
   };
   switch (scene.view) {
     case 'home': {

@@ -104,6 +104,10 @@ export class CameraMotion {
     return !this.isMoving && this.opened === this.openTarget;
   }
 
+  public get isPosed(): boolean {
+    return Number.isFinite(this.now.scale);
+  }
+
   public measureRest(measure: RestMeasure): void {
     if (!this.measure) {
       Object.assign(this.restFrame, {

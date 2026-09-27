@@ -86,3 +86,23 @@ export function dockedOf({
     (window) => pins[window] && window !== open && reopenable[window],
   );
 }
+
+export type AddressOf = (view: Exclude<ObservatoryView, 'not-found'>) => string;
+
+export function viewAtAddress(
+  path: string,
+  addressOf: AddressOf,
+): { readonly view: ObservatoryView; readonly slug: string | null } {
+  const segments = (path.split(/[?#]/)[0] ?? '').split('/').filter(Boolean);
+  const bare = `/${segments.join('/')}`;
+  for (const view of ['home', 'index', 'about'] as const) {
+    if (bare === addressOf(view)) {
+      return { view, slug: null };
+    }
+  }
+  const sheet = `${addressOf('sheet')}/`;
+  const slug = bare.slice(sheet.length);
+  return bare.startsWith(sheet) && !slug.includes('/')
+    ? { view: 'sheet', slug }
+    : { view: 'not-found', slug: null };
+}

@@ -31,6 +31,7 @@ export interface SceneDirection {
   readonly turnable: boolean;
   readonly figuresShown: boolean;
   readonly litFigure: number;
+  readonly landed: boolean;
 }
 
 export const RESTING_DIRECTION: SceneDirection = {
@@ -42,6 +43,7 @@ export const RESTING_DIRECTION: SceneDirection = {
   turnable: true,
   figuresShown: false,
   litFigure: 0,
+  landed: false,
 };
 
 export interface SceneInputs {

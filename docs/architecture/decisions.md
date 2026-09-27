@@ -1228,3 +1228,30 @@ ne connaît pas le format, et deux gabarits divergeraient. Déplacer la pile
 après la preuve dans le gabarit : au bureau, elle se lit sous le titre,
 dans la colonne du projet. Garder la preuve dans une colonne étroite à
 côté du titre : c'est ce qui la coupait.
+
+## 2026-09-27 — La traversée et la carte sont l'arrivée par l'accueil (D41)
+
+**Décision.** La carte d'ouverture et la traversée ne se jouent qu'à
+l'arrivée sur l'accueil. Ouvrir une autre vue (relevé, fiche, à-propos,
+introuvable, dans les deux langues, au premier chargement comme au
+rechargement) ne monte pas la carte, ni au prérendu ni au client, et la
+scène s'ouvre posée : ciel à plat, objet à sa taille et au cadrage de la
+vue dès la première image, matière en fondu de 0,6 s. Sur l'accueil,
+passer la carte au premier geste termine vite la traversée : ce qui en
+reste se joue en 0,9 s au plus, par son horloge accélérée, sans changer
+ses courbes, puis la scène reprend son régime. Un seul signal décide pour
+la scène, l'arrivée de l'interface (`revealed`, porté par `landed` dans la
+direction) : vrai à l'ouverture, pas de traversée ; devenu vrai pendant la
+traversée, elle finit vite. Le bureau lit la vue dans l'adresse chargée
+avant son premier rendu, pour que ce signal soit juste dès la première
+image du client.
+
+**Raison.** Le retour de l'opérateur, sur un vrai téléphone : passer la
+carte laissait l'animation jouer sous l'interface, et un rechargement sur
+une autre vue que l'accueil montrait la carte et la traversée sous cette
+vue. La traversée est l'arrivée au site par son accueil ; elle n'a pas de
+sens sous une vue qu'on ouvre par un lien. Finir vite plutôt que couper :
+une coupe fait passer l'objet d'un point à sa taille pleine en une image.
+
+**Écarté.** Couper la traversée net au premier geste. Garder la carte sur
+toutes les vues. Rejouer la traversée à chaque retour sur l'accueil.

@@ -39,9 +39,20 @@ describe('sceneDirectionOf', () => {
       turnable: true,
       figuresShown: false,
       litFigure: 0,
+      landed: false,
     });
     expect(sceneDirectionOf(scene('home')).presence).toBe('shown');
   });
+
+  it.each<ObservatoryView>(['home', 'index', 'sheet', 'about', 'not-found'])(
+    'lands the scene on "%s" once the rest has arrived, and only then',
+    (view) => {
+      expect(sceneDirectionOf(scene(view, { revealed: false })).landed).toBe(
+        false,
+      );
+      expect(sceneDirectionOf(scene(view)).landed).toBe(true);
+    },
+  );
 
   it('leaves the name of the designated planet to the rule, on a phone held upright', () => {
     expect(

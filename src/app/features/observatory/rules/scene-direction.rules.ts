@@ -16,6 +16,8 @@ export interface ObservatoryScene {
   readonly hovered: string | null;
   readonly selected: string | null;
   readonly revealed: boolean;
+  readonly upright: boolean;
+  readonly designated: string | null;
 }
 
 export function sceneDirectionOf(scene: ObservatoryScene): SceneDirection {
@@ -26,11 +28,7 @@ export function sceneDirectionOf(scene: ObservatoryScene): SceneDirection {
   };
   switch (scene.view) {
     case 'home': {
-      return {
-        ...shared,
-        framing: homeFraming(scene.preview),
-        presence: scene.revealed ? 'shown' : 'held',
-      };
+      return homeDirection(scene, shared);
     }
     case 'index': {
       return {
@@ -72,6 +70,20 @@ export function sceneDirectionOf(scene: ObservatoryScene): SceneDirection {
       };
     }
   }
+}
+
+function homeDirection(
+  scene: ObservatoryScene,
+  shared: SceneDirection,
+): SceneDirection {
+  const isNamedByRule = scene.upright && scene.preview === null;
+  return {
+    ...shared,
+    framing: homeFraming(scene.preview),
+    presence: scene.revealed ? 'shown' : 'held',
+    labels: isNamedByRule ? 'none' : 'names',
+    emphasised: scene.hovered ?? (isNamedByRule ? scene.designated : null),
+  };
 }
 
 function homeFraming(preview: string | null): CameraFraming {

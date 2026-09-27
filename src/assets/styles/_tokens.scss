@@ -41,6 +41,7 @@
   --window-top: clamp(78px, 10.5vh, 98px);
   --target: 44px;
   --target-compact: 34px;
+  --tabs-reserve: 0px;
 
   --radius: 3px;
   --radius-control: 2px;
@@ -73,6 +74,12 @@
 @include formats.phone {
   :root {
     --window-bar-padding: 5px 0 5px var(--s2);
+  }
+}
+
+@include formats.phone-portrait {
+  :root {
+    --tabs-reserve: calc(var(--target) + 1px + env(safe-area-inset-bottom));
   }
 }
 

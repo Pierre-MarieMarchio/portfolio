@@ -7,13 +7,50 @@ import { FeaturedBarComponent } from './featured-bar.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
-  ...host.querySelectorAll<HTMLButtonElement>('button'),
+  ...host.querySelectorAll<HTMLButtonElement>('.track button'),
 ];
+
+const pickPart = (host: HTMLElement, selector: string): HTMLElement => {
+  const part = host.querySelector<HTMLElement>(`.pick ${selector}`);
+  if (!part) {
+    throw new Error(`expected ${selector} in the pick row`);
+  }
+  return part;
+};
+
+const swipe = (row: HTMLElement, dx: number, dy = 0): void => {
+  row.dispatchEvent(
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      clientX: 200,
+      clientY: 300,
+    }),
+  );
+  row.dispatchEvent(
+    new PointerEvent('pointerup', {
+      bubbles: true,
+      clientX: 200 + dx,
+      clientY: 300 + dy,
+    }),
+  );
+};
 
 const stubTrackWidth = (width: number) =>
   vi
     .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
     .mockReturnValue({ width } as DOMRect);
+
+const emittedBy = (fixture: { componentInstance: FeaturedBarComponent }) => {
+  const hovered: (string | null)[] = [];
+  const chosen: string[] = [];
+  fixture.componentInstance.hoveredChange.subscribe((slug) => {
+    hovered.push(slug);
+  });
+  fixture.componentInstance.chosen.subscribe((slug) => {
+    chosen.push(slug);
+  });
+  return { hovered, chosen };
+};
 
 describe('OrbitRuleComponent', () => {
   const entries = [
@@ -264,5 +301,111 @@ describe('OrbitRuleComponent', () => {
     expect(title).toContain('01');
     expect(title).toContain('Alpha');
     expect(reading?.textContent).toContain('Proof Alpha');
+  });
+
+  describe('the pick row, one name at a time', () => {
+    it('names the first featured project at rest', async () => {
+      const { host } = await mount({ bodies });
+
+      expect(pickPart(host, '.named').textContent?.trim()).toBe('Alpha');
+    });
+
+    it('names the designated project', async () => {
+      const { host } = await mount({ bodies, hovered: 'gamma' });
+
+      expect(pickPart(host, '.named').textContent?.trim()).toBe('Gamma');
+    });
+
+    it('names its steps in the reader language', async () => {
+      const { host } = await mount({ bodies });
+
+      expect(pickPart(host, '[data-step="previous"]').ariaLabel).toBe(
+        'Projet précédent',
+      );
+      expect(pickPart(host, '[data-step="next"]').ariaLabel).toBe(
+        'Projet suivant',
+      );
+    });
+
+    it('designates the next and the previous project', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
+      const { hovered } = emittedBy(fixture);
+
+      pickPart(host, '[data-step="next"]').click();
+      pickPart(host, '[data-step="previous"]').click();
+
+      expect(hovered).toEqual(['gamma', 'alpha']);
+    });
+
+    it('holds at the first project, its previous step disabled', async () => {
+      const { fixture, host } = await mount({ bodies });
+      const { hovered } = emittedBy(fixture);
+      const previous = pickPart(host, '[data-step="previous"]');
+
+      previous.click();
+
+      expect(previous.getAttribute('aria-disabled')).toBe('true');
+      expect(
+        pickPart(host, '[data-step="next"]').getAttribute('aria-disabled'),
+      ).toBe('false');
+      expect(hovered).toEqual([]);
+    });
+
+    it('holds at the last project, its next step disabled', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'delta' });
+      const { hovered } = emittedBy(fixture);
+      const next = pickPart(host, '[data-step="next"]');
+
+      next.click();
+
+      expect(next.getAttribute('aria-disabled')).toBe('true');
+      expect(hovered).toEqual([]);
+    });
+
+    it('opens the preview of the named project, controlling the preview slot', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'gamma' });
+      const { chosen } = emittedBy(fixture);
+      const named = pickPart(host, '.named');
+
+      named.click();
+
+      expect(chosen).toEqual(['gamma']);
+      expect(named.getAttribute('aria-controls')).toBe('preview-panel');
+    });
+
+    it('designates the next project on a swipe to the left, the previous one to the right', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
+      const { hovered } = emittedBy(fixture);
+      const row = pickPart(host, '.named').parentElement ?? host;
+
+      swipe(row, -60);
+      swipe(row, 60);
+
+      expect(hovered).toEqual(['gamma', 'alpha']);
+    });
+
+    it('ignores a short or a slanted swipe', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
+      const { hovered } = emittedBy(fixture);
+      const row = pickPart(host, '.named').parentElement ?? host;
+
+      swipe(row, -40);
+      swipe(row, -60, 50);
+
+      expect(hovered).toEqual([]);
+    });
+
+    it('does not open the preview on the tap that ends a swipe', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
+      const { chosen } = emittedBy(fixture);
+      const named = pickPart(host, '.named');
+
+      swipe(named, -60);
+      named.click();
+      named.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      named.click();
+
+      expect(chosen).toEqual(['beta']);
+    });
   });
 });

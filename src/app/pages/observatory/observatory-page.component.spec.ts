@@ -10,6 +10,7 @@ import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
+import { LayoutAnchorsService } from '@shared/ui/services';
 import { ObservatoryPageComponent } from './observatory-page.component';
 
 const arrivals = (host: HTMLElement) =>
@@ -426,7 +427,7 @@ describe('StationComponent', () => {
     await fixture.whenStable();
     expect(rank('sheet')).toBeGreaterThan(rank('index'));
   });
-  it('hands the scene the planets, and the slugs of the sheet, the selection, the preview and the hovered body', async () => {
+  it('hands the scene the planets, and the slugs of the sheet, the selection, the preview, the hovered body and the designated one', async () => {
     const { fixture, station } = await mount();
     const object = (): ObservatorySceneComponent => {
       const found = fixture.debugElement.query(
@@ -461,6 +462,7 @@ describe('StationComponent', () => {
     expect(object().hovered()).toBeNull();
 
     station.syncRoute('home');
+    expect(object().designated()).toBe(KNOWN_SLUG);
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
     expect(object().preview()).toBe(KNOWN_SLUG);
@@ -512,5 +514,13 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     expect(station.lastPreview()).toBe(KNOWN_SLUG);
+  });
+
+  it('hands the page navigation to the scene as chrome, for the tabs it becomes on a phone held upright', async () => {
+    const { host } = await mount();
+    const nav = host.querySelector('app-main-nav');
+
+    expect(nav).not.toBeNull();
+    expect(TestBed.inject(LayoutAnchorsService).list('chrome')).toContain(nav);
   });
 });

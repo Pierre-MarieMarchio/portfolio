@@ -66,6 +66,35 @@ nav {
   }
 }
 
+@include formats.phone-portrait {
+  :host {
+    position: fixed;
+    inset: auto 0 0;
+    display: block;
+  }
+
+  nav {
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--paper);
+    border-top: 1px solid var(--line);
+  }
+
+  ul {
+    display: grid;
+    grid: auto / auto-flow 1fr;
+  }
+
+  nav a {
+    display: flex;
+    justify-content: center;
+    min-height: var(--target);
+
+    &[data-active='true'] {
+      box-shadow: inset 0 2px var(--accent);
+    }
+  }
+}
+
 @include formats.phone-landscape {
   nav a {
     padding: 0 2px;

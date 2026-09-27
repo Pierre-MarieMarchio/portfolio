@@ -134,9 +134,18 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
 }
 
 @include formats.phone-portrait {
+  :host {
+    --floor: calc(var(--dock-reserve) + var(--tabs-reserve));
+  }
+
   .bar {
     right: 0;
     padding-right: #{$contact-room};
+    animation-name: appear;
+  }
+
+  .rule {
+    display: none;
   }
 
   .slot {
@@ -145,26 +154,26 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
     --glass-inset: calc(
         -100% * var(--glass-lowered) / (1 - var(--glass-lowered))
       )
-      0 var(--dock-reserve);
+      0 var(--floor);
     --glass-raised-top: calc(var(--head-bottom, 0px) + var(--s1));
   }
 
   .slot--preview {
     top: auto;
-    bottom: var(--dock-reserve);
-    max-height: calc(45% - var(--dock-reserve));
+    bottom: var(--floor);
+    max-height: calc(45% - var(--floor));
   }
 
   .slot:has(.glass--folded) {
     top: auto;
-    bottom: var(--dock-reserve);
+    bottom: var(--floor);
   }
 
   :host:has(app-observatory-dock li)
     .slot:not(.slot--preview, :has(.glass--folded))::after {
     content: '';
     position: absolute;
-    inset: auto 0 var(--dock-reserve);
+    inset: auto 0 var(--floor);
     border-bottom: 1px solid var(--line);
   }
 }

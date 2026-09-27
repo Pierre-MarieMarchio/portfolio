@@ -17,6 +17,8 @@ const scene = (
   hovered: null,
   selected: null,
   revealed: true,
+  upright: false,
+  designated: null,
   ...overrides,
 });
 
@@ -39,6 +41,34 @@ describe('sceneDirectionOf', () => {
       litFigure: 0,
     });
     expect(sceneDirectionOf(scene('home')).presence).toBe('shown');
+  });
+
+  it('leaves the name of the designated planet to the rule, on a phone held upright', () => {
+    expect(
+      sceneDirectionOf(scene('home', { upright: true, hovered: 'app' })),
+    ).toMatchObject({ labels: 'none', emphasised: 'app' });
+    expect(
+      sceneDirectionOf(scene('home', { upright: true, preview: 'app' })).labels,
+    ).toBe('names');
+    expect(sceneDirectionOf(scene('home')).labels).toBe('names');
+  });
+
+  it('lights the planet the rule designates at rest, on a phone held upright', () => {
+    const upright = { upright: true, designated: 'voice' };
+
+    expect(sceneDirectionOf(scene('home', upright)).emphasised).toBe('voice');
+    expect(
+      sceneDirectionOf(scene('home', { ...upright, hovered: 'app' }))
+        .emphasised,
+    ).toBe('app');
+    expect(
+      sceneDirectionOf(scene('home', { ...upright, preview: 'app' }))
+        .emphasised,
+    ).toBeNull();
+    expect(
+      sceneDirectionOf(scene('home', { designated: 'voice' })).emphasised,
+    ).toBeNull();
+    expect(sceneDirectionOf(scene('index', upright)).emphasised).toBeNull();
   });
 
   it('closes up on the planet of the preview, on the home page only', () => {

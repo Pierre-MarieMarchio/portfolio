@@ -270,6 +270,29 @@ describe('DraggableDirective', () => {
     expect(section.style.transform).toBe('');
   });
 
+  it('does not move at the phone format', async () => {
+    const { section, grab } = await setup();
+    restorers.push(stubViewport(390, 844));
+    window.dispatchEvent(new Event('resize'));
+
+    grab();
+    move(650, 430);
+
+    expect(section.style.transform).toBe('');
+  });
+
+  it('puts a moved element back in its place when the screen becomes a phone', async () => {
+    const { section, grab } = await setup();
+    grab();
+    move(650, 430);
+    window.dispatchEvent(pointer('pointerup', { clientX: 650, clientY: 430 }));
+
+    restorers.push(stubViewport(390, 844));
+    window.dispatchEvent(new Event('resize'));
+
+    expect(section.style.transform).toBe('');
+  });
+
   it('stops following resizes once destroyed', async () => {
     const { fixture, section, grab } = await setup();
     grab();

@@ -1,6 +1,7 @@
 import { Frame } from '../rules/camera/camera-frames.rules';
+import { EngineHost, FrameLoopEngine } from './frame-loop.engine';
 import { measureRest } from '../rules/camera/rest-frame.rules';
-import { clamp, finiteOr } from '@app/core/helpers';
+import { finiteOr } from '@app/core/helpers';
 import { Orbit, placeOrbits } from '../rules/scene-bodies.rules';
 import { PlanePoint, TurntableMotion } from './motions/turntable.motion';
 import { SceneMotion } from './motions/scene.motion';
@@ -18,6 +19,7 @@ import {
 import { panelZones, topBarZone, Zone } from '../rules/panel-veil.rules';
 import { restInFreeSky } from '../rules/camera/free-sky.rules';
 import {
+  clientOnCanvas,
   diskOnScreen,
   DiskOnScreen,
   onDiskPlane,
@@ -25,14 +27,11 @@ import {
 } from '../rules/camera/pointer.rules';
 import { SceneFrame, sceneFrame } from '../rules/scene-frame.rules';
 import { NO_STATE, SceneState, sceneState } from '../rules/scene-state.rules';
+import { canLookCloser, isSameFraming } from '../rules/camera/zoom.rules';
 import type { SceneInputs, SkyFigures } from '../models/scene.model';
 import type { SceneLayout } from '../models/scene-layout.model';
 
-export interface EngineHost {
-  frame(callback: (time: number) => void): () => void;
-  now(): number;
-  hidden(): boolean;
-}
+export type { EngineHost } from './frame-loop.engine';
 
 export interface EngineCanvases {
   readonly matter: CanvasRenderingContext2D;
@@ -59,10 +58,7 @@ export class SpaceSceneEngine {
   private disk: DiskOnScreen | null = null;
   private pointer: { x: number; y: number } | null = null;
   private needsDraw = true;
-  private isVisible = true;
   private isTurning = false;
-  private cancelFrame: (() => void) | null = null;
-  private last = 0;
 
   private readonly turntable = new TurntableMotion();
   private readonly motion = new SceneMotion(this.turntable);
@@ -72,6 +68,7 @@ export class SpaceSceneEngine {
   );
   private readonly frame: SceneFrame;
   private readonly renderer: SceneRenderer;
+  private readonly frames: FrameLoopEngine;
 
   constructor(
     private readonly host: EngineHost,
@@ -86,10 +83,9 @@ export class SpaceSceneEngine {
     this.motion.grains.startDensity(densityShare(viewportArea));
     this.frame = sceneFrame(this.state, options);
     this.renderer = new SceneRenderer(canvases, options, grains, this.motion);
-  }
-
-  public get running(): boolean {
-    return this.cancelFrame !== null;
+    this.frames = new FrameLoopEngine(host, (dt, isVisible) =>
+      this.step(dt, isVisible),
+    );
   }
 
   public setInputs(inputs: SceneInputs): void {
@@ -98,6 +94,9 @@ export class SpaceSceneEngine {
     this.state = state;
     if (previous.count !== state.count || this.orbits.length === 0) {
       this.orbits = placeOrbits(state.count);
+    }
+    if (!isSameFraming(previous, state)) {
+      this.motion.zoom.reset();
     }
     if (previous === NO_STATE) {
       this.motion.start(state);
@@ -157,6 +156,9 @@ export class SpaceSceneEngine {
     }
     this.needsDraw = true;
     this.draw();
+    if (this.motion.zoom.resize(width, height)) {
+      this.request();
+    }
   }
 
   public setViewportArea(viewportArea: number): void {
@@ -165,12 +167,7 @@ export class SpaceSceneEngine {
   }
 
   public setVisible(isVisible: boolean): void {
-    this.isVisible = isVisible;
-    if (isVisible) {
-      this.loop();
-    } else {
-      this.stop();
-    }
+    this.frames.setVisible(isVisible);
   }
 
   public setPointer(clientX: number | null, clientY = 0): void {
@@ -221,27 +218,54 @@ export class SpaceSceneEngine {
     return isDrag;
   }
 
-  public request(): void {
-    this.needsDraw = true;
-    if (!this.cancelFrame) {
-      this.loop();
+  public holdZoom(clientX: number, clientY: number): boolean {
+    const point = this.onCanvas(clientX, clientY);
+    if (point) {
+      this.release();
+      this.motion.zoom.hold(point.x, point.y);
+      this.request();
+    }
+    return point !== null;
+  }
+
+  public stretchZoom(clientX: number, clientY: number, ratio: number): void {
+    const point = this.onCanvas(clientX, clientY);
+    if (point) {
+      this.motion.zoom.stretch(point.x, point.y, ratio);
+      this.request();
     }
   }
 
+  public releaseZoom(): void {
+    this.motion.zoom.letGo();
+    this.request();
+  }
+
+  public lookCloser(): boolean {
+    const canLook = canLookCloser(this.state) && this.w > 0 && this.h > 0;
+    if (canLook) {
+      this.motion.zoom.toggle(this.frame.hole.cx, this.frame.hole.cy);
+      this.request();
+    }
+    return canLook;
+  }
+
+  public request(): void {
+    this.needsDraw = true;
+    this.frames.wake();
+  }
+
   public stop(): void {
-    this.cancelFrame?.();
-    this.cancelFrame = null;
+    this.frames.stop();
   }
 
   private pointUnder(clientX: number, clientY: number): PlanePoint | null {
-    const canvas = this.layout?.canvas;
-    return canvas
-      ? onDiskPlane(
-          this.disk,
-          (clientX - canvas.left) * this.dpr,
-          (clientY - canvas.top) * this.dpr,
-        )
-      : null;
+    const point = this.onCanvas(clientX, clientY);
+    return point ? onDiskPlane(this.disk, point.x, point.y) : null;
+  }
+
+  private onCanvas(clientX: number, clientY: number) {
+    return clientOnCanvas(clientX, clientY, this.layout?.canvas, this.dpr);
   }
 
   private fitOrbits(): void {
@@ -252,32 +276,18 @@ export class SpaceSceneEngine {
     });
   }
 
-  private loop(): void {
-    this.stop();
-    if (this.host.hidden() || !this.isVisible) {
-      return;
-    }
-    this.last = this.host.now();
-    this.cancelFrame = this.host.frame(this.tick);
-  }
-
-  private readonly tick = (now: number): void => {
-    this.cancelFrame = null;
-    const dt = clamp(now - this.last, 0, 60) / 1000;
-    this.last = now;
-    this.advance(dt);
-    if (this.hasMoved() && this.isVisible) {
+  private step(dt: number, isVisible: boolean): boolean {
+    this.advance(dt, isVisible);
+    if (this.hasMoved() && isVisible) {
       this.draw();
       this.needsDraw = false;
     }
-    if (this.isVisible && this.isMoving()) {
-      this.cancelFrame = this.host.frame(this.tick);
-    }
-  };
+    return this.isMoving();
+  }
 
-  private advance(dt: number): void {
+  private advance(dt: number, isVisible: boolean): void {
     this.fitOrbits();
-    this.motion.advance(dt, this.state, this.target(), this.isVisible);
+    this.motion.advance(dt, this.state, this.target(), isVisible);
     this.isTurning = this.turntable.step(dt, this.state.reduced, this.orbits);
   }
 

@@ -21,6 +21,16 @@ export const diskOnScreen = (frame: SceneFrame): DiskOnScreen => ({
   squash: opening(frame.elev) * frame.flatten,
 });
 
+export const clientOnCanvas = (
+  clientX: number,
+  clientY: number,
+  canvas: { readonly left: number; readonly top: number } | undefined,
+  dpr: number,
+): { x: number; y: number } | null =>
+  canvas
+    ? { x: (clientX - canvas.left) * dpr, y: (clientY - canvas.top) * dpr }
+    : null;
+
 export const pointerOnCanvas = (
   x: number,
   y: number,

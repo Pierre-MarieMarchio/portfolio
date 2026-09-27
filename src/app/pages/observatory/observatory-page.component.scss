@@ -82,6 +82,12 @@ main {
   z-index: calc(var(--z-window) + var(--stack, 1));
 }
 
+@include formats.tablet {
+  .void {
+    touch-action: none;
+  }
+}
+
 $dock-reserve: calc(var(--target) + 2 * var(--s1));
 $contact-room: calc(var(--target) + 2 * var(--s1));
 
@@ -110,6 +116,10 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
 
   .scene {
     min-height: 0;
+  }
+
+  .void {
+    touch-action: none;
   }
 
   .slot {

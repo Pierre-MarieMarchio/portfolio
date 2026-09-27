@@ -6,12 +6,16 @@ export interface EngineHost {
   hidden(): boolean;
 }
 
+const TOUCH_FRAME_GAP = 10.5;
+
 export type FrameStep = (dt: number, isVisible: boolean) => boolean;
 
 export class FrameLoopEngine {
   private isVisible = true;
   private cancelFrame: (() => void) | null = null;
   private last = 0;
+  private gap = 0;
+  private nextAt = 0;
 
   constructor(
     private readonly host: EngineHost,
@@ -25,6 +29,10 @@ export class FrameLoopEngine {
     } else {
       this.stop();
     }
+  }
+
+  public setTouch(isTouch: boolean): void {
+    this.gap = isTouch ? TOUCH_FRAME_GAP : 0;
   }
 
   public wake(): void {
@@ -49,10 +57,15 @@ export class FrameLoopEngine {
 
   private readonly tick = (now: number): void => {
     this.cancelFrame = null;
-    const dt = clamp(now - this.last, 0, 60) / 1000;
-    this.last = now;
-    if (this.isMovingAfter(dt, this.isVisible) && this.isVisible) {
+    if (now < this.nextAt || this.isMovingAt(now)) {
       this.cancelFrame = this.host.frame(this.tick);
     }
   };
+
+  private isMovingAt(now: number): boolean {
+    this.nextAt = now + this.gap;
+    const dt = clamp(now - this.last, 0, 60) / 1000;
+    this.last = now;
+    return this.isMovingAfter(dt, this.isVisible) && this.isVisible;
+  }
 }

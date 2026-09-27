@@ -299,11 +299,11 @@ const SCENES_GOLDEN = {
     approach: '318c3ecc',
   },
   phone: {
-    arrival: 'd836e7ba',
-    overview: '93a2a123',
-    approach: '49495936',
-    'close-up': '0b6c30fa',
-    aside: 'b2347b6f',
+    arrival: 'f7e3d1e4',
+    overview: 'e0aa0510',
+    approach: '98fa43b4',
+    'close-up': '965b34d2',
+    aside: '57a53168',
   },
   measuredLabels: {
     arrival: '29a2446b',

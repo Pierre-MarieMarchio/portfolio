@@ -36,6 +36,7 @@ export class SkyRenderer {
       ink: frame.ink,
       accent: frame.accent,
       entry: frame.entry,
+      phone: frame.state.phone,
     });
     this.constellations?.draw(frame, pan);
     this.ctx.globalAlpha = 1;

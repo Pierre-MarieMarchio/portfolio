@@ -14,6 +14,7 @@ import {
   PlanetBody,
 } from '../../rules/planets/planet-focus.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
+import { isSameList } from '../../rules/planets/same-nodes.rules';
 import { diskOnScreen, drawnDisc } from '../../rules/camera/pointer.rules';
 
 type NamePlace = ReturnType<typeof placeName>;
@@ -76,10 +77,7 @@ export class PlanetLabelsRenderer {
   }
 
   public setLines(lines: readonly HTMLElement[]): boolean {
-    const isSame =
-      lines.length === this.lines.length &&
-      lines.every((line, i) => line === this.lines[i]);
-    if (isSame) {
+    if (isSameList(lines, this.lines)) {
       return false;
     }
     this.lines = lines;

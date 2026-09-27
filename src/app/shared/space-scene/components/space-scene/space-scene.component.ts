@@ -27,6 +27,7 @@ import {
 import { SCENE_SURROUNDINGS } from '../../ports/scene-surroundings.port';
 import { canvasResolution } from '../../rules/canvas-resolution.rules';
 import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
+import { isSameList } from '../../rules/planets/same-nodes.rules';
 import { SceneTargetsService } from '../../services/scene-targets.service';
 import {
   FALLBACK_VIEWPORT,
@@ -233,6 +234,7 @@ export class SpaceSceneComponent {
     const { width, height, pixelRatio } = canvasResolution(
       matter.getBoundingClientRect(),
       this.canvas.pixelRatio(),
+      this.display.format(),
     );
     for (const canvas of [matter, sky]) {
       if (canvas.width !== width || canvas.height !== height) {
@@ -266,14 +268,4 @@ export class SpaceSceneComponent {
     const viewport = this.canvas.windowSize() ?? FALLBACK_VIEWPORT;
     engine.setLayout(sceneLayout(canvas, viewport, anchors));
   }
-}
-
-function isSameList(
-  next: readonly HTMLElement[],
-  given: readonly HTMLElement[],
-): boolean {
-  return (
-    next.length === given.length &&
-    next.every((element, i) => element === given[i])
-  );
 }

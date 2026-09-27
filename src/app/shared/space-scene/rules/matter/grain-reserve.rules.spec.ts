@@ -1,4 +1,4 @@
-import { litAmount } from './grain-reserve.rules';
+import { litAmount, litShare } from './grain-reserve.rules';
 
 const litAt = (share: number): number[] =>
   Array.from({ length: 5000 }, (_, i) => i).filter(
@@ -29,5 +29,30 @@ describe('litAmount (deterministic draw)', () => {
   it('lights about the share asked for, and all of them at 1', () => {
     expect(litAt(0.5).length / 5000).toBeCloseTo(0.5, 1);
     expect(litAt(1)).toHaveLength(5000);
+  });
+});
+
+describe('litShare', () => {
+  const instants: readonly (readonly [number, number, number])[] = [
+    [0.42, 0.42, 0],
+    [0.42, 0.42, 0.2],
+    [0.42, 0.42, 1],
+    [0.42, 0.9, 1],
+    [0.3, 1.2, 0.6],
+    [0, 0.5, 1],
+  ];
+
+  it('lights 0.6 times the share on a phone, at every instant', () => {
+    for (const [homeScale, scale, grow] of instants) {
+      expect(litShare(homeScale, scale, grow, true)).toBeCloseTo(
+        0.6 * litShare(homeScale, scale, grow, false),
+        10,
+      );
+    }
+  });
+
+  it('keeps the share of every other format', () => {
+    expect(litShare(0.42, 0.42, 1, false)).toBeCloseTo(1 / 1.9, 10);
+    expect(litShare(0.42, 0.42, 0, false)).toBeCloseTo(0.03, 10);
   });
 });

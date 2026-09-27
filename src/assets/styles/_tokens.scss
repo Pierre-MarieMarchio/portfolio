@@ -48,7 +48,7 @@
   --glass-blur: blur(10px) saturate(1.1);
   --glass-blur-window: blur(11px) saturate(1.08);
   --glass-blur-pane: blur(4px) brightness(0.7) saturate(1.08);
-  --glass-shade-lowered: blur(0px) brightness(1);
+  --glass-shade-lowered: none;
   --glass-shade-raised: blur(8px) brightness(0.55);
   --glass-lowered: 0.6;
   --window-bar-padding: 5px 5px 5px var(--s2);

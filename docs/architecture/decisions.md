@@ -1016,3 +1016,50 @@ angles. Ne pas faire tourner
 l'objet au premier toucher : la planète au bord de l'écran, contre le
 disque, n'avait nulle part où écrire son nom. Relever le seuil du bundle :
 il reste sous 520 kB (519,2 kB).
+
+## 2026-09-27 — Au doigt, la scène dessine à 60 i/s au plus ; au téléphone, moins de pixels et de grains (D36)
+
+**Décision.** Aux formats `phone` et `tablet`, la boucle de la scène ne
+dessine jamais deux images à moins de 10,5 ms d'intervalle : un écran à
+120 Hz reçoit une image sur deux, soit 60 ; un écran à 60 ou 90 Hz n'est pas
+touché. Le pas de temps couvre l'intervalle entier, rien ne ralentit. Au
+format `phone` seulement, le canvas plafonne à un ratio de pixels de 1,5 (au
+lieu de 2), la part de grains allumée vaut 0,6 fois celle du bureau à tous
+les instants (même tirage, même allumage progressif), le ciel garde le
+nombre d'étoiles qu'il aurait à un ratio de 2, et les traînées de la
+traversée sont regroupées par teinte, par palier d'éclat et par palier
+d'épaisseur, chaque groupe tracé en un seul `stroke` : la tête à l'éclat
+plein, la queue à la moitié, au lieu d'un dégradé par traînée. Une traînée
+prend le palier le plus proche vers le haut : groupée, elle n'est jamais
+plus pâle que la même traînée en dégradé au milieu de sa tête ou de sa
+queue. Vitre basse, le
+ciel au-dessus d'elle (`.lead`) ne porte plus de filtre (`none`) ; le flou et
+l'assombrissement apparaissent en montant, jusqu'à la même valeur
+qu'aujourd'hui. Le filtre reste `none` sur le premier millième de la montée
+(moins d'un pixel de défilement) : interpolé depuis `none`, il peut valoir
+`blur(0px) brightness(1)` au départ et poser quand même une couche. Le
+bureau ne change pas.
+
+**Raison.** Sur un Android à 120 Hz (Galaxy S21 Ultra), le carton
+d'ouverture et la scène ramaient. Mesuré : la boucle dessinait à chaque
+`requestAnimationFrame`, donc 120 fois par seconde ; vitre ouverte, deux
+`backdrop-filter` couvraient l'écran au-dessus d'un canvas qui change à
+chaque image, dont celui de `.lead` (`blur(0px) brightness(1)`) même vitre
+basse ; le plancher de densité (0,42) faisait dessiner au téléphone environ
+3 400 grains par image, les trois quarts de ceux du bureau dans un disque
+bien plus petit ; à dpr 2, les deux canvas passaient de 384 × 854 à
+768 × 1708 ; la traversée créait un `createLinearGradient` et un `stroke`
+par traînée à chaque image.
+
+**Écarté.** Baisser le nombre d'étoiles : 182 à cette taille, ce n'est pas
+lui. Plafonner le bureau à 60 i/s : ses écrans rapides n'en ont pas besoin.
+Retirer le flou de la vitre : D28 l'a réglé pour le contraste. Compter les
+étoiles au ratio du canvas : à 1,5, le téléphone en perdait un quart. Des
+paliers arrondis au plus proche, une queue à 0,4 : mesurée sur captures
+pendant la traversée (390 × 844, dpr 3, de 4,8 à 6,8 s), l'énergie des
+traînées au-dessus du fond tombait d'environ moitié.
+
+**Budget.** Le bundle initial passe de 519,2 à 520,5 kB : le seuil
+d'avertissement monte de 520 à 530 kB (`angular.json`), à la demande de
+l'opérateur ; le seuil d'erreur (1 MB) ne bouge pas. La comparaison de deux
+listes de nœuds s'écrit une seule fois (`planets/same-nodes.rules.ts`).

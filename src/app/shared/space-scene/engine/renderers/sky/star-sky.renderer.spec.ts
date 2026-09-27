@@ -5,6 +5,7 @@ import {
   traveling,
 } from '../../../rules/camera/traveling.rules';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
+import { TRAIL_GROUPS } from '../../../rules/sky/trail-steps.rules';
 
 interface Stroke {
   readonly x0: number;
@@ -79,6 +80,7 @@ const offRestCamera = (time: number, trv: Traveling = traveling(time, false)) =>
     ink: '#000',
     accent: '#00f',
     entry: 1,
+    phone: false,
   }) satisfies SkyCamera;
 
 const run = (hz: number, until: number) => {
@@ -226,5 +228,92 @@ describe('Sky', () => {
 
     expect(first).toBeGreaterThan(0);
     expect(strokes).toHaveLength(0);
+  });
+});
+
+const batchRecorder = () => {
+  const strokes: { readonly segments: number; readonly alpha: number }[] = [];
+  const counts = { gradients: 0, segments: 0 };
+  const ctx = {
+    globalAlpha: 1,
+    fillStyle: '',
+    strokeStyle: '' as unknown,
+    lineCap: '',
+    lineWidth: 1,
+    clearRect: () => {},
+    fillRect: () => {},
+    beginPath: () => {
+      counts.segments = 0;
+    },
+    moveTo: () => {
+      counts.segments++;
+    },
+    lineTo: () => {},
+    stroke: () => {
+      strokes.push({ segments: counts.segments, alpha: ctx.globalAlpha });
+    },
+    createLinearGradient: () => {
+      counts.gradients++;
+      return { addColorStop: () => {} };
+    },
+  };
+  return { ctx: ctx as unknown as CanvasRenderingContext2D, strokes, counts };
+};
+
+const flyTo = (until: number, isPhone: boolean) => {
+  const hz = 60;
+  const sky = new StarSkyRenderer(seededRandom(7));
+  const recorder = batchRecorder();
+  for (let i = 0; i <= Math.round(until * hz); i++) {
+    recorder.strokes.length = 0;
+    recorder.counts.gradients = 0;
+    sky.draw(recorder.ctx, W, H, {
+      ...offRestCamera(i / hz),
+      dpr: 2,
+      phone: isPhone,
+    });
+  }
+  return recorder;
+};
+
+const phoneStarsAt = (ratio: number): number => {
+  const sky = new StarSkyRenderer(seededRandom(7));
+  const { ctx } = batchRecorder();
+  sky.draw(ctx, 390 * ratio, 844 * ratio, {
+    ...offRestCamera(0),
+    dpr: ratio,
+    phone: true,
+  });
+  return starsOf(sky).length;
+};
+
+describe('Sky, on a phone', () => {
+  it('strokes the trails by group, in a few strokes and no gradient', () => {
+    const { strokes, counts } = flyTo(FASTEST_FLIGHT, true);
+    const segments = strokes.reduce((sum, s) => sum + s.segments, 0);
+
+    expect(counts.gradients).toBe(0);
+    expect(strokes.length).toBeGreaterThan(0);
+    expect(strokes.length).toBeLessThanOrEqual(TRAIL_GROUPS);
+    expect(segments).toBeGreaterThan(2 * strokes.length);
+  });
+
+  it('draws each trail as a bright head and a paler tail', () => {
+    const phone = flyTo(FASTEST_FLIGHT, true).strokes;
+    const desktop = flyTo(FASTEST_FLIGHT, false).strokes;
+    const segments = phone.reduce((sum, s) => sum + s.segments, 0);
+
+    expect(segments).toBeGreaterThan(1.5 * desktop.length);
+    expect(segments).toBeLessThanOrEqual(2 * desktop.length);
+  });
+
+  it('keeps the stars of a ratio of 2 on a canvas capped at 1.5', () => {
+    expect(phoneStarsAt(1.5)).toBe(phoneStarsAt(2));
+  });
+
+  it('keeps one gradient per trail off the phone', () => {
+    const { strokes, counts } = flyTo(FASTEST_FLIGHT, false);
+
+    expect(counts.gradients).toBe(strokes.length);
   });
 });

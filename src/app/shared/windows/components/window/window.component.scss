@@ -23,11 +23,12 @@ $bottom-reserve: var(--glass-bottom-reserve, 0px);
 }
 
 @keyframes glass-shade {
-  from {
+  0%,
+  0.1% {
     backdrop-filter: var(--glass-shade-lowered);
   }
 
-  to {
+  100% {
     backdrop-filter: var(--glass-shade-raised);
   }
 }

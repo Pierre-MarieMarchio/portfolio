@@ -27,13 +27,30 @@ interface StarPlace {
   readonly y: number;
 }
 
-export const buildStarField = (
+export interface StarField {
+  readonly w: number;
+  readonly h: number;
+  readonly dpr: number;
+  readonly count: number;
+}
+
+const PIXELS_PER_STAR = 3600;
+const PHONE_STAR_RATIO = 2;
+
+export const starCount = (
   w: number,
   h: number,
   dpr: number,
+  isPhone: boolean,
+): number =>
+  isPhone
+    ? Math.round((w * h * PHONE_STAR_RATIO) / (PIXELS_PER_STAR * dpr * dpr))
+    : Math.round((w * h) / (PIXELS_PER_STAR * dpr));
+
+export const buildStarField = (
+  { w, h, dpr, count }: StarField,
   rnd: () => number,
 ): Star[] => {
-  const count = Math.round((w * h) / (3600 * dpr));
   const clusters: Cluster[] = [];
   for (let i = 0; i < 4; i++) {
     clusters.push({

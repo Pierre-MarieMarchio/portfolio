@@ -25,7 +25,6 @@ export const loadGlassGestures = () =>
     '(pointerdown)': 'take($event)',
     '(pointermove)': 'take($event)',
     '(pointercancel)': 'take($event)',
-    '(touchmove)': 'take($event)',
   },
 })
 export class GlassGesturesDirective {

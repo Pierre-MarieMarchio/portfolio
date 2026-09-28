@@ -58,6 +58,10 @@ export class AnimatedCanvasService {
     return this.styles.token(name, el);
   }
 
+  public flagRoot(name: string, isOn: boolean): void {
+    this.styles.flagRoot(name, isOn);
+  }
+
   public fontsReady(fn: () => void): void {
     this.styles.fontsReady(fn);
   }

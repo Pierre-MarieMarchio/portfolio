@@ -19,6 +19,8 @@ export class SceneMotion {
   public readonly grains: GrainsMotion;
   private readonly clock: ClockMotion;
   private opensLanded = false;
+  private isTravelling = false;
+  public onTravel: (isTravelling: boolean) => void = () => {};
 
   constructor(public readonly turntable: TurntableMotion) {
     this.clock = new ClockMotion(this.camera, turntable);
@@ -86,6 +88,10 @@ export class SceneMotion {
     this.camera.update(dt, target, state);
     this.zoom.update(dt, state.reduced);
     this.clock.update(dt, state, isVisible);
+    if (this.isTravelling === this.camera.isSettled) {
+      this.isTravelling = !this.isTravelling;
+      this.onTravel(this.isTravelling);
+    }
   }
 
   public lay(frame: SceneFrame): void {

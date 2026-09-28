@@ -134,6 +134,7 @@ export class SpaceSceneComponent {
         stop();
       }
       this.cancelMeasure?.();
+      this.canvas.flagRoot('sky-travel', false);
       this.engine()?.stop();
       this.engine.set(null);
     });
@@ -215,6 +216,7 @@ export class SpaceSceneComponent {
         frame: (callback) => this.canvas.nextFrame(callback),
         now: () => this.canvas.now(),
         hidden: () => this.canvas.isHidden(),
+        travel: (isOn) => this.canvas.flagRoot('sky-travel', isOn),
       },
       { matter: ctx, sky: skyCtx },
       {

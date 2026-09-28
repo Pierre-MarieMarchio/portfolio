@@ -5,12 +5,17 @@ import {
   holeDistance,
   ScreenHole,
 } from '../../../rules/camera/projection.rules';
-import { buildStarField, Star } from '../../../rules/sky/star-field.rules';
+import {
+  buildStarField,
+  Star,
+  starCount,
+} from '../../../rules/sky/star-field.rules';
 import {
   SkyFrame,
   StarFlowMotion,
   StarPass,
 } from '../../motions/star-flow.motion';
+import { TrailBatchRenderer } from './trail-batch.renderer';
 
 const TRAIL_SECONDS = 9 / 60;
 const TRAIL_FROM = 0.45 * 60;
@@ -30,6 +35,7 @@ export interface SkyCamera {
   readonly ink: string;
   readonly accent: string;
   readonly entry: number;
+  readonly phone: boolean;
 }
 
 export interface SkyPan {
@@ -96,6 +102,7 @@ const strokeTrail = (
 
 export class StarSkyRenderer {
   private stars: Star[] = [];
+  private readonly batch = new TrailBatchRenderer();
   private builtW = 0;
   private builtH = 0;
   private isWarmed = false;
@@ -127,16 +134,19 @@ export class StarSkyRenderer {
   ): SkyPan {
     ctx.clearRect(0, 0, w, h);
     if (this.builtW !== w || this.builtH !== h) {
-      this.build(w, h, cam.dpr);
+      this.build(w, h, cam);
     }
-    if (!this.isWarmed) {
-      this.isWarmed = true;
+    if (!this.isWarmed && !cam.phone) {
       this.warm(ctx, cam);
     }
+    this.isWarmed = true;
     const frame = this.flow.update(this.stars, w, h, cam);
     this.fill = '';
     for (const star of this.stars) {
       this.drawStar(ctx, star, frame);
+    }
+    if (cam.phone) {
+      this.batch.flush(ctx, cam);
     }
     return { panX: frame.panX, panY: frame.panY };
   }
@@ -189,7 +199,11 @@ export class StarSkyRenderer {
             (0.7 + 1.5 * frame.speed),
         ) * trailing;
       stroke.width = Math.max(0.7, this.drawnRadius(star, frame) * 0.8);
-      strokeTrail(ctx, stroke);
+      if (frame.cam.phone) {
+        this.batch.add(stroke, star.accent, frame.cam.dpr);
+      } else {
+        strokeTrail(ctx, stroke);
+      }
       if (trailing >= 0.996) {
         return false;
       }
@@ -274,8 +288,9 @@ export class StarSkyRenderer {
     ctx.globalAlpha = 1;
   }
 
-  private build(w: number, h: number, dpr: number): void {
-    this.stars = buildStarField(w, h, dpr, this.rnd);
+  private build(w: number, h: number, cam: SkyCamera): void {
+    const count = starCount(w, h, cam.dpr, cam.phone);
+    this.stars = buildStarField({ w, h, dpr: cam.dpr, count }, this.rnd);
     this.builtW = w;
     this.builtH = h;
   }

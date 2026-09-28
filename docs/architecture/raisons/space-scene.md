@@ -302,6 +302,25 @@ et de `src/testing/`, rangées par unité (D10).
   par image, une traînée à 20 Hz était trois fois plus longue qu'à 60 Hz.
 - La première image trace des traînées que personne ne voit, pour chauffer le
   GPU.
+- Au téléphone (D36), les traînées passent par `TrailBatchRenderer`
+  (`trail-batch.renderer.ts`, paliers dans `rules/sky/trail-steps.rules.ts`) :
+  deux teintes, huit paliers d'éclat (de 0,8 à 0,012, × 0,55 environ à chaque
+  palier) et quatre d'épaisseur (0,6 à 2,4 px CSS) font au plus 64 `stroke`
+  par image. Une traînée prend le palier le plus proche vers le haut. La tête
+  va jusqu'à 45 % de la traînée, là où le dégradé commençait à pâlir ; la
+  queue prend la moitié de son éclat, ce que vaut le dégradé au milieu de la
+  queue. Seule une traînée plus pâle que la moitié du dernier palier n'est
+  pas tracée. Les points des groupes vivent dans des tableaux plats réutilisés
+  d'une image à l'autre : aucune allocation par image. Les traînées groupées
+  se tracent après les points, et non chacune sous le sien. Le téléphone ne
+  chauffe pas les dégradés à la première image : il n'en trace plus.
+
+## `src/app/shared/space-scene/rules/sky/star-field.rules.ts`
+
+- Une étoile pour 3600 px² divisés par le ratio : le nombre d'étoiles suit le
+  ratio du canvas. Au téléphone (D36), il est compté à un ratio de 2, celui
+  d'avant le plafond à 1,5 : sans cela le ciel perdait un quart de ses
+  étoiles, et les traînées de la traversée autant.
 
 ## `src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.spec.ts`
 
@@ -400,6 +419,13 @@ et de `src/testing/`, rangées par unité (D10).
 - La boucle d'images (réveil, arrêt, visibilité, pas de temps borné à 60 ms)
   sort du moteur à l'identique : le moteur dépassait sa taille permise avec
   l'API du zoom. `EngineHost` y vit et reste exporté par le moteur.
+- Au doigt (D36), une image demandée à moins de 10,5 ms de la précédente est
+  sautée et redemandée ; le pas de temps part de la dernière image dessinée,
+  il couvre donc l'intervalle entier. 10,5 ms laisse passer 90 Hz (11,1 ms) et
+  coupe 120 Hz (8,3 ms). Le golden du téléphone a bougé aussi pour cela : le
+  double d'hôte finit certains pas par un reste de moins de 10,5 ms, qui est
+  désormais sauté. Le dessin que `resize` force hors de la boucle n'est pas
+  compté : le canvas redimensionné est vide jusqu'à lui.
 
 ## `src/app/shared/space-scene/rules/hole-focus.rules.ts`
 

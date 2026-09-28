@@ -38,6 +38,23 @@ describe('canvasResolution', () => {
     );
   });
 
+  it('caps the ratio at 1.5 on a phone, and leaves the tablet at 2', () => {
+    expect(canvasResolution({ width: 390, height: 844 }, 3, 'phone')).toEqual({
+      width: 585,
+      height: 1266,
+      pixelRatio: 1.5,
+    });
+    expect(
+      canvasResolution({ width: 390, height: 844 }, 1.25, 'phone').pixelRatio,
+    ).toBe(1.25);
+    expect(
+      canvasResolution({ width: 820, height: 1180 }, 3, 'tablet').pixelRatio,
+    ).toBe(2);
+    expect(
+      canvasResolution({ width: 800, height: 600 }, 3, 'desktop').pixelRatio,
+    ).toBe(2);
+  });
+
   it('never answers a canvas smaller than one pixel', () => {
     expect(canvasResolution({ width: 0, height: 0 }, 2)).toEqual({
       width: 1,

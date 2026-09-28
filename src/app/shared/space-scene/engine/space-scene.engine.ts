@@ -94,6 +94,7 @@ export class SpaceSceneEngine {
     const previous = this.state;
     const state = sceneState(inputs);
     this.state = state;
+    this.frames.setTouch(state.touch);
     if (previous.count !== state.count || this.orbits.length === 0) {
       this.orbits = placeOrbits(state.count);
     }

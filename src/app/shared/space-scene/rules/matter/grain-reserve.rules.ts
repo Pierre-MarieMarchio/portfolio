@@ -14,6 +14,8 @@ export const RESERVE = 1.9;
 
 const PART_BASE = 1 / RESERVE;
 
+const PHONE_MATTER = 0.6;
+
 export const densityShare = (viewportArea: number): number =>
   clamp(
     viewportArea / (REFERENCE_VIEWPORT.width * REFERENCE_VIEWPORT.height),
@@ -25,11 +27,12 @@ export const litShare = (
   homeScale: number,
   scale: number,
   grow: number,
+  isPhone: boolean,
 ): number => {
   const s0 = homeScale || 0.42;
   const zoom = clamp(finiteOr(scale, s0) / s0, 1, 3);
   const shareZoom = Math.min(1, PART_BASE * (0.62 + 0.38 * zoom * zoom));
-  return Math.min(shareZoom, 0.03 + 1.7 * grow);
+  return Math.min(shareZoom, 0.03 + 1.7 * grow) * (isPhone ? PHONE_MATTER : 1);
 };
 
 export const buildScene = (n: number, rnd: () => number): Grain[] => {

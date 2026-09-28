@@ -1,3 +1,4 @@
+import type { SceneNode } from '../models/scene-node.model';
 import { Frame } from '../rules/camera/camera-frames.rules';
 import { EngineHost, FrameLoopEngine } from './frame-loop.engine';
 import { measureRest } from '../rules/camera/rest-frame.rules';
@@ -106,21 +107,21 @@ export class SpaceSceneEngine {
   }
 
   public setNodes(
-    buttons: readonly HTMLElement[],
-    labels: readonly HTMLElement[],
-    figures: readonly HTMLElement[] = [],
+    buttons: readonly SceneNode[],
+    labels: readonly SceneNode[],
+    figures: readonly SceneNode[] = [],
   ): void {
     this.renderer.labels.setNodes(buttons, labels);
     this.renderer.figureTargets.setNodes(figures);
     this.request();
   }
 
-  public setHoleMark(node: HTMLElement | null): void {
+  public setHoleMark(node: SceneNode | null): void {
     this.renderer.holeMark.setNode(node);
     this.request();
   }
 
-  public setLines(lines: readonly HTMLElement[]): void {
+  public setLines(lines: readonly SceneNode[]): void {
     if (this.renderer.labels.setLines(lines)) {
       this.request();
     }

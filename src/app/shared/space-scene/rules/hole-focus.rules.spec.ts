@@ -1,7 +1,15 @@
 import type { PanelRect, SceneLayout } from '../models/scene-layout.model';
 import { Frame, referenceRadius } from './camera/camera-frames.rules';
 import { DISC_REACH, LENS_REACH } from './camera/pointer.rules';
-import { FocusAim, HoleFocus, holeInFocus, skyRooms } from './hole-focus.rules';
+import {
+  FocusAim,
+  HoleFocus,
+  holeInFocus as focusedOf,
+  skyRooms,
+} from './hole-focus.rules';
+
+const holeInFocus = (frame: Frame, focus: HoleFocus): Frame =>
+  focusedOf(frame, focus).frame;
 
 type Edges = readonly [
   left: number,
@@ -116,5 +124,86 @@ describe('holeInFocus', () => {
     expect(planetY + 24).toBeLessThanOrEqual(GLASS_TOP);
     expect(planetX - 24).toBeGreaterThanOrEqual(0);
     expect(planetX + 24).toBeLessThanOrEqual(PHONE.width);
+  });
+});
+
+describe('holeInFocus, frame after frame', () => {
+  const name = { w: 120, h: 18 };
+  const rest: Frame = { i: -0.33, s: 0.3, x: 0.53, y: 0.4, ev: 0.18, az: 0 };
+  const layout = layoutOf([BAR, TITLE], GLASS_TOP);
+  const rooms = skyRooms(layout);
+
+  const orbiting = (angle: number, reach = 3.4): FocusAim => ({
+    angle,
+    name,
+    offset: (az) => ({
+      nx: reach * Math.cos(angle + az),
+      ny: 0.4 * Math.sin(angle + az),
+    }),
+  });
+
+  const focusAt = (aim: FocusAim): HoleFocus => ({
+    ...focusOf(layout, aim),
+    rooms,
+  });
+
+  it('frames as a fresh search would, all along an orbit', () => {
+    let memo = focusedOf(rest, focusAt(orbiting(0))).memo;
+    let worst = 0;
+    let turns = 0;
+    let lastAz = rest.az;
+    for (let step = 1; step <= 1260; step += 1) {
+      const aim = orbiting(step * 0.005);
+      const drifting = { ...rest, y: rest.y + step * 2e-5 };
+      const kept = focusedOf(drifting, focusAt(aim), memo);
+      const fresh = holeInFocus(drifting, focusAt(aim));
+      memo = kept.memo;
+      turns += Math.abs(fresh.az - lastAz) > 0.1 ? 1 : 0;
+      lastAz = fresh.az;
+      const keptHole = holeOf(kept.frame);
+      const freshHole = holeOf(fresh);
+      worst = Math.max(
+        worst,
+        Math.abs(keptHole.x - freshHole.x),
+        Math.abs(keptHole.y - freshHole.y),
+        Math.abs(keptHole.radius - freshHole.radius),
+        Math.abs(kept.frame.az - fresh.az),
+      );
+    }
+
+    expect(turns).toBeGreaterThan(0);
+    expect(worst).toBeLessThan(0.01);
+  });
+
+  it('keeps the placements that do not follow the planet while it orbits', () => {
+    const first = focusedOf(rest, focusAt(orbiting(0)));
+
+    const next = focusedOf(rest, focusAt(orbiting(0.01)), first.memo);
+
+    expect(next.memo?.named[1]).toBe(first.memo?.named[1]);
+    expect(next.memo?.named[0]).not.toBe(first.memo?.named[0]);
+  });
+
+  it('places again what the orbit itself changes', () => {
+    const first = focusedOf(rest, focusAt(orbiting(0)));
+    const aim = orbiting(0.01, 3.1);
+
+    const next = focusedOf(rest, focusAt(aim), first.memo);
+
+    expect(next.memo?.named[1]).not.toBe(first.memo?.named[1]);
+    expect(next.frame).toEqual(holeInFocus(rest, focusAt(aim)));
+  });
+
+  it('places everything again when the sky changes', () => {
+    const first = focusedOf(rest, focusAt(orbiting(0)));
+    const other = {
+      ...focusAt(orbiting(0)),
+      rooms: skyRooms(layoutOf([BAR], 400)),
+    };
+
+    const next = focusedOf(rest, other, first.memo);
+
+    expect(next.memo?.named[1]).not.toBe(first.memo?.named[1]);
+    expect(next.frame).toEqual(holeInFocus(rest, other));
   });
 });

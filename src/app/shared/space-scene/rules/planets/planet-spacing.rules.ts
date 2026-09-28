@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 export interface ScreenPoint {
   sx: number;
   sy: number;
@@ -54,4 +55,4 @@ const separate = (
   second.sy += (dy / distance) * push;
 };
 
-export const PLANET_GAP = 58;
+export const PLANET_GAP = SCENE_CONFIG.planets.gap;

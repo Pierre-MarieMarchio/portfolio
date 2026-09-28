@@ -34,6 +34,7 @@ const ROLE_OF = {
   motion: 'motions',
   renderer: 'renderers',
   tracker: 'trackers',
+  worker: 'engine',
 };
 
 const CLASS_SUFFIXES = new Set([

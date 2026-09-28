@@ -156,6 +156,7 @@ h2 {
       flex: 1 1 auto;
       background: var(--vitre-pane);
       backdrop-filter: var(--glass-blur-pane);
+      transition: backdrop-filter var(--t);
     }
 
     &.glass--folded .window {

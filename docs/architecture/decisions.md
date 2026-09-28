@@ -1483,6 +1483,87 @@ couchée : l'opérateur a choisi un nom à la fois pour le téléphone.
 
 **Budget.** Le bundle initial passe de 528,81 à 529,39 kB.
 
+## 2026-09-28 — Les navigations ne figent plus la page pour rien (D46)
+
+**Décision.** Quatre correctifs, une PR chacun. Le routeur n'a plus de
+View Transition : la page ne change jamais de composant et les fenêtres ont
+leur propre entrée. La scène ne remesure plus ses vitres à chaque fin de
+transition CSS : les mesures venues d'un événement attendent l'image
+suivante et se fusionnent, et une transition qui ne fait que repeindre
+(couleur, ombre, `fill`, filtre) n'en demande plus. L'écouteur `touchmove`
+non passif n'existe plus que dans le tracker de la vitre du téléphone. La
+vitre du téléphone garde sa teinte et son ombre mais perd son flou pendant
+que la caméra voyage : la scène lève `data-sky-travel` sur la racine, et le
+flou revient en fondu à l'arrivée.
+
+**Raison.** Mesuré sur le build de production, Chrome sans interface à
+390 × 844, dpr 3, processeur ralenti × 4, pire image longue
+(`long-animation-frame`) dans les 3,5 s qui suivent le clic, moyenne de
+trois passages :
+
+| Navigation    | avant  | après  |
+| ------------- | ------ | ------ |
+| vers Projets  | 121 ms | 110 ms |
+| vers la fiche | 103 ms | 83 ms  |
+| vers À propos | 111 ms | 77 ms  |
+| vers Accueil  | 89 ms  | 82 ms  |
+
+Le critère de la session, aucune image au-delà de 50 ms, n'est pas atteint.
+Au repos, le thread principal passe déjà 382 ms sur 500 à dessiner la scène
+à × 4 ; une navigation n'ajoute qu'une cinquantaine de millisecondes, mais
+elle tombe sur un thread plein. Ce qui reste dans la pire image : la vue que
+crée Angular, son style et son layout (forcé par le `focus()` de
+`ViewFocusService`, qu'il faudrait faire de toute façon), et le dessin du
+ciel de la même image. La suite est de sortir la scène du thread principal.
+
+**Écarté.** N'ajouter l'écouteur `touchmove` qu'au début d'un tirage :
+Chrome décide au `touchstart` si la séquence attend la page, et le tirage
+casserait. `touch-action: pan-y` sur la zone : le tirage du corps en haut de
+son contenu et le défilement du rail ne se disent pas ainsi. Une vitre
+opaque sans flou au téléphone : elle change le verre au repos. Ne plus
+écrire `scrollTop` sur une fenêtre neuve déjà en haut : le layout forcé
+passe simplement au `focus()` qui suit, sans rien gagner.
+
+## 2026-09-28 — La scène se dessine dans un worker (D47, amende D11)
+
+**Décision.** Quand le navigateur sait dessiner hors de la page (`Worker`,
+`OffscreenCanvas` et son `transferToImageBitmap`, un canvas
+`bitmaprenderer`), `SceneEngineService` lance `scene.worker.ts`, qui fait
+tourner `SpaceSceneEngine` tel quel sur deux `OffscreenCanvas`. Le moteur
+ne touche plus le DOM qu'à travers `SceneNode`, la petite surface qu'il
+écrit (`style.transform`, `opacity`, `pointerEvents`, `cssText`,
+`setAttribute`, `tabIndex`) et qu'il lit (la taille des noms). Dans le
+worker, des nœuds enregistreurs (`NodeRecorderEngine`) notent ces
+écritures ; chaque image dessinée part avec elles, en `ImageBitmap`
+transférées, et `RemoteSceneEngine` pose l'image et les écritures dans la
+même image de la page. Les noms restent collés à leurs planètes. Les
+réponses immédiates dont les gestes ont besoin (la main prend-elle le
+disque, était-ce un glisser, le zoom tient-il sur le canvas, peut-on
+regarder de plus près) viennent des mêmes règles, appliquées dans la page.
+Le décalage du bureau (`SkyPanMotion`) vit dans le worker et revient avec
+chaque image. Sinon, l'engine tourne dans la page comme avant, chargé à
+part.
+
+**Raison.** Mesuré sur le build de production, Chrome sans interface à
+390 × 844, dpr 3, processeur ralenti × 4 : au repos, le thread principal
+passait 466 ms sur 500 en tâches, dont 369 ms de script ; il en passe 95,
+dont 17 de script. Le bundle initial passe de 529,39 à 476,63 kB : l'engine
+n'y est plus, le worker (59,4 kB) et l'engine de secours (50,9 kB) se
+chargent à part. Un spec fait dessiner la même scène par les deux chemins,
+au même tirage : les ordres de dessin sont les mêmes, un à un, et les
+noms, boutons et lignes reçoivent les mêmes styles. Sur les captures au
+téléphone et au bureau, rien ne change, et les gestes (tourner le disque,
+molette, clic molette, double toucher) donnent le même relevé du trou.
+
+La pire image d'une navigation ne baisse presque pas (64 à 144 ms à × 4) :
+c'est la vue que crée Angular, son style et son layout. Ce qui reste est la
+fenêtre recréée à chaque vue.
+
+**Écarté.** `transferControlToOffscreen` : le canvas s'afficherait sans la
+page, mais les noms, qui sont du DOM, décrocheraient de leurs planètes dès
+que la page est occupée. Un worker pour le ciel seul : les étoiles et les
+planètes glisseraient l'une contre l'autre pendant un vol.
+
 ## 2026-09-28 — La CI se découpe, mesure la couverture, passe par Sonar et déploie son propre build (D48)
 
 **Décision.** Le workflow a cinq jobs. `lint` (format, types des outils,
@@ -1510,3 +1591,45 @@ change, et les deux variables du dépôt.
 n'auraient aucun sens sur un autre hébergeur. Lighthouse CI : utile, mais
 son budget de perf dépend de la session sur les fenêtres, à reprendre
 après.
+
+## 2026-09-28 — Les réglages de la scène tiennent dans un fichier (D49)
+
+**Décision.** `models/scene-config.model.ts` porte `SCENE_CONFIG`, typé par
+`SceneConfig` et rangé par thème : la matière (densité, réserve, part au
+téléphone, entrée, couleurs du disque), le ciel (étoiles, dérive,
+parallaxe, portée du curseur, traînées), le canvas (budget de pixels,
+densité d'affichage), la caméra (vitesse des orbites, échelle de repos,
+zoom), la main (frottement, vitesse, entraînement des orbites), les gestes
+(seuil de glisser, appui et double appui, cran de molette), les planètes
+(écart) et les figures (cible tactile, noms, lumières). Chaque fichier
+garde le nom de sa constante et la lit dans la config. Les trois seuils de
+6 px (la main, la figure, l'appui) n'en font plus qu'un,
+`gestures.dragPx`.
+
+**Raison.** Ces valeurs se réglaient dans seize fichiers ; on les change
+maintenant en un seul, sans chercher. La config est une donnée pure : elle
+vit dans le worker (D47) comme dans la page, sans rien à transmettre. Les
+valeurs n'ont pas changé : les goldens de la scène passent tels quels.
+
+**Écarté.** Les tolérances de convergence, les valeurs tirées d'autres
+valeurs, les sélecteurs et les réglages internes des placements : les
+changer casse un invariant, cela ne règle pas un rendu. Une config fournie
+à l'exécution (`provideSpaceScene`) : un seul site s'en sert, et il
+faudrait la faire passer jusqu'aux règles pures et au worker.
+
+## 2026-09-28 — `core/` et `shared/` ne disent plus un mot du portfolio (D51)
+
+**Décision.** Le nom du site quitte `core/` : `DocumentHeadService` le reçoit
+par le port `SITE_NAME` (`core/ports/`), auquel `provideI18n` répond avec
+`OWNER_NAME` (`i18n/data/owner.data.ts`), que les deux catalogues reprennent
+pour le nom de l'accueil. Dans la scène, `isAbout` devient
+`areFiguresShown`, d'après l'entrée `figuresShown` dont il vient, et la
+lumière des figures éteintes `unlitWhenShown`.
+
+**Raison.** Le relevé de la session 3 (état des lieux) : c'étaient les deux
+seuls mots du portfolio dans `core/` et `shared/`. Le nom était écrit deux
+fois de plus dans les catalogues ; il ne l'est plus qu'une.
+
+**Écarté.** Lire le nom dans le catalogue courant : la stratégie de titre
+est créée avec le routeur, et le catalogue dépend de la langue, qui dépend
+du routeur. Le nom ne change pas d'une langue à l'autre.

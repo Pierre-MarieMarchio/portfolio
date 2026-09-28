@@ -6,11 +6,13 @@ export interface DrivenHost {
   readonly host: EngineHost;
   readonly step: (ms: number) => void;
   readonly isScheduled: () => boolean;
+  readonly travels: readonly boolean[];
 }
 
 export const drivenHost = (): DrivenHost => {
   let clock = 0;
   let pending: ((time: number) => void) | null = null;
+  const travels: boolean[] = [];
   const host: EngineHost = {
     frame: (callback) => {
       pending = callback;
@@ -20,6 +22,7 @@ export const drivenHost = (): DrivenHost => {
     },
     now: () => clock,
     hidden: () => false,
+    travel: (isTravelling) => travels.push(isTravelling),
   };
   const step = (ms: number): void => {
     const end = clock + ms;
@@ -30,5 +33,5 @@ export const drivenHost = (): DrivenHost => {
       callback?.(clock);
     }
   };
-  return { host, step, isScheduled: () => pending !== null };
+  return { host, step, isScheduled: () => pending !== null, travels };
 };

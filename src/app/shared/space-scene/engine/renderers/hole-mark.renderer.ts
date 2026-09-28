@@ -1,3 +1,4 @@
+import type { SceneNode } from '../../models/scene-node.model';
 import { diskOnScreen, drawnDisc } from '../../rules/camera/pointer.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 
@@ -13,10 +14,10 @@ const HOLE_ATTRIBUTES = [
 ];
 
 export class HoleMarkRenderer {
-  private node: HTMLElement | null = null;
+  private node: SceneNode | null = null;
   private readonly written = new Array<string>(HOLE_ATTRIBUTES.length).fill('');
 
-  public setNode(node: HTMLElement | null): void {
+  public setNode(node: SceneNode | null): void {
     this.node = node;
     this.written.fill('');
   }

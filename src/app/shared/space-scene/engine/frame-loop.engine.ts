@@ -4,6 +4,7 @@ export interface EngineHost {
   frame(callback: (time: number) => void): () => void;
   now(): number;
   hidden(): boolean;
+  travel?(isTravelling: boolean): void;
 }
 
 const TOUCH_FRAME_GAP = 10.5;

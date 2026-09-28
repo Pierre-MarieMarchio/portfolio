@@ -17,7 +17,11 @@ import {
 import { DisplayFormatService, FormatCodeService } from '@app/core/services';
 import { AnimatedCanvasService } from '../../services/animated-canvas.service';
 import { TurnGestureDirective } from '../../directives/turn-gesture.directive';
-import { SpaceSceneEngine } from '../../engine/space-scene.engine';
+import type { SceneEngine } from '../../models/scene-engine.model';
+import {
+  SceneCanvases,
+  SceneEngineService,
+} from '../../services/scene-engine.service';
 import type { SkyPan } from '../../engine/motions/zoom.motion';
 import { SceneLookService } from '../../services/scene-look.service';
 import {
@@ -30,21 +34,20 @@ import { SCENE_SURROUNDINGS } from '../../ports/scene-surroundings.port';
 import { canvasResolution } from '../../rules/canvas-resolution.rules';
 import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
 import { isSameList } from '../../rules/planets/same-nodes.rules';
+import { canMoveLayout } from '../../rules/layout-change.rules';
+import { isDraggedClick } from '../../rules/figures/figure-target.rules';
 import { SceneTargetsService } from '../../services/scene-targets.service';
 import {
   FALLBACK_VIEWPORT,
   REFERENCE_VIEWPORT,
 } from '../../models/scene-constants.model';
 
-const DENSITY = 3800;
-const FIGURE_DRAG_WITHIN_PX = 6;
-
 export const loadHoleFocus = () => import('../../rules/hole-focus.rules');
 
 @Component({
   selector: 'app-space-scene',
   imports: [TurnGestureDirective],
-  providers: [SceneTargetsService, SceneLookService],
+  providers: [SceneTargetsService, SceneLookService, SceneEngineService],
   templateUrl: './space-scene.component.html',
   styleUrl: './space-scene.component.scss',
 })
@@ -58,6 +61,7 @@ export class SpaceSceneComponent {
     loadHoleFocus,
   );
   private readonly look = inject(SceneLookService);
+  private readonly engines = inject(SceneEngineService);
 
   public readonly bodies = input<readonly SceneBody[]>([]);
   public readonly direction = input<SceneDirection>(RESTING_DIRECTION);
@@ -86,12 +90,13 @@ export class SpaceSceneComponent {
   private readonly figureNodes =
     viewChildren<ElementRef<HTMLElement>>('figure');
 
-  protected readonly engine = signal<SpaceSceneEngine | null>(null);
+  protected readonly engine = signal<SceneEngine | null>(null);
   private readonly stops: (() => void)[] = [];
   private targetsGiven: readonly HTMLElement[] = [];
   private labelsGiven: readonly HTMLElement[] = [];
   private figuresGiven: readonly HTMLElement[] = [];
   private figurePress: { readonly x: number; readonly y: number } | null = null;
+  private cancelMeasure: (() => void) | null = null;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -124,13 +129,15 @@ export class SpaceSceneComponent {
     });
 
     afterNextRender(() => {
-      this.boot();
+      void this.boot();
     });
 
     destroyRef.onDestroy(() => {
       for (const stop of this.stops) {
         stop();
       }
+      this.cancelMeasure?.();
+      this.canvas.flagRoot('sky-travel', false);
       this.engine()?.stop();
       this.engine.set(null);
     });
@@ -156,12 +163,7 @@ export class SpaceSceneComponent {
   protected onFigureClick(figure: number, event: MouseEvent): void {
     const press = this.figurePress;
     this.figurePress = null;
-    const isDragged =
-      event.detail > 0 &&
-      press !== null &&
-      Math.hypot(event.clientX - press.x, event.clientY - press.y) >
-        FIGURE_DRAG_WITHIN_PX;
-    if (!isDragged) {
+    if (!isDraggedClick(press, event)) {
       this.figureChosen.emit(figure);
     }
   }
@@ -187,16 +189,17 @@ export class SpaceSceneComponent {
     engine.setNodes(targets, labels, figures);
   }
 
-  private boot(): void {
+  private async boot(): Promise<void> {
     const matter = this.matter().nativeElement;
-    const ctx = this.canvas.context2d(matter);
-    if (!ctx) {
+    const engine = await this.engines.create(
+      this.canvases(),
+      this.viewportArea(),
+    );
+    if (!engine) {
       this.failed.set(true);
       return;
     }
-    const skyCtx = this.canvas.context2d(this.sky().nativeElement);
     this.reduced.set(this.canvas.reducedMotion());
-    const engine = this.createEngine(ctx, skyCtx);
     this.engine.set(engine);
     engine.setInputs(untracked(() => this.snapshot()));
     this.giveNodes();
@@ -208,26 +211,11 @@ export class SpaceSceneComponent {
     this.running.set(true);
   }
 
-  private createEngine(
-    ctx: CanvasRenderingContext2D,
-    skyCtx: CanvasRenderingContext2D | null,
-  ): SpaceSceneEngine {
-    return new SpaceSceneEngine(
-      {
-        frame: (callback) => this.canvas.nextFrame(callback),
-        now: () => this.canvas.now(),
-        hidden: () => this.canvas.isHidden(),
-      },
-      { matter: ctx, sky: skyCtx },
-      {
-        rnd: Math.random,
-        density: DENSITY,
-        figures: 'constellations',
-        ink: this.canvas.token('--ink') || '#2b2f3a',
-        accent: this.canvas.token('--accent') || '#3b62c4',
-      },
-      this.viewportArea(),
-    );
+  private canvases(): SceneCanvases {
+    return {
+      matter: this.matter().nativeElement,
+      sky: this.sky().nativeElement,
+    };
   }
 
   private viewportArea(): number {
@@ -235,35 +223,29 @@ export class SpaceSceneComponent {
     return viewport.width * viewport.height;
   }
 
-  private watch(engine: SpaceSceneEngine, matter: HTMLCanvasElement): void {
+  private watch(engine: SceneEngine, matter: HTMLCanvasElement): void {
     this.stops.push(
       this.canvas.onResize(matter, () => {
         this.resize();
         this.measure();
       }),
-      this.canvas.onVisible(matter, 0.01, (visible) => {
-        engine.setVisible(visible);
-      }),
-      this.canvas.watchHidden((hidden) => {
-        if (hidden) {
-          engine.stop();
-        } else {
-          engine.request();
-        }
-      }),
+      this.canvas.onVisible(matter, 0.01, (visible) =>
+        engine.setVisible(visible),
+      ),
+      this.canvas.watchHidden((hidden) =>
+        hidden ? engine.stop() : engine.request(),
+      ),
       this.canvas.watchMedia('(prefers-reduced-motion: reduce)', (reduce) => {
         this.reduced.set(reduce);
       }),
-      this.canvas.onWindow('resize', () => this.measure(), { passive: true }),
-      this.canvas.onWindow('pointerup', () => this.measure(), {
-        passive: true,
-      }),
-      this.canvas.onWindow('animationend', () => this.measure(), {
-        capture: true,
-      }),
-      this.canvas.onWindow('transitionend', () => this.measure(), {
-        capture: true,
-      }),
+      ...(
+        ['resize', 'pointerup', 'animationend', 'transitionend'] as const
+      ).map((type) =>
+        this.canvas.onWindow(type, (event) => this.measureSoon(event), {
+          capture: true,
+          passive: true,
+        }),
+      ),
       this.canvas.onWindow(
         'pointermove',
         (event) => {
@@ -281,21 +263,25 @@ export class SpaceSceneComponent {
     if (!engine) {
       return;
     }
-    const matter = this.matter().nativeElement;
-    const sky = this.sky().nativeElement;
+    const canvases = this.canvases();
     const { width, height, pixelRatio } = canvasResolution(
-      matter.getBoundingClientRect(),
+      canvases.matter.getBoundingClientRect(),
       this.canvas.pixelRatio(),
       this.display.format(),
     );
-    for (const canvas of [matter, sky]) {
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-    }
+    this.engines.fit(canvases, width, height);
     engine.resize(width, height, pixelRatio);
     engine.setViewportArea(this.viewportArea());
+  }
+
+  private measureSoon(event: Event): void {
+    if (!canMoveLayout(event)) {
+      return;
+    }
+    this.cancelMeasure ??= this.canvas.nextFrame(() => {
+      this.cancelMeasure = null;
+      this.measure();
+    });
   }
 
   private measure(): void {

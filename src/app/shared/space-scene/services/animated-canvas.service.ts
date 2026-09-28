@@ -27,6 +27,39 @@ export class AnimatedCanvasService {
     return this.contexts.pixelRatio();
   }
 
+  public canDrawOffThread(): boolean {
+    return (
+      this.browserWindow.size() !== null &&
+      typeof Worker === 'function' &&
+      typeof OffscreenCanvas === 'function' &&
+      'transferToImageBitmap' in OffscreenCanvas.prototype
+    );
+  }
+
+  public bitmapContext(
+    canvas: HTMLCanvasElement,
+  ): ImageBitmapRenderingContext | null {
+    try {
+      return canvas.getContext('bitmaprenderer');
+    } catch {
+      return null;
+    }
+  }
+
+  public sceneWorker(): Worker | null {
+    try {
+      return new Worker(new URL('../engine/scene.worker', import.meta.url), {
+        type: 'module',
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  public timeOrigin(): number {
+    return globalThis.performance.timeOrigin;
+  }
+
   public nextFrame(fn: (time: number) => void): () => void {
     return this.clock.nextFrame(fn);
   }
@@ -56,6 +89,10 @@ export class AnimatedCanvasService {
 
   public token(name: string, el?: Element): string {
     return this.styles.token(name, el);
+  }
+
+  public flagRoot(name: string, isOn: boolean): void {
+    this.styles.flagRoot(name, isOn);
   }
 
   public fontsReady(fn: () => void): void {

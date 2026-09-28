@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { clamp } from '@app/core/helpers';
 import { FALLBACK_VIEWPORT } from '../../models/scene-constants.model';
 import {
@@ -10,7 +11,7 @@ import { opening } from './projection.rules';
 
 const unitRadius = (w: number, h: number): number => referenceRadius(w, h, 1);
 
-export const REST_SCALE = { min: 0.07, max: 0.42 } as const;
+export const REST_SCALE = SCENE_CONFIG.camera.restScale;
 
 export interface RestMeasure {
   readonly x: number;

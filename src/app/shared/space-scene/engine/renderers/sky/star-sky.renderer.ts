@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../../models/scene-config.model';
 import { clamp, smoothstep } from '@app/core/helpers';
 import { Traveling } from '../../../rules/camera/traveling.rules';
 import { SHADOW_EDGE } from '../../../models/scene-constants.model';
@@ -17,8 +18,7 @@ import {
 } from '../../motions/star-flow.motion';
 import { TrailBatchRenderer } from './trail-batch.renderer';
 
-const TRAIL_SECONDS = 9 / 60;
-const TRAIL_FROM = 0.45 * 60;
+const { seconds: TRAIL_SECONDS, from: TRAIL_FROM } = SCENE_CONFIG.sky.trail;
 
 export interface SkyCamera {
   readonly time: number;

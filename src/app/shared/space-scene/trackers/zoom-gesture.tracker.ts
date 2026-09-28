@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../models/scene-config.model';
 import type {
   ClickAbsorber,
   LookableScene,
@@ -6,10 +7,10 @@ import type {
 } from '../models/scene-look.model';
 import { isOnScene, isOnSky } from '../rules/gestures/sky-touch.rules';
 
-const TAP_WITHIN_PX = 6;
-const TAP_WITHIN_MS = 300;
-const DOUBLE_TAP_WITHIN_MS = 320;
-const DOUBLE_TAP_WITHIN_PX = 32;
+const TAP_WITHIN_PX = SCENE_CONFIG.gestures.dragPx;
+const TAP_WITHIN_MS = SCENE_CONFIG.gestures.tapMs;
+const DOUBLE_TAP_WITHIN_MS = SCENE_CONFIG.gestures.doubleTapMs;
+const DOUBLE_TAP_WITHIN_PX = SCENE_CONFIG.gestures.doubleTapPx;
 
 interface Touch {
   x: number;

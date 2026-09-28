@@ -1,3 +1,4 @@
+import type { SceneNode } from '../../models/scene-node.model';
 import {
   BodyMark,
   LEADER_START,
@@ -41,11 +42,11 @@ const bodiesOf = (
 ): BodyMark[] => bodies.map((body) => ({ x: body.sx / dpr, y: body.sy / dpr }));
 
 export class PlanetLabelsRenderer {
-  private buttons: readonly HTMLElement[] = [];
-  private labels: readonly HTMLElement[] = [];
+  private buttons: readonly SceneNode[] = [];
+  private labels: readonly SceneNode[] = [];
   private buttonsWritten: Written[] = [];
   private labelsWritten: Written[] = [];
-  private lines: readonly HTMLElement[] = [];
+  private lines: readonly SceneNode[] = [];
   private linesWritten: Written[] = [];
   private labelSizes: { w: number; h: number }[] = [];
   private places: TakenPlace[] = [];
@@ -63,8 +64,8 @@ export class PlanetLabelsRenderer {
   }
 
   public setNodes(
-    buttons: readonly HTMLElement[],
-    labels: readonly HTMLElement[],
+    buttons: readonly SceneNode[],
+    labels: readonly SceneNode[],
   ): void {
     if (buttons !== this.buttons) {
       this.buttons = buttons;
@@ -76,7 +77,7 @@ export class PlanetLabelsRenderer {
     }
   }
 
-  public setLines(lines: readonly HTMLElement[]): boolean {
+  public setLines(lines: readonly SceneNode[]): boolean {
     if (isSameList(lines, this.lines)) {
       return false;
     }
@@ -216,7 +217,7 @@ export class PlanetLabelsRenderer {
   }
 
   private writeReach(
-    button: HTMLElement,
+    button: SceneNode,
     last: Written,
     isCovered: boolean,
   ): void {

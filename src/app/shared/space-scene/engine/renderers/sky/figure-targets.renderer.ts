@@ -1,3 +1,4 @@
+import type { SceneNode } from '../../../models/scene-node.model';
 import type { FigureTarget } from '../../../rules/figures/figure-target.rules';
 
 const INERT = 'pointer-events:none';
@@ -8,10 +9,10 @@ const styleOf = ({ x, y, width, height, isInert }: FigureTarget): string =>
     : `transform:translate(${x.toFixed(1)}px,${y.toFixed(1)}px);width:${width.toFixed(1)}px;height:${height.toFixed(1)}px;pointer-events:auto`;
 
 export class FigureTargetsRenderer {
-  private nodes: readonly HTMLElement[] = [];
+  private nodes: readonly SceneNode[] = [];
   private styles: string[] = [];
 
-  public setNodes(nodes: readonly HTMLElement[]): void {
+  public setNodes(nodes: readonly SceneNode[]): void {
     if (nodes !== this.nodes) {
       this.nodes = nodes;
       this.styles = nodes.map(() => '');

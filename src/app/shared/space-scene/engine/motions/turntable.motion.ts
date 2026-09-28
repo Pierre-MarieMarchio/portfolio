@@ -1,13 +1,15 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { clamp, nearestTurn } from '@app/core/helpers';
 
-const HAND_FRICTION = 1.4;
-const HAND_WINDOW_MS = 90;
-const HAND_STILL_MS = 60;
-const HAND_MAX_SPEED = 14;
+const HAND_FRICTION = SCENE_CONFIG.hand.friction;
+const HAND_WINDOW_MS = SCENE_CONFIG.hand.speedWindowMs;
+const HAND_STILL_MS = SCENE_CONFIG.hand.stillMs;
+const HAND_MAX_SPEED = SCENE_CONFIG.hand.maxSpeed;
 const HAND_MIN_RADIUS = 0.45;
 const ORBITS_FROM = 3.3;
-const DRAG_RATIO = 0.4;
-const DRAG_LAG = 0.55;
+const HAND_DRAG_PX = SCENE_CONFIG.gestures.dragPx;
+const DRAG_RATIO = SCENE_CONFIG.hand.orbitsDragRatio;
+const DRAG_LAG = SCENE_CONFIG.hand.orbitsDragLag;
 
 const ORBITS_REFERENCE = 5;
 
@@ -127,7 +129,7 @@ export class TurntableMotion {
           )
         : 0;
     this.trail = [];
-    return grip.d > 6;
+    return grip.d > HAND_DRAG_PX;
   }
 
   public step(

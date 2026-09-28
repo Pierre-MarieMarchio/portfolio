@@ -1,10 +1,9 @@
 import { DOCUMENT, inject, Service } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { DEFAULT_LANG, Lang, LANGS } from '../../models';
+import { SITE_NAME } from '../../ports';
 
-export const SITE_NAME = 'Pierre-Marie Marchio';
-
-const SITE_URL = 'https://pierre-mariemarchio.github.io/portfolio';
+declare const SITE_URL: string;
 
 const absoluteUrl = (path: string): string => `${SITE_URL}${path}`;
 
@@ -25,9 +24,11 @@ export class DocumentHeadService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
+  private readonly siteName = inject(SITE_NAME);
 
   public set({ title, description, lang, alternates }: HeadContent): void {
-    const fullTitle = title ? `${title} · ${SITE_NAME}` : SITE_NAME;
+    const site = this.siteName;
+    const fullTitle = title ? `${title} · ${site}` : site;
 
     this.title.setTitle(fullTitle);
     this.meta.updateTag({ property: 'og:title', content: fullTitle });

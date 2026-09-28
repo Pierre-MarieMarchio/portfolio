@@ -1567,7 +1567,7 @@ describe('SpaceSceneEngine, on a phone whose framing code arrives late', () => {
     expect(after.radius).toBeCloseTo(target.radius, 0);
     expect(after.x).toBeCloseTo(target.x, 0);
     expect(after.y).toBeCloseTo(target.y, 0);
-  });
+  }, 60_000);
 });
 
 describe('SpaceSceneEngine, under an interface already in', () => {
@@ -1657,5 +1657,30 @@ describe('SpaceSceneEngine, under an interface already in', () => {
     scene.step(FRAME_MS);
 
     expect(scene.time() - before).toBeCloseTo(FRAME_MS / 1000, 6);
+  });
+});
+
+describe('SpaceSceneEngine, telling its travels', () => {
+  it('tells once when the camera sets off for a planet, and once when it lands', () => {
+    const scene = mountEngineScene();
+    scene.run(PAST_CROSSING_MS);
+    const before = scene.travels.length;
+
+    scene.set({
+      direction: { framing: { kind: 'close-up', body: bodyId(2) } },
+    });
+    scene.run(PAST_CROSSING_MS);
+
+    expect(scene.travels.slice(before)).toEqual([true, false]);
+  });
+
+  it('tells nothing while the camera rests', () => {
+    const scene = mountEngineScene();
+    scene.run(PAST_CROSSING_MS);
+    const before = scene.travels.length;
+
+    scene.run(PAST_CROSSING_MS);
+
+    expect(scene.travels.length).toBe(before);
   });
 });

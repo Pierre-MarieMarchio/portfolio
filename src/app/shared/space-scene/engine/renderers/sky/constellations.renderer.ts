@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../../models/scene-config.model';
 import type { SkyPan } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
 import type { ScreenHole } from '../../../rules/camera/projection.rules';
@@ -55,7 +56,7 @@ interface ConstellationsArgs {
   readonly room: SkyRoom | null;
   readonly disc: DrawnDisc | null;
   readonly hover: { readonly x: number; readonly y: number } | null;
-  readonly isAbout: boolean;
+  readonly areFiguresShown: boolean;
   readonly zones: readonly Zone[];
   readonly phone: PhoneFigures | null;
 }
@@ -70,9 +71,9 @@ interface ConstellationsLayer {
 }
 
 const FIGURE_DEPTH = 0.16;
-const UNLIT_LIGHT = 0.2;
-const UNLIT_LIGHT_IN_ABOUT = 0.45;
-const HOVERED_LIGHT = 0.7;
+const UNLIT_LIGHT = SCENE_CONFIG.figures.light.unlit;
+const UNLIT_LIGHT_WHEN_SHOWN = SCENE_CONFIG.figures.light.unlitWhenShown;
+const HOVERED_LIGHT = SCENE_CONFIG.figures.light.hovered;
 const UNLIT_GROWTH = 0.25;
 const TARGETS_FROM = 0.5;
 
@@ -106,7 +107,7 @@ const drawFigure = (
 ): void => {
   const { args } = layer;
   const on = args.lit[k] ?? 0;
-  const unlit = args.isAbout ? UNLIT_LIGHT_IN_ABOUT : UNLIT_LIGHT;
+  const unlit = args.areFiguresShown ? UNLIT_LIGHT_WHEN_SHOWN : UNLIT_LIGHT;
   if ((unlit + (1 - unlit) * on) * args.shown < 0.02) {
     layer.targets.hide(k);
     return;
@@ -129,12 +130,12 @@ const lightOf = (
   on: number,
   isHovered: boolean,
 ): FigureLight => {
-  const unlit = args.isAbout ? UNLIT_LIGHT_IN_ABOUT : UNLIT_LIGHT;
+  const unlit = args.areFiguresShown ? UNLIT_LIGHT_WHEN_SHOWN : UNLIT_LIGHT;
   const floor = isHovered ? HOVERED_LIGHT : unlit;
   return {
     on,
     alpha: (floor + (1 - floor) * on) * args.shown,
-    growth: args.isAbout ? 1 + UNLIT_GROWTH * (1 - on) : 1,
+    growth: args.areFiguresShown ? 1 + UNLIT_GROWTH * (1 - on) : 1,
   };
 };
 
@@ -182,7 +183,7 @@ const aimTarget = (
     h,
     dpr: args.dpr,
     zones: args.zones,
-    isShown: args.isAbout && args.shown >= TARGETS_FROM,
+    isShown: args.areFiguresShown && args.shown >= TARGETS_FROM,
   });
   layer.targets.write(k, target);
   return target;
@@ -228,7 +229,7 @@ export class ConstellationsRenderer {
       room: frame.figureRoom,
       disc: frame.figureRoom ? drawnDisc(diskOnScreen(frame), 1) : null,
       hover: frame.hoverPoint,
-      isAbout: frame.state.figuresShown,
+      areFiguresShown: frame.state.figuresShown,
       zones: frame.zones,
       phone: this.phoneFigures(frame),
     });

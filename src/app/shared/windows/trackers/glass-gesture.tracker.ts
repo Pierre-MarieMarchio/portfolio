@@ -43,12 +43,14 @@ export class GlassGestureTracker {
   constructor(
     private readonly element: HTMLElement,
     private readonly surface: GlassSurface,
-  ) {}
+  ) {
+    element.addEventListener('touchmove', (event) => this.hold(event), {
+      passive: false,
+    });
+  }
 
   public take(event: Event): void {
-    if (event.type === 'touchmove') {
-      this.hold(event);
-    } else if (event.type === 'click') {
+    if (event.type === 'click') {
       this.swallow(event);
     } else if (event instanceof PointerEvent) {
       this.follow(event);

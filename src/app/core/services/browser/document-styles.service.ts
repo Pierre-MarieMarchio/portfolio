@@ -27,6 +27,12 @@ export class DocumentStylesService {
     return match[2] === 's' ? value * 1000 : value;
   }
 
+  public flagRoot(name: string, isOn: boolean): void {
+    if (this.isBrowser) {
+      this.document.documentElement.toggleAttribute(`data-${name}`, isOn);
+    }
+  }
+
   public fontsReady(fn: () => void): void {
     if (!this.isBrowser) {
       return;

@@ -1,6 +1,7 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { clamp } from '@app/core/helpers';
 
-export const WHEEL_NOTCH_RATIO = 1.1;
+export const WHEEL_NOTCH_RATIO = SCENE_CONFIG.gestures.wheelNotchRatio;
 
 const DELTA_PER_NOTCH = [100, 3, 1];
 

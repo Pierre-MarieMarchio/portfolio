@@ -70,6 +70,22 @@ const mount = async (start: DisplayFormat = 'desktop') => {
   };
 };
 
+const transitionEnd = (propertyName: string): Event =>
+  new TransitionEvent('transitionend', { propertyName });
+
+const heldFrames = () => {
+  const frames: FrameRequestCallback[] = [];
+  vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((fn) => {
+    frames.push(fn);
+    return frames.length;
+  });
+  return () => {
+    for (const frame of frames.splice(0)) {
+      frame(0);
+    }
+  };
+};
+
 describe('SpaceSceneComponent', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
@@ -152,5 +168,31 @@ describe('SpaceSceneComponent', () => {
 
     fixture.destroy();
     expect(desk.stop).toHaveBeenCalledTimes(2);
+  });
+
+  it('lays the panels out once per frame, however many transitions end in it', async () => {
+    const flush = heldFrames();
+    await mount();
+    const laid = vi.spyOn(SpaceSceneEngine.prototype, 'setLayout');
+
+    for (const property of ['transform', 'opacity', 'translate', 'height']) {
+      globalThis.dispatchEvent(transitionEnd(property));
+    }
+    expect(laid).not.toHaveBeenCalled();
+    flush();
+
+    expect(laid).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not lay the panels out again when only a colour ends its transition', async () => {
+    const flush = heldFrames();
+    await mount();
+    const laid = vi.spyOn(SpaceSceneEngine.prototype, 'setLayout');
+
+    globalThis.dispatchEvent(transitionEnd('background-color'));
+    globalThis.dispatchEvent(transitionEnd('box-shadow'));
+    flush();
+
+    expect(laid).not.toHaveBeenCalled();
   });
 });

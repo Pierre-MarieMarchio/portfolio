@@ -1,7 +1,8 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import type { Zone } from '../panel-veil.rules';
 
-const FIGURE_LABEL_SIZE = 11;
-const FIGURE_LABEL_SPACING = 0.14;
+const FIGURE_LABEL_SIZE = SCENE_CONFIG.figures.labelSize;
+const FIGURE_LABEL_SPACING = SCENE_CONFIG.figures.labelSpacing;
 const NAME_GAP = 16;
 
 const labelPixels = (dpr: number): number =>

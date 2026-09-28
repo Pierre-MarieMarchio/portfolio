@@ -1,8 +1,11 @@
+import { SCENE_CONFIG } from '../models/scene-config.model';
 import type { DisplayFormat } from '@app/core/models';
 
-const PIXEL_BUDGET = 4_200_000;
-const MAX_PIXEL_RATIO = 2;
-const PHONE_MAX_PIXEL_RATIO = 1.5;
+const {
+  pixelBudget: PIXEL_BUDGET,
+  maxPixelRatio: MAX_PIXEL_RATIO,
+  phoneMaxPixelRatio: PHONE_MAX_PIXEL_RATIO,
+} = SCENE_CONFIG.canvas;
 
 interface CanvasResolution {
   readonly width: number;

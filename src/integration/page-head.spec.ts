@@ -3,7 +3,6 @@ import { Meta, Title } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideStatewise } from 'ngx-statewise';
-import { SITE_NAME } from '@app/core/services';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
@@ -31,6 +30,8 @@ const head = () => ({
   description:
     TestBed.inject(Meta).getTag('name="description"')?.content ?? null,
 });
+
+const SITE_NAME = 'Pierre-Marie Marchio';
 
 describe('page head across a language switch', () => {
   afterEach(() => {

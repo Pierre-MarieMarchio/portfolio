@@ -25,7 +25,7 @@
       <li>
         <button
           type="button"
-          class="row"
+          class="row toggle"
           [attr.aria-pressed]="row.isSelected"
           [attr.aria-label]="row.label"
           [attr.data-selected]="row.isSelected"
@@ -34,24 +34,25 @@
           (entered)="hoveredChange.emit(row.slug)"
           (exited)="hoveredChange.emit(null)"
         >
-          <span
-            class="number"
-            aria-hidden="true"
-            [class.featured]="row.featured"
-            >{{ row.number }}</span
-          >
-          <span class="project">
-            <span class="title"
-              ><span>{{ row.title }}</span>
-              @if (row.isVisited) {
-                <span class="read">{{ texts().index.read }}</span>
-              }
-            </span>
-            <span class="stack">{{ row.facts.stack }}</span>
-          </span>
-          <span class="proof">{{ row.facts.proof }}</span>
-          <span class="role">{{ row.facts.role }}</span>
+          <ng-container
+            [ngTemplateOutlet]="facts"
+            [ngTemplateOutletContext]="{ $implicit: row }"
+          />
         </button>
+        <a
+          class="row card"
+          [routerLink]="links.sheet(row.slug)"
+          [attr.aria-label]="row.label"
+          [attr.data-selected]="row.isSelected"
+          appHoverFocus
+          (entered)="hoveredChange.emit(row.slug)"
+          (exited)="hoveredChange.emit(null)"
+        >
+          <ng-container
+            [ngTemplateOutlet]="facts"
+            [ngTemplateOutletContext]="{ $implicit: row }"
+          />
+        </a>
         @if (row.isSelected) {
           <div class="opened">
             <span aria-hidden="true"></span>
@@ -77,5 +78,21 @@
       </li>
     }
   </ul>
+  <ng-template #facts let-row>
+    <span class="number" aria-hidden="true" [class.featured]="row.featured">{{
+      row.number
+    }}</span>
+    <span class="project">
+      <span class="title"
+        ><span>{{ row.title }}</span>
+        @if (row.isVisited) {
+          <span class="read">{{ texts().index.read }}</span>
+        }
+      </span>
+      <span class="stack">{{ row.facts.stack }}</span>
+    </span>
+    <span class="proof">{{ row.facts.proof }}</span>
+    <span class="role">{{ row.facts.role }}</span>
+  </ng-template>
   <p footer class="state">{{ familySummary() }}</p>
 </app-window>

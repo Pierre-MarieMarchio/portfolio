@@ -54,6 +54,7 @@ $cards-below: 500px;
   border-left: 1px solid transparent;
   cursor: pointer;
   color: var(--ink);
+  text-decoration: none;
   transition:
     color var(--t),
     border-color var(--t),
@@ -72,6 +73,10 @@ $cards-below: 500px;
   &[data-selected='true'] {
     background: color-mix(in oklab, var(--accent) 8%, transparent);
   }
+}
+
+.card {
+  display: none;
 }
 
 .number {
@@ -178,9 +183,14 @@ $cards-below: 500px;
 
 @container (width < #{$cards-below}) {
   .columns,
-  .opened > :first-child,
-  .row:not([data-selected='true']) :is(.stack, .role) {
+  .toggle,
+  .opened,
+  .card :is(.stack, .role) {
     display: none;
+  }
+
+  .card {
+    display: grid;
   }
 
   .row {
@@ -193,21 +203,8 @@ $cards-below: 500px;
     display: contents;
   }
 
-  .proof,
-  .stack,
-  .role {
+  .proof {
     grid-column: 1 / -1;
-  }
-
-  .stack,
-  .role {
-    order: 1;
-  }
-
-  .opened {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 0 var(--s2) var(--s2);
-    margin-left: 0;
   }
 }
 

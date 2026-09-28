@@ -116,4 +116,18 @@ describe('HomeRevealService', () => {
     expect(reveal.arrival()).toBe('shown');
     expect(reveal.isOpening()).toBe(false);
   });
+
+  it('lets the rest in as soon as the reader leaves the home page, and plays what waited for it', () => {
+    const { reveal, station } = setUp({ crossing: '8700ms' });
+    const arrived = vi.fn();
+    reveal.start(arrived);
+
+    station.syncRoute('index');
+    TestBed.tick();
+
+    expect(arrived).toHaveBeenCalledTimes(1);
+    station.syncRoute('home');
+    TestBed.tick();
+    expect(reveal.arrival()).toBe('shown');
+  });
 });

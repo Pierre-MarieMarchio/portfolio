@@ -1617,6 +1617,31 @@ changer casse un invariant, cela ne règle pas un rendu. Une config fournie
 à l'exécution (`provideSpaceScene`) : un seul site s'en sert, et il
 faudrait la faire passer jusqu'aux règles pures et au worker.
 
+## 2026-09-28 — La page de l'observatoire n'assemble plus que ce qui se croise (D50, amende D11 pour la page)
+
+**Décision.** `ObservatoryPageComponent` garde ce que seule la page peut
+faire, parce que cela croise les features : `Project` → `Planet`, la fiche
+introuvable, le filtre typé, le projet désigné, le clic sur un corps, et
+l'état de départ lu dans l'adresse. Le reste descend là où il appartient.
+Le premier plan et le focus de la fenêtre de la vue passent dans
+`ViewWindowsService` et `ViewSlotDirective` (`features/observatory`) ; la
+navigation et les langues dans `ViewLinksService` (`i18n`) ; le rail de
+contact dans `ContactLinksComponent` (`features/profile`) ; « révéler
+l'accueil dès qu'on le quitte » dans `HomeRevealService`. La page importe
+chaque zone par son `index.ts`, et ses champs portent le nom de leur type
+(`observatory`, `featuredTour`, `homeReveal`).
+
+**Raison.** La page faisait 330 lignes ; elle en fait 199, dont 59
+d'imports. Le relevé de la session 3 (état des lieux) liste ce qui a été
+déplacé et ce qui a été écarté, avec le gain de chacun.
+
+**Écarté.** Des sous-compositions par vue : les fenêtres croisent
+`observatory` et `projects` ou `profile`, donc leur composition reste dans
+`pages/`, qui ne tient qu'un composant par écran. Une directive pour Échap :
+le `host` d'une ligne suffit. Un service pour l'état de départ lu dans
+l'adresse : trois lignes, au seul endroit qui connaît `i18n` et
+l'observatoire.
+
 ## 2026-09-28 — `core/` et `shared/` ne disent plus un mot du portfolio (D51)
 
 **Décision.** Le nom du site quitte `core/` : `DocumentHeadService` le reçoit

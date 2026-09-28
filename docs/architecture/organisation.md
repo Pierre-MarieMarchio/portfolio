@@ -587,12 +587,18 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
 
 - **`HomeRevealService`** (ex-`ArrivalController`). But : retenir le contenu
   de l'accueil pendant la traversée d'ouverture, puis le révéler quand le
-  lecteur est là. Contrat : `entrance` (signal d'`Entrance`),
-  `start(onHome, onRevealed)`, `revealNow()`. Il s'appuie sur
-  `UserPresenceService`.
+  lecteur est là, ou dès qu'il quitte l'accueil. Contrat : `arrival`
+  (signal d'`Entrance`), `isOpening`, `start(onArrived)`, `arrive()`. Il
+  s'appuie sur `UserPresenceService`.
 - **`FeaturedTourService`** (ex-`Curtain`). But : une fois l'accueil révélé,
   survoler tour à tour chaque projet vedette, jusqu'à ce que le lecteur prenne
-  la main. Contrat : `play(slugs)`, `stop()`.
+  la main. Contrat : `play(slugs)`, `takeOver()`.
+- **`ViewWindowsService`** et la directive **`ViewSlotDirective`**
+  (`appViewSlot`). But : faire suivre la vue aux fenêtres. À chaque
+  navigation, la fenêtre de la vue (`windowOf`) passe au premier plan de
+  `WindowStackService` et, sauf au premier chargement, reçoit le focus par
+  `ViewFocusService` ; sur l'accueil, c'est le titre. Chaque créneau de la
+  page se déclare avec `appViewSlot` (D50).
 
 #### La scène qu'il anime : `shared/space-scene/`
 
@@ -661,6 +667,8 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 
 - `components/about-window/` : la fenêtre « à propos », section par section
   (« part » devient « section »).
+- `components/contact-links/` : le rail de contact, `SocialLinksComponent`
+  garni des adresses de `contact.data.ts` et de leurs noms (D50).
 - `data/contact.data.ts` : les liens de contact (ex-`app.contact.ts`).
 - `models/contact.model.ts` : la forme d'une adresse de contact.
 - `ports/profile-texts.port.ts` : sa tranche de textes (`about`, `contact`).
@@ -672,6 +680,9 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
   navigation et les noms des langues.
 - `catalog-loader.service.ts` `CatalogLoaderService` (ex-`Catalogs`) :
   `ensure(lang)`, `current`, `of(lang)`.
+- `view-links.service.ts` `ViewLinksService` : la navigation, les langues
+  (l'adresse courante dans chaque langue) et l'entrée allumée de chaque vue
+  (D50).
 - `i18n.provider.ts` : `provideI18n()` fournit les tranches et charge le
   premier catalogue ; il répond aussi à `LINKS`.
 - `catalog.guard.ts` : charge le catalogue de l'adresse visée, sans rien
@@ -701,9 +712,10 @@ français quand les resolvers tournent.
   correspondances, des `computed` de la page : `Project` → `Planet`, et
   « l'adresse désigne-t-elle une fiche qui existe ».
 - Échap passe par un `host` de la page, plus par un écouteur global.
-- La pile des fenêtres suit la vue par un `linkedSignal` posé **dans la
-  page** (`windowOf(view)`), puisque `WindowStackService` est générique ;
-  l'effet de navigation ne garde que le focus (`ViewFocusService`).
+- La pile des fenêtres et le focus suivent la vue par `ViewWindowsService`
+  (`features/observatory`), que la page fournit avec `WindowStackService` :
+  la lib de fenêtres reste générique, et la correspondance vue → fenêtre vit
+  avec `windowOf` (D50).
 
 Un resolver ne fait que calculer une donnée : c'est le composant de route,
 dont c'est le rôle, qui déclare la vue au bureau.
@@ -746,13 +758,15 @@ src/app/
   features/observatory/components/observatory-dock/ observatory-dock.component
   features/observatory/components/observatory-scene/ observatory-scene.component
   features/observatory/components/planet-buttons/ planet-buttons.component
+  features/observatory/directives/             view-slot.directive
   features/observatory/models/                 observatory-ids.model · observatory.model
   features/observatory/ports/                  observatory-texts.port
   features/observatory/rules/                  scene-direction.rules · view.rules
-  features/observatory/services/               featured-tour.service · home-reveal.service · scene-surroundings.service
+  features/observatory/services/               featured-tour.service · home-reveal.service · scene-surroundings.service · view-windows.service
   features/observatory/states/animation/       animation.action · animation.manager · animation.state · animation.updater
   features/observatory/states/observatory/     observatory.action · observatory.effect · observatory.manager · observatory.state · observatory.updater
   features/profile/components/about-window/    about-window.component
+  features/profile/components/contact-links/   contact-links.component
   features/profile/data/                       contact.data
   features/profile/models/                     contact.model
   features/profile/ports/                      profile-texts.port
@@ -773,7 +787,7 @@ src/app/
   i18n/models/                                 catalog.model
   i18n/providers/                              i18n.provider
   i18n/rules/                                  paths.rules
-  i18n/services/                               catalog-loader.service
+  i18n/services/                               catalog-loader.service · view-links.service
   pages/observatory/                           observatory-page.component · observatory-route.component
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component

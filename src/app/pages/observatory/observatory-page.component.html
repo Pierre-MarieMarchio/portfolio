@@ -12,23 +12,23 @@
     <app-observatory-scene
       #object
       [bodies]="planets()"
-      [featured]="featuredCount()"
+      [featured]="projects.featured().length"
       [view]="sceneView()"
       [sheet]="sheetSlug()"
-      [chapter]="station.chapter()"
-      [part]="station.section()"
-      [preview]="station.preview()"
-      [hovered]="station.hovered()"
+      [chapter]="observatory.chapter()"
+      [part]="observatory.section()"
+      [preview]="observatory.preview()"
+      [hovered]="observatory.hovered()"
       [designated]="designated()"
-      [selected]="station.selected()"
+      [selected]="observatory.selected()"
       [paused]="animation.paused()"
       [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
       (bodyHovered)="onReaderHovered($event)"
-      (figureChosen)="station.chooseSection($event)"
+      (figureChosen)="observatory.chooseSection($event)"
     />
 
-    @if (station.canStepBack()) {
+    @if (observatory.canStepBack()) {
       <button
         type="button"
         class="void"
@@ -43,100 +43,104 @@
       appBottomEdgeVariable="--head-bottom"
       [appLayoutAnchor]="anchor.head"
     >
-      <app-language-switch [languages]="languages()" />
+      <app-language-switch [languages]="links.languages()" />
       <span aria-hidden="true" class="rule"></span>
       <app-main-nav
         [appLayoutAnchor]="anchor.chrome"
-        [items]="navigationItems()"
+        [items]="links.navigation()"
         [current]="currentRoute()"
         [arrival]="arrival()"
       />
     </div>
 
-    @if (station.view() === 'home') {
-      <app-home-title [appLayoutAnchor]="anchor.chrome" [arrival]="arrival()" />
+    @if (observatory.view() === 'home') {
+      <app-home-title
+        appViewSlot="home"
+        [appLayoutAnchor]="anchor.chrome"
+        [arrival]="arrival()"
+      />
     }
 
     <div
-      #aboutSlot
+      appViewSlot="about"
       class="slot slot--about"
       appStackedWindow="about"
-      [attr.data-docked]="station.docked().includes('about')"
+      [attr.data-docked]="observatory.docked().includes('about')"
       [appLayoutAnchor]="anchor.panel"
     >
-      @if (station.showsAbout()) {
+      @if (observatory.showsAbout()) {
         <app-about-window
-          [pinned]="station.pins().about"
-          [part]="station.section()"
-          (partChange)="station.chooseSection($event)"
-          (pinToggled)="station.togglePin('about')"
-          (closed)="station.close('about')"
+          [pinned]="observatory.pins().about"
+          [part]="observatory.section()"
+          (partChange)="observatory.chooseSection($event)"
+          (pinToggled)="observatory.togglePin('about')"
+          (closed)="observatory.close('about')"
         />
       }
     </div>
 
     <div
-      #indexSlot
+      appViewSlot="index"
       class="slot slot--index"
       appStackedWindow="index"
-      [attr.data-docked]="station.docked().includes('index')"
+      [attr.data-docked]="observatory.docked().includes('index')"
       [appLayoutAnchor]="anchor.panel"
     >
-      @if (station.showsList()) {
+      @if (observatory.showsList()) {
         <app-project-list
-          [pinned]="station.pins().index"
-          [selected]="station.selected()"
-          [visited]="station.visited()"
+          [pinned]="observatory.pins().index"
+          [selected]="observatory.selected()"
+          [visited]="observatory.visited()"
           [family]="family()"
-          (familyChange)="station.filter($event)"
-          (selectedChange)="station.select($event)"
-          (hoveredChange)="station.hover($event)"
-          (pinToggled)="station.togglePin('index')"
-          (closed)="station.close('index')"
+          (familyChange)="observatory.filter($event)"
+          (selectedChange)="observatory.select($event)"
+          (hoveredChange)="observatory.hover($event)"
+          (pinToggled)="observatory.togglePin('index')"
+          (closed)="observatory.close('index')"
         />
       }
     </div>
 
     <div
-      #sheetSlot
+      appViewSlot="sheet"
       class="slot slot--sheet"
       appStackedWindow="sheet"
-      [attr.data-docked]="station.docked().includes('sheet')"
+      [attr.data-docked]="observatory.docked().includes('sheet')"
       [appLayoutAnchor]="anchor.detail"
     >
       @if (isNotFound()) {
         <app-not-found-window
-          [total]="projectCount()"
-          (closed)="station.close('sheet')"
+          [total]="projects.ranked().length"
+          (closed)="observatory.close('sheet')"
         />
       } @else if (sheetSlug(); as slug) {
         <app-project-detail
           [slug]="slug"
-          [pinned]="station.pins().sheet"
-          [chapter]="station.chapter()"
-          (chapterChange)="station.chooseChapter($event)"
-          (pinToggled)="station.togglePin('sheet')"
-          (closed)="station.close('sheet')"
+          [pinned]="observatory.pins().sheet"
+          [chapter]="observatory.chapter()"
+          (chapterChange)="observatory.chooseChapter($event)"
+          (pinToggled)="observatory.togglePin('sheet')"
+          (closed)="observatory.close('sheet')"
         />
       }
     </div>
 
     <div
-      #previewSlot
+      appViewSlot="preview"
       class="slot slot--preview"
       appStackedWindow="preview"
-      [attr.data-docked]="station.docked().includes('preview')"
+      [attr.data-docked]="observatory.docked().includes('preview')"
       [appLayoutAnchor]="anchor.preview"
       [id]="ids.previewPanel"
     >
-      @if (station.showsPreview()) {
-        @if (station.preview(); as slug) {
+      @if (observatory.showsPreview()) {
+        @if (observatory.preview(); as slug) {
           <app-project-preview
             [slug]="slug"
-            [pinned]="station.pins().preview"
-            (chosen)="station.openPreview($event)"
-            (pinToggled)="station.togglePin('preview')"
-            (closed)="station.close('preview')"
+            [pinned]="observatory.pins().preview"
+            (chosen)="observatory.openPreview($event)"
+            (pinToggled)="observatory.togglePin('preview')"
+            (closed)="observatory.close('preview')"
           />
         }
       }
@@ -147,24 +151,20 @@
         [appLayoutAnchor]="anchor.rule"
         [bodies]="projects.featured()"
         [controls]="ids.previewPanel"
-        [hovered]="station.hovered()"
-        [reading]="station.lastPreview()"
+        [hovered]="observatory.hovered()"
+        [reading]="observatory.lastPreview()"
         [arrival]="arrival()"
-        (chosen)="station.openPreview($event)"
+        (chosen)="observatory.openPreview($event)"
         (hoveredChange)="onReaderHovered($event)"
       />
     }
   </section>
 </main>
 
-<app-social-links
-  [appLayoutAnchor]="anchor.chrome"
-  [links]="contactLinks()"
-  [arrival]="arrival()"
->
+<app-contact-links [arrival]="arrival()">
   @if (object.animated()) {
     <app-animation-toggle />
   }
-</app-social-links>
+</app-contact-links>
 
 <app-observatory-dock [appLayoutAnchor]="anchor.chrome" />

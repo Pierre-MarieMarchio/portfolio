@@ -5,3 +5,4 @@ export { PATHS } from './data/paths.data';
 export { pathOf, translatePath } from './rules/paths.rules';
 export { loadCatalog } from './guards/catalog.guard';
 export { provideI18n } from './providers/i18n.provider';
+export { ViewLinksService } from './services/view-links.service';

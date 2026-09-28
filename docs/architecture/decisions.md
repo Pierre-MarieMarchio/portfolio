@@ -1687,3 +1687,18 @@ contraire à la convention d'Angular. Renommer `src/testing/` : l'alias
 clair. Les compteurs locaux (`closed += 1`) et les événements qui ne
 bouillonnent pas restent dans leur spec : les partager aurait changé ce que
 leurs tests vérifient.
+
+## 2026-09-28 — Un lancement à la main de la CI déploie aussi (D53, amende D48)
+
+**Décision.** Le job `deploy` tourne sur `main` pour un push comme pour un
+lancement à la main (`workflow_dispatch`) ; seules les pull requests ne
+déploient pas.
+
+**Raison.** Le 2026-09-28, quatre fusions sont arrivées sur `main` sans que
+GitHub lance la CI. Relancée à la main, elle est passée, mais le site n'est
+pas parti : il fallait pousser un commit pour rien. Le lancement à la main
+passe par les mêmes contrôles que le push, et le déploiement attend toujours
+`lint`, `build` et `sonar`.
+
+**Écarté.** Un workflow à part pour déployer : il referait un build, ou
+irait chercher l'artefact d'un autre run, ce que D48 a justement écarté.

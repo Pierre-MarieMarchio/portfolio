@@ -683,22 +683,22 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
 La scène canvas, sans un mot du portfolio. Son API parle de cadrages, de
 corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 
-| Unité                                                         | But                                                                                                                             |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `components/space-scene/` `SpaceSceneComponent`               | démarrer et arrêter la scène, lui passer les corps, la direction et les noms des figures                                        |
-| `directives/turn-gesture.directive.ts` `TurnGestureDirective` | tourner la scène en la faisant glisser ; absorber le clic qui termine un glissement                                             |
-| `trackers/zoom-gesture.tracker.ts` `ZoomGestureTracker`       | aux formats `phone` et `tablet`, rapprocher la caméra au pincement et au double toucher de l'accueil (D32, D43)                 |
-| `trackers/sky-look.tracker.ts` `SkyLookTracker`               | au format `desktop`, rapprocher la caméra à la molette et la déplacer au clic molette (D43)                                     |
-| `services/scene-look.service.ts` `SceneLookService`           | charger les gestes du ciel du format et les démarrer, fourni par `SpaceSceneComponent`                                          |
-| `services/scene-engine.service.ts` `SceneEngineService`       | créer l'engine : dans un worker quand le navigateur le permet, sinon dans la page, chargé à part (D47)                          |
-| `directives/scene-target.directive.ts` `SceneTargetDirective` | inscrire un élément comme cible d'un corps, dans l'ordre du document (le rang)                                                  |
-| `services/scene-targets.service.ts` `SceneTargetsService`     | le registre des cibles, fourni par `SpaceSceneComponent`                                                                        |
-| `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                                            |
-| `models/scene.model.ts`                                       | `SceneBody`, `SceneDirection`, `CameraFraming`, `BodiesPresence`, `LabelStyle`                                                  |
-| `models/scene-layout.model.ts`                                | `SceneLayout`, `PanelRect`, `ScenePanelRole`                                                                                    |
-| `models/scene-config.model.ts`                                | `SCENE_CONFIG` : les réglages de la scène en un lieu (matière, ciel, canvas, caméra, main, gestes, planètes, figures) (D49)     |
-| `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `gestures/`, `matter/`, `planets/`, `sky/` |
-| `engine/`                                                     | la boucle et ses couches (D11)                                                                                                  |
+| Unité                                                         | But                                                                                                                                                                                |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `components/space-scene/` `SpaceSceneComponent`               | démarrer et arrêter la scène, lui passer les corps, la direction et les noms des figures                                                                                           |
+| `directives/turn-gesture.directive.ts` `TurnGestureDirective` | tourner la scène en la faisant glisser ; absorber le clic qui termine un glissement                                                                                                |
+| `trackers/zoom-gesture.tracker.ts` `ZoomGestureTracker`       | aux formats `phone` et `tablet`, rapprocher la caméra au pincement et au double toucher de l'accueil (D32, D43)                                                                    |
+| `trackers/sky-look.tracker.ts` `SkyLookTracker`               | au format `desktop`, rapprocher la caméra à la molette et la déplacer au clic molette (D43)                                                                                        |
+| `services/scene-look.service.ts` `SceneLookService`           | charger les gestes du ciel du format et les démarrer, fourni par `SpaceSceneComponent`                                                                                             |
+| `services/scene-engine.service.ts` `SceneEngineService`       | créer l'engine : dans un worker quand le navigateur le permet, sinon dans la page, chargé à part (D47)                                                                             |
+| `directives/scene-target.directive.ts` `SceneTargetDirective` | inscrire un élément comme cible d'un corps, dans l'ordre du document (le rang)                                                                                                     |
+| `services/scene-targets.service.ts` `SceneTargetsService`     | le registre des cibles, fourni par `SpaceSceneComponent`                                                                                                                           |
+| `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                                                                                               |
+| `models/scene.model.ts`                                       | `SceneBody`, `SceneDirection`, `CameraFraming`, `BodiesPresence`, `LabelStyle`                                                                                                     |
+| `models/scene-layout.model.ts`                                | `SceneLayout`, `PanelRect`, `ScenePanelRole`                                                                                                                                       |
+| `models/scene-config.model.ts`                                | `SCENE_CONFIG` : les réglages de la scène en un lieu (matière, ciel, canvas, caméra, main, gestes, planètes, figures) (D49)                                                        |
+| `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `gestures/`, `matter/`, `planets/`, `rooms/` (la pièce libre entre les fenêtres, D66), `sky/` |
+| `engine/`                                                     | la boucle et ses couches (D11)                                                                                                                                                     |
 
 - Au format `phone`, le trou noir est le sujet (D35) : `hole-focus.rules.ts`
   (`holeInFocus`, `skyRooms`) le grandit et le range dans le ciel libre. Ce
@@ -921,6 +921,7 @@ src/app/
   shared/space-scene/rules/gestures/           sky-look.rules · sky-touch.rules
   shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
   shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
+  shared/space-scene/rules/rooms/              window-room.rules
   shared/space-scene/rules/figures/            constellations.rules · figure-arrangement.rules · figure-label.rules · figure-room.rules · figure-target.rules · phone-figures.rules
   shared/space-scene/rules/sky/                comets.rules · star-field.rules · trail-steps.rules
   shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-engine.service · scene-look.service · scene-targets.service

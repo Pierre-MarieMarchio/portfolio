@@ -24,6 +24,7 @@ export interface SceneLayout {
   readonly cornerBandTop?: number | null;
   readonly topBar?: LayoutBox | null;
   readonly chrome?: readonly PanelRect[];
+  readonly windows?: readonly LayoutBox[];
 }
 
 export type ScenePanelRole =

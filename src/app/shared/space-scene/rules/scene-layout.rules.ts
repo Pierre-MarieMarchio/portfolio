@@ -49,6 +49,12 @@ const CHROME_ROLES: ReadonlySet<ScenePanelRole> = new Set([
   'chrome',
 ]);
 
+const WINDOW_ROLES: ReadonlySet<ScenePanelRole> = new Set([
+  '',
+  'approach-edge',
+  'close-up-edge',
+]);
+
 const isPortrait = (viewport: SceneLayout['viewport']): boolean =>
   viewport.height > viewport.width;
 
@@ -81,6 +87,14 @@ export function sceneLayout(
     chrome: anchors
       .filter((anchor) => CHROME_ROLES.has(anchor.role) && isShown(anchor))
       .map((anchor) => panelOf(anchor)),
+    windows: anchors
+      .filter(
+        (anchor) =>
+          WINDOW_ROLES.has(anchor.role) &&
+          isShown(anchor) &&
+          !isBottomBand(anchor.rect, viewport),
+      )
+      .map((anchor) => boxOf(anchor.rect)),
   };
 }
 

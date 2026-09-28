@@ -2063,3 +2063,33 @@ ciel que D29 cadre. Un voile ou un flou pour l'aperçu : il animerait un
 élément qui floute. Les boutons du cadre dans le bundle initial : 521,8 kB.
 Un bord haut : c'est la barre. Garder le repli au bureau : il fait double
 emploi avec agrandir et le dock à venir.
+
+## 2026-09-29 — La scène cadre dans le ciel libre, de quelque côté que soient les fenêtres (D66, amende D29 et D65)
+
+**Décision.** La page donne à la scène les fenêtres qui s'affichent
+(`layout.windows`). La scène garde la plus large bande libre entre elles,
+d'un bord à l'autre de l'écran. À égalité, elle garde celle de gauche. Libre
+à gauche, les cadrages restent ceux d'aujourd'hui ; le bord est celui de la
+bande. Libre à droite, le cadrage se calcule en miroir : le trou passe de
+l'autre côté, l'inclinaison s'inverse, et la planète visée aussi. Entre deux
+fenêtres, ou si le trou ne tient pas dans sa bande, l'objet entier s'y range
+(`wholeInFreeSky`). L'approche et le gros plan retiennent leur trou avant le
+bord de la fenêtre. Sous 15 % de la largeur, la scène garde sa dernière
+bande. Le téléphone ne change pas.
+
+**Raison.** Posée à gauche, une fenêtre cachait le trou (D65). Le miroir rend
+à gauche ce que la droite a déjà. Une bande par colonne suffit : au bureau,
+l'objet et sa planète se posent côte à côte. Garder la bande sous une
+fenêtre agrandie évite de bouger la caméra sous une vitre opaque, puis
+encore au retour. La caméra garde son amorti. Toutes les fenêtres comptent :
+une fenêtre épinglée ne passe plus sur le trou. Les goldens ne bougent pas.
+Le bundle initial passe de 517,98 à 518,11 kB ; le worker de 59,84 à
+62,04 kB.
+
+**Écarté.** Les pièces en deux dimensions du téléphone : au-dessus ou
+au-dessous d'une fenêtre, un écran couché laisse une bande trop basse pour
+l'objet. Recaler les orbites sur la bande : elles changeraient dans toutes
+les vues. Décaler le cadrage de droite sans le refléter : la planète
+partirait vers le bord. Suivre la fenêtre agrandie : il n'y a plus de ciel à
+montrer. Déplacer la constellation de l'à-propos : hors du cadrage, à
+reprendre à part.

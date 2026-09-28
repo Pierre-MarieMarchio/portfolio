@@ -24,12 +24,20 @@ import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
 import {
   bodyId,
-  mountEngineScene,
+  mountEngineScene as mountBareScene,
   SCENE_INPUTS,
   SceneChange,
   sceneBodies,
+  SceneSetup,
 } from '@testing/fixtures/engine-scene.fixture';
 import { sceneLayout } from '../rules/scene-layout.rules';
+import * as holeFocus from '../rules/hole-focus.rules';
+
+const mountEngineScene = (setup: Partial<SceneSetup> = {}) =>
+  mountBareScene({
+    ...setup,
+    inputs: { ...(setup.inputs ?? SCENE_INPUTS), holeFocus },
+  });
 
 const callable = (): undefined => undefined;
 
@@ -722,8 +730,9 @@ const markedScene = (
   layout: SceneLayout,
   dpr: number,
   inputs: SceneInputs = SCENE_INPUTS,
+  mount: typeof mountBareScene = mountEngineScene,
 ) => {
-  const scene = mountEngineScene({ layout, dpr, inputs });
+  const scene = mount({ layout, dpr, inputs });
   const mark = document.createElement('div');
   scene.engine.setHoleMark(mark);
   const hole = (): HoleSeen => ({
@@ -1391,5 +1400,56 @@ describe('SpaceSceneEngine, the hole as the subject of a phone', () => {
     expect(
       shownLabels(phoneScene('phone', { ...overview, ringed: bodyId(2) })),
     ).toEqual([2]);
+  });
+});
+
+const phoneAtRest = (hasHoleFocus: boolean) => {
+  const { width, height, dpr } = PHONE_SCREEN;
+  const scene = markedScene(
+    glassLayout(width, height),
+    dpr,
+    { ...SCENE_INPUTS, format: 'phone' },
+    hasHoleFocus ? mountEngineScene : mountBareScene,
+  );
+  scene.run(PAST_CROSSING_MS + EASED_MS);
+  return scene;
+};
+
+describe('SpaceSceneEngine, on a phone whose framing code arrives late', () => {
+  it('frames the hole as without that code until it arrives', () => {
+    const bare = phoneAtRest(false).hole();
+    const focused = phoneAtRest(true).hole();
+
+    expect(Number.isFinite(bare.radius)).toBe(true);
+    expect(bare.radius).toBeLessThan(focused.radius);
+  });
+
+  it('eases to the phone framing once the code arrives, without a jump', () => {
+    const scene = phoneAtRest(false);
+    const before = scene.hole();
+    const target = phoneAtRest(true).hole();
+    scene.set({ holeFocus });
+    const path: HoleSeen[] = [];
+    for (let frame = 0; frame < 30; frame++) {
+      scene.run(FRAME_MS);
+      path.push(scene.hole());
+    }
+    scene.run(EASED_MS);
+    const after = scene.hole();
+    const growth = target.radius - before.radius;
+    const steps = path.map(
+      (seen, i) => seen.radius - (path[i - 1] ?? before).radius,
+    );
+
+    expect(
+      path.every((seen) =>
+        [seen.x, seen.y, seen.radius].every((value) => Number.isFinite(value)),
+      ),
+    ).toBe(true);
+    expect(Math.max(...steps)).toBeLessThan(growth / 4);
+    expect(path.at(-1)?.radius).toBeGreaterThan(before.radius);
+    expect(after.radius).toBeCloseTo(target.radius, 0);
+    expect(after.x).toBeCloseTo(target.x, 0);
+    expect(after.y).toBeCloseTo(target.y, 0);
   });
 });

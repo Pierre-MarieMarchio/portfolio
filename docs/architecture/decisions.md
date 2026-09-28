@@ -1148,3 +1148,56 @@ planète est dessiné dans le canvas et restait seul sur le ciel.
 
 **Budget.** Le bundle initial passe de 525,1 à 529,9 kB, sous le seuil
 d'avertissement de 530 kB, qui ne bouge pas.
+
+## 2026-09-27 — Le code propre au téléphone se charge à part (D39, amende D37)
+
+**Décision.** Deux morceaux ne servent qu'au format `phone` et sortent du
+bundle initial : le geste de la vitre (D37), et le cadrage qui fait du trou
+noir le sujet (`hole-focus.rules.ts`, D35). `PhoneCodeService`
+(`core/services/device/`) les charge par `import()` dès que le format vaut
+`phone`, au démarrage du client ou au passage à `phone`, une seule fois,
+jamais à la tablette, au bureau ni au serveur.
+
+- La vitre : `GlassGesturesDirective` reste dans le bundle initial, réduite
+  à ses entrées, sa sortie et ses écoutes. Le suivi du toucher devient
+  `GlassGestureTracker` (`shared/windows/trackers/`), la règle pure
+  `glass-gesture.rules.ts` (`shared/windows/rules/`), avec ses specs. Le
+  bureau demande ce code à son démarrage, car au téléphone l'accueil n'a
+  pas de vitre et la première s'ouvre d'un toucher. Si un geste commence
+  avant que le code soit là, la directive retient chaque événement du
+  pointeur, au téléphone seulement, et les rejoue dans l'ordre à son
+  arrivée : le geste compte, le clic qui suit un glisser est avalé. Seul ce
+  qui ne se rattrape pas lui échappe : le `touchmove` n'a pas pu être
+  retenu, le défilement natif a pu commencer.
+- La scène : `SpaceSceneComponent` demande la règle et la donne à l'engine
+  avec ses entrées (`SceneInputs.holeFocus`). Tant qu'elle n'est pas là, la
+  scène cadre comme sans elle ; à son arrivée, la cible de la caméra change
+  et la caméra y va par son amorti ordinaire, sans saut. Les bancs de l'engine la donnent avant la
+  première image : les goldens, téléphone compris, ne bougent pas.
+- Le rôle `.tracker` (`trackers/`) s'ouvre à `shared/windows`, avec `rules/`
+  (`organisation.md` §3.2 à §3.4, `check-structure.mjs`) : D37 avait écarté
+  `rules/` faute de ce rôle.
+
+**Raison.** Le bundle initial était à 529,92 kB, pour un avertissement à
+530 kB. L'opérateur a choisi de sortir le code propre au téléphone plutôt
+que de relever le seuil. Mesuré en retirant chaque candidat : le geste de la
+vitre pesait 3,71 kB, le balayage de la rangée des vedettes (D38) 0,53 kB,
+`hole-focus.rules.ts` 2,85 kB. Après : 524,64 kB d'initial, et deux
+morceaux paresseux, `glass-gesture-tracker` (3,21 kB) et `hole-focus-rules`
+(3,07 kB).
+
+**Écarté.** Relever le seuil : c'est ce que l'opérateur a refusé. `@defer` :
+il ne diffère qu'un bloc de gabarit, dont le contenu manque au prérendu, et
+la directive de la vitre est posée sur la section de la fenêtre, qu'il
+faudrait doubler. Retirer les comètes : elles sont de la scène à tous les
+formats. Le balayage de la rangée des vedettes : 0,53 kB, dont l'enveloppe
+et le rejeu reprendraient presque tout. Le dock (D27) : son élément est
+dans le HTML prérendu à tous les formats. Les traînées groupées du
+téléphone (`trail-batch.renderer.ts`, `trail-steps.rules.ts`, D36) : elles
+dessinent la traversée dès les premières images ; arrivées après, elles
+laisseraient ces images au dégradé par traînée, le coût que D36 a retiré.
+`free-sky.rules.ts` sert aussi à la tablette debout (D29), et
+`zoom-gesture.directive.ts` à la tablette (D32) : ils restent.
+
+**Budget.** Le bundle initial passe de 529,9 à 524,6 kB ; le seuil
+d'avertissement reste à 530 kB.

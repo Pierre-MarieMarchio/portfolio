@@ -19,7 +19,12 @@ import {
   outermostReach,
   wholeInFreeSky,
 } from './free-sky.rules';
-import { FocusAim, holeInFocus, skyRooms } from '../hole-focus.rules';
+import type { FocusAim, HoleFocus } from '../hole-focus.rules';
+
+export interface HoleFocusRules {
+  readonly holeInFocus: (frame: Frame, focus: HoleFocus) => Frame;
+  readonly skyRooms: (layout: SceneLayout | null) => Box[];
+}
 
 export interface FramingScene {
   rest: Frame;
@@ -30,6 +35,7 @@ export interface FramingScene {
   azim: number;
   sky: { layout: SceneLayout | null; rooms: readonly Box[] };
   reach: number | null;
+  holeFocus: HoleFocusRules | null;
   readonly orbitTurn: (i: number) => number;
   readonly nameOf: (i: number) => FocusAim['name'];
 }
@@ -47,6 +53,7 @@ export const framingScene = (
   azim: 0,
   sky: { layout: null, rooms: [] },
   reach: null,
+  holeFocus: null,
   orbitTurn,
   nameOf,
 });
@@ -54,19 +61,23 @@ export const framingScene = (
 export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
   const frame = viewFraming(state, scene);
   const dims = scene.dims;
-  return state.phone && dims
-    ? holeInFocus(frame, {
+  const rules = scene.holeFocus;
+  return state.phone && dims && rules
+    ? rules.holeInFocus(frame, {
         dims,
-        rooms: skyRoomsOf(scene),
+        rooms: skyRoomsOf(scene, rules),
         isCloseUp: state.framing === 'close-up',
         aim: aimOf(state, scene),
       })
     : frame;
 };
 
-const skyRoomsOf = (scene: FramingScene): readonly Box[] => {
+const skyRoomsOf = (
+  scene: FramingScene,
+  rules: HoleFocusRules,
+): readonly Box[] => {
   if (scene.sky.layout !== scene.layout) {
-    scene.sky = { layout: scene.layout, rooms: skyRooms(scene.layout) };
+    scene.sky = { layout: scene.layout, rooms: rules.skyRooms(scene.layout) };
   }
   return scene.sky.rooms;
 };

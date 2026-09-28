@@ -1,4 +1,4 @@
-import { DebugElement } from '@angular/core';
+import { DebugElement, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import {
@@ -11,6 +11,8 @@ import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
 import { LayoutAnchorsService } from '@shared/ui/services';
+import { PhoneCodeService } from '@app/core/services';
+import { loadGlassGestures } from '@shared/windows/directives';
 import { ObservatoryPageComponent } from './observatory-page.component';
 
 const arrivals = (host: HTMLElement) =>
@@ -33,7 +35,12 @@ describe('StationComponent', () => {
     sampleEntry({ project: { slug: KNOWN_SLUG, title: 'Known project' } }),
   ];
 
-  const mount = async (options: { reducedMotion?: boolean } = {}) => {
+  const mount = async (
+    options: {
+      reducedMotion?: boolean;
+      phoneCode?: Pick<PhoneCodeService, 'load'>;
+    } = {},
+  ) => {
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches:
         query === '(prefers-reduced-motion: reduce)'
@@ -49,6 +56,9 @@ describe('StationComponent', () => {
       providers: [
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(ENTRIES, [ObservatoryEffect]),
+        options.phoneCode
+          ? [{ provide: PhoneCodeService, useValue: options.phoneCode }]
+          : [],
       ],
     });
     await loadProjects();
@@ -522,5 +532,13 @@ describe('StationComponent', () => {
 
     expect(nav).not.toBeNull();
     expect(TestBed.inject(LayoutAnchorsService).list('chrome')).toContain(nav);
+  });
+
+  it('asks for the code of the glass gestures as it starts, before any window opens', async () => {
+    const load = vi.fn(() => signal(null).asReadonly());
+    const { host } = await mount({ phoneCode: { load } });
+
+    expect(host.querySelector('app-window')).toBeNull();
+    expect(load).toHaveBeenCalledWith(loadGlassGestures);
   });
 });

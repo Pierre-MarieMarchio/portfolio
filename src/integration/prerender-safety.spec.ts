@@ -10,6 +10,7 @@ import {
   ElementObserverService,
   MediaPreferencesService,
   PageVisibilityService,
+  PhoneCodeService,
   UserPresenceService,
 } from '@app/core/services';
 
@@ -185,6 +186,29 @@ describe('prerender safety', () => {
     expect(document.documentElement.dataset['format']).toBeUndefined();
 
     addEventListener.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('loads no code of the phone on the server, even at a phone size', async () => {
+    vi.stubGlobal('innerWidth', 390);
+    vi.stubGlobal('innerHeight', 844);
+    vi.stubGlobal('matchMedia', () => ({
+      matches: true,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    on('server');
+    const importer = vi.fn(() => Promise.resolve({}));
+
+    const loaded = TestBed.runInInjectionContext(() =>
+      TestBed.inject(PhoneCodeService).load(importer),
+    );
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(importer).not.toHaveBeenCalled();
+    expect(loaded()).toBeNull();
+
     vi.unstubAllGlobals();
   });
 

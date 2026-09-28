@@ -1,7 +1,7 @@
 import { fingerprintOf } from '@testing/doubles/recording-canvas.double';
 import {
   bodyId,
-  mountEngineScene,
+  mountEngineScene as mountBareScene,
   SCENE_INPUTS,
   SceneChange,
   sceneBodies,
@@ -9,6 +9,13 @@ import {
   WIDE_LAYOUT,
 } from '@testing/fixtures/engine-scene.fixture';
 import { SceneLayout } from '../models/scene-layout.model';
+import * as holeFocus from '../rules/hole-focus.rules';
+
+const mountEngineScene = (setup: Partial<SceneSetup> = {}) =>
+  mountBareScene({
+    ...setup,
+    inputs: { ...(setup.inputs ?? SCENE_INPUTS), holeFocus },
+  });
 
 const emphasised = (rank: number): SceneChange => ({
   direction: { emphasised: bodyId(rank) },

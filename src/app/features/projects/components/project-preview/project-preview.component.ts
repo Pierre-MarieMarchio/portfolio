@@ -3,7 +3,6 @@ import { RouterLink } from '@angular/router';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
-import { SwipeDirection } from '@shared/windows/models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
@@ -47,13 +46,4 @@ export class ProjectPreviewComponent {
       aria: this.texts().preview.body(project.number, project.title),
     })),
   );
-
-  protected step(direction: SwipeDirection): void {
-    const featured = this.manager.featured();
-    const index = featured.findIndex((project) => project.slug === this.slug());
-    const target = featured[index + (direction === 'next' ? 1 : -1)];
-    if (index >= 0 && target) {
-      this.chosen.emit(target.slug);
-    }
-  }
 }

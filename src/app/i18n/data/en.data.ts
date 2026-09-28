@@ -23,6 +23,13 @@ export const EN: Catalog = {
     close: draft('Close the window'),
   },
 
+  mobileNav: {
+    pageOf: draft(
+      (place: number, count: number) =>
+        `Page ${String(place)} of ${String(count)}`,
+    ),
+  },
+
   projects: {
     defaultChapterTitles: [
       draft('The need'),

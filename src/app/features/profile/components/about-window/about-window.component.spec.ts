@@ -1,17 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
-import { WindowComponent } from '@shared/windows/components';
+import { PagerComponent } from '@shared/mobile-nav/components';
 import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
 const mount = async (inputs: { pinned?: boolean; part?: number } = {}) => {
   TestBed.configureTestingModule({
     imports: [AboutWindowComponent],
-    providers: [provideTexts(), provideRouter([])],
+    providers: [provideTexts(), provideRouter([]), provideMobileNavPlatform()],
   });
 
   const fixture = TestBed.createComponent(AboutWindowComponent);
@@ -179,17 +180,19 @@ describe('AboutWindowComponent', () => {
     expect(address?.getAttribute('href')).toBe(`mailto:${CONTACT_EMAIL}`);
   });
 
-  it('keeps only the current part’s content in the DOM when switching parts', async () => {
+  it('lets only the current part be reached when switching parts', async () => {
     const { fixture, host, about } = await mount({ part: 0 });
+    const reachable = () =>
+      host.querySelector('app-pager-page:not([inert])')?.textContent ?? '';
 
-    expect(host.textContent).toContain(about.profile.lead);
-    expect(host.textContent).not.toContain(about.skills.heading);
+    expect(reachable()).toContain(about.profile.lead);
+    expect(reachable()).not.toContain(about.skills.heading);
 
     fixture.componentRef.setInput('part', 1);
     await fixture.whenStable();
 
-    expect(host.textContent).not.toContain(about.profile.lead);
-    expect(host.textContent).toContain(about.skills.heading);
+    expect(reachable()).not.toContain(about.profile.lead);
+    expect(reachable()).toContain(about.skills.heading);
   });
 
   it.each([0, 1, 2])(
@@ -233,20 +236,12 @@ describe('AboutWindowComponent', () => {
     expect(closed).toHaveLength(1);
   });
 
-  it.each([
-    [1, 'next', [2]],
-    [1, 'previous', [0]],
-    [3, 'next', []],
-    [0, 'previous', []],
-  ] as const)(
-    'turns a swipe on part %i towards %s into the neighbouring part, within bounds',
-    async (part, direction, emitted) => {
-      const { fixture } = await mount({ part });
-      const values = recordOutput(fixture.componentInstance.partChange);
+  it('turns the page the reader swiped to into partChange', async () => {
+    const { fixture } = await mount({ part: 1 });
+    const values = recordOutput(fixture.componentInstance.partChange);
 
-      componentOf(fixture, WindowComponent).swiped.emit(direction);
+    componentOf(fixture, PagerComponent).indexChange.emit(2);
 
-      expect(values).toEqual(emitted);
-    },
-  );
+    expect(values).toEqual([2]);
+  });
 });

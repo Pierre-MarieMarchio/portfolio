@@ -1,4 +1,4 @@
-<ul role="group" [attr.aria-label]="name()">
+<ul #list role="group" [attr.aria-label]="name()">
   @for (item of items(); track item.value) {
     <li>
       <button
@@ -9,7 +9,10 @@
         [title]="item.aria ?? item.label"
         (click)="valueChange.emit(item.value)"
       >
-        <span>{{ item.label }}</span>
+        <span [class.label--wide]="item.phoneLabel">{{ item.label }}</span>
+        @if (item.phoneLabel) {
+          <span class="phone-label">{{ item.phoneLabel }}</span>
+        }
         @if (item.count) {
           <span class="count" aria-hidden="true">{{ item.count }}</span>
         }

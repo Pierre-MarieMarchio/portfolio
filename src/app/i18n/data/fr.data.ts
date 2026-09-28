@@ -22,6 +22,10 @@ export const FR: Catalog = {
     close: 'Fermer la fenêtre',
   },
 
+  mobileNav: {
+    pageOf: (place, count) => `Page ${String(place)} sur ${String(count)}`,
+  },
+
   projects: {
     defaultChapterTitles: [
       'Le besoin',

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { WindowComponent } from '@shared/windows/components';
+import { PagerComponent } from '@shared/mobile-nav/components';
 import {
   loadProjects,
   provideProjects,
@@ -11,6 +11,10 @@ import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+
+const currentPage = (host: HTMLElement): HTMLElement =>
+  host.querySelector('app-pager-page:not([inert])') as HTMLElement;
 
 describe('ProjectDetailComponent', () => {
   const detail = sampleDetail({
@@ -72,7 +76,11 @@ describe('ProjectDetailComponent', () => {
   ) => {
     TestBed.configureTestingModule({
       imports: [ProjectDetailComponent],
-      providers: [provideRouter([]), provideProjects(entries)],
+      providers: [
+        provideRouter([]),
+        provideProjects(entries),
+        provideMobileNavPlatform(),
+      ],
     });
     const manager = await loadProjects();
 
@@ -104,7 +112,7 @@ describe('ProjectDetailComponent', () => {
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
   });
 
-  it('lists one toolbar button per chapter, labelled and pressed on the current one', async () => {
+  it('lists one toolbar button per chapter, numbered, titled on the phone, labelled and pressed on the current one', async () => {
     const { host, texts } = await mount({ slug: 'proj-b', chapter: 1 });
     const toolbar = host.querySelector(
       `[aria-label="${texts.sheet.approaches}"]`,
@@ -113,11 +121,16 @@ describe('ProjectDetailComponent', () => {
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
 
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
-      '01',
-      '02',
-      '03',
-    ]);
+    expect(
+      buttons.map((button) =>
+        button.querySelector('span')?.textContent?.trim(),
+      ),
+    ).toEqual(['01', '02', '03']);
+    expect(
+      buttons.map((button) =>
+        button.querySelector('.phone-label')?.textContent?.trim(),
+      ),
+    ).toEqual(['Pourquoi', 'Comment', 'Et ensuite']);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
       texts.sheet.approach('01', 'Pourquoi'),
       texts.sheet.approach('02', 'Comment'),
@@ -153,14 +166,15 @@ describe('ProjectDetailComponent', () => {
 
   it('shows the lede and the facts identity only on the first chapter', async () => {
     const { host, texts } = await mount({ slug: 'proj-b', chapter: 0 });
+    const page = currentPage(host);
 
-    expect(host.querySelector('.lede')?.textContent?.trim()).toBe(
+    expect(page.querySelector('.lede')?.textContent?.trim()).toBe(
       'A short standfirst.',
     );
-    const terms = [...host.querySelectorAll('dl.identity dt')].map((dt) =>
+    const terms = [...page.querySelectorAll('dl.identity dt')].map((dt) =>
       dt.textContent?.trim(),
     );
-    const values = [...host.querySelectorAll('dl.identity dd')].map((dd) =>
+    const values = [...page.querySelectorAll('dl.identity dd')].map((dd) =>
       dd.textContent?.trim(),
     );
     expect(terms).toEqual(Object.values(texts.sheet.terms));
@@ -176,25 +190,25 @@ describe('ProjectDetailComponent', () => {
   it('has no lede and no identity list past the first chapter', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 1 });
 
-    expect(host.querySelector('.lede')).toBeNull();
-    expect(host.querySelector('dl.identity')).toBeNull();
+    expect(currentPage(host).querySelector('.lede')).toBeNull();
+    expect(currentPage(host).querySelector('dl.identity')).toBeNull();
   });
 
-  it('renders the current chapter title, paragraphs and bullets', async () => {
+  it('renders the current chapter title, paragraphs and bullets, the others out of reach', async () => {
     const { host } = await mount({ slug: 'proj-b', chapter: 1 });
+    const page = currentPage(host);
 
-    expect(host.querySelector('.chapter-title')?.textContent?.trim()).toBe(
+    expect(page.querySelector('.chapter-title')?.textContent?.trim()).toBe(
       '02 · Comment',
     );
-    const paragraphs = [...host.querySelectorAll('p')].map((p) =>
+    const paragraphs = [...page.querySelectorAll('p')].map((p) =>
       p.textContent?.trim(),
     );
     expect(paragraphs).toContain('Middle paragraph.');
     expect(paragraphs).not.toContain('First paragraph.');
+    expect(host.querySelectorAll('app-pager-page[inert]')).toHaveLength(2);
 
-    const bullet = [...host.querySelectorAll('li')].find(
-      (li) => !li.closest('[aria-label="Parties"]'),
-    );
+    const bullet = page.querySelector('li');
     expect(bullet?.querySelector('.term')?.textContent?.trim()).toBe('Terme');
     expect(bullet?.textContent).toContain('Explication');
   });
@@ -258,20 +272,12 @@ describe('ProjectDetailComponent', () => {
     expect(closed).toHaveLength(1);
   });
 
-  it.each([
-    [1, 'next', [2]],
-    [1, 'previous', [0]],
-    [2, 'next', []],
-    [0, 'previous', []],
-  ] as const)(
-    'turns a swipe on chapter %i towards %s into the neighbouring chapter, within bounds',
-    async (chapter, direction, emitted) => {
-      const { fixture } = await mount({ slug: 'proj-a', chapter });
-      const values = recordOutput(fixture.componentInstance.chapterChange);
+  it('turns the page the reader swiped to into chapterChange', async () => {
+    const { fixture } = await mount({ slug: 'proj-a', chapter: 1 });
+    const values = recordOutput(fixture.componentInstance.chapterChange);
 
-      componentOf(fixture, WindowComponent).swiped.emit(direction);
+    componentOf(fixture, PagerComponent).indexChange.emit(2);
 
-      expect(values).toEqual(emitted);
-    },
-  );
+    expect(values).toEqual([2]);
+  });
 });

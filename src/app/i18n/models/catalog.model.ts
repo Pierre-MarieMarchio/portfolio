@@ -5,6 +5,7 @@ import { ObservatoryTexts } from '@app/features/observatory/ports';
 import { ProfileTexts } from '@app/features/profile/ports';
 import { SharedTexts } from '@shared/ui/ports';
 import { WindowTexts } from '@shared/windows/ports';
+import { MobileNavTexts } from '@shared/mobile-nav/ports';
 
 interface ViewHead {
   readonly title: string;
@@ -31,6 +32,7 @@ export interface PagesTexts {
 export interface Catalog {
   readonly shared: SharedTexts;
   readonly windows: WindowTexts;
+  readonly mobileNav: MobileNavTexts;
   readonly projects: ProjectsTexts;
   readonly observatory: ObservatoryTexts;
   readonly profile: ProfileTexts;

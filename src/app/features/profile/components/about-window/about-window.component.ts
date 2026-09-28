@@ -4,10 +4,13 @@ import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
 import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
+import {
+  PagerComponent,
+  PagerPageComponent,
+} from '@shared/mobile-nav/components';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
-import { SwipeDirection } from '@shared/windows/models';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
 const PARTS = ['profile', 'skills', 'path', 'method'] as const;
@@ -16,6 +19,8 @@ const PARTS = ['profile', 'skills', 'path', 'method'] as const;
   selector: 'app-about-window',
   imports: [
     ViewHeadingDirective,
+    PagerComponent,
+    PagerPageComponent,
     RouterLink,
     SegmentedComponent,
     WindowComponent,
@@ -44,16 +49,15 @@ export class AboutWindowComponent {
     })),
   );
 
-  private readonly index = computed(() => {
+  protected readonly index = computed(() => {
     const part = this.part();
     return Number.isInteger(part) && part >= 0 && part < PARTS.length
       ? part
       : 0;
   });
-  protected readonly current = computed(() => {
-    const key = PARTS[this.index()] ?? 'profile';
-    return { key, ...this.about()[key] };
-  });
+  protected readonly current = computed(
+    () => this.about()[PARTS[this.index()] ?? 'profile'],
+  );
 
   protected readonly heading = computed(() =>
     this.about().title(this.current().title),
@@ -73,13 +77,6 @@ export class AboutWindowComponent {
     const key = PARTS[index];
     return key ? { index, label: this.about()[key].label } : null;
   });
-
-  protected step(direction: SwipeDirection): void {
-    const target = this.index() + (direction === 'next' ? 1 : -1);
-    if (target >= 0 && target < PARTS.length) {
-      this.partChange.emit(target);
-    }
-  }
 
   protected advance(): void {
     const next = this.next();

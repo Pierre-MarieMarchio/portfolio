@@ -22,6 +22,7 @@ import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PAGES_TEXTS } from '@app/i18n';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
+import { provideMobileNav } from '../providers/mobile-nav.provider';
 
 const arrivals = (host: HTMLElement) =>
   ['#home', 'app-main-nav', 'app-featured-bar', 'app-social-links'].map(
@@ -61,6 +62,7 @@ describe('ObservatoryPageComponent', () => {
       providers: [
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(ENTRIES, [ObservatoryEffect]),
+        provideMobileNav(),
         options.formatCode
           ? [{ provide: FormatCodeService, useValue: options.formatCode }]
           : [],

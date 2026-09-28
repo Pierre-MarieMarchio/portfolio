@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import {
   DisplayFormatService,
-  DocumentStylesService,
   MediaPreferencesService,
   FormatCodeService,
 } from '@app/core/services';
@@ -30,7 +29,6 @@ export const loadGlassGestures = () =>
 export class GlassGesturesDirective {
   private readonly display = inject(DisplayFormatService);
   private readonly media = inject(MediaPreferencesService);
-  private readonly styles = inject(DocumentStylesService);
   private readonly code = inject(FormatCodeService).load(
     ['phone'],
     loadGlassGestures,
@@ -46,7 +44,6 @@ export class GlassGesturesDirective {
     isPhone: () => this.display.format() === 'phone',
     isFolded: () => this.appGlassGestures(),
     isFollowing: () => !this.media.reducedMotion(),
-    overflowX: (element) => this.styles.token('overflow-x', element),
     answer: (gesture) => {
       this.glassGesture.emit(gesture);
     },

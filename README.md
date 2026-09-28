@@ -7,9 +7,9 @@ flux d'état unidirectionnel.
 
 Le site est un observatoire : une scène canvas (le trou noir, son disque, les
 projets en orbite, les figures du ciel) sous des fenêtres qu'on déplace, épingle
-et range au bureau, et qui deviennent des vitres qu'on tire et qu'on balaie au
-téléphone. La scène et les fenêtres sont deux librairies maison, dans
-`shared/`.
+et range au bureau, et qui deviennent des vitres qu'on tire au téléphone, où
+chapitres et sections se feuillettent du doigt. La scène, les fenêtres et la
+navigation du téléphone sont des librairies maison, dans `shared/`.
 
 La documentation de référence est dans `docs/` : l'architecture dans
 `docs/architecture/` (organisation, décisions, raisons), le contenu dans
@@ -67,9 +67,11 @@ src/app/
     strategies/          la tête de chaque route (RouteHeadStrategy)
     models/ rules/       la langue et la localisation
     helpers/             petites fonctions pures, sans domaine
-  shared/                trois librairies, qui n'importent que core (D20)
+  shared/                quatre librairies, qui n'importent que core (D20)
     ui/                  les composants d'interface sans métier
     windows/             la fenêtre, son glissement, sa pile
+    mobile-nav/          la navigation du téléphone (le pager) ; elle
+                         n'importe pas même core, tout passe par ses ports
     space-scene/         la scène canvas : moteur (dans un worker quand le
                          navigateur le permet), règles, composant, réglages
                          (models/scene-config.model.ts)
@@ -91,6 +93,7 @@ src/app/
       data/ models/ ports/
   pages/                 composition : un dossier par écran
     observatory/         l'écran de l'observatoire et sa feuille de route
+    providers/           provideMobileNav, le navigateur de mobile-nav
     workbench/           l'atelier des composants, en développement
     resolvers/           les têtes de page, dans la langue visée
 src/testing/             ce qui ne part pas en production
@@ -108,15 +111,16 @@ site ; seul le repository le lit. **Ajouter ou changer un projet** : voir
 `racine → pages → i18n → features → features/common → shared/<lib> → core`,
 jamais sur le côté, jamais vers le haut.
 
-| Zone              | Peut importer                         | Ne doit jamais importer                              |
-| ----------------- | ------------------------------------- | ---------------------------------------------------- |
-| racine `app.*.ts` | tout                                  | —                                                    |
-| `pages/`          | tout, sauf la racine                  | la racine                                            |
-| `i18n/`           | les features, `shared/`, `core/`      | `pages/`, la racine                                  |
-| `features/<x>/`   | `core/`, `shared/`, `features/common` | une autre feature, `i18n/`, `pages/`, la racine      |
-| `features/common` | rien du dépôt                         | `core`, `shared`, les features, `pages`              |
-| `shared/<lib>/`   | `core/`                               | une autre librairie, les features, `i18n/`, `pages/` |
-| `core/`           | rien d'autre sous `app/`              | tout le reste                                        |
+| Zone                 | Peut importer                         | Ne doit jamais importer                              |
+| -------------------- | ------------------------------------- | ---------------------------------------------------- |
+| racine `app.*.ts`    | tout                                  | —                                                    |
+| `pages/`             | tout, sauf la racine                  | la racine                                            |
+| `i18n/`              | les features, `shared/`, `core/`      | `pages/`, la racine                                  |
+| `features/<x>/`      | `core/`, `shared/`, `features/common` | une autre feature, `i18n/`, `pages/`, la racine      |
+| `features/common`    | rien du dépôt                         | `core`, `shared`, les features, `pages`              |
+| `shared/<lib>/`      | `core/`                               | une autre librairie, les features, `i18n/`, `pages/` |
+| `shared/mobile-nav/` | rien du dépôt                         | `core/`, et ce que refuse `shared/<lib>/`            |
+| `core/`              | rien d'autre sous `app/`              | tout le reste                                        |
 
 Quand deux features ont besoin d'un même contrat, il **descend** dans un port
 (interface + `InjectionToken`, sans factory par défaut) :

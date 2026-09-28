@@ -62,3 +62,9 @@ $short-screen-height-up-to: 640px;
     @content;
   }
 }
+
+@mixin beyond-phone {
+  @media (width >= $phone-width-below) and ((height >= $phone-height-below-with-coarse-pointer) or (not (pointer: coarse))) {
+    @content;
+  }
+}

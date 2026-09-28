@@ -13,6 +13,7 @@ import { ILinks, LINKS } from '@app/features/common';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { WINDOW_TEXTS } from '@shared/windows/ports';
+import { MOBILE_NAV_TEXTS } from '@shared/mobile-nav/ports';
 import { Catalog, PAGES_TEXTS } from '../models/catalog.model';
 import { CatalogLoaderService } from '../services/catalog-loader.service';
 import { pathOf } from '../rules/paths.rules';
@@ -32,6 +33,10 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
     {
       provide: WINDOW_TEXTS,
       useFactory: () => slice('windows'),
+    },
+    {
+      provide: MOBILE_NAV_TEXTS,
+      useFactory: () => slice('mobileNav'),
     },
     {
       provide: PROJECTS_TEXTS,

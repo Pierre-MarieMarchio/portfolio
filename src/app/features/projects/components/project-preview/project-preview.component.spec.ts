@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { WindowComponent } from '@shared/windows/components';
 import {
   loadProjects,
   provideProjects,
@@ -9,7 +8,7 @@ import {
 import { FEATURED } from '@app/features/projects/states';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectPreviewComponent } from './project-preview.component';
-import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 
 describe('ProjectPreviewComponent', () => {
   const NAMES = ['One', 'Two', 'Three', 'Four', 'Five'];
@@ -145,21 +144,4 @@ describe('ProjectPreviewComponent', () => {
     expect(pinToggled).toHaveLength(1);
     expect(closed).toHaveLength(1);
   });
-
-  it.each([
-    ['proj-2', 'next', ['proj-3']],
-    ['proj-2', 'previous', ['proj-1']],
-    ['proj-4', 'next', []],
-    ['proj-1', 'previous', []],
-  ] as const)(
-    'turns a swipe on %s towards %s into the neighbouring featured project, within bounds',
-    async (slug, direction, emitted) => {
-      const { fixture } = await mount({ slug });
-      const values = recordOutput(fixture.componentInstance.chosen);
-
-      componentOf(fixture, WindowComponent).swiped.emit(direction);
-
-      expect(values).toEqual(emitted);
-    },
-  );
 });

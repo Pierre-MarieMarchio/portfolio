@@ -16,14 +16,4 @@ describe('AnimationManager', () => {
   it('exposes its state read-only', () => {
     expect('set' in manager.paused).toBe(false);
   });
-
-  it('togglePause dispatches the pause flip', () => {
-    manager.togglePause();
-
-    expect(manager.paused()).toBe(true);
-
-    manager.togglePause();
-
-    expect(manager.paused()).toBe(false);
-  });
 });

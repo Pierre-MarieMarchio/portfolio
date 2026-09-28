@@ -1,362 +1,236 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { By } from '@angular/platform-browser';
+import { twoDigits } from '@app/core/helpers';
 import { WindowComponent } from '@shared/windows/components';
+import { CONTACT_EMAIL } from '../../data';
+import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
-import { recordOutput } from '@testing/fixtures/testbed.fixture';
+import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 
-type Part = 0 | 1 | 2 | 3;
-
-const TOOLBAR = '[aria-label="Rubriques"]';
-
-const TITLES: Record<Part, string> = {
-  0: 'Profil',
-  1: 'Compétences',
-  2: 'Parcours',
-  3: 'Et après',
-};
-
-const mount = async (inputs: { pinned?: boolean; part?: Part } = {}) => {
+const mount = async (inputs: { pinned?: boolean; part?: number } = {}) => {
   TestBed.configureTestingModule({
     imports: [AboutWindowComponent],
     providers: [provideTexts(), provideRouter([])],
   });
 
   const fixture = TestBed.createComponent(AboutWindowComponent);
-  fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
-  fixture.componentRef.setInput('part', inputs.part ?? 0);
+  if (inputs.pinned !== undefined) {
+    fixture.componentRef.setInput('pinned', inputs.pinned);
+  }
+  if (inputs.part !== undefined) {
+    fixture.componentRef.setInput('part', inputs.part);
+  }
   await fixture.whenStable();
+  const about = TestBed.inject(PROFILE_TEXTS)().about;
 
-  return { fixture, host: fixture.nativeElement as HTMLElement };
+  return {
+    fixture,
+    host: fixture.nativeElement as HTMLElement,
+    about,
+    parts: [about.profile, about.skills, about.path, about.method],
+    toolbar: `[aria-label="${about.parts}"]`,
+  };
 };
+
+const textsOf = (elements: Iterable<Element>): (string | undefined)[] =>
+  [...elements].map((element) => element.textContent?.trim());
 
 describe('AboutWindowComponent', () => {
   it('defaults to the first part and unpinned, with no input set', async () => {
-    TestBed.configureTestingModule({
-      imports: [AboutWindowComponent],
-      providers: [provideTexts(), provideRouter([])],
-    });
-    const fixture = TestBed.createComponent(AboutWindowComponent);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
+    const { host, about } = await mount();
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Profil',
+      about.title(about.profile.title),
     );
     expect(host.querySelector('button.pin')?.getAttribute('aria-pressed')).toBe(
       'false',
     );
   });
 
-  it('opens a window titled "À propos", with an empty meta', async () => {
-    const { host } = await mount();
+  it('opens a window titled and labelled for "about", with an empty meta', async () => {
+    const { host, about } = await mount();
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe('À propos');
-    expect(window?.querySelector('h2')?.textContent?.trim()).toBe('À propos');
+    expect(window?.getAttribute('aria-label')).toBe(about.label);
+    expect(window?.querySelector('h2')?.textContent?.trim()).toBe(
+      about.heading,
+    );
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
 
-  it('lists the toolbar segmented buttons, in order, pressed on the current part', async () => {
-    const { host } = await mount({ part: 2 });
-    const toolbar = host.querySelector(TOOLBAR);
+  it('lists the parts in the toolbar, in order, pressed on the current one', async () => {
+    const { host, about, parts, toolbar } = await mount({ part: 2 });
     const buttons = [
-      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
+      ...(host.querySelector(toolbar)?.querySelectorAll('button') ?? []),
     ];
 
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual([
-      'Profil',
-      'Compétences',
-      'Parcours',
-      'Et après',
-    ]);
-    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Aller à la rubrique Profil',
-      'Aller à la rubrique Compétences',
-      'Aller à la rubrique Parcours',
-      'Aller à la rubrique Et après',
-    ]);
+    expect(textsOf(buttons)).toEqual(parts.map((part) => part.label));
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(
+      parts.map((part) => about.goTo(part.title)),
+    );
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
     ).toEqual(['false', 'false', 'true', 'false']);
   });
 
   it('emits partChange on a toolbar click, without changing the part by itself', async () => {
-    const { fixture, host } = await mount({ part: 0 });
+    const { fixture, host, toolbar } = await mount({ part: 0 });
     const emitted = recordOutput(fixture.componentInstance.partChange);
 
-    const toolbar = host.querySelector(TOOLBAR);
-    const buttons = [
-      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ];
-    buttons[2]?.click();
+    host
+      .querySelector(toolbar)
+      ?.querySelectorAll<HTMLButtonElement>('button')[2]
+      ?.click();
     await fixture.whenStable();
 
     expect(emitted).toEqual([2]);
     expect(
       host
-        .querySelector(TOOLBAR)
+        .querySelector(toolbar)
         ?.querySelectorAll('button')[0]
         ?.getAttribute('aria-pressed'),
     ).toBe('true');
   });
 
-  it('titles the h1 "Profil" on part 00, with a tabindex of -1', async () => {
-    const { host } = await mount({ part: 0 });
-    const h1 = host.querySelector('h1');
+  it.each([0, 1, 2, 3])(
+    'titles the focusable h1 after part %i',
+    async (part) => {
+      const { host, about, parts } = await mount({ part });
+      const h1 = host.querySelector('h1');
 
-    expect(h1?.getAttribute('tabindex')).toBe('-1');
-    expect(h1?.textContent?.trim()).toBe('À propos : Profil');
-  });
-
-  it('titles the h1 after the skills part', async () => {
-    const { host } = await mount({ part: 1 });
-
-    expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Compétences',
-    );
-  });
-
-  it('titles the h1 after the path part', async () => {
-    const { host } = await mount({ part: 2 });
-
-    expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Parcours',
-    );
-  });
-
-  it('titles the h1 after the "Et après" part, the last one', async () => {
-    const { host } = await mount({ part: 3 });
-
-    expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Et après',
-    );
-  });
+      expect(h1?.getAttribute('tabindex')).toBe('-1');
+      expect(h1?.textContent?.trim()).toBe(
+        about.title(parts[part]?.title ?? ''),
+      );
+    },
+  );
 
   it('treats a part out of range as the first', async () => {
-    TestBed.configureTestingModule({
-      imports: [AboutWindowComponent],
-      providers: [provideTexts(), provideRouter([])],
-    });
-    const fixture = TestBed.createComponent(AboutWindowComponent);
-    fixture.componentRef.setInput('part', 9);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
+    const { host, about } = await mount({ part: 9 });
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
-      'À propos : Profil',
+      about.title(about.profile.title),
     );
   });
 
-  it('shows part 00: the lead sentence and the identity list', async () => {
-    const { host } = await mount({ part: 0 });
-    const text = host.textContent ?? '';
+  it('shows the profile part: the lead sentence and the identity list', async () => {
+    const { host, about } = await mount({ part: 0 });
 
-    expect(text).toContain(
-      'Mes premières lignes de code, je les ai écrites pour modder Skyrim et Crusader Kings.',
+    expect(host.querySelector('p.lead')?.textContent?.trim()).toBe(
+      about.profile.lead,
     );
-    const terms = [...host.querySelectorAll('dt')].map((dt) =>
-      dt.textContent?.trim(),
+    expect(textsOf(host.querySelectorAll('.facts dt'))).toEqual(
+      about.profile.facts.map((fact) => fact.term),
     );
-    expect(terms).toEqual(['Poste', 'Formation', 'Rythme', 'Lieu', 'Langues']);
-    expect(text).toContain('Toulouse, ou en télétravail');
-    expect(text).toContain('Bilingue français-anglais');
-  });
-
-  it('shows part 01: the caps and seven numbered rows, in order', async () => {
-    const { host } = await mount({ part: 1 });
-    const text = host.textContent ?? '';
-
-    expect(text).toContain('Ce que je pratique');
-
-    const rows: Array<[string, string]> = [
-      ['01', 'Web'],
-      ['02', 'Back'],
-      ['03', 'Desktop'],
-      ['04', 'Mobile'],
-      ['05', 'Bluetooth et audio'],
-      ['06', 'Architecture'],
-      ['07', 'Mise en production'],
-    ];
-    let cursor = -1;
-    for (const [number, label] of rows) {
-      const numberAt = text.indexOf(number, cursor + 1);
-      expect(numberAt).toBeGreaterThan(cursor);
-      const labelAt = text.indexOf(label, numberAt + 1);
-      expect(labelAt).toBeGreaterThan(numberAt);
-      cursor = labelAt;
-    }
-  });
-
-  it('shows part 03: the caps and four numbered items, the first about finishing the degree', async () => {
-    const { host } = await mount({ part: 3 });
-    const text = host.textContent ?? '';
-
-    expect(text).toContain('Ce que je cherche');
-    expect(text).toContain(
-      'Une alternance pour terminer mon titre, jusqu’en avril 2027.',
+    expect(textsOf(host.querySelectorAll('.facts dd'))).toEqual(
+      about.profile.facts.map((fact) => fact.value),
     );
-
-    let cursor = -1;
-    for (const number of ['01', '02', '03', '04']) {
-      const at = text.indexOf(number, cursor + 1);
-      expect(at).toBeGreaterThan(cursor);
-      cursor = at;
-    }
   });
 
-  it('shows part 02: Étapes, eight dated milestones, newest first', async () => {
-    const { host } = await mount({ part: 2 });
-    const text = host.textContent ?? '';
+  it('shows the skills part: its heading and the domains numbered 01 to n, in data order', async () => {
+    const { host, about } = await mount({ part: 1 });
 
-    expect(text).toContain('Étapes');
-
-    const years = [...host.querySelectorAll('.milestones dt')].map((dt) =>
-      dt.textContent?.trim(),
+    expect(host.textContent).toContain(about.skills.heading);
+    expect(textsOf(host.querySelectorAll('.domains .number'))).toEqual(
+      about.skills.domains.map((_, index) => twoDigits(index + 1)),
     );
-    expect(years).toEqual([
-      '2025 –',
-      '2025',
-      '2024',
-      '2024',
-      '2023',
-      '2021 – 2023',
-      '2016 – 2021',
-    ]);
-
-    let cursor = -1;
-    for (const fact of [
-      'Alternance chez Skyted',
-      'Projets open source',
-      'Numerilis',
-      'Titre Développeur web',
-      'Apple Foundation Program',
-      'Autoformation',
-      'Archéologue',
-    ]) {
-      const at = text.indexOf(fact, cursor + 1);
-      expect(at).toBeGreaterThan(cursor);
-      cursor = at;
-    }
+    expect(textsOf(host.querySelectorAll('.domains .label'))).toEqual(
+      about.skills.domains.map((domain) => domain.label),
+    );
   });
 
-  it('heads the path part with Étapes alone, no side note', async () => {
-    const { host } = await mount({ part: 2 });
-    const head = host.querySelector('.milestones')?.previousElementSibling;
+  it('shows the path part: its heading over the milestones, in data order', async () => {
+    const { host, about } = await mount({ part: 2 });
+    const milestones = host.querySelector('.milestones');
 
-    expect(head?.textContent?.trim()).toBe('Étapes');
-    expect(host.querySelector('.missing')).toBeNull();
+    expect(milestones?.previousElementSibling?.textContent?.trim()).toBe(
+      about.path.heading,
+    );
+    expect(textsOf(host.querySelectorAll('.milestones dt'))).toEqual(
+      about.path.milestones.map((milestone) => milestone.year),
+    );
+    expect(textsOf(host.querySelectorAll('.milestones dd'))).toEqual(
+      about.path.milestones.map((milestone) => milestone.fact),
+    );
   });
 
-  it('ends the "Et après" part with a line to write, after the list', async () => {
-    const { host } = await mount({ part: 3 });
+  it('shows the last part: its heading and the steps numbered 01 to n, in data order', async () => {
+    const { host, about } = await mount({ part: 3 });
+
+    expect(host.textContent).toContain(about.method.heading);
+    expect(textsOf(host.querySelectorAll('ul.method .step'))).toEqual(
+      about.method.steps.map((_, index) => twoDigits(index + 1)),
+    );
+    expect(textsOf(host.querySelectorAll('ul.method .text'))).toEqual(
+      about.method.steps,
+    );
+  });
+
+  it('ends the last part with a line to write to the contact address, after the list', async () => {
+    const { host, about } = await mount({ part: 3 });
     const contact = host.querySelector('ul.method + p.contact');
     const address = contact?.querySelector<HTMLAnchorElement>('a');
 
     expect(contact?.textContent?.replaceAll(/\s+/g, ' ').trim()).toBe(
-      'Pour en parler, écrivez-moi à pierremariemarchio.pro@gmail.com.',
+      `${about.method.contact} ${CONTACT_EMAIL}.`,
     );
-    expect(address?.textContent?.trim()).toBe(
-      'pierremariemarchio.pro@gmail.com',
-    );
-    expect(address?.getAttribute('href')).toBe(
-      'mailto:pierremariemarchio.pro@gmail.com',
-    );
+    expect(address?.textContent?.trim()).toBe(CONTACT_EMAIL);
+    expect(address?.getAttribute('href')).toBe(`mailto:${CONTACT_EMAIL}`);
   });
 
   it('keeps only the current part’s content in the DOM when switching parts', async () => {
-    const { fixture, host } = await mount({ part: 0 });
+    const { fixture, host, about } = await mount({ part: 0 });
 
-    expect(host.textContent).toContain('Mes premières lignes de code');
-    expect(host.textContent).not.toContain('Ce que je pratique');
+    expect(host.textContent).toContain(about.profile.lead);
+    expect(host.textContent).not.toContain(about.skills.heading);
 
     fixture.componentRef.setInput('part', 1);
     await fixture.whenStable();
 
-    expect(host.textContent).not.toContain('Mes premières lignes de code');
-    expect(host.textContent).toContain('Ce que je pratique');
+    expect(host.textContent).not.toContain(about.profile.lead);
+    expect(host.textContent).toContain(about.skills.heading);
   });
 
-  it('shows the current title in the footer and a next-part button, on part 00', async () => {
-    const { fixture, host } = await mount({ part: 0 });
-    const emitted = recordOutput(fixture.componentInstance.partChange);
+  it.each([0, 1, 2])(
+    'shows the title of part %i in the footer, and a button to the next part',
+    async (part) => {
+      const { fixture, host, about, parts } = await mount({ part });
+      const emitted = recordOutput(fixture.componentInstance.partChange);
+      const footer = host.querySelector('.footer');
+      const next = footer?.querySelector<HTMLButtonElement>('button.next');
 
-    const footer = host.querySelector('.footer');
-    expect(footer?.textContent).toContain(TITLES[0]);
+      expect(footer?.textContent).toContain(parts[part]?.title);
+      expect(next?.textContent?.trim()).toBe(
+        about.next(parts[part + 1]?.label ?? ''),
+      );
 
-    const next = [
-      ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ].find((button) => button.textContent?.trim().startsWith('Suite'));
-    expect(next?.textContent?.trim()).toBe('Suite : Compétences →');
-
-    next?.click();
-    await fixture.whenStable();
-    expect(emitted).toEqual([1]);
-  });
-
-  it('shows the current title in the footer and a next-part button, on part 01', async () => {
-    const { fixture, host } = await mount({ part: 1 });
-    const emitted = recordOutput(fixture.componentInstance.partChange);
-
-    const footer = host.querySelector('.footer');
-    expect(footer?.textContent).toContain(TITLES[1]);
-
-    const next = [
-      ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ].find((button) => button.textContent?.trim().startsWith('Suite'));
-    expect(next?.textContent?.trim()).toBe('Suite : Parcours →');
-
-    next?.click();
-    await fixture.whenStable();
-    expect(emitted).toEqual([2]);
-  });
-
-  it('shows the current title in the footer and a next-part button, on part 02', async () => {
-    const { fixture, host } = await mount({ part: 2 });
-    const emitted = recordOutput(fixture.componentInstance.partChange);
-
-    const footer = host.querySelector('.footer');
-    expect(footer?.textContent).toContain(TITLES[2]);
-
-    const next = [
-      ...(footer?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ].find((button) => button.textContent?.trim().startsWith('Suite'));
-    expect(next?.textContent?.trim()).toBe('Suite : Et après →');
-
-    next?.click();
-    await fixture.whenStable();
-    expect(emitted).toEqual([3]);
-  });
+      next?.click();
+      expect(emitted).toEqual([part + 1]);
+    },
+  );
 
   it('links to every project instead of a next button, on the last part', async () => {
-    const { host } = await mount({ part: 3 });
+    const { host, about } = await mount({ part: 3 });
     const footer = host.querySelector('.footer');
+    const link = footer?.querySelector<HTMLAnchorElement>('a.next');
 
-    expect(footer?.textContent).toContain(TITLES[3]);
-    const next = [...(footer?.querySelectorAll('button') ?? [])].find(
-      (button) => button.textContent?.trim().startsWith('Suite'),
-    );
-    expect(next).toBeUndefined();
-
-    const link = footer?.querySelector<HTMLAnchorElement>('a');
-    expect(link?.textContent?.trim()).toBe('Voir les projets →');
+    expect(footer?.textContent).toContain(about.method.title);
+    expect(footer?.querySelector('button.next')).toBeNull();
+    expect(link?.textContent?.trim()).toBe(about.back);
     expect(link?.getAttribute('href')).toBe('/projets');
   });
 
   it('re-emits the window pin and close as its own outputs', async () => {
-    const { fixture, host } = await mount({ part: 0 });
-    let pinToggled = 0;
-    let closed = 0;
-    fixture.componentInstance.pinToggled.subscribe(() => (pinToggled += 1));
-    fixture.componentInstance.closed.subscribe(() => (closed += 1));
+    const { fixture, host } = await mount();
+    const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
+    const closed = recordOutput(fixture.componentInstance.closed);
 
     host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
-    await fixture.whenStable();
 
-    expect(pinToggled).toBe(1);
-    expect(closed).toBe(1);
+    expect(pinToggled).toHaveLength(1);
+    expect(closed).toHaveLength(1);
   });
 
   it.each([
@@ -369,10 +243,8 @@ describe('AboutWindowComponent', () => {
     async (part, direction, emitted) => {
       const { fixture } = await mount({ part });
       const values = recordOutput(fixture.componentInstance.partChange);
-      const window = fixture.debugElement.query(By.directive(WindowComponent))
-        .componentInstance as WindowComponent;
 
-      window.swiped.emit(direction);
+      componentOf(fixture, WindowComponent).swiped.emit(direction);
 
       expect(values).toEqual(emitted);
     },

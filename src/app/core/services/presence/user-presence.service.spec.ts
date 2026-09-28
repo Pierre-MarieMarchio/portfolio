@@ -1,4 +1,3 @@
-import { TestBed } from '@angular/core/testing';
 import { UserPresenceService } from './user-presence.service';
 import { stubMedia } from '@testing/doubles/browser.double';
 import { injectOn, Platform } from '@testing/fixtures/testbed.fixture';
@@ -20,7 +19,6 @@ describe('UserPresenceService', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });

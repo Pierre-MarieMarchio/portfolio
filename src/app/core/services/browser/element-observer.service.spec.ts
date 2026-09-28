@@ -1,4 +1,3 @@
-import { TestBed } from '@angular/core/testing';
 import { ElementObserverService } from './element-observer.service';
 import { StubObserver, stubObservers } from '@testing/doubles/browser.double';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
@@ -11,7 +10,6 @@ describe('ElementObserverService', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.unstubAllGlobals();
   });
 

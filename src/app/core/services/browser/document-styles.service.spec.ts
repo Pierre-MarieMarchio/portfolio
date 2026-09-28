@@ -6,7 +6,6 @@ describe('DocumentStylesService', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--probe');
     Reflect.deleteProperty(document, 'fonts');
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
   });
 

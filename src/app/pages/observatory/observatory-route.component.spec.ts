@@ -35,20 +35,20 @@ const mount = async (
 };
 
 describe('ObservatoryRouteComponent', () => {
-  it.each(['home', 'index', 'about', 'not-found'] as const)(
-    'declares the %s view to the station as soon as it is created',
-    async (view) => {
-      const { declared } = await mount({ view });
+  it.each([
+    ['home', null],
+    ['index', null],
+    ['about', null],
+    ['not-found', null],
+    ['sheet', 'ngx-statewise'],
+  ] as const)(
+    'declares the %s view to the observatory as soon as it is created',
+    async (view, slug) => {
+      const { declared } = await mount({ view }, slug);
 
-      expect(declared).toEqual({ view, slug: null });
+      expect(declared).toEqual({ view, slug });
     },
   );
-
-  it('declares the sheet to the station as soon as it is created', async () => {
-    const { declared } = await mount({ view: 'sheet' }, 'ngx-statewise');
-
-    expect(declared).toEqual({ view: 'sheet', slug: 'ngx-statewise' });
-  });
 
   it('follows the slug when the outlet reuses it for another sheet', async () => {
     const { fixture, station } = await mount(

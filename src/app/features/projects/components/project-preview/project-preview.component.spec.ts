@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { By } from '@angular/platform-browser';
 import { WindowComponent } from '@shared/windows/components';
 import {
   loadProjects,
@@ -8,8 +7,9 @@ import {
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
 import { FEATURED } from '@app/features/projects/states';
+import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectPreviewComponent } from './project-preview.component';
-import { recordOutput } from '@testing/fixtures/testbed.fixture';
+import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 describe('ProjectPreviewComponent', () => {
   const NAMES = ['One', 'Two', 'Three', 'Four', 'Five'];
@@ -43,23 +43,26 @@ describe('ProjectPreviewComponent', () => {
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
     await fixture.whenStable();
 
-    return { fixture, manager, host: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      manager,
+      host: fixture.nativeElement as HTMLElement,
+      texts: TestBed.inject(PROJECTS_TEXTS)().preview,
+    };
   };
 
-  it('holds one more project than it features, so the limit is exercised', () => {
-    expect(ENTRIES.length).toBeGreaterThan(TestBed.inject(FEATURED));
-  });
+  it('renders nothing for a project the home page does not feature', async () => {
+    const { host } = await mount({ slug: 'proj-5' });
 
-  it('renders nothing when the manager has no facts or project for the slug', async () => {
-    const { host } = await mount({ slug: 'ghost-slug' });
+    expect(ENTRIES.length).toBeGreaterThan(TestBed.inject(FEATURED));
     expect(host.querySelector('.window')).toBeNull();
   });
 
   it('opens a window titled after the project, with its rank among the featured', async () => {
-    const { host } = await mount({ slug: 'proj-2' });
+    const { host, texts } = await mount({ slug: 'proj-2' });
     const windowEl = host.querySelector('.window');
 
-    expect(windowEl?.getAttribute('aria-label')).toBe('Aperçu du projet');
+    expect(windowEl?.getAttribute('aria-label')).toBe(texts.label);
     expect(windowEl?.querySelector('h2')?.textContent?.trim()).toBe(
       'Project Two',
     );
@@ -69,8 +72,8 @@ describe('ProjectPreviewComponent', () => {
   });
 
   it('lists one toolbar button per featured project only, labelled and pressed on the shown one', async () => {
-    const { host } = await mount({ slug: 'proj-2' });
-    const toolbar = host.querySelector('[aria-label="Projets mis en avant"]');
+    const { host, texts } = await mount({ slug: 'proj-2' });
+    const toolbar = host.querySelector(`[aria-label="${texts.bodies}"]`);
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -82,8 +85,8 @@ describe('ProjectPreviewComponent', () => {
       featured.map((_, index) => `0${String(index + 1)}`),
     );
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(
-      featured.map(
-        (name, index) => `Projet 0${String(index + 1)} : Project ${name}`,
+      featured.map((name, index) =>
+        texts.body(`0${String(index + 1)}`, `Project ${name}`),
       ),
     );
     expect(
@@ -92,14 +95,13 @@ describe('ProjectPreviewComponent', () => {
   });
 
   it('emits chosen with the clicked project slug, without changing the shown project by itself', async () => {
-    const { fixture, host } = await mount({ slug: 'proj-2' });
+    const { fixture, host, texts } = await mount({ slug: 'proj-2' });
     const emitted = recordOutput(fixture.componentInstance.chosen);
 
-    const toolbar = host.querySelector('[aria-label="Projets mis en avant"]');
-    const buttons = [
-      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ];
-    buttons[2]?.click();
+    host
+      .querySelector(`[aria-label="${texts.bodies}"]`)
+      ?.querySelectorAll<HTMLButtonElement>('button')[2]
+      ?.click();
     await fixture.whenStable();
 
     expect(emitted).toEqual(['proj-3']);
@@ -109,7 +111,7 @@ describe('ProjectPreviewComponent', () => {
   });
 
   it('shows the summary and the facts identity in the body', async () => {
-    const { host } = await mount({ slug: 'proj-2' });
+    const { host, texts } = await mount({ slug: 'proj-2' });
 
     expect(host.querySelector('.window')?.textContent).toContain('Summary two');
     const terms = [...host.querySelectorAll('dl dt')].map((dt) =>
@@ -118,33 +120,30 @@ describe('ProjectPreviewComponent', () => {
     const values = [...host.querySelectorAll('dl dd')].map((dd) =>
       dd.textContent?.trim(),
     );
-    expect(terms).toEqual(['Statut', 'Rôle', 'Stack']);
+    expect(terms).toEqual(Object.values(texts.terms));
     expect(values).toEqual(['Proof 2', 'Role 2', 'Stack 2']);
   });
 
   it('shows the project tag and a link to its sheet in the footer', async () => {
-    const { host } = await mount({ slug: 'proj-2' });
+    const { host, texts } = await mount({ slug: 'proj-2' });
 
     expect(host.querySelector('.window')?.textContent).toContain('live');
     const link = [...host.querySelectorAll('a')].find(
-      (anchor) => anchor.textContent?.trim() === 'Voir le projet →',
+      (anchor) => anchor.textContent?.trim() === texts.openSheet,
     );
     expect(link?.getAttribute('href')).toBe('/projet/proj-2');
   });
 
   it('re-emits the window pin and close as its own outputs', async () => {
     const { fixture, host } = await mount({ slug: 'proj-2', pinned: true });
-    let pinToggled = 0;
-    let closed = 0;
-    fixture.componentInstance.pinToggled.subscribe(() => (pinToggled += 1));
-    fixture.componentInstance.closed.subscribe(() => (closed += 1));
+    const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
+    const closed = recordOutput(fixture.componentInstance.closed);
 
     host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
-    await fixture.whenStable();
 
-    expect(pinToggled).toBe(1);
-    expect(closed).toBe(1);
+    expect(pinToggled).toHaveLength(1);
+    expect(closed).toHaveLength(1);
   });
 
   it.each([
@@ -157,10 +156,8 @@ describe('ProjectPreviewComponent', () => {
     async (slug, direction, emitted) => {
       const { fixture } = await mount({ slug });
       const values = recordOutput(fixture.componentInstance.chosen);
-      const window = fixture.debugElement.query(By.directive(WindowComponent))
-        .componentInstance as WindowComponent;
 
-      window.swiped.emit(direction);
+      componentOf(fixture, WindowComponent).swiped.emit(direction);
 
       expect(values).toEqual(emitted);
     },

@@ -21,10 +21,6 @@ const mount = async () => {
 };
 
 describe('AnimationToggleComponent', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
   it('offers to pause the animation while it runs, after a hidden rule', async () => {
     const { pause, rule } = await mount();
 

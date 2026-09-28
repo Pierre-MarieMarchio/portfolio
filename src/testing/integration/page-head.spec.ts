@@ -9,6 +9,7 @@ import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 import { CatalogLoaderService, provideI18n } from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
+import { OWNER_NAME } from '@app/i18n/data/owner.data';
 import { routes } from '@app/app.routes';
 
 const harness = async () => {
@@ -31,12 +32,9 @@ const head = () => ({
     TestBed.inject(Meta).getTag('name="description"')?.content ?? null,
 });
 
-const SITE_NAME = 'Pierre-Marie Marchio';
-
 describe('page head across a language switch', () => {
   afterEach(() => {
     document.documentElement.setAttribute('lang', 'fr');
-    TestBed.resetTestingModule();
   });
 
   it('names and describes the page in English from a French page', async () => {
@@ -46,7 +44,7 @@ describe('page head across a language switch', () => {
     await router.navigateByUrl('/en/projects');
 
     expect(head()).toEqual({
-      title: `${EN.pages.heads.index.title} · ${SITE_NAME}`,
+      title: `${EN.pages.heads.index.title} · ${OWNER_NAME}`,
       description: EN.pages.heads.index.description,
     });
   });
@@ -58,7 +56,7 @@ describe('page head across a language switch', () => {
     await router.navigateByUrl('/a-propos');
 
     expect(head()).toEqual({
-      title: `${FR.pages.heads.about.title} · ${SITE_NAME}`,
+      title: `${FR.pages.heads.about.title} · ${OWNER_NAME}`,
       description: FR.pages.heads.about.description,
     });
   });
@@ -70,7 +68,7 @@ describe('page head across a language switch', () => {
     await router.navigateByUrl('/en/unknown');
 
     expect(head().title).toBe(
-      `${EN.pages.heads.notFound.title} · ${SITE_NAME}`,
+      `${EN.pages.heads.notFound.title} · ${OWNER_NAME}`,
     );
   });
 
@@ -82,9 +80,6 @@ describe('page head across a language switch', () => {
 
     expect(head().description).toBe(
       TestBed.inject(ProjectsManager).findIn('bkone', 'en')?.subject,
-    );
-    expect(head().description).toMatch(
-      /^A banking software package from the BKLINK/,
     );
   });
 });

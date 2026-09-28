@@ -365,16 +365,6 @@ de la racine `src/app/app.*` et de `src/testing/integration/`, sorti du code (D1
   accessible d'une page anglaise est anglais. Le français s'y reconnaît à ses
   accents, qu'aucun texte anglais du site ne porte.
 
-## `src/testing/integration/prerender-safety.spec.ts`
-
-- Le mécanisme testé : les services qui touchent le navigateur sont inertes
-  au prérendu. La plateforme serveur est simulée par `PLATFORM_ID`, tandis
-  que jsdom fournit toujours `matchMedia`, un document et une mise en page :
-  une méthode qui oublierait sa garde les atteindrait, et la suite le verrait.
-- Une fenêtre qui se déplace ou se mesure doit aussi se rendre au serveur.
-- L'objet change le curseur : jamais au prérendu.
-- Le minutage de la chorégraphie se lit dans le CSS, jamais au serveur.
-
 ## `src/testing/integration/zoneless.spec.ts`
 
 - Le mécanisme testé : l'application tourne sans zone.js, donc une vue se met

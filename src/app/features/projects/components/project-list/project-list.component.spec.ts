@@ -10,15 +10,17 @@ import {
   FamilyFilter,
   ProjectEntry,
 } from '@app/features/projects/models';
-import { FEATURED } from '@app/features/projects/states';
+import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectListComponent } from './project-list.component';
-import { recordOutput } from '@testing/fixtures/testbed.fixture';
+import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const rows = (host: HTMLElement) => [
   ...host.querySelectorAll<HTMLButtonElement>('button.row'),
 ];
 
-describe('ProjectIndexComponent', () => {
+const squeezed = (text = ''): string => text.replaceAll(/\s+/g, '');
+
+describe('ProjectListComponent', () => {
   const FAMILIES = [
     'professional',
     'personal',
@@ -71,20 +73,29 @@ describe('ProjectIndexComponent', () => {
     fixture.componentRef.setInput('family', inputs.family ?? 'all');
     await fixture.whenStable();
 
-    return { fixture, manager, host: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      manager,
+      host: fixture.nativeElement as HTMLElement,
+      texts: TestBed.inject(PROJECTS_TEXTS)().index,
+    };
   };
 
   it('opens a window titled and labelled for the index', async () => {
-    const { host } = await mount();
+    const { host, texts } = await mount();
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe('Liste des projets');
-    expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Projets');
+    expect(window?.getAttribute('aria-label')).toBe(texts.label);
+    expect(window?.querySelector('h2')?.textContent?.trim()).toBe(
+      texts.heading,
+    );
   });
 
   it('shows the total count in the meta, unfiltered', async () => {
-    const { host } = await mount({ family: 'all' });
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('05 projets');
+    const { host, texts } = await mount({ family: 'all' });
+    expect(host.querySelector('.meta')?.textContent?.trim()).toBe(
+      texts.count('05'),
+    );
   });
 
   it('shows a family / total fraction in the meta, once filtered', async () => {
@@ -93,19 +104,20 @@ describe('ProjectIndexComponent', () => {
   });
 
   it('lists the three family choices with their counts, in order', async () => {
-    const { host } = await mount({ family: 'personal' });
-    const toolbar = host.querySelector('[aria-label="Filtrer les projets"]');
+    const { host, texts } = await mount({ family: 'personal' });
+    const { families } = texts;
+    const toolbar = host.querySelector(`[aria-label="${families.label}"]`);
     const buttons = [...(toolbar?.querySelectorAll('button') ?? [])];
 
-    expect(
-      buttons.map((button) =>
-        button.textContent?.replaceAll(/\s+/g, '').trim(),
-      ),
-    ).toEqual(['Tous05', 'Enentreprise02', 'Personnels03']);
+    expect(buttons.map((button) => squeezed(button.textContent))).toEqual([
+      squeezed(`${families.all.label}05`),
+      squeezed(`${families.professional.label}02`),
+      squeezed(`${families.personal.label}03`),
+    ]);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Afficher tous les projets',
-      'Afficher les projets faits en entreprise',
-      'Afficher les projets personnels',
+      families.all.aria,
+      families.professional.aria,
+      families.personal.aria,
     ]);
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
@@ -113,31 +125,31 @@ describe('ProjectIndexComponent', () => {
   });
 
   it('emits familyChange on a click, without changing its own filter', async () => {
-    const { fixture, host } = await mount({ family: 'all' });
+    const { fixture, host, texts } = await mount({ family: 'all' });
     const emitted = recordOutput(fixture.componentInstance.familyChange);
+    const toolbar = `[aria-label="${texts.families.label}"]`;
 
-    const toolbar = host.querySelector('[aria-label="Filtrer les projets"]');
-    const buttons = [
-      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ];
-    buttons[1]?.click();
+    host
+      .querySelector(toolbar)
+      ?.querySelectorAll<HTMLButtonElement>('button')[1]
+      ?.click();
     await fixture.whenStable();
 
     expect(emitted).toEqual(['professional']);
-    const toolbarAfter = host.querySelector(
-      '[aria-label="Filtrer les projets"]',
-    );
     expect(
-      toolbarAfter?.querySelectorAll('button')[0]?.getAttribute('aria-pressed'),
+      host
+        .querySelector(toolbar)
+        ?.querySelectorAll('button')[0]
+        ?.getAttribute('aria-pressed'),
     ).toBe('true');
   });
 
   it('titles the heading with the total project count', async () => {
-    const { host } = await mount();
+    const { host, texts } = await mount();
     const heading = host.querySelector('h1');
 
     expect(heading?.getAttribute('tabindex')).toBe('-1');
-    expect(heading?.textContent?.trim()).toBe('Les 05 projets');
+    expect(heading?.textContent?.trim()).toBe(texts.title('05'));
   });
 
   it('lists one row per project, in the manager order, numbered from the full list', async () => {
@@ -159,17 +171,6 @@ describe('ProjectIndexComponent', () => {
     ]);
   });
 
-  it('marks the first FEATURED ranks as featured, and only those', async () => {
-    const { host } = await mount();
-    const featured = rows(host).map((row) =>
-      row.querySelector('.number')?.classList.contains('featured'),
-    );
-
-    expect(featured).toEqual(
-      ENTRIES.map((_, rank) => rank < TestBed.inject(FEATURED)),
-    );
-  });
-
   it('filters the rows by family without renumbering them', async () => {
     const { host } = await mount({ family: 'personal' });
     const numbers = rows(host).map((row) =>
@@ -185,40 +186,27 @@ describe('ProjectIndexComponent', () => {
     ).toBe(true);
   });
 
-  it('shows a row facts: stack, proof alone, and role', async () => {
+  it('keeps every fact of a card inside its row: stack, proof alone and role, the number before the title and the title before the proof', async () => {
     const { host } = await mount();
-    const row = rows(host)[0];
+    const row = at(rows(host), 0);
+    const part = (selector: string): Element =>
+      at([...row.querySelectorAll(selector)], 0);
+    const follows = (first: string, second: string): number =>
+      part(first).compareDocumentPosition(part(second));
 
-    expect(row?.querySelector('.stack')?.textContent).toContain('Stack proj-a');
-    expect(row?.querySelector('.proof')?.textContent?.trim()).toBe(
-      'Proof proj-a',
-    );
-    expect(row?.querySelector('.role')?.textContent).toContain('Role proj-a');
-  });
-
-  it('keeps every fact of a card inside its row, the number before the title and the title before the proof', async () => {
-    const { host } = await mount();
-    const row = rows(host)[0];
-    const [number, title, proof] = ['.number', '.title', '.proof'].map(
-      (selector) => row?.querySelector(selector),
-    );
-
-    expect(row?.querySelector('.stack')).not.toBeNull();
-    expect(row?.querySelector('.role')).not.toBeNull();
-    expect(number && title && number.compareDocumentPosition(title)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(title && proof && title.compareDocumentPosition(proof)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
+    expect(part('.stack').textContent).toContain('Stack proj-a');
+    expect(part('.proof').textContent?.trim()).toBe('Proof proj-a');
+    expect(part('.role').textContent).toContain('Role proj-a');
+    expect(follows('.number', '.title')).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(follows('.title', '.proof')).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('marks a visited row consulted, and only that one', async () => {
-    const { host } = await mount({ visited: ['proj-b'] });
+    const { host, texts } = await mount({ visited: ['proj-b'] });
     const titles = rows(host).map((row) => row.querySelector('.title'));
 
     expect(titles[1]?.querySelector('.read')?.textContent?.trim()).toBe(
-      'consulté',
+      texts.read,
     );
     expect(titles[0]?.querySelector('.read')).toBeNull();
   });
@@ -241,7 +229,7 @@ describe('ProjectIndexComponent', () => {
   });
 
   it('opens a detail block after the selected row, with the subject and a link to the sheet', async () => {
-    const { host } = await mount({ selected: 'proj-b' });
+    const { host, texts } = await mount({ selected: 'proj-b' });
     const row = rows(host)[1];
     const opened = row?.nextElementSibling;
 
@@ -249,7 +237,7 @@ describe('ProjectIndexComponent', () => {
     expect(opened?.textContent).toContain('Sample subject.');
     const link = opened?.querySelector('a:not([target="_blank"])');
     expect(link?.getAttribute('href')).toBe('/projet/proj-b');
-    expect(link?.textContent?.trim()).toBe('Voir le projet →');
+    expect(link?.textContent?.trim()).toBe(texts.openSheet);
   });
 
   it('has no opened block when nothing is selected', async () => {
@@ -303,22 +291,19 @@ describe('ProjectIndexComponent', () => {
   });
 
   it('counts the two families in the footer', async () => {
-    const { host } = await mount();
-    expect(host.textContent).toContain('02 en entreprise · 03 personnels');
+    const { host, texts } = await mount();
+    expect(host.textContent).toContain(texts.summary('02', '03'));
   });
 
   it('re-emits the window pin and close as its own outputs', async () => {
     const { fixture, host } = await mount({ pinned: true });
-    let pinToggled = 0;
-    let closed = 0;
-    fixture.componentInstance.pinToggled.subscribe(() => (pinToggled += 1));
-    fixture.componentInstance.closed.subscribe(() => (closed += 1));
+    const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
+    const closed = recordOutput(fixture.componentInstance.closed);
 
     host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
-    await fixture.whenStable();
 
-    expect(pinToggled).toBe(1);
-    expect(closed).toBe(1);
+    expect(pinToggled).toHaveLength(1);
+    expect(closed).toHaveLength(1);
   });
 });

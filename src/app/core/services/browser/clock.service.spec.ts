@@ -1,10 +1,8 @@
-import { TestBed } from '@angular/core/testing';
 import { ClockService } from './clock.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('ClockService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

@@ -16,7 +16,7 @@ import {
 import { NO_PINS, ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
 
-describe('stationUpdater', () => {
+describe('observatoryUpdater', () => {
   let statewise: Statewise;
   let state: ObservatoryState;
 
@@ -45,7 +45,7 @@ describe('stationUpdater', () => {
     expect(state.lastSheet()).toBeNull();
   });
 
-  describe('stationRouteSynced', () => {
+  describe('observatoryRouteSynced', () => {
     it('remembers the last sheet opened once the reader leaves it', () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
       statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'b' }));
@@ -147,7 +147,7 @@ describe('stationUpdater', () => {
     });
   });
 
-  describe('stationPinToggled', () => {
+  describe('observatoryPinToggled', () => {
     it('flips only the given window', () => {
       statewise.dispatch(observatoryPinToggled('index'));
 
@@ -159,10 +159,14 @@ describe('stationUpdater', () => {
     });
   });
 
-  describe('stationWindowClosed', () => {
-    it('unpins the window, staying false when it already was', () => {
-      statewise.dispatch(observatoryWindowClosed('about'));
+  describe('observatoryWindowClosed', () => {
+    it('unpins the window, staying unpinned when it already was', () => {
+      statewise.dispatch(observatoryPinToggled('about'));
 
+      statewise.dispatch(observatoryWindowClosed('about'));
+      expect(state.pins().about).toBe(false);
+
+      statewise.dispatch(observatoryWindowClosed('about'));
       expect(state.pins().about).toBe(false);
     });
 
@@ -185,7 +189,7 @@ describe('stationUpdater', () => {
     });
   });
 
-  it('stationSelected sets the selection and clears the hovered project', () => {
+  it('observatorySelected sets the selection and clears the hovered project', () => {
     statewise.dispatch(observatoryHovered('other'));
 
     statewise.dispatch(observatorySelected('picked'));
@@ -198,13 +202,13 @@ describe('stationUpdater', () => {
     expect(state.selected()).toBeNull();
   });
 
-  it('stationFiltered sets the family filter', () => {
+  it('observatoryFiltered sets the family filter', () => {
     statewise.dispatch(observatoryFiltered('personal'));
 
     expect(state.family()).toBe('personal');
   });
 
-  describe('stationChapterChosen', () => {
+  describe('observatoryChapterChosen', () => {
     it('sets the chapter', () => {
       statewise.dispatch(observatoryChapterChosen(2));
 
@@ -218,13 +222,13 @@ describe('stationUpdater', () => {
     });
   });
 
-  it('stationSectionChosen sets the section', () => {
+  it('observatorySectionChosen sets the section', () => {
     statewise.dispatch(observatorySectionChosen(3));
 
     expect(state.section()).toBe(3);
   });
 
-  it('stationPreviewOpened sets the preview and clears the hovered project', () => {
+  it('observatoryPreviewOpened sets the preview and clears the hovered project', () => {
     statewise.dispatch(observatoryHovered('other'));
 
     statewise.dispatch(observatoryPreviewOpened('skyted'));
@@ -233,7 +237,7 @@ describe('stationUpdater', () => {
     expect(state.hovered()).toBeNull();
   });
 
-  it('stationPreviewClosed clears the preview', () => {
+  it('observatoryPreviewClosed clears the preview', () => {
     statewise.dispatch(observatoryPreviewOpened('skyted'));
 
     statewise.dispatch(observatoryPreviewClosed());
@@ -241,7 +245,7 @@ describe('stationUpdater', () => {
     expect(state.preview()).toBeNull();
   });
 
-  it('stationHovered sets the hovered project', () => {
+  it('observatoryHovered sets the hovered project', () => {
     statewise.dispatch(observatoryHovered('skyted'));
 
     expect(state.hovered()).toBe('skyted');

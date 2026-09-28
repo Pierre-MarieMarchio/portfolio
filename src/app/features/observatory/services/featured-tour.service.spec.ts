@@ -10,20 +10,19 @@ const setUp = () => {
   });
   const station = TestBed.inject(ObservatoryManager);
   station.syncRoute('home');
-  return { station, curtain: TestBed.inject(FeaturedTourService) };
+  return { station, tour: TestBed.inject(FeaturedTourService) };
 };
 
-describe('Curtain', () => {
+describe('FeaturedTourService', () => {
   const SLUGS = ['a', 'b', 'c'];
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.useRealTimers();
   });
 
   it('waits 4200 ms, then lights each marker for 900 ms, then settles', () => {
-    const { station, curtain } = setUp();
-    curtain.play(() => SLUGS);
+    const { station, tour } = setUp();
+    tour.play(() => SLUGS);
 
     vi.advanceTimersByTime(4199);
     expect(station.hovered()).toBeNull();
@@ -41,11 +40,11 @@ describe('Curtain', () => {
   });
 
   it('stops for good once the reader points at something', () => {
-    const { station, curtain } = setUp();
-    curtain.play(() => SLUGS);
+    const { station, tour } = setUp();
+    tour.play(() => SLUGS);
     vi.advanceTimersByTime(4200);
 
-    curtain.takeOver();
+    tour.takeOver();
     station.hover('mine');
     vi.advanceTimersByTime(5000);
 
@@ -53,8 +52,8 @@ describe('Curtain', () => {
   });
 
   it('gives way to an open preview and to another view', () => {
-    const { station, curtain } = setUp();
-    curtain.play(() => SLUGS);
+    const { station, tour } = setUp();
+    tour.play(() => SLUGS);
 
     station.openPreview('a');
     vi.advanceTimersByTime(4200);
@@ -62,15 +61,15 @@ describe('Curtain', () => {
 
     TestBed.resetTestingModule();
     const other = setUp();
-    other.curtain.play(() => SLUGS);
+    other.tour.play(() => SLUGS);
     other.station.syncRoute('index');
     vi.advanceTimersByTime(4200);
     expect(other.station.hovered()).toBeNull();
   });
 
   it('stops when the station goes', () => {
-    const { station, curtain } = setUp();
-    curtain.play(() => SLUGS);
+    const { station, tour } = setUp();
+    tour.play(() => SLUGS);
 
     TestBed.resetTestingModule();
     vi.advanceTimersByTime(10_000);

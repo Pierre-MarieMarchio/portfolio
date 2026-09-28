@@ -1332,7 +1332,7 @@ nul, l'image est celle d'avant : les goldens ne bougent pas.
 - Le chargeur du téléphone se généralise : `PhoneCodeService` devient
   `FormatCodeService`, `load(formats, importer)`, qui charge dès que le
   format est l'un de `formats`. Il ne charge jamais au serveur, qui répond
-  `desktop` (le spec de prérendu le tient).
+  `desktop` (le spec de `FormatCodeService` le tient).
 - Les gestes du ciel se chargent à part, par format. Au doigt (`phone`,
   `tablet`), le pincement et le double toucher de D32 : la directive
   `zoom-gesture` devient `ZoomGestureTracker`
@@ -1702,3 +1702,34 @@ passe par les mêmes contrôles que le push, et le déploiement attend toujours
 
 **Écarté.** Un workflow à part pour déployer : il referait un build, ou
 irait chercher l'artefact d'un autre run, ce que D48 a justement écarté.
+
+## 2026-09-28 — Un test vérifie un comportement, là où il vit (D54)
+
+**Décision.** Dans `features/`, `pages/`, `core/` et les suites
+d'intégration, un test reste s'il vérifie ce qu'un lecteur, un appelant ou
+un contrat attend. Il part s'il redit ce qu'un autre test vérifie déjà (on
+garde celui de l'unité qui porte le comportement ; la page ne garde que le
+branchement), s'il lit un détail interne, ou s'il fige un texte du site sans
+vérifier une règle : un spec lit alors le texte dans le catalogue, par le
+jeton de la feature, au lieu de le recopier. Les cas qui ne changent que par
+leurs données passent en tableaux (`it.each`). `prerender-safety.spec.ts`
+disparaît : chacune de ses assertions était déjà dans le spec « inerte côté
+serveur » d'un service, sauf trois, passées dans ceux de `DisplayFormatService`
+et `FormatCodeService`. `home-status.spec.ts` disparaît aussi : il ne
+vérifiait qu'une phrase. Les `afterEach(() => TestBed.resetTestingModule())`
+partent : Angular remet le `TestBed` à zéro après chaque test.
+
+**Raison.** Ces specs passent de 564 à 512 tests et perdent environ 830
+lignes sans perdre une ligne ni une branche couverte (la couverture gagne
+deux lignes et une branche). Trois comportements n'avaient pas de test et en
+ont un : un clic sur un corps du relevé le sélectionne puis le relâche, un
+clic dans le vide revient de la fiche à la liste, et pointer la règle des
+orbites reprend la visite au lecteur. Un texte retouché ne casse plus un
+test qui ne vérifiait que sa lettre.
+
+**Écarté.** Lire les textes dans `FR` depuis une feature : la loi de
+dépendance interdit à une feature d'importer `i18n`, le jeton suffit.
+Supprimer `animation.manager.spec.ts` : son test « état en lecture seule »
+n'existe nulle part ailleurs. Couper le titre de chapitre par défaut de la
+fiche : c'est le seul test qui montre que la fiche passe ses titres à
+`chapterTitle`.

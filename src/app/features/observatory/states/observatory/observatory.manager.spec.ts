@@ -5,7 +5,7 @@ import { ObservatoryManager } from './observatory.manager';
 import { provideRecordingRouter } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
-describe('StationManager', () => {
+describe('ObservatoryManager', () => {
   let navigated: string[];
   let manager: ObservatoryManager;
 
@@ -38,145 +38,156 @@ describe('StationManager', () => {
     expect('set' in manager.lastSheet).toBe(false);
   });
 
-  describe('docked', () => {
-    it('is empty at first', () => {
-      expect(manager.docked()).toEqual([]);
-    });
+  it('docks the pinned sheet it last showed once the reader opens another view', () => {
+    manager.syncRoute('sheet', 'a');
+    manager.togglePin('sheet');
 
-    it('holds the pinned sheet once the reader opens another view', () => {
-      manager.syncRoute('sheet', 'a');
-      manager.togglePin('sheet');
+    manager.syncRoute('about');
 
-      manager.syncRoute('about');
-
-      expect(manager.docked()).toEqual(['sheet']);
-      expect(manager.lastSheet()).toBe('a');
-    });
-
-    it('lets the window of the view go back to its place', () => {
-      manager.syncRoute('about');
-      manager.togglePin('about');
-      manager.syncRoute('index');
-
-      manager.syncRoute('about');
-
-      expect(manager.docked()).toEqual([]);
-    });
+    expect(manager.docked()).toEqual(['sheet']);
+    expect(manager.lastSheet()).toBe('a');
   });
 
-  describe('showsList', () => {
-    it('is true when the index is the current view', () => {
-      manager.syncRoute('index');
+  it.each<{
+    case: string;
+    arrange: (manager: ObservatoryManager) => void;
+    shows: 'showsList' | 'showsAbout' | 'showsPreview';
+    expected: boolean;
+  }>([
+    {
+      case: 'the list when the index is the current view',
+      arrange: (m) => m.syncRoute('index'),
+      shows: 'showsList',
+      expected: true,
+    },
+    {
+      case: 'the list when the index is pinned over another view',
+      arrange: (m) => {
+        m.syncRoute('home');
+        m.togglePin('index');
+      },
+      shows: 'showsList',
+      expected: true,
+    },
+    {
+      case: 'no list otherwise',
+      arrange: (m) => m.syncRoute('home'),
+      shows: 'showsList',
+      expected: false,
+    },
+    {
+      case: 'about when it is the current view',
+      arrange: (m) => m.syncRoute('about'),
+      shows: 'showsAbout',
+      expected: true,
+    },
+    {
+      case: 'about when it is pinned over another view',
+      arrange: (m) => {
+        m.syncRoute('home');
+        m.togglePin('about');
+      },
+      shows: 'showsAbout',
+      expected: true,
+    },
+    {
+      case: 'no about otherwise',
+      arrange: (m) => m.syncRoute('home'),
+      shows: 'showsAbout',
+      expected: false,
+    },
+    {
+      case: 'the preview on home once one is open',
+      arrange: (m) => {
+        m.syncRoute('home');
+        m.togglePreview('skyted');
+      },
+      shows: 'showsPreview',
+      expected: true,
+    },
+    {
+      case: 'the preview away from home when it is pinned',
+      arrange: (m) => {
+        m.syncRoute('index');
+        m.togglePreview('skyted');
+        m.togglePin('preview');
+      },
+      shows: 'showsPreview',
+      expected: true,
+    },
+    {
+      case: 'no preview away from home when it is not pinned',
+      arrange: (m) => {
+        m.syncRoute('index');
+        m.togglePreview('skyted');
+      },
+      shows: 'showsPreview',
+      expected: false,
+    },
+    {
+      case: 'no preview when nothing is open, even on home',
+      arrange: (m) => m.syncRoute('home'),
+      shows: 'showsPreview',
+      expected: false,
+    },
+  ])('shows $case', ({ arrange, shows, expected }) => {
+    arrange(manager);
 
-      expect(manager.showsList()).toBe(true);
-    });
-
-    it('is true when the index is pinned over another view', () => {
-      manager.syncRoute('home');
-      manager.togglePin('index');
-
-      expect(manager.showsList()).toBe(true);
-    });
-
-    it('is false otherwise', () => {
-      manager.syncRoute('home');
-
-      expect(manager.showsList()).toBe(false);
-    });
+    expect(manager[shows]()).toBe(expected);
   });
 
-  describe('showsAbout', () => {
-    it('is true when about is the current view', () => {
-      manager.syncRoute('about');
+  it.each<{
+    case: string;
+    act: (manager: ObservatoryManager) => void;
+    read: (manager: ObservatoryManager) => unknown;
+    expected: unknown;
+  }>([
+    {
+      case: 'syncRoute dispatches the address change',
+      act: (m) => m.syncRoute('sheet', 'skyted'),
+      read: (m) => [m.view(), m.slug()],
+      expected: ['sheet', 'skyted'],
+    },
+    {
+      case: 'togglePin dispatches the pin flip',
+      act: (m) => m.togglePin('about'),
+      read: (m) => m.pins().about,
+      expected: true,
+    },
+    {
+      case: 'select dispatches the selection',
+      act: (m) => m.select('skyted'),
+      read: (m) => m.selected(),
+      expected: 'skyted',
+    },
+    {
+      case: 'filter dispatches the family filter',
+      act: (m) => m.filter('personal'),
+      read: (m) => m.family(),
+      expected: 'personal',
+    },
+    {
+      case: 'chooseChapter dispatches the chapter',
+      act: (m) => m.chooseChapter(2),
+      read: (m) => m.chapter(),
+      expected: 2,
+    },
+    {
+      case: 'chooseSection dispatches the section',
+      act: (m) => m.chooseSection(2),
+      read: (m) => m.section(),
+      expected: 2,
+    },
+    {
+      case: 'hover dispatches the hovered project',
+      act: (m) => m.hover('skyted'),
+      read: (m) => m.hovered(),
+      expected: 'skyted',
+    },
+  ])('$case', ({ act, read, expected }) => {
+    act(manager);
 
-      expect(manager.showsAbout()).toBe(true);
-    });
-
-    it('is true when about is pinned over another view', () => {
-      manager.syncRoute('home');
-      manager.togglePin('about');
-
-      expect(manager.showsAbout()).toBe(true);
-    });
-
-    it('is false otherwise', () => {
-      manager.syncRoute('home');
-
-      expect(manager.showsAbout()).toBe(false);
-    });
-  });
-
-  describe('showsPreview', () => {
-    it('is true on home once a preview is open', () => {
-      manager.syncRoute('home');
-      manager.togglePreview('skyted');
-
-      expect(manager.showsPreview()).toBe(true);
-    });
-
-    it('is true away from home when the preview is pinned', () => {
-      manager.syncRoute('index');
-      manager.togglePreview('skyted');
-      manager.togglePin('preview');
-
-      expect(manager.showsPreview()).toBe(true);
-    });
-
-    it('is false away from home when the preview is not pinned', () => {
-      manager.syncRoute('index');
-      manager.togglePreview('skyted');
-
-      expect(manager.showsPreview()).toBe(false);
-    });
-
-    it('is false when nothing is open, even on home', () => {
-      manager.syncRoute('home');
-
-      expect(manager.showsPreview()).toBe(false);
-    });
-  });
-
-  it('navigated dispatches the address change', () => {
-    manager.syncRoute('sheet', 'skyted');
-
-    expect(manager.view()).toBe('sheet');
-    expect(manager.slug()).toBe('skyted');
-  });
-
-  it('togglePin dispatches the pin flip', () => {
-    manager.togglePin('about');
-
-    expect(manager.pins().about).toBe(true);
-  });
-
-  it('select dispatches the selection', () => {
-    manager.select('skyted');
-
-    expect(manager.selected()).toBe('skyted');
-  });
-
-  it('filter dispatches the family filter', () => {
-    manager.filter('personal');
-
-    expect(manager.family()).toBe('personal');
-  });
-
-  it('chooseChapter dispatches the chapter', () => {
-    manager.chooseChapter(2);
-
-    expect(manager.chapter()).toBe(2);
-  });
-
-  it('chooseSection dispatches the section', () => {
-    manager.chooseSection(2);
-
-    expect(manager.section()).toBe(2);
-  });
-
-  it('hover dispatches the hovered project', () => {
-    manager.hover('skyted');
-
-    expect(manager.hovered()).toBe('skyted');
+    expect(read(manager)).toEqual(expected);
   });
 
   describe('canStepBack', () => {
@@ -204,12 +215,6 @@ describe('StationManager', () => {
   });
 
   describe('togglePreview', () => {
-    it('opens the preview on a slug it was closed on', () => {
-      manager.togglePreview('skyted');
-
-      expect(manager.preview()).toBe('skyted');
-    });
-
     it('closes the preview when called again with the same slug', () => {
       manager.togglePreview('skyted');
 
@@ -227,49 +232,46 @@ describe('StationManager', () => {
     });
   });
 
-  describe('openPreview', () => {
-    it('opens the given slug', () => {
-      manager.openPreview('skyted');
+  it('opens the preview, never closing it, even called again with the slug already open', () => {
+    manager.openPreview('skyted');
 
-      expect(manager.preview()).toBe('skyted');
-    });
+    manager.openPreview('skyted');
 
-    it('never closes it, even called again with the slug already open', () => {
-      manager.openPreview('skyted');
-
-      manager.openPreview('skyted');
-
-      expect(manager.preview()).toBe('skyted');
-    });
+    expect(manager.preview()).toBe('skyted');
   });
 
-  describe('close', () => {
-    it('resolves once the effect has navigated home from the index', async () => {
-      manager.syncRoute('index');
+  it.each<{
+    case: string;
+    act: (manager: ObservatoryManager) => Promise<void>;
+    navigated: string;
+  }>([
+    {
+      case: 'close, once the effect has navigated home from the index',
+      act: async (m) => {
+        m.syncRoute('index');
+        await m.close('index');
+      },
+      navigated: '/',
+    },
+    {
+      case: 'escape, once the effect has navigated back to the list from a sheet',
+      act: async (m) => {
+        m.syncRoute('sheet', 'skyted');
+        await m.escape();
+      },
+      navigated: '/projets',
+    },
+    {
+      case: 'stepBack, once the effect has navigated back to the list from a sheet',
+      act: async (m) => {
+        m.syncRoute('sheet', 'skyted');
+        await m.stepBack();
+      },
+      navigated: '/projets',
+    },
+  ])('resolves $case', async ({ act, navigated: to }) => {
+    await act(manager);
 
-      await manager.close('index');
-
-      expect(navigated).toEqual(['/']);
-    });
-  });
-
-  describe('escape', () => {
-    it('resolves once the effect has navigated back to the list from a sheet', async () => {
-      manager.syncRoute('sheet', 'skyted');
-
-      await manager.escape();
-
-      expect(navigated).toEqual(['/projets']);
-    });
-  });
-
-  describe('stepBack', () => {
-    it('resolves once the effect has navigated back to the list from a sheet', async () => {
-      manager.syncRoute('sheet', 'skyted');
-
-      await manager.stepBack();
-
-      expect(navigated).toEqual(['/projets']);
-    });
+    expect(navigated).toEqual([to]);
   });
 });

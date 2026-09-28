@@ -16,6 +16,9 @@ import {
   ObservatoryManager,
 } from '@app/features/observatory/states';
 import { CatalogLoaderService, provideI18n, translatePath } from '@app/i18n';
+import { EN } from '@app/i18n/data/en.data';
+import { FR } from '@app/i18n/data/fr.data';
+import { OWNER_NAME } from '@app/i18n/data/owner.data';
 import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
 import { routes } from '@app/app.routes';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
@@ -60,7 +63,6 @@ describe('i18n', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
     document.documentElement.setAttribute('lang', 'fr');
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -72,16 +74,16 @@ describe('i18n', () => {
     expect(document.documentElement.getAttribute('lang')).toBe('fr');
     expect(
       host.querySelector('app-main-nav nav')?.getAttribute('aria-label'),
-    ).toBe('Navigation principale');
+    ).toBe(FR.shared.pageBar.navigation);
 
     await go('/en/projects');
     expect(document.documentElement.getAttribute('lang')).toBe('en');
     expect(TestBed.inject(LocaleService).lang()).toBe('en');
     expect(
       host.querySelector('app-main-nav nav')?.getAttribute('aria-label'),
-    ).toBe('Main navigation');
+    ).toBe(EN.shared.pageBar.navigation);
     expect(host.querySelector('.window h2')?.textContent?.trim()).toBe(
-      'Projects',
+      EN.projects.index.heading,
     );
   });
 
@@ -120,7 +122,9 @@ describe('i18n', () => {
 
     await go('/en/about');
 
-    expect(document.title).toBe('About · Pierre-Marie Marchio');
+    expect(document.title).toBe(
+      `${EN.pages.heads.about.title} · ${OWNER_NAME}`,
+    );
     expect(href('link[rel="canonical"]')).toMatch(/\/en\/about$/);
     expect(href('link[hreflang="fr"]')).toMatch(/\/a-propos$/);
     expect(href('link[hreflang="x-default"]')).toMatch(/\/a-propos$/);

@@ -10,8 +10,7 @@ describe('contact addresses', () => {
 
   it('offers the CV as a PDF served next to the site, in a new tab', () => {
     const cv = CONTACT_ADDRESSES.find((address) => address.icon === 'cv');
-    expect(cv?.href).toBe('Pierre-Marie-Marchio-CV.pdf');
-    expect(cv?.title).toBe('CV');
+    expect(cv?.href).toMatch(/^[^/:]+\.pdf$/);
     expect(cv?.external).toBe(true);
   });
 
@@ -20,6 +19,5 @@ describe('contact addresses', () => {
       expect(FR_PROFILE.contact[address.icon]).toBeTruthy();
       expect(EN_PROFILE.contact[address.icon]).toBeTruthy();
     }
-    expect(FR_PROFILE.contact.cv).toBe('Ouvrir mon CV en PDF');
   });
 });

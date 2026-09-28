@@ -3,6 +3,8 @@ import { LayoutAnchorsService } from '@shared/ui/services';
 import { provideRouter } from '@angular/router';
 import { sampleEntry, sampleRanked } from '@testing/fixtures/project.fixture';
 import { RankedProject } from '../../models';
+import { PROJECTS_TEXTS } from '../../ports';
+import { rowLabel } from '../../rules/project-labels.rules';
 import { FeaturedBarComponent } from './featured-bar.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { recordOutput } from '@testing/fixtures/testbed.fixture';
@@ -46,7 +48,14 @@ const emittedBy = (fixture: { componentInstance: FeaturedBarComponent }) => ({
   chosen: recordOutput(fixture.componentInstance.chosen),
 });
 
-describe('OrbitRuleComponent', () => {
+const rankedOf = (count: number): RankedProject[] =>
+  sampleRanked(
+    Array.from({ length: count }, (_, rank) =>
+      sampleEntry({ project: { slug: `p${String(rank)}` } }),
+    ),
+  );
+
+describe('FeaturedBarComponent', () => {
   const entries = [
     ['alpha', 'Alpha', 'Alp'],
     ['beta', 'Beta', 'Bet'],
@@ -77,18 +86,16 @@ describe('OrbitRuleComponent', () => {
     fixture.componentRef.setInput('reading', inputs.reading ?? null);
     await fixture.whenStable();
 
-    return { fixture, host: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      host: fixture.nativeElement as HTMLElement,
+      texts: TestBed.inject(PROJECTS_TEXTS)().rule,
+    };
   };
 
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
-  it('opens with the "Projets en orbite" heading', async () => {
-    const { host } = await mount({ bodies });
-    expect(host.querySelector('h2')?.textContent?.trim()).toBe(
-      'Projets en orbite',
-    );
+  it('opens with its heading', async () => {
+    const { host, texts } = await mount({ bodies });
+    expect(host.querySelector('h2')?.textContent?.trim()).toBe(texts.heading);
   });
 
   it('lists one marker button per body, in order, labelled and controlling the preview slot', async () => {
@@ -96,12 +103,9 @@ describe('OrbitRuleComponent', () => {
     const buttons = markerButtons(host);
 
     expect(buttons).toHaveLength(4);
-    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      '01 — Alpha · Proof Alpha',
-      '02 — Beta · Proof Beta',
-      '03 — Gamma · Proof Gamma',
-      '04 — Delta · Proof Delta',
-    ]);
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(
+      bodies.map((body) => rowLabel(body)),
+    );
     expect(
       buttons.every(
         (button) => button.getAttribute('aria-controls') === 'preview-panel',
@@ -127,50 +131,38 @@ describe('OrbitRuleComponent', () => {
     );
   });
 
-  it('spreads the markers evenly along the belt, from 2% to 58%', async () => {
-    const { host } = await mount({ bodies });
+  it.each([
+    {
+      case: 'places two markers at the belt ends, with none stranded in between',
+      count: 2,
+      lefts: ['2%', '58%'],
+    },
+    {
+      case: 'keeps the export belt for three markers',
+      count: 3,
+      lefts: ['2%', '30%', '58%'],
+    },
+    {
+      case: 'spreads four markers evenly along the belt, from 2% to 58%',
+      count: 4,
+      lefts: ['2%', '20.7%', '39.3%', '58%'],
+    },
+    {
+      case: 'keeps the gap and widens the belt for five markers',
+      count: 5,
+      lefts: ['2%', '20.7%', '39.3%', '58%', '76.7%'],
+    },
+  ])('$case', async ({ count, lefts }) => {
+    const { host } = await mount({ bodies: rankedOf(count) });
     const items = markerButtons(host).map(
       (button) => button.closest<HTMLLIElement>('li')?.style.left,
     );
 
-    expect(items).toEqual(['2%', '20.7%', '39.3%', '58%']);
+    expect(items).toEqual(lefts);
   });
 
-  it('places two markers at the belt ends, with none stranded in between', async () => {
-    const { host } = await mount({ bodies: bodies.slice(0, 2) });
-    const items = markerButtons(host).map(
-      (button) => button.closest<HTMLLIElement>('li')?.style.left,
-    );
-
-    expect(items).toEqual(['2%', '58%']);
-  });
-
-  it('keeps the gap and widens the belt for more markers', async () => {
-    const five = sampleRanked([...entries, sampleEntry()]);
-    const { host } = await mount({ bodies: five });
-    const items = markerButtons(host).map(
-      (button) => button.closest<HTMLLIElement>('li')?.style.left,
-    );
-
-    expect(items).toEqual(['2%', '20.7%', '39.3%', '58%', '76.7%']);
-  });
-
-  it('keeps the export belt for fewer markers', async () => {
-    const { host } = await mount({ bodies: bodies.slice(0, 3) });
-    const items = markerButtons(host).map(
-      (button) => button.closest<HTMLLIElement>('li')?.style.left,
-    );
-
-    expect(items).toEqual(['2%', '30%', '58%']);
-  });
-
-  it('never runs the belt past 94% of the track, however many markers', async () => {
-    const many = sampleRanked(
-      Array.from({ length: 12 }, (_, rank) =>
-        sampleEntry({ project: { slug: `p${String(rank)}` } }),
-      ),
-    );
-    const { host } = await mount({ bodies: many });
+  it('never runs the belt past 96% of the track, however many markers', async () => {
+    const { host } = await mount({ bodies: rankedOf(12) });
     const last = markerButtons(host).at(-1)?.closest<HTMLLIElement>('li');
 
     expect(last?.style.left).toBe('96%');
@@ -202,18 +194,19 @@ describe('OrbitRuleComponent', () => {
     });
   });
 
-  it('lights only the hovered marker', async () => {
-    const { host } = await mount({ bodies, hovered: 'beta' });
-    const lit = markerButtons(host).map((button) => button.dataset['lit']);
+  it.each([
+    ['only the hovered marker', 'beta', ['false', 'true', 'false', 'false']],
+    [
+      'no marker when nothing is hovered',
+      null,
+      ['false', 'false', 'false', 'false'],
+    ],
+  ])('lights %s', async (_case, hovered, lit) => {
+    const { host } = await mount({ bodies, hovered });
 
-    expect(lit).toEqual(['false', 'true', 'false', 'false']);
-  });
-
-  it('lights no marker when nothing is hovered', async () => {
-    const { host } = await mount({ bodies, hovered: null });
-    const lit = markerButtons(host).map((button) => button.dataset['lit']);
-
-    expect(lit).toEqual(['false', 'false', 'false', 'false']);
+    expect(markerButtons(host).map((button) => button.dataset['lit'])).toEqual(
+      lit,
+    );
   });
 
   it("emits chosen with the clicked body's slug, one per click, in order", async () => {
@@ -251,44 +244,46 @@ describe('OrbitRuleComponent', () => {
   });
 
   it('links to the full index', async () => {
-    const { host } = await mount({ bodies });
+    const { host, texts } = await mount({ bodies });
     const link = [...host.querySelectorAll('a')].find(
-      (anchor) => anchor.textContent?.trim() === 'Tous les projets →',
+      (anchor) => anchor.textContent?.trim() === texts.all,
     );
 
     expect(link?.getAttribute('href')).toBe('/projets');
   });
 
-  it('reads the hovered body first, over the reading fallback', async () => {
-    const { host } = await mount({ bodies, hovered: 'gamma', reading: 'beta' });
-    const reading = host.querySelector('.reading');
+  it.each([
+    {
+      case: 'the hovered body first, over the reading fallback',
+      hovered: 'gamma',
+      reading: 'beta',
+      number: '03',
+      title: 'Gamma',
+    },
+    {
+      case: 'the reading body when nothing is hovered',
+      hovered: null,
+      reading: 'delta',
+      number: '04',
+      title: 'Delta',
+    },
+    {
+      case: 'the first body when nothing is hovered nor read',
+      hovered: null,
+      reading: null,
+      number: '01',
+      title: 'Alpha',
+    },
+  ])('reads $case, politely', async ({ hovered, reading, number, title }) => {
+    const { host } = await mount({ bodies, hovered, reading });
+    const panel = host.querySelector('.reading');
+    const heading = panel?.querySelector('.title')?.textContent ?? '';
 
-    expect(reading?.getAttribute('aria-live')).toBe('polite');
-    const title = reading?.querySelector('.title')?.textContent ?? '';
-    expect(title).toContain('03');
-    expect(title).toContain('Gamma');
-    expect(reading?.textContent).toContain('Proof Gamma');
-    expect(reading?.textContent).toContain('Role Gamma');
-  });
-
-  it('falls back to the reading body when nothing is hovered', async () => {
-    const { host } = await mount({ bodies, hovered: null, reading: 'delta' });
-    const reading = host.querySelector('.reading');
-    const title = reading?.querySelector('.title')?.textContent ?? '';
-
-    expect(title).toContain('04');
-    expect(title).toContain('Delta');
-    expect(reading?.textContent).toContain('Proof Delta');
-  });
-
-  it('falls back to the first body when nothing is hovered nor read', async () => {
-    const { host } = await mount({ bodies, hovered: null, reading: null });
-    const reading = host.querySelector('.reading');
-    const title = reading?.querySelector('.title')?.textContent ?? '';
-
-    expect(title).toContain('01');
-    expect(title).toContain('Alpha');
-    expect(reading?.textContent).toContain('Proof Alpha');
+    expect(panel?.getAttribute('aria-live')).toBe('polite');
+    expect(heading).toContain(number);
+    expect(heading).toContain(title);
+    expect(panel?.textContent).toContain(`Proof ${title}`);
+    expect(panel?.textContent).toContain(`Role ${title}`);
   });
 
   describe('the pick row, one name at a time', () => {
@@ -305,14 +300,12 @@ describe('OrbitRuleComponent', () => {
     });
 
     it('names its steps in the reader language', async () => {
-      const { host } = await mount({ bodies });
+      const { host, texts } = await mount({ bodies });
 
       expect(pickPart(host, '[data-step="previous"]').ariaLabel).toBe(
-        'Projet précédent',
+        texts.previous,
       );
-      expect(pickPart(host, '[data-step="next"]').ariaLabel).toBe(
-        'Projet suivant',
-      );
+      expect(pickPart(host, '[data-step="next"]').ariaLabel).toBe(texts.next);
     });
 
     it('designates the next and the previous project', async () => {

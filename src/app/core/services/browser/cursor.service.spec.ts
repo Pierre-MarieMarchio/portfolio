@@ -1,11 +1,9 @@
-import { TestBed } from '@angular/core/testing';
 import { CursorService } from './cursor.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('CursorService', () => {
   afterEach(() => {
     document.body.style.cursor = '';
-    TestBed.resetTestingModule();
   });
 
   it('is inert on the server: leaves the cursor alone', () => {

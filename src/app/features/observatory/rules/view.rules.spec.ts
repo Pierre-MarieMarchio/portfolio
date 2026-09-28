@@ -51,23 +51,24 @@ describe('stepBack', () => {
   });
 
   describe('with a click in the void', () => {
-    it('leaves a sheet for the list', () => {
-      expect(stepBack('void', from('sheet'))).toEqual({
-        kind: 'navigate',
-        to: 'index',
-      });
-    });
-
-    it('lets the index row go', () => {
-      expect(stepBack('void', from('index', { selection: 'a' }))).toEqual({
-        kind: 'deselect',
-      });
-    });
-
-    it('closes the home preview', () => {
-      expect(stepBack('void', from('home', { preview: 'a' }))).toEqual({
-        kind: 'close-preview',
-      });
+    it.each<[string, StepBackFrom, ReturnType<typeof stepBack>]>([
+      [
+        'leaves a sheet for the list',
+        from('sheet'),
+        { kind: 'navigate', to: 'index' },
+      ],
+      [
+        'lets the index row go',
+        from('index', { selection: 'a' }),
+        { kind: 'deselect' },
+      ],
+      [
+        'closes the home preview',
+        from('home', { preview: 'a' }),
+        { kind: 'close-preview' },
+      ],
+    ])('%s', (_case, state, step) => {
+      expect(stepBack('void', state)).toEqual(step);
     });
 
     it.each<ObservatoryView>(['home', 'index', 'about', 'not-found'])(

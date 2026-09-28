@@ -5,8 +5,11 @@ géré par **ngx-statewise**. L'architecture reprend celle du showcase
 ngx-statewise : quatre couches, une loi de dépendance vérifiée par le lint, un
 flux d'état unidirectionnel.
 
-> État actuel : **la base**. Les pages sont volontairement nues. La maquette
-> (« la station ») viendra se poser sur cette base, sans en changer la structure.
+Le site est un observatoire : une scène canvas (le trou noir, son disque, les
+projets en orbite, les figures du ciel) sous des fenêtres qu'on déplace, épingle
+et range au bureau, et qui deviennent des vitres qu'on tire et qu'on balaie au
+téléphone. La scène et les fenêtres sont deux librairies maison, dans
+`shared/`.
 
 La documentation de référence est dans `docs/` : l'architecture dans
 `docs/architecture/` (organisation, décisions, raisons), le contenu dans
@@ -54,7 +57,8 @@ src/app/
   app.routes.server.ts   prérendu, une page par projet via getPrerenderParams
   i18n/                  les catalogues (data/fr.data.ts, en.data.ts, un
                          Catalog chacun), la table des adresses
-                         (data/paths.data.ts), provideI18n, la garde
+                         (data/paths.data.ts), provideI18n, la garde, la
+                         navigation et les langues (ViewLinksService)
   app.component.*        compose le shell et le <router-outlet>
 
   core/                  infrastructure, aucun concept métier
@@ -66,7 +70,9 @@ src/app/
   shared/                trois librairies, qui n'importent que core (D20)
     ui/                  les composants d'interface sans métier
     windows/             la fenêtre, son glissement, sa pile
-    space-scene/         la scène canvas : moteur, règles, composant
+    space-scene/         la scène canvas : moteur (dans un worker quand le
+                         navigateur le permet), règles, composant, réglages
+                         (models/scene-config.model.ts)
   features/
     common/              les contrats de deux features : LINKS, SceneAnchorKind
     projects/
@@ -76,10 +82,12 @@ src/app/
     observatory/
       components/        la scène de l'observatoire, la carte d'ouverture, le titre,
                          la fenêtre « adresse inconnue », la pause, le dock
-      services/          la révélation de l'accueil, le tour des vedettes
+      services/          la révélation de l'accueil, le tour des vedettes, la
+                         fenêtre de la vue (premier plan, focus)
+      directives/        le créneau d'une fenêtre de la vue
       models/ ports/ rules/ states/observatory/ states/animation/
     profile/
-      components/        la fenêtre « à propos »
+      components/        la fenêtre « à propos », le rail de contact
       data/ models/ ports/
   pages/                 composition : un dossier par écran
     observatory/         l'écran de l'observatoire et sa feuille de route
@@ -175,11 +183,12 @@ Une entrée et la sortie qui la change forment une paire `x` / `xChange`
 état est un participe passé (`closed`, `chosen`, `pinToggled`, `spun`). Les
 états se lisent en `data-*` anglais (`data-active`, `data-selected`,
 `data-pinned`), et les ids adressés par le code sont des constantes
-(`STATION_IDS`). Un choix du segmenté porte sa `value`, et c'est elle que le
+(`OBSERVATORY_IDS`). Un choix du segmenté porte sa `value`, et c'est elle que le
 clic rend.
 
-Les disent le _pourquoi_ ; chaque affirmation est tenue
-par un spec.
+Le code ne porte aucun commentaire (D10) : les noms disent le _quoi_, le
+journal `docs/architecture/decisions.md` le _pourquoi_, et chaque comportement
+est tenu par un spec.
 
 Le lint borne aussi la taille et la forme du code : 300 lignes par fichier,
 60 par fonction, complexité 10, profondeur 3, 4 paramètres, et, dans les

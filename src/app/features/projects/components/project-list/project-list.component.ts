@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { SegmentedComponent } from '@shared/ui/components';
@@ -18,6 +19,7 @@ import {
   selector: 'app-project-list',
   imports: [
     HoverFocusDirective,
+    NgTemplateOutlet,
     ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,

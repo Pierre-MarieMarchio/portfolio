@@ -539,21 +539,21 @@ par deux ports, auxquels la composition répond.
 
 ### 4.4 `features/projects/`
 
-| Unité                                         | But                                                                                   | D'où                                                                |
-| --------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `data/projects/*.data.ts`, `projects.data.ts` | le contenu, un fichier par projet ; l'ordre est le rang                               | inchangé                                                            |
-| `models/project.model.ts`                     | les formes d'un projet                                                                | sans `ProjectWithFacts`                                             |
-| `models/project-family.model.ts`              | `ProjectFamily`, `FAMILIES`, `FamilyFilter`                                           | sorti d'un composant, typé partout                                  |
-| `models/project-detail.model.ts`              | la fiche et ses chapitres                                                             | ex-`project-sheet.model` ; « approach » devient « chapter » partout |
-| `rules/ranking.rules.ts`                      | `rank(projects, featuredCount)` : rang, numéro, vedette                               | sorti du manager ; les tests l'utilisent au lieu de le recopier     |
-| `rules/project-labels.rules.ts`               | les libellés tirés d'un projet : ligne, position, niveau de preuve, titre de chapitre | reçoit `proofLevelLabel` et `chapterTitle` du manager               |
-| `services/projects-repository.service.ts`     | lire le catalogue                                                                     | inchangé                                                            |
-| `states/projects/*`                           | le catalogue dans la langue courante                                                  | sans la chaîne `reset`                                              |
-| `components/featured-bar/`                    | la barre des projets vedettes sous l'accueil ; au téléphone, un carrousel de cartes   | ex-`orbit-rule` ; sans la rangée ‹ › (D58)                          |
-| `components/project-list/`                    | la liste de tous les projets, filtrable par famille                                   | ex-`project-index`                                                  |
-| `components/project-preview/`                 | l'aperçu d'un projet vedette                                                          | inchangé                                                            |
-| `components/project-detail/`                  | la fiche d'un projet, un chapitre par page du pager                                   | ex-`project-sheet`                                                  |
-| `components/project-chapter/`                 | un chapitre de la fiche : paragraphes, puces, figure                                  | sorti de la fiche, pour sa complexité                               |
+| Unité                                         | But                                                                                                  | D'où                                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `data/projects/*.data.ts`, `projects.data.ts` | le contenu, un fichier par projet ; l'ordre est le rang                                              | inchangé                                                            |
+| `models/project.model.ts`                     | les formes d'un projet                                                                               | sans `ProjectWithFacts`                                             |
+| `models/project-family.model.ts`              | `ProjectFamily`, `FAMILIES`, `FamilyFilter`                                                          | sorti d'un composant, typé partout                                  |
+| `models/project-detail.model.ts`              | la fiche et ses chapitres                                                                            | ex-`project-sheet.model` ; « approach » devient « chapter » partout |
+| `rules/ranking.rules.ts`                      | `rank(projects, featuredCount)` : rang, numéro, vedette                                              | sorti du manager ; les tests l'utilisent au lieu de le recopier     |
+| `rules/project-labels.rules.ts`               | les libellés tirés d'un projet : ligne, position, niveau de preuve, titre de chapitre                | reçoit `proofLevelLabel` et `chapterTitle` du manager               |
+| `services/projects-repository.service.ts`     | lire le catalogue                                                                                    | inchangé                                                            |
+| `states/projects/*`                           | le catalogue dans la langue courante                                                                 | sans la chaîne `reset`                                              |
+| `components/featured-bar/`                    | la barre des projets vedettes sous l'accueil ; au téléphone, un carrousel de cartes                  | ex-`orbit-rule` ; sans la rangée ‹ › (D58)                          |
+| `components/project-list/`                    | la liste de tous les projets, filtrable par famille ; en cartes, une carte est un lien vers sa fiche | ex-`project-index` ; l'accordéon reste au tableau (D59)             |
+| `components/project-preview/`                 | l'aperçu d'un projet vedette                                                                         | inchangé                                                            |
+| `components/project-detail/`                  | la fiche d'un projet, un chapitre par page du pager                                                  | ex-`project-sheet`                                                  |
+| `components/project-chapter/`                 | un chapitre de la fiche : paragraphes, puces, figure                                                 | sorti de la fiche, pour sa complexité                               |
 
 **`ProjectsManager`**. But : donner aux écrans le catalogue dans la langue
 courante. Contrat : `projects`, `ranked`, `featured`, `familyCounts`,

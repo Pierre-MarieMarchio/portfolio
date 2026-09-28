@@ -1845,3 +1845,24 @@ parle pas de projets, et la liste donne déjà la position. Toucher une carte
 voisine pour la centrer seulement : un lecteur d'écran qui active une carte
 attend son aperçu. Une vitre floutée sous les cartes : elle bougerait au
 défilement.
+
+## 2026-09-28 — Au téléphone, une carte du relevé ouvre sa fiche d'un toucher (D59, amende D40)
+
+**Décision.** En cartes, sous 500 px de vitre (D45), chaque carte du relevé
+est un lien vers sa fiche. Un toucher suffit. Le tableau garde son accordéon,
+sa sélection et « Voir le projet ». Les deux commandes partagent un même
+gabarit ; la feuille montre l'une ou l'autre. La carte garde le nom de la
+rangée. Le survol et le focus allument toujours la planète. Au retour, la
+carte quittée reste allumée ; le bloc ouvert ne s'affiche plus en cartes.
+
+**Raison.** Deux touchers pour lire un projet : le premier ouvrait un bloc
+qui ne disait qu'une phrase et un lien. Un vrai lien marche sans JS dans le
+HTML prérendu, se lit comme un lien et revient par le bouton retour. La
+fiche encadre déjà la planète et porte les liens du projet. Le bundle
+initial passe de 490,8 à 491,5 kB.
+
+**Écarté.** Un lien qui ouvre l'accordéon au bureau : un lien pressé qui ne
+mène nulle part n'a pas de sens. Choisir par `DisplayFormatService` : le
+prérendu est au bureau (D57). Un lien étiré par-dessus le bouton : deux
+commandes pour une carte. Montrer la pile et le rôle de la carte quittée :
+la carte changerait de taille au retour.

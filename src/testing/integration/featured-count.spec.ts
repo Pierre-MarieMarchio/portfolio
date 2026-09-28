@@ -99,7 +99,9 @@ describe('featured count', () => {
       station.syncRoute('index');
       await fixture.whenStable();
 
-      expect(host.querySelectorAll('.number.featured')).toHaveLength(shown);
+      expect(host.querySelectorAll('button.row .number.featured')).toHaveLength(
+        shown,
+      );
       expect(host.querySelectorAll('button.row')).toHaveLength(total);
     });
   });

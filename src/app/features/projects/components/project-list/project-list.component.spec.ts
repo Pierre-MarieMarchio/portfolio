@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import {
   loadProjects,
   provideProjects,
@@ -16,6 +16,10 @@ import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const rows = (host: HTMLElement) => [
   ...host.querySelectorAll<HTMLButtonElement>('button.row'),
+];
+
+const cards = (host: HTMLElement) => [
+  ...host.querySelectorAll<HTMLAnchorElement>('a.card'),
 ];
 
 const squeezed = (text = ''): string => text.replaceAll(/\s+/g, '');
@@ -62,7 +66,10 @@ describe('ProjectListComponent', () => {
   ) => {
     TestBed.configureTestingModule({
       imports: [ProjectListComponent],
-      providers: [provideRouter([]), provideProjects(entries)],
+      providers: [
+        provideRouter([{ path: '**', children: [] }]),
+        provideProjects(entries),
+      ],
     });
     const manager = await loadProjects();
 
@@ -211,7 +218,7 @@ describe('ProjectListComponent', () => {
     expect(titles[0]?.querySelector('.read')).toBeNull();
   });
 
-  it('toggles the selection on a click, and reports the row as pressed', async () => {
+  it('toggles the selection on a click of a table row, and reports the row as pressed', async () => {
     const { fixture, host } = await mount({ selected: null });
     const emitted = recordOutput(fixture.componentInstance.selectedChange);
 
@@ -228,12 +235,12 @@ describe('ProjectListComponent', () => {
     expect(emitted).toEqual(['proj-a', null]);
   });
 
-  it('opens a detail block after the selected row, with the subject and a link to the sheet', async () => {
+  it('opens a detail block with the selected row, with the subject and a link to the sheet', async () => {
     const { host, texts } = await mount({ selected: 'proj-b' });
     const row = rows(host)[1];
-    const opened = row?.nextElementSibling;
+    const opened = row?.closest('li')?.querySelector('.opened');
 
-    expect(opened?.classList.contains('opened')).toBe(true);
+    expect(opened).not.toBeNull();
     expect(opened?.textContent).toContain('Sample subject.');
     const link = opened?.querySelector('a:not([target="_blank"])');
     expect(link?.getAttribute('href')).toBe('/projet/proj-b');
@@ -257,7 +264,7 @@ describe('ProjectListComponent', () => {
       ),
     );
     const row = rows(host)[1];
-    const opened = row?.nextElementSibling;
+    const opened = row?.closest('li')?.querySelector('.opened');
     const outbound = opened?.querySelector('a[target="_blank"]');
 
     expect(outbound?.textContent?.trim()).toBe('Dépôt ↗');
@@ -267,7 +274,7 @@ describe('ProjectListComponent', () => {
   it('has no outbound link when the sheet has none', async () => {
     const { host } = await mount({ selected: 'proj-b' });
     const row = rows(host)[1];
-    const opened = row?.nextElementSibling;
+    const opened = row?.closest('li')?.querySelector('.opened');
 
     expect(opened?.querySelector('a[target="_blank"]')).toBeNull();
   });
@@ -288,6 +295,46 @@ describe('ProjectListComponent', () => {
     await fixture.whenStable();
 
     expect(emitted).toEqual(['proj-a', 'proj-a', null, null]);
+  });
+
+  it('makes every card a link to its sheet, named like its row, for the card layout', async () => {
+    const { host } = await mount({ family: 'personal' });
+
+    expect(cards(host).map((card) => card.getAttribute('href'))).toEqual([
+      '/projet/proj-b',
+      '/projet/proj-d',
+      '/projet/proj-e',
+    ]);
+    expect(cards(host).map((card) => card.getAttribute('aria-label'))).toEqual(
+      rows(host).map((row) => row.getAttribute('aria-label')),
+    );
+    expect(
+      cards(host).map((card) => card.querySelector('.title')?.textContent),
+    ).toEqual(
+      rows(host).map((row) => row.querySelector('.title')?.textContent),
+    );
+  });
+
+  it('opens the sheet in one tap on a card, without selecting the row', async () => {
+    const { fixture, host } = await mount({ selected: null });
+    const emitted = recordOutput(fixture.componentInstance.selectedChange);
+
+    cards(host)[2]?.click();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/projet/proj-c');
+    expect(emitted).toEqual([]);
+  });
+
+  it('lights the planet of a card on a keyboard focus, and lets it go on leaving', async () => {
+    const { fixture, host } = await mount();
+    const emitted = recordOutput(fixture.componentInstance.hoveredChange);
+
+    cards(host)[1]?.focus();
+    cards(host)[1]?.blur();
+    await fixture.whenStable();
+
+    expect(emitted).toEqual(['proj-b', null]);
   });
 
   it('counts the two families in the footer', async () => {

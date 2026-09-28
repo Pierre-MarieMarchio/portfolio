@@ -42,13 +42,13 @@ describe('WindowControlsComponent', () => {
   });
 
   it('names pin, fold and close by what they do, and emits each once per press', async () => {
-    const { fixture, named } = await mount();
+    const { fixture, named } = await mount({ foldable: true });
     const pins = recordOutput(fixture.componentInstance.pinToggled);
     const folds = recordOutput(fixture.componentInstance.foldToggled);
     const closes = recordOutput(fixture.componentInstance.closed);
 
     named(texts().pin).click();
-    named(texts().fold).click();
+    named(texts().phone.fold).click();
     named(texts().close).click();
 
     expect([pins.length, folds.length, closes.length]).toEqual([1, 1, 1]);
@@ -56,7 +56,7 @@ describe('WindowControlsComponent', () => {
 
   it('says on the phone what pin and fold do there', async () => {
     stubViewport(390, 844);
-    const { names } = await mount();
+    const { names } = await mount({ foldable: true });
 
     expect(names()).toEqual([
       texts().phone.pin,
@@ -66,17 +66,21 @@ describe('WindowControlsComponent', () => {
   });
 
   it('presses the pin and renames it while pinned, and names the fold by its state', async () => {
-    const { fixture, named } = await mount();
+    const { fixture, named } = await mount({ foldable: true });
 
     expect(named(texts().pin).getAttribute('aria-pressed')).toBe('false');
-    expect(named(texts().fold).getAttribute('aria-expanded')).toBe('true');
+    expect(named(texts().phone.fold).getAttribute('aria-expanded')).toBe(
+      'true',
+    );
 
     fixture.componentRef.setInput('pinned', true);
     fixture.componentRef.setInput('folded', true);
     await fixture.whenStable();
 
     expect(named(texts().unpin).getAttribute('aria-pressed')).toBe('true');
-    expect(named(texts().unfold).getAttribute('aria-expanded')).toBe('false');
+    expect(named(texts().phone.unfold).getAttribute('aria-expanded')).toBe(
+      'false',
+    );
   });
 
   it('says briefly that the window is kept or released once the pin is pressed', async () => {
@@ -110,7 +114,7 @@ describe('WindowControlsComponent', () => {
   });
 
   it('shows each name in a tooltip hidden from assistive technologies, never in a title', async () => {
-    const { host } = await mount();
+    const { host } = await mount({ foldable: true });
     const buttons = [...host.querySelectorAll('button')];
 
     expect(buttons).toHaveLength(3);
@@ -132,6 +136,6 @@ describe('WindowControlsComponent', () => {
     fixture.componentRef.setInput('closable', false);
     await fixture.whenStable();
 
-    expect(names()).toEqual([texts().pin, texts().fold]);
+    expect(names()).toEqual([texts().pin]);
   });
 });

@@ -2029,3 +2029,37 @@ librairie ne lit pas les formats, et chaque propriété passerait par une
 variable. Redescendre la vitre à chaque retour (D62) : le lecteur l'avait
 laissée là. Charger à part la règle du lâcher : environ 1 kB, qui doit être
 là au premier toucher.
+
+## 2026-09-28 — Au bureau, une fenêtre se déplace, s'aimante, se redimensionne et s'agrandit, à la souris comme au clavier (D65, amende D12)
+
+**Décision.** Au bureau et à la tablette, une fenêtre a un cadre.
+`WindowFrameDirective`, posée sur l'emplacement, écrit sa place
+(`transform`), sa taille et `data-frame`. La barre déplace la fenêtre. Aux
+bords gauche et droit, elle prend la moitié de l'écran ; au bord du haut,
+elle s'agrandit. Un contour simple montre la zone ; seuls son opacité et son
+`transform` s'animent. Les bords et les deux coins du bas redimensionnent,
+de 320 × 200 à l'écran moins la réserve. Le double-clic de la barre agrandit,
+puis rend la taille. « Déplacer » et « Redimensionner » répondent aux
+flèches (8 px, 64 px avec Maj), disent leurs touches et finissent sur Entrée
+ou Échap. « Agrandir » rejoint la liste des boutons. Tout ce code se charge à
+part (`FormatCodeService`, `desktop` et `tablet`) : les deux trackers, les
+règles pures, les poignées, les boutons du cadre et la hauteur bornée.
+`DraggableDirective` et `FitHeightDirective` partent. Replier la fenêtre dans
+sa barre ne reste qu'au téléphone. Une fenêtre gardée garde son cadre.
+
+**Raison.** Déplacer ne se faisait qu'au pointeur : le clavier en était
+exclu. La scène lit le rectangle de l'emplacement : poser le cadre là lui
+fait suivre une fenêtre élargie. Borner la hauteur et placer la fenêtre
+partageaient un état (une fenêtre redimensionnée n'a plus de plafond) :
+elles ne font plus qu'une. Le double-clic d'un bureau agrandit ; réduire
+viendra avec le dock. Le bundle initial passe de 518,01 à 517,98 kB. Deux
+morceaux s'ajoutent : `window-frame-tracker` (8,19 kB) et
+`window-controls-rules` (0,81 kB). Limite connue : la scène suppose les
+fenêtres à droite ; posée à gauche, une fenêtre cache une part du trou. La
+PR suivante corrige le cadrage.
+
+**Écarté.** Les quarts d'écran : une fenêtre y tombe sous 58ch et cache le
+ciel que D29 cadre. Un voile ou un flou pour l'aperçu : il animerait un
+élément qui floute. Les boutons du cadre dans le bundle initial : 521,8 kB.
+Un bord haut : c'est la barre. Garder le repli au bureau : il fait double
+emploi avec agrandir et le dock à venir.

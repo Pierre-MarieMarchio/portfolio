@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { DisplayFormatService } from '@app/core/services';
+import { WindowFrameDirective } from '../../directives/window-frame.directive';
+import type { WindowControlView } from '../../models/window-frame.model';
 import { WindowControl } from '../../models/window.model';
 import { WINDOW_TEXTS } from '../../ports/window-texts.port';
 
@@ -19,13 +21,12 @@ const ICONS = {
     'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z',
 } as const;
 
-interface ControlView {
-  readonly name: WindowControl;
-  readonly label: string;
-  readonly icon: string;
-  readonly pressed: boolean | null;
-  readonly expanded: boolean | null;
-}
+let lastId = 0;
+
+const nextKeysId = (): string => {
+  lastId += 1;
+  return `window-keys-${String(lastId)}`;
+};
 
 @Component({
   selector: 'app-window-controls',
@@ -35,8 +36,10 @@ interface ControlView {
 export class WindowControlsComponent {
   private readonly texts = inject(WINDOW_TEXTS);
   private readonly display = inject(DisplayFormatService);
+  private readonly frame = inject(WindowFrameDirective, { optional: true });
 
   public readonly pinned = input(false);
+  public readonly foldable = input(false);
   public readonly folded = input(false);
   public readonly closable = input(true);
   public readonly closeLabel = input('');
@@ -47,28 +50,23 @@ export class WindowControlsComponent {
 
   private readonly asked = signal<boolean | null>(null);
 
-  protected readonly controls = computed<readonly ControlView[]>(() => {
+  protected readonly keysId = nextKeysId();
+
+  protected readonly controls = computed<readonly WindowControlView[]>(() => {
     const texts = this.texts();
-    const isPhone = this.display.format() === 'phone';
-    const words = isPhone ? texts.phone : texts;
     const isPinned = this.pinned();
-    const isFolded = this.folded();
-    const controls: ControlView[] = [
+    const pins = this.display.format() === 'phone' ? texts.phone : texts;
+    const controls: WindowControlView[] = [
       {
         name: 'pin',
-        label: isPinned ? words.unpin : words.pin,
+        label: isPinned ? pins.unpin : pins.pin,
         icon: isPinned ? ICONS.pinned : ICONS.pin,
         pressed: isPinned,
         expanded: null,
-      },
-      {
-        name: 'fold',
-        label: isFolded ? words.unfold : words.fold,
-        icon: isFolded === isPhone ? ICONS.up : ICONS.down,
-        pressed: null,
-        expanded: !isFolded,
+        keys: null,
       },
     ];
+    controls.push(...this.middle());
     if (this.closable()) {
       controls.push({
         name: 'close',
@@ -76,10 +74,29 @@ export class WindowControlsComponent {
         icon: ICONS.close,
         pressed: null,
         expanded: null,
+        keys: null,
       });
     }
     return controls;
   });
+
+  private middle(): readonly WindowControlView[] {
+    if (!this.foldable()) {
+      return this.frame?.controls() ?? [];
+    }
+    const isFolded = this.folded();
+    const words = this.texts().phone;
+    return [
+      {
+        name: 'fold',
+        label: isFolded ? words.unfold : words.fold,
+        icon: isFolded ? ICONS.up : ICONS.down,
+        pressed: null,
+        expanded: !isFolded,
+        keys: null,
+      },
+    ];
+  }
 
   protected readonly note = computed(() => {
     const isPinned = this.pinned();
@@ -89,7 +106,7 @@ export class WindowControlsComponent {
     return isPinned ? this.texts().kept : this.texts().released;
   });
 
-  protected press(control: WindowControl): void {
+  protected press(control: WindowControl, event: Event): void {
     switch (control) {
       case 'pin': {
         this.asked.set(!this.pinned());
@@ -103,6 +120,9 @@ export class WindowControlsComponent {
       case 'close': {
         this.closed.emit();
         return;
+      }
+      default: {
+        this.frame?.press(control, event);
       }
     }
   }

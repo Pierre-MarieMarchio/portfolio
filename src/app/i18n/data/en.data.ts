@@ -18,8 +18,16 @@ export const EN: Catalog = {
   windows: {
     pin: draft('Keep this window open when changing page'),
     unpin: draft('Let this window close when changing page'),
-    fold: draft('Fold the window'),
-    unfold: draft('Unfold the window'),
+    move: draft('Move the window'),
+    moveKeys: draft(
+      'Move it with the arrow keys, in big steps with Shift. Enter or Escape to finish.',
+    ),
+    resize: draft('Resize the window'),
+    resizeKeys: draft(
+      'Change its size with the arrow keys, in big steps with Shift. Enter or Escape to finish.',
+    ),
+    maximize: draft('Maximize the window'),
+    restore: draft('Put the window back to its size'),
     close: draft('Close the window'),
     phone: {
       pin: draft('Keep this window open when changing tab'),

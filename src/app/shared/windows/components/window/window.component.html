@@ -2,42 +2,37 @@
   #frame
   class="window"
   [class.pane]="anchor() !== 'bottom'"
-  [class.window--folded]="hidesBody()"
   [attr.aria-label]="name()"
-  [appDraggable]="bar"
-  [appFitHeight]="ceiling()"
-  [anchor]="anchor()"
 >
-  <div #bar class="titlebar" appDoublePress (doublePressed)="toggleCollapse()">
+  <div #bar class="titlebar" appDoublePress (doublePressed)="onDoublePress()">
     <span class="square" aria-hidden="true"></span>
     <h2>{{ heading() }}</h2>
     <span class="spacer"></span>
     <p class="meta">{{ meta() }}</p>
     <app-window-controls
       [pinned]="pinned()"
+      [foldable]="isHeld()"
       [folded]="folded()"
       [closable]="closable()"
       [closeLabel]="closeLabel()"
       (pinToggled)="pinToggled.emit()"
-      (foldToggled)="toggleCollapse()"
+      (foldToggled)="toggleFold()"
       (closed)="closed.emit()"
     />
   </div>
 
-  @if (!hidesBody()) {
-    <div class="below" [attr.inert]="folded() ? '' : null">
-      <div class="toolbar">
-        <ng-content select="[toolbar]" />
-      </div>
-      <ng-content />
-      <div
-        class="body"
-        [appRememberScroll]="scrollKey()"
-        [resetOn]="scrollResetOn()"
-      >
-        <ng-content select="[body]" />
-      </div>
-      <div class="footer"><ng-content select="[footer]" /></div>
+  <div class="below" [attr.inert]="folded() ? '' : null">
+    <div class="toolbar">
+      <ng-content select="[toolbar]" />
     </div>
-  }
+    <ng-content />
+    <div
+      class="body"
+      [appRememberScroll]="scrollKey()"
+      [resetOn]="scrollResetOn()"
+    >
+      <ng-content select="[body]" />
+    </div>
+    <div class="footer"><ng-content select="[footer]" /></div>
+  </div>
 </section>

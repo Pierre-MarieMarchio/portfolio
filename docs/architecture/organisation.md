@@ -136,10 +136,10 @@ contexte. Il y a six façons de se servir d'un fichier.
 
 **1. On le place dans un gabarit.**
 
-| Suffixe      | Ce que c'est                                        | Comment on s'en sert | Ne fait jamais                            |
-| ------------ | --------------------------------------------------- | -------------------- | ----------------------------------------- |
-| `.component` | un élément d'interface : affiche, reçoit des gestes | `<app-window>`       | parler à un `*State`, toucher une globale |
-| `.directive` | un comportement ajouté à un élément existant        | `<div appDraggable>` | afficher son propre contenu               |
+| Suffixe      | Ce que c'est                                        | Comment on s'en sert   | Ne fait jamais                            |
+| ------------ | --------------------------------------------------- | ---------------------- | ----------------------------------------- |
+| `.component` | un élément d'interface : affiche, reçoit des gestes | `<app-window>`         | parler à un `*State`, toucher une globale |
+| `.directive` | un comportement ajouté à un élément existant        | `<div appWindowFrame>` | afficher son propre contenu               |
 
 Deux formes de nom de composant, sans suffixe de plus : `xxx-page.component`
 (l'écran qui compose les features) et `xxx-route.component` (la feuille de
@@ -399,30 +399,33 @@ contenait remonte dans une feature ou devient générique.
 
 `WindowComponent` portait cinq responsabilités.
 
-| Unité                                                    | But                                                                                                                | Contrat                                                                                                                                 |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, zones ; relaie ses boutons à `WindowControlsComponent`                                  | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `closeLabel`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
-| `window-controls.component.ts` `WindowControlsComponent` | les boutons de la barre (D63) : icônes SVG, bulle CSS, mots du format, note `role="status"` quand l'épingle change | `pinned`, `folded`, `closable`, `closeLabel` ; `pinToggled`, `foldToggled`, `closed`                                                    |
-| `draggable.directive.ts` `DraggableDirective`            | déplacer un élément par une poignée, dans les bornes de l'écran, et l'y ramener quand l'écran change               | `appDraggable` (la poignée)                                                                                                             |
-| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                                 | `appDoublePress` ; `doublePressed`                                                                                                      |
-| `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                                                     | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                                           |
-| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                   | `appRememberScroll` (clé), `resetOn`                                                                                                    |
-| `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après    | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                                            |
-| `window-fold.port.ts` `WINDOW_FOLD`                      | facultatif : qui replie la fenêtre à sa place (D64) ; sans lui, elle se replie seule                               | `isActive`, `isFolded`, `toggle`, `hold(handle)`                                                                                        |
-| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                         | `save(key, top)`, `read(key)`                                                                                                           |
+| Unité                                                    | But                                                                                                                                                                  | Contrat                                                                                                                                 |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, zones ; relaie ses boutons à `WindowControlsComponent`, donne sa section et sa barre au cadre                                             | `heading`, `meta`, `size`, `anchor`, `pinned`, `closable`, `closeLabel`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
+| `window-controls.component.ts` `WindowControlsComponent` | les boutons de la barre (D63) : icônes SVG, bulle CSS, mots du format, note `role="status"` quand l'épingle change ; au bureau et à la tablette, ceux du cadre (D65) | `pinned`, `foldable`, `folded`, `closable`, `closeLabel` ; `pinToggled`, `foldToggled`, `closed`                                        |
+| `window-frame.directive.ts` `WindowFrameDirective`       | la place d'une fenêtre au bureau et à la tablette (D65) : posée sur l'emplacement, écrit `transform`, `width`, `height`, `data-frame` ; charge son code à part       | `appWindowFrame` ; `hold(parts)`, `mode`, `isActive`, `controls`, `press`, `toggleMaximize`                                             |
+| `window-frame.tracker.ts` `WindowFrameTracker`           | chargé à part : poignées des bords, hauteur bornée à l'écran moins `--window-reserve`, clavier, agrandir, recaler quand l'écran change                               | créé par `WindowFrameDirective`                                                                                                         |
+| `window-drag.tracker.ts` `WindowDragTracker`             | chargé à part : un glisser du pointeur, par la barre (déplacer, aimanter aux bords, contour) ou par un bord (redimensionner)                                         | créé par `WindowFrameTracker` à chaque appui                                                                                            |
+| `window-frame.rules.ts`, `window-controls.rules.ts`      | `clampMove`, `clampResize`, `keyResize`, `keyStep`, `snapZoneOf`, `frameOfZone`, `areaOf`, `unsnapAt`, `fittedHeight` ; `frameControlsOf`                            | pures, chargées à part                                                                                                                  |
+| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                                                                                   | `appDoublePress` ; `doublePressed`                                                                                                      |
+| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                                                                     | `appRememberScroll` (clé), `resetOn`                                                                                                    |
+| `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après                                                      | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                                            |
+| `window-fold.port.ts` `WINDOW_FOLD`                      | facultatif : qui replie la fenêtre à sa place (D64) ; sans lui, elle se replie seule                                                                                 | `isActive`, `isFolded`, `toggle`, `hold(handle)`                                                                                        |
+| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                                                                           | `save(key, top)`, `read(key)`                                                                                                           |
 
-- `FitHeightDirective` calcule depuis la **position de mise en page**
-  (`offsetTop`), que le glissement ne change pas, puisqu'il passe par un
-  `transform`. Elle ne lit donc rien de `DraggableDirective`. Si un spec
-  montre que les deux mesures divergent, elles se réunissent : deux
-  directives qui partagent un état caché n'en font qu'une.
+- La hauteur se calcule depuis la **position de mise en page** (la chaîne
+  des `offsetTop`), que le glissement ne change pas, puisqu'il passe par un
+  `transform` de l'emplacement. Une fenêtre redimensionnée n'a plus de
+  plafond : sa hauteur est celle du cadre. Borner la hauteur et placer la
+  fenêtre partageaient cet état : `FitHeightDirective` et
+  `DraggableDirective` se sont réunies dans le cadre (D65).
 - Au format `phone`, la vitre est la feuille de `shared/mobile-nav/`
   (D64) : la page pose chaque fenêtre dans un `app-bottom-sheet` porteur de
   `appWindowSheet` (`features/observatory/directives/`), qui fournit
   `WINDOW_FOLD`. La fenêtre lui donne sa barre comme poignée ; repliée par
   la feuille, elle garde son contenu, rendu `inert` sous la barre.
-  `FitHeightDirective` n'y borne rien et `DraggableDirective` n'y glisse
-  pas ; elles lisent `DisplayFormatService`. Le corps suit deux propriétés
+  Le cadre n'y borne rien et n'y glisse
+  pas ; le cadre lit `DisplayFormatService` et s'arrête. Le corps suit deux propriétés
   posées par l'appelant, `--window-body-overflow` et
   `--window-body-overscroll`.
 - `resetOn` remplace les deux effets « remonter en haut » écrits dans la
@@ -934,10 +937,12 @@ src/app/
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
   shared/windows/components/window-controls/   window-controls.component
-  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · kept-window.directive · remember-scroll.directive · stacked-window.directive
-  shared/windows/models/                       window.model
+  shared/windows/directives/                   double-press.directive · kept-window.directive · remember-scroll.directive · stacked-window.directive · window-frame.directive
+  shared/windows/models/                       window-frame.model · window.model
   shared/windows/ports/                        window-fold.port · window-texts.port
+  shared/windows/rules/                        window-controls.rules · window-frame.rules
   shared/windows/services/                     scroll-memory.service · window-stack.service
+  shared/windows/trackers/                     window-drag.tracker · window-frame.tracker
 ```
 
 ## 6. Comment on en est arrivé là

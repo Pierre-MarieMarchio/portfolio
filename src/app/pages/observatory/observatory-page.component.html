@@ -65,6 +65,7 @@
       appViewSlot="about"
       class="slot slot--about"
       appStackedWindow="about"
+      appWindowFrame
       appKeptWindow
       [shown]="observatory.showsAbout()"
       [attr.data-docked]="observatory.docked().includes('about')"
@@ -89,6 +90,7 @@
       appViewSlot="index"
       class="slot slot--index"
       appStackedWindow="index"
+      appWindowFrame
       appKeptWindow
       [shown]="observatory.showsList()"
       [attr.data-docked]="observatory.docked().includes('index')"
@@ -117,6 +119,7 @@
       appViewSlot="sheet"
       class="slot slot--sheet"
       appStackedWindow="sheet"
+      appWindowFrame
       appKeptWindow
       [shown]="observatory.showsSheet()"
       [attr.data-docked]="observatory.docked().includes('sheet')"
@@ -152,6 +155,7 @@
       appViewSlot="preview"
       class="slot slot--preview"
       appStackedWindow="preview"
+      appWindowFrame
       [attr.data-docked]="observatory.docked().includes('preview')"
       [appLayoutAnchor]="anchor.preview"
       [id]="ids.previewPanel"

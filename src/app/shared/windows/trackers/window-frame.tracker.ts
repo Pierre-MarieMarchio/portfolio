@@ -1,0 +1,319 @@
+import { isOnControl } from '@app/core/helpers';
+import {
+  FRAME_EDGES,
+  type DraggedFrame,
+  type FrameArea,
+  type FrameDelta,
+  type FrameEdge,
+  type FrameGrip,
+  type FrameKeyControl,
+  type FramePlace,
+  type FrameRect,
+  type FrameTracking,
+  type FrameZone,
+  type FramedWindow,
+} from '../models/window-frame.model';
+import {
+  areaOf,
+  clampMove,
+  fittedHeight,
+  frameOfZone,
+  isZone,
+  keyResize,
+  keyStep,
+  unsnapAt,
+} from '../rules/window-frame.rules';
+import { WindowDragTracker } from './window-drag.tracker';
+
+const NOWHERE: FramePlace = { dx: 0, dy: 0, width: null, height: null };
+const RESERVE = '--window-reserve';
+const ENDS = new Set(['Enter', 'Escape']);
+const EDGE_STYLES: Readonly<Record<FrameEdge, string>> = {
+  e: 'top:0;right:0;bottom:0;width:5px;cursor:ew-resize',
+  w: 'top:0;left:0;bottom:0;width:5px;cursor:ew-resize',
+  s: 'left:0;right:0;bottom:0;height:5px;cursor:ns-resize',
+  se: 'right:0;bottom:0;width:14px;height:14px;cursor:nwse-resize',
+  sw: 'left:0;bottom:0;width:14px;height:14px;cursor:nesw-resize',
+};
+
+const rectOf = (element: Element): FrameRect => {
+  const { left, top, width, height } = element.getBoundingClientRect();
+  return { x: left, y: top, width, height };
+};
+
+const layoutTop = (element: HTMLElement): number => {
+  let top = element.offsetTop;
+  for (
+    let parent = element.offsetParent;
+    parent instanceof HTMLElement;
+    parent = parent.offsetParent
+  ) {
+    top += parent.offsetTop + parent.clientTop;
+  }
+  return top;
+};
+
+const listen = <K extends keyof HTMLElementEventMap>(
+  element: HTMLElement,
+  type: K,
+  handler: (event: HTMLElementEventMap[K]) => void,
+): (() => void) => {
+  element.addEventListener(type, handler);
+  return () => {
+    element.removeEventListener(type, handler);
+  };
+};
+
+export class WindowFrameTracker implements FrameTracking, DraggedFrame {
+  private painted: FramePlace = NOWHERE;
+  private restore: FramePlace | null = null;
+  private drag: WindowDragTracker | null = null;
+  private readonly edges: readonly HTMLElement[];
+  private readonly stops: (() => void)[];
+
+  constructor(private readonly framed: FramedWindow) {
+    const { section, bar } = framed.parts;
+    const edges = FRAME_EDGES.map((edge) => ({ edge, at: this.edgeOf(edge) }));
+    this.edges = edges.map(({ at }) => at);
+    this.stops = [
+      listen(bar, 'pointerdown', (event) => {
+        this.grab(event, 'bar', bar);
+      }),
+      ...edges.map(({ edge, at }) =>
+        listen(at, 'pointerdown', (event) => {
+          this.grab(event, edge, at);
+        }),
+      ),
+      listen(section, 'animationend', () => {
+        this.fitHeight();
+      }),
+      framed.onResize(section, () => {
+        this.fitHeight();
+      }),
+      framed.onWindow('resize', () => this.fit(), { passive: true }),
+    ];
+    this.fitHeight();
+  }
+
+  public press(control: FrameKeyControl | 'maximize', event: Event): void {
+    if (control === 'maximize') {
+      this.toggleMaximize();
+      return;
+    }
+    const holding = this.framed.holding();
+    if (event instanceof KeyboardEvent) {
+      this.key(control, event);
+    } else if (event.type === 'click') {
+      this.framed.hold(holding === control ? null : control);
+    } else if (holding === control) {
+      this.framed.hold(null);
+    }
+  }
+
+  public toggleMaximize(): void {
+    this.settle();
+    if (this.framed.mode() !== 'full') {
+      this.snap('full');
+      return;
+    }
+    const restore = this.restore;
+    this.restore = null;
+    this.paintPlace(restore);
+    this.framed.commit(restore, restore ? 'free' : null);
+  }
+
+  public fit(): void {
+    this.fitHeight();
+    const mode = this.framed.mode();
+    const viewport = this.framed.viewport();
+    if (this.drag || !viewport || mode === null) {
+      return;
+    }
+    this.painted = this.framed.place() ?? NOWHERE;
+    const rect = this.rect();
+    const place = isZone(mode)
+      ? this.placeAt(frameOfZone(mode, this.area(rect)))
+      : this.moveTo(clampMove(rect, viewport));
+    this.framed.commit(place, mode);
+  }
+
+  public fitHeight(): void {
+    const { section, anchor, ceiling } = this.framed.parts;
+    const viewport = this.framed.viewport();
+    if (!viewport || this.framed.place()?.height != null) {
+      section.style.maxHeight = '';
+      return;
+    }
+    const reserve = Number.parseFloat(this.framed.token(RESERVE, section)) || 0;
+    const height = fittedHeight(
+      { top: layoutTop(section), height: section.offsetHeight },
+      anchor(),
+      viewport,
+      { reserve, ceiling: ceiling() },
+    );
+    section.style.maxHeight = `${String(height)}px`;
+  }
+
+  public stop(): void {
+    this.settle();
+    for (const stop of this.stops.splice(0)) {
+      stop();
+    }
+    for (const edge of this.edges) {
+      edge.remove();
+    }
+    this.framed.parts.section.style.maxHeight = '';
+  }
+
+  public rect(): FrameRect {
+    return rectOf(this.framed.element);
+  }
+
+  public area(rect: FrameRect): FrameArea {
+    const x = rect.x - this.painted.dx;
+    const y = rect.y - this.painted.dy;
+    const token = this.framed.token(RESERVE, this.framed.element);
+    return areaOf(
+      { left: x, top: y, right: x + rect.width, bottom: y + rect.height },
+      this.framed.parts.anchor(),
+      this.framed.viewport() ?? { width: 0, height: 0 },
+      Number.parseFloat(token) || 0,
+    );
+  }
+
+  public moveTo(rect: FrameRect): FramePlace {
+    const now = this.rect();
+    return this.paintPlace({
+      ...this.painted,
+      dx: Math.round(this.painted.dx + rect.x - now.x),
+      dy: Math.round(this.painted.dy + rect.y - now.y),
+    });
+  }
+
+  public placeAt(rect: FrameRect): FramePlace {
+    this.paintPlace({
+      ...this.painted,
+      width: rect.width,
+      height: rect.height,
+    });
+    return this.moveTo(rect);
+  }
+
+  public unsnap(grabX: number): FrameRect | null {
+    if (!isZone(this.framed.mode())) {
+      return null;
+    }
+    const zoned = this.rect();
+    const restore = this.restore;
+    this.restore = null;
+    this.paintPlace({
+      ...this.painted,
+      width: restore?.width ?? null,
+      height: restore?.height ?? null,
+    });
+    const sized = this.rect();
+    return { ...sized, x: unsnapAt(zoned, sized.width, grabX), y: zoned.y };
+  }
+
+  public land(isMoved: boolean, zone: FrameZone | null): void {
+    this.drag = null;
+    if (!isMoved) {
+      return;
+    }
+    if (zone) {
+      this.snap(zone);
+      return;
+    }
+    this.framed.commit(this.painted, 'free');
+  }
+
+  private grab(
+    event: PointerEvent,
+    grip: FrameGrip,
+    handle: HTMLElement,
+  ): void {
+    if (event.button !== 0 || (grip === 'bar' && isOnControl(event))) {
+      return;
+    }
+    if (grip !== 'bar') {
+      event.preventDefault();
+    }
+    this.settle();
+    this.drag = new WindowDragTracker(this, this.framed, {
+      grip,
+      handle,
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  private key(control: FrameKeyControl, event: KeyboardEvent): void {
+    if (ENDS.has(event.key)) {
+      if (this.framed.holding() === control) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.framed.hold(null);
+      }
+      return;
+    }
+    const delta = keyStep(event.key, event.shiftKey);
+    if (!delta) {
+      return;
+    }
+    event.preventDefault();
+    this.framed.hold(control);
+    this.step(control, delta);
+  }
+
+  private step(control: FrameKeyControl, delta: FrameDelta): void {
+    const viewport = this.framed.viewport();
+    if (!viewport) {
+      return;
+    }
+    this.settle();
+    const rect = this.rect();
+    const place =
+      control === 'move'
+        ? this.moveTo(
+            clampMove(
+              { ...rect, x: rect.x + delta.dx, y: rect.y + delta.dy },
+              viewport,
+            ),
+          )
+        : this.placeAt(keyResize(rect, delta, this.area(rect)));
+    this.framed.commit(place, 'free');
+  }
+
+  private snap(zone: FrameZone): void {
+    if (!isZone(this.framed.mode()) || !this.restore) {
+      this.restore = this.painted === NOWHERE ? null : this.painted;
+    }
+    const rect = this.rect();
+    this.framed.commit(this.placeAt(frameOfZone(zone, this.area(rect))), zone);
+  }
+
+  private settle(): void {
+    this.drag?.stop();
+    this.drag = null;
+    this.painted = this.framed.place() ?? NOWHERE;
+  }
+
+  private paintPlace(place: FramePlace | null): FramePlace {
+    this.painted = place ?? NOWHERE;
+    if (place?.height != null) {
+      this.framed.parts.section.style.maxHeight = '';
+    }
+    this.framed.paint(place);
+    return this.painted;
+  }
+
+  private edgeOf(edge: FrameEdge): HTMLElement {
+    const { section } = this.framed.parts;
+    const element = section.ownerDocument.createElement('div');
+    element.setAttribute('aria-hidden', 'true');
+    element.dataset['edge'] = edge;
+    element.style.cssText = `position:absolute;z-index:1;touch-action:none;${EDGE_STYLES[edge]}`;
+    section.append(element);
+    return element;
+  }
+}

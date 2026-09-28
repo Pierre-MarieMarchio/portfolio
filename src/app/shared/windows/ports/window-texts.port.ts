@@ -1,15 +1,24 @@
 import { InjectionToken, Signal } from '@angular/core';
 
-export interface WindowControlTexts {
+export interface WindowPinTexts {
   readonly pin: string;
   readonly unpin: string;
+}
+
+export interface WindowPhoneTexts extends WindowPinTexts {
   readonly fold: string;
   readonly unfold: string;
 }
 
-export interface WindowTexts extends WindowControlTexts {
+export interface WindowTexts extends WindowPinTexts {
+  readonly move: string;
+  readonly moveKeys: string;
+  readonly resize: string;
+  readonly resizeKeys: string;
+  readonly maximize: string;
+  readonly restore: string;
   readonly close: string;
-  readonly phone: WindowControlTexts;
+  readonly phone: WindowPhoneTexts;
   readonly kept: string;
   readonly released: string;
 }

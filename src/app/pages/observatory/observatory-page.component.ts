@@ -65,6 +65,7 @@ import {
 import {
   KeptWindowDirective,
   StackedWindowDirective,
+  WindowFrameDirective,
 } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
 
@@ -97,6 +98,7 @@ interface SheetOnShow {
     ProjectListComponent,
     ProjectPreviewComponent,
     StackedWindowDirective,
+    WindowFrameDirective,
     ViewSlotDirective,
     WindowSheetDirective,
   ],

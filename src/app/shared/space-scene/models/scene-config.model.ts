@@ -47,7 +47,7 @@ export interface SceneConfig {
     targetMin: number;
     labelSize: number;
     labelSpacing: number;
-    light: Readonly<{ unlit: number; unlitInAbout: number; hovered: number }>;
+    light: Readonly<{ unlit: number; unlitWhenShown: number; hovered: number }>;
   }>;
 }
 
@@ -103,6 +103,6 @@ export const SCENE_CONFIG: SceneConfig = {
     targetMin: 44,
     labelSize: 11,
     labelSpacing: 0.14,
-    light: { unlit: 0.2, unlitInAbout: 0.45, hovered: 0.7 },
+    light: { unlit: 0.2, unlitWhenShown: 0.45, hovered: 0.7 },
   },
 };

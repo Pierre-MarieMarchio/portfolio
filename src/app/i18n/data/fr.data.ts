@@ -1,4 +1,5 @@
 import { Catalog } from '../models/catalog.model';
+import { OWNER_NAME } from './owner.data';
 import { FR_PROFILE } from './fr-profile.data';
 
 export const FR: Catalog = {
@@ -92,7 +93,7 @@ export const FR: Catalog = {
     },
     home: {
       void: 'Fermer les fenêtres',
-      name: 'Pierre-Marie Marchio',
+      name: OWNER_NAME,
       trade: 'Développeur .NET et Angular',
       status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',

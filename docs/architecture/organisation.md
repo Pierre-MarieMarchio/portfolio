@@ -345,7 +345,9 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 
 - **`DocumentHeadService`** (ex-`PageHead`). But : écrire le titre, la
   description et les liens de langue d'une page. Contrat : `write(content)`.
-  Le nom et l'adresse du site sont ses constantes (`SITE_NAME`, `SITE_URL`).
+  Le nom du site lui arrive par le port `SITE_NAME` (`core/ports/`), auquel
+  `provideI18n` répond avec `OWNER_NAME` ; l'adresse est une variable de build,
+  `SITE_URL` (D48, D51).
 - **`RouteHeadStrategy`** (`route-head.strategy.ts`, ex-`PageTitleStrategy`).
   But : à chaque navigation, donner à `DocumentHeadService` ce que la route
   déclare. Son ancien nom ne disait que le titre.
@@ -726,6 +728,7 @@ src/app/
   (racine)                                     app.component · app.config · app.config.server · app.routes · app.routes.server
   core/helpers/                                angle.helper · easing.helper · event.helper · format.helper · number.helper · random.helper
   core/models/                                 display-format.model · lang.model
+  core/ports/                                  site-name.port
   core/rules/                                  display-format.rules · draft.rules · localize.rules
   core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
   core/services/device/                        display-format.service · format-code.service
@@ -765,7 +768,7 @@ src/app/
   features/projects/rules/                     featured-pick.rules · project-labels.rules · ranking.rules
   features/projects/services/                  projects-repository.service
   features/projects/states/projects/           projects.action · projects.effect · projects.manager · projects.state · projects.updater
-  i18n/data/                                   en-profile.data · en.data · fr-profile.data · fr.data · paths.data
+  i18n/data/                                   en-profile.data · en.data · fr-profile.data · fr.data · owner.data · paths.data
   i18n/guards/                                 catalog.guard
   i18n/models/                                 catalog.model
   i18n/providers/                              i18n.provider

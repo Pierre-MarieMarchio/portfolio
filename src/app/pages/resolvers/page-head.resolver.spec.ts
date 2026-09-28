@@ -1,3 +1,4 @@
+import { SITE_NAME as SITE_NAME_TOKEN } from '@app/core/ports';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta, Title } from '@angular/platform-browser';
@@ -8,7 +9,6 @@ import {
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
 import { RouteHeadStrategy } from '@app/core/strategies';
-import { SITE_NAME } from '@app/core/services';
 import { CatalogLoaderService } from '@app/i18n';
 import { sheetTitle } from './page-head.resolver';
 
@@ -19,10 +19,13 @@ const go = (url: string) => TestBed.inject(Router).navigateByUrl(url);
 
 const title = () => TestBed.inject(Title).getTitle();
 
+const SITE_NAME = 'Pierre-Marie Marchio';
+
 describe('sheetTitle', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       providers: [
+        { provide: SITE_NAME_TOKEN, useValue: SITE_NAME },
         provideRouter([
           { path: 'projet/:slug', component: Blank, title: sheetTitle },
         ]),

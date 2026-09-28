@@ -1,8 +1,8 @@
+import { SITE_NAME as SITE_NAME_TOKEN } from '@app/core/ports';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta, Title } from '@angular/platform-browser';
 import { provideRouter, Router, TitleStrategy } from '@angular/router';
-import { SITE_NAME } from '../services/head/document-head.service';
 import { RouteHeadStrategy } from './route-head.strategy';
 
 @Component({ template: '' })
@@ -15,10 +15,13 @@ const title = () => TestBed.inject(Title).getTitle();
 const tag = (selector: string) =>
   TestBed.inject(Meta).getTag(selector)?.content ?? null;
 
+const SITE_NAME = 'Pierre-Marie Marchio';
+
 describe('PageTitleStrategy', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        { provide: SITE_NAME_TOKEN, useValue: SITE_NAME },
         provideRouter([
           {
             path: 'described',

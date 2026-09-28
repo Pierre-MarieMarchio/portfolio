@@ -1588,3 +1588,20 @@ valeurs, les sélecteurs et les réglages internes des placements : les
 changer casse un invariant, cela ne règle pas un rendu. Une config fournie
 à l'exécution (`provideSpaceScene`) : un seul site s'en sert, et il
 faudrait la faire passer jusqu'aux règles pures et au worker.
+
+## 2026-09-28 — `core/` et `shared/` ne disent plus un mot du portfolio (D51)
+
+**Décision.** Le nom du site quitte `core/` : `DocumentHeadService` le reçoit
+par le port `SITE_NAME` (`core/ports/`), auquel `provideI18n` répond avec
+`OWNER_NAME` (`i18n/data/owner.data.ts`), que les deux catalogues reprennent
+pour le nom de l'accueil. Dans la scène, `isAbout` devient
+`areFiguresShown`, d'après l'entrée `figuresShown` dont il vient, et la
+lumière des figures éteintes `unlitWhenShown`.
+
+**Raison.** Le relevé de la session 3 (état des lieux) : c'étaient les deux
+seuls mots du portfolio dans `core/` et `shared/`. Le nom était écrit deux
+fois de plus dans les catalogues ; il ne l'est plus qu'une.
+
+**Écarté.** Lire le nom dans le catalogue courant : la stratégie de titre
+est créée avec le routeur, et le catalogue dépend de la langue, qui dépend
+du routeur. Le nom ne change pas d'une langue à l'autre.

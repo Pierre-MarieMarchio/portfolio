@@ -80,8 +80,6 @@ export const FR: Catalog = {
     rule: {
       heading: 'Projets en orbite',
       all: 'Tous les projets →',
-      previous: 'Projet précédent',
-      next: 'Projet suivant',
     },
   },
 

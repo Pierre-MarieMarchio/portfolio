@@ -136,7 +136,7 @@ li button {
   color: currentColor;
 }
 
-.pick {
+.cards {
   display: none;
 }
 
@@ -215,59 +215,28 @@ li button {
     display: none;
   }
 
-  .row,
-  .pick {
+  .row {
     justify-content: center;
   }
 
-  .pick {
+  .cards {
     pointer-events: auto;
-    display: flex;
-    touch-action: none;
+    display: block;
+    margin-inline: calc(-1 * var(--gutter));
   }
 
-  .step,
-  .named {
-    min-height: var(--target);
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-  }
-
-  .step {
-    @include type.mono(var(--m4), 0);
+  .card-title {
+    @include type.mono(var(--m4));
 
     display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--target);
-    padding: 0;
-    line-height: 1;
-    color: var(--ink-2);
-
-    &:active {
-      color: var(--ink);
-    }
-
-    &[aria-disabled='true'] {
-      opacity: 0.4;
-      color: var(--ink-2);
-    }
-  }
-
-  .named {
-    @include type.mono;
-
-    min-width: 0;
-    padding: 0;
+    gap: var(--s2);
     color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
 
-    span {
-      animation: appear var(--t);
-    }
+  .card-fact {
+    @include type.mono(var(--m2));
+
+    color: var(--ink-2);
   }
 }
 
@@ -285,9 +254,5 @@ li button {
 
   button {
     transition: none;
-  }
-
-  .named span {
-    animation: none;
   }
 }

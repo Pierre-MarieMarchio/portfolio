@@ -59,9 +59,19 @@
   --window-footer-gap: var(--s2) var(--s3);
 
   --t-duration: 180ms;
-  --t: var(--t-duration) cubic-bezier(0.2, 0.6, 0.2, 1);
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --t: var(--t-duration) var(--ease);
   --arrival-at: 8700ms;
   --intro-duration: 5600ms;
+
+  --mnav-surface: var(--vitre);
+  --mnav-ink: var(--ink);
+  --mnav-line: var(--line);
+  --mnav-accent: var(--accent);
+  --mnav-radius: var(--radius);
+  --mnav-target: var(--target);
+  --mnav-duration: var(--t-duration);
+  --mnav-ease: var(--ease);
 
   --z-scene: 0;
   --z-scene-top: 3;

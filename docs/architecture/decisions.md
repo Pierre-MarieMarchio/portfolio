@@ -1812,3 +1812,36 @@ sortie `swiped` ; ses onglets restent, et le carrousel de l'accueil vient
 ensuite. Le panneau coulissant : il remplace la coque de la fenêtre au
 téléphone, que la session 6 refait, et il lui faut une fenêtre qui survive
 aux changements de vue pour ne changer d'état qu'à la fin de son animation.
+
+## 2026-09-28 — Au téléphone, les projets vedettes sont des cartes qu'on fait glisser (D58, amende D35)
+
+**Décision.** `shared/mobile-nav/` gagne un carrousel de cartes. Chaque carte
+est un bouton : numéro, nom, preuve, pile. La suivante dépasse du bord. Le
+carrousel dit la carte posée à la fin du défilement, jamais avant, comme le
+pager. Une carte réglée d'en haut défile après l'image suivante, sans
+animation en mouvement réduit. Des points montrent la carte posée
+(`aria-current`) ; ils restent hors de la tabulation. Au téléphone, il
+remplace la rangée « ‹ nom › » de la barre des vedettes. Poser une carte
+allume sa planète. Toucher une carte ouvre son aperçu. Le tour des vedettes
+règle la carte ; il rend la main dès que le lecteur touche les cartes. Les
+variables `--mnav-*` dessinent les cartes ; `_tokens.scss` les relie aux
+jetons du site. Le bureau et la tablette ne changent pas.
+
+**Raison.** « ‹ Skyted Companion › » se lisait comme du texte : des flèches
+minuscules, rien n'invitait à toucher. Une carte entière est une cible
+évidente, et la carte qui dépasse dit qu'il y en a d'autres. Le navigateur
+fait l'élan et l'aimantation au doigt. Le geste écrit à la main disparaît,
+et avec lui `swallowsTap`, `swipeStepOf` et `neighbourOf`. Le tour s'arrête
+au premier contact : il ne fait pas défiler sous le doigt. Les points
+reprennent « Page 2 sur 4 », déjà traduit : aucun mot nouveau.
+`rule.previous` et `rule.next` ne servent plus ; ils partent. Seules
+l'opacité et l'échelle s'animent, sans `backdrop-filter`. Le bundle initial
+passe de 483,9 à 490,8 kB.
+
+**Écarté.** Des points focalisables : dix arrêts de tabulation pour ce que
+les cartes donnent déjà. Des points cachés aux lecteurs d'écran : ils
+perdraient la carte posée. Un texte « Projet 2 sur 4 » : la librairie ne
+parle pas de projets, et la liste donne déjà la position. Toucher une carte
+voisine pour la centrer seulement : un lecteur d'écran qui active une carte
+attend son aperçu. Une vitre floutée sous les cartes : elle bougerait au
+défilement.

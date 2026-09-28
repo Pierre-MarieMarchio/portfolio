@@ -51,6 +51,8 @@
   --glass-shade-lowered: none;
   --glass-shade-raised: blur(8px) brightness(0.55);
   --glass-lowered: 0.6;
+  --glass-handle: linear-gradient(var(--line), var(--line)) 50% 2px / 32px 3px
+    no-repeat;
   --window-bar-padding: 5px 5px 5px var(--s2);
   --window-footer-padding: var(--s2);
   --window-footer-gap: var(--s2) var(--s3);

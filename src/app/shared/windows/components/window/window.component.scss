@@ -173,6 +173,11 @@ h2 {
     gap: 4px;
     cursor: default;
     touch-action: manipulation;
+    background: var(--glass-handle);
+  }
+
+  .glass-return {
+    transition: transform var(--t);
   }
 
   .spacer {

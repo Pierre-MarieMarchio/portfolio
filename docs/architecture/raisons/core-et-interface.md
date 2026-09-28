@@ -318,6 +318,11 @@ nomme l'unité qu'elle concerne.
   bascule pas.
 - Dans le spec, `innerWidth` et `innerHeight` sont des accesseurs en lecture
   seule : on les redéfinit, puis on les restaure.
+- Au téléphone, la poignée est le fond de la barre (`--glass-handle`, un
+  dégradé de 32 × 3 px posé à 2 px du haut) : ni élément, ni hauteur de
+  plus, et la feuille de la fenêtre reste sous son budget de 4 kB. Les zones
+  du geste sont marquées dans le gabarit (`data-glass-zone` : barre, outils,
+  corps) ; la directive ne lit rien d'autre (D37).
 
 ## `src/app/shared/windows/directives/double-press.directive.ts`
 
@@ -332,6 +337,41 @@ nomme l'unité qu'elle concerne.
 - Deux touchers comptent s'ils tombent à moins de 350 ms et de 24 px l'un de
   l'autre ; un toucher qui a bougé de plus de 10 px est un glisser, pas un
   toucher. Une pression sur un bouton ou un lien ne compte pas.
+
+## `src/app/shared/windows/directives/glass-gesture.directive.ts`
+
+- Le geste se lit sur les pointeurs, et se décide par deux règles pures du
+  même fichier : `glassIntentOf` dit, passé 6 px, à qui est le glisser
+  (tirer, lever, balayer, ou au navigateur), et `glassGestureOf`, au lâcher,
+  ce qu'il fait. Elles vivent dans le fichier de la directive : le contrôle
+  de structure n'ouvre pas `rules/` à `shared/windows/` (D37).
+- Un glisser que le navigateur prend pour un défilement annule le pointeur
+  (`pointercancel`). La directive annule donc `touchmove` tant que le geste
+  peut être à elle, et le rend dès qu'il est au navigateur : la vitre monte
+  toujours par le défilement natif, et le corps défile comme avant.
+- La vitre basse se lit sur la position du conteneur (le parent de la
+  fenêtre, `scrollTop` à 0), pas sur `data-rest` : couchée, le conteneur ne défile jamais, et `data-rest`
+  pouvait rester à `end` après une rotation.
+- Un toucher qui rouvre la vitre repliée arrête son `pointerup` (écouté en
+  capture) : le double toucher de la barre ne le compte pas, et un second
+  toucher aussitôt après ne la replie pas de nouveau.
+- Au-delà de 6 px, ou quand un second doigt se pose, le clic qui suit est
+  avalé en capture (passation §5) : un balayage qui part d'un bouton du
+  segmenté ne le presse pas. Hors du téléphone, rien n'est avalé.
+- Un élément qui défile à l'horizontale se reconnaît à son `overflow-x`
+  (`auto` ou `scroll`) et à un contenu plus large que lui ; le balayage qui
+  part de lui ou d'un descendant lui appartient.
+- Le suivi du doigt est un `transform` écrit sur la fenêtre ou le corps,
+  jamais dans un signal : au téléphone, `transform` ne sert plus au
+  glissement du bureau. Le retour n'est animé que si le geste ne fait rien
+  (la classe `glass-return`, retirée à la pression suivante) : une vitre
+  repliée ou un chapitre changé se posent sans transition.
+- Le seuil de 6 px qui décide à qui est le glisser est choisi sous la
+  tolérance à partir de laquelle le navigateur commence un défilement : le
+  `touchmove` retenu avant la décision ne doit pas l'empêcher quand le
+  glisser revient au navigateur. Ce n'est pas mesuré sur un téléphone.
+- Le spec redéfinit `scrollTop`, `scrollWidth`, `clientWidth`, `matchMedia`
+  et `timeStamp`, que jsdom n'a pas ou fige.
 
 ## `src/app/shared/windows/directives/draggable.directive.ts`
 

@@ -1063,3 +1063,45 @@ traînées au-dessus du fond tombait d'environ moitié.
 d'avertissement monte de 520 à 530 kB (`angular.json`), à la demande de
 l'opérateur ; le seuil d'erreur (1 MB) ne bouge pas. La comparaison de deux
 listes de nœuds s'écrit une seule fois (`planets/same-nodes.rules.ts`).
+
+## 2026-09-27 — Au téléphone, la vitre se tire, et on balaie d'un chapitre à l'autre (D37, étend D25)
+
+**Décision.** Au format `phone`, la barre de titre de la vitre porte une
+poignée décorative (32 × 3 px, `--line`), dessinée par son fond (le jeton
+`--glass-handle`), sans élément de plus ni changement de hauteur. Vitre
+ouverte et basse (conteneur à son début, ou couchée), un glisser vers le bas
+qui part de la barre (hors de ses boutons), ou du corps quand il est en haut
+de son contenu, la replie à 64 px, ou lâché à plus de 0,6 px/ms ; pendant le
+glisser, la vitre suit le doigt par une translation écrite dans le DOM, et
+revient à sa place lâchée sous le seuil. Repliée, un glisser vers le haut de
+48 px, un lâcher à plus de 0,6 px/ms, ou un toucher simple de sa barre la
+rouvre. Un glisser horizontal qui part de la barre d'outils ou du corps, à
+56 px ou lâché à plus de 0,5 px/ms, et plus de 1,5 fois plus large que haut,
+émet `swiped` (`next` vers la gauche) : la fiche change de chapitre, l'à-propos
+de volet, l'aperçu de vedette, par la même sortie que leur segmenté, bornée
+aux deux bouts. Un balayage qui part d'un élément qui défile lui-même à
+l'horizontale lui appartient. Le geste se décide par une règle pure
+(`glassIntentOf`, `glassGestureOf`) ; la directive ne retient le toucher
+(`touchmove` annulé) que tant que le geste est à elle, et un second doigt
+l'abandonne. Au-delà de 6 px, ou avec un second doigt, le clic qui suit est
+avalé, par la même directive. Sous `prefers-reduced-motion`, les gestes
+restent, sans suivi ni retour animé. La tâche 8 du cadrage
+(`docs/workstreams/mobile-tablette/TACHES.md`) est faite ici.
+
+**Raison.** Sur un vrai téléphone, l'opérateur voulait ouvrir et fermer les
+vitres du doigt, en plus du bouton « – / + », et passer d'un chapitre à
+l'autre sans viser le segmenté. Le modèle est celui des feuilles de Plans et
+de Musique : la feuille suit le doigt, et le lâcher décide, selon la distance
+ou la vitesse. Le détail est dans `raisons/core-et-interface.md`.
+
+**Écarté.** Un glisser écrit à la main pour monter la vitre : le défilement
+natif le fait, avec son élan (D25), et il ne change pas. L'accroche CSS
+(`scroll-snap`) : elle choisit la butée la plus proche (D25). Le balayage à
+la tablette : elle garde les gestes du bureau, la barre y déplace la fenêtre.
+Placer la règle dans `shared/windows/rules/` : le contrôle de structure
+n'ouvre pas ce rôle à la bibliothèque des fenêtres ; elle vit dans le fichier
+de sa directive, comme les petites règles des autres directives. Une
+poignée en élément ou en pseudo-élément : ses règles faisaient dépasser à la
+feuille de la fenêtre son budget de 4 kB ; le fond ne suit pas `--radius`
+(3 px de haut, l'arrondi ne se voit pas). Une directive à part pour avaler
+le clic : elle doublait l'écoute des pointeurs et le poids du bundle.

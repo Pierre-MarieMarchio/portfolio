@@ -11,10 +11,13 @@
       [appDraggable]="bar"
       [appFitHeight]="ceiling()"
       [anchor]="anchor()"
+      [appGlassGestures]="collapsed()"
+      (glassGesture)="answer($event)"
     >
       <div
         #bar
         class="titlebar"
+        data-glass-zone="bar"
         appDoublePress
         (doublePressed)="toggleCollapse()"
       >
@@ -57,10 +60,13 @@
       </div>
 
       @if (!collapsed()) {
-        <div class="toolbar"><ng-content select="[toolbar]" /></div>
+        <div class="toolbar" data-glass-zone="toolbar">
+          <ng-content select="[toolbar]" />
+        </div>
         <ng-content />
         <div
           class="body"
+          data-glass-zone="body"
           [appRememberScroll]="scrollKey()"
           [resetOn]="scrollResetOn()"
         >

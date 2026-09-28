@@ -7,6 +7,7 @@ import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
+import { SwipeDirection } from '@shared/windows/models';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 
 const PARTS = ['profile', 'skills', 'path', 'method'] as const;
@@ -72,6 +73,13 @@ export class AboutWindowComponent {
     const key = PARTS[index];
     return key ? { index, label: this.about()[key].label } : null;
   });
+
+  protected step(direction: SwipeDirection): void {
+    const target = this.index() + (direction === 'next' ? 1 : -1);
+    if (target >= 0 && target < PARTS.length) {
+      this.partChange.emit(target);
+    }
+  }
 
   protected advance(): void {
     const next = this.next();

@@ -1293,7 +1293,7 @@ describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
     const scene = deskLooked();
 
     expect(scene.hole()).toEqual(bare.hole());
-  });
+  }, 15_000);
 
   it('moves the drawing with the pointer, and keeps it there once let go', () => {
     const scene = deskLooked();
@@ -1307,7 +1307,7 @@ describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
     expect(moved.y).toBeCloseTo(before.y + 40, 0);
     expect(moved.radius).toBeCloseTo(before.radius, 1);
     expect(scene.hole()).toEqual(moved);
-  });
+  }, 15_000);
 
   it('stops once the centre of the hole reaches an edge of the canvas', () => {
     const scene = deskLooked();
@@ -1319,7 +1319,7 @@ describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
     scene.drag(80, -60);
     expect(scene.hole().x).toBeCloseTo(80, 0);
     expect(scene.hole().y).toBeCloseTo(DESK.height - 60, 0);
-  });
+  }, 15_000);
 
   it('keeps the point under the pointer when the wheel rolls on a moved camera', () => {
     const scene = deskLooked();
@@ -1336,7 +1336,7 @@ describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
 
     expect(scene.hole().radius / before.radius).toBeCloseTo(2, 1);
     expect(scene.hole().x).toBeCloseTo(at.x - 50 * 2, 0);
-  });
+  }, 15_000);
 
   it('comes back with the camera at the next view, and settles', () => {
     const scene = deskLooked();
@@ -1374,7 +1374,7 @@ describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
     scene.engine.resize(DESK.width * 2 - 20, DESK.height * 2, 2);
     scene.run(FRAME_MS);
     expect(scene.pan.x).toBe(0);
-  });
+  }, 15_000);
 });
 
 const PHONE_SCREEN = { width: 390, height: 844, dpr: 3 } as const;

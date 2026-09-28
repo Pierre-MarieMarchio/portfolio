@@ -33,6 +33,7 @@ import {
   ObservatoryManager,
 } from '@app/features/observatory/states';
 import { windowOf } from '../../features/observatory/rules/view.rules';
+import { restingPickOf } from '../../features/projects/rules/featured-pick.rules';
 import { SceneAnchorKind } from '@app/features/common';
 import { SocialLink } from '@shared/ui/models';
 import {
@@ -171,6 +172,10 @@ export class ObservatoryPageComponent {
 
   private readonly featuredSlugs = computed(() =>
     this.projects.featured().map((project) => project.slug),
+  );
+
+  protected readonly designated = computed(() =>
+    restingPickOf(this.featuredSlugs(), this.station.lastPreview()),
   );
 
   protected readonly featuredCount = computed(

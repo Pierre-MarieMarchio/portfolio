@@ -47,6 +47,8 @@ export interface ProjectsTexts {
   readonly rule: {
     readonly heading: string;
     readonly all: string;
+    readonly previous: string;
+    readonly next: string;
   };
 }
 

@@ -17,6 +17,7 @@
       [part]="station.section()"
       [preview]="station.preview()"
       [hovered]="station.hovered()"
+      [designated]="designated()"
       [selected]="station.selected()"
       [paused]="animation.paused()"
       [revealed]="arrival() === 'shown'"
@@ -42,6 +43,7 @@
       <app-language-switch [languages]="languages()" />
       <span aria-hidden="true" class="rule"></span>
       <app-main-nav
+        [appLayoutAnchor]="anchor.chrome"
         [items]="navigationItems()"
         [current]="currentRoute()"
         [arrival]="arrival()"

@@ -2,6 +2,42 @@
   <span aria-hidden="true" class="square"></span>
   <h2>{{ texts().rule.heading }}</h2>
 </div>
+<div
+  class="pick"
+  (pointerdown)="onPickStart($event)"
+  (pointerup)="onPickEnd($event)"
+>
+  <button
+    type="button"
+    class="step"
+    data-step="previous"
+    [attr.aria-label]="texts().rule.previous"
+    [attr.aria-disabled]="!previous()"
+    (click)="onStep(previous())"
+  >
+    ‹
+  </button>
+  <button
+    type="button"
+    class="named"
+    [attr.aria-controls]="controls()"
+    (click)="onNamed()"
+  >
+    @for (title of named(); track title) {
+      <span>{{ title }}</span>
+    }
+  </button>
+  <button
+    type="button"
+    class="step"
+    data-step="next"
+    [attr.aria-label]="texts().rule.next"
+    [attr.aria-disabled]="!next()"
+    (click)="onStep(next())"
+  >
+    ›
+  </button>
+</div>
 <div class="row">
   <div #track class="track">
     <div aria-hidden="true" class="axis"></div>

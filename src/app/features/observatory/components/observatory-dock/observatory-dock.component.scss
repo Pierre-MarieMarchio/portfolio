@@ -11,7 +11,7 @@
     position: fixed;
     left: var(--s1);
     right: var(--s1);
-    bottom: var(--s1);
+    bottom: calc(var(--s1) + var(--tabs-reserve));
     z-index: var(--z-chrome);
     display: block;
     pointer-events: none;

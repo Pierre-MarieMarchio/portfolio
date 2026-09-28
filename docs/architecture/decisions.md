@@ -1105,3 +1105,46 @@ poignée en élément ou en pseudo-élément : ses règles faisaient dépasser �
 feuille de la fenêtre son budget de 4 kB ; le fond ne suit pas `--radius`
 (3 px de haut, l'arrondi ne se voit pas). Une directive à part pour avaler
 le clic : elle doublait l'écoute des pointeurs et le poids du bundle.
+
+## 2026-09-27 — Au téléphone debout, l'accueil dit un nom à la fois, et les pages passent en onglets en bas (D38, amende D27 et D35)
+
+**Décision.** Au format `phone` en portrait seulement, la navigation
+(`app-main-nav`) quitte la barre du haut et devient une barre d'onglets
+fixe en bas, pleine largeur, trois onglets égaux de 44 px au moins, plus
+`env(safe-area-inset-bottom)`, sur `--paper` sans `backdrop-filter`, un
+filet `--line` en haut ; l'onglet actif garde sa face allumée et porte un
+repère d'accent de 2 px en haut. Le lien de langue et le « @ » restent en
+haut. Le jeton `--tabs-reserve` (nul hors du portrait) relève tout ce qui se
+posait en bas : la vitre basse, repliée ou montée, l'aperçu, le dock et son
+filet, la règle des vedettes. L'élément ne bouge pas dans le DOM : tout est
+CSS, et `app-main-nav` s'inscrit à la scène comme ancre `chrome`, sans
+boîte hors du portrait (`display: contents`), donc ignorée ailleurs. Sous
+l'objet, la règle ne montre plus qu'une rangée : « ‹ », le titre de la
+vedette désignée, « › », puis « Tous les projets → ». La vedette désignée
+est celle que lit déjà la ligne de lecture : la survolée (`hovered`), sinon
+la dernière ouverte en aperçu, sinon la première. « ‹ », « › » et un
+balayage de la rangée (48 px au moins, plus de 1,5 fois plus large que
+haut) la changent par le même `hovered`, bornés aux deux bouts
+(`featured-pick.rules.ts`) ; toucher le titre ouvre l'aperçu. La scène
+allume la planète désignée, dès le repos et même quand elle vient du repli
+(`restingPickOf`, passée à la scène par la page), et l'amène dans le ciel
+(D35) mais n'écrit plus
+son nom sur le ciel : la rangée le porte (`labels: 'none'` sur l'accueil
+sans aperçu). Couché, à la tablette et au bureau, rien ne change.
+
+**Raison.** C'est le choix de l'opérateur, après un essai sur un vrai
+téléphone : l'accueil « a trop d'infos, la règle et ce qu'il y a écrit font
+trop UI de desktop » ; il choisit « un nom à la fois » et « la barre de
+pages en bas, en onglets, à portée du pouce ». La navigation au pouce vient
+du modèle des applications (Plans, Musique) : la navigation en bas, la
+feuille au-dessus.
+
+**Écarté.** La règle entière au doigt, numéros sans nom : c'est elle que
+l'opérateur trouvait trop chargée. La barre d'onglets couchée : sur 320 à
+390 px de haut, elle prendrait la place de la vitre. Un `backdrop-filter`
+sur la barre : un coût à chaque image au-dessus du canvas (D36). Cacher le
+nom de la planète par une feuille globale : le trait qui le relie à sa
+planète est dessiné dans le canvas et restait seul sur le ciel.
+
+**Budget.** Le bundle initial passe de 525,1 à 529,9 kB, sous le seuil
+d'avertissement de 530 kB, qui ne bouge pas.

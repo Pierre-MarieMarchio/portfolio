@@ -9,6 +9,6 @@ describe('English drafts', () => {
   });
 
   it('counts the English texts still to review', () => {
-    expect(draftsLeft()).toBe(243);
+    expect(draftsLeft()).toBe(245);
   });
 });

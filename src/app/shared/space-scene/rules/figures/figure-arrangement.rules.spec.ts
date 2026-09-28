@@ -4,8 +4,11 @@ import {
   placedBox,
 } from './figure-arrangement.rules';
 import type { SkyRoom } from './figure-room.rules';
-
-const ROOM: SkyRoom = { l: 8, t: 64, r: 382, b: 498 };
+import {
+  isInside,
+  isOverlapping,
+  ROOM,
+} from '@testing/fixtures/scene-layout.fixture';
 
 const box = (l: number, t: number, w: number, h: number): SkyRoom => ({
   l,
@@ -13,15 +16,6 @@ const box = (l: number, t: number, w: number, h: number): SkyRoom => ({
   r: l + w,
   b: t + h,
 });
-
-const isInside = (inner: SkyRoom, outer: SkyRoom): boolean =>
-  inner.l >= outer.l - 1e-6 &&
-  inner.t >= outer.t - 1e-6 &&
-  inner.r <= outer.r + 1e-6 &&
-  inner.b <= outer.b + 1e-6;
-
-const isOverlapping = (a: SkyRoom, b: SkyRoom): boolean =>
-  a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
 
 const isOverCircle = (
   a: SkyRoom,

@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { stubMedia } from '@testing/doubles/browser.double';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { SceneTargetsService } from '@shared/space-scene/services';
 import { ObservatoryView, Planet } from '../../models';
@@ -14,14 +16,6 @@ const BODIES: readonly Planet[] = [
   },
 ];
 
-const stubHover = (canHover: boolean): void => {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: query === '(hover: none)' && !canHover,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }));
-};
-
 const mount = async (
   options: {
     view?: ObservatoryView;
@@ -30,7 +24,8 @@ const mount = async (
     canHover?: boolean;
   } = {},
 ) => {
-  stubHover(options.canHover ?? true);
+  const canHover = options.canHover ?? true;
+  stubMedia((query) => query === '(hover: none)' && !canHover);
   TestBed.configureTestingModule({
     imports: [PlanetButtonsComponent],
     providers: [provideTexts(), SceneTargetsService],
@@ -40,10 +35,8 @@ const mount = async (
   fixture.componentRef.setInput('view', options.view ?? 'home');
   fixture.componentRef.setInput('preview', options.preview ?? null);
   fixture.componentRef.setInput('hovered', options.hovered ?? null);
-  const clicked: string[] = [];
-  const hovered: (string | null)[] = [];
-  fixture.componentInstance.bodyClicked.subscribe((slug) => clicked.push(slug));
-  fixture.componentInstance.bodyHovered.subscribe((slug) => hovered.push(slug));
+  const clicked = recordOutput(fixture.componentInstance.bodyClicked);
+  const hovered = recordOutput(fixture.componentInstance.bodyHovered);
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   return {

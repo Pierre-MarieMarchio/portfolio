@@ -1,4 +1,3 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
   BrowserWindowService,
@@ -13,18 +12,14 @@ import {
   FormatCodeService,
   UserPresenceService,
 } from '@app/core/services';
-
-const on = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-};
+import { stubMedia, stubViewport } from '@testing/doubles/browser.double';
+import { onPlatform } from '@testing/fixtures/testbed.fixture';
 
 describe('prerender safety', () => {
   it('answers the no-motion default without asking matchMedia on the server', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
-    on('server');
+    onPlatform('server');
     const media = TestBed.inject(MediaPreferencesService);
 
     expect(media.reducedMotion()).toBe(true);
@@ -38,7 +33,7 @@ describe('prerender safety', () => {
 
   it('answers no viewport, listens to nothing and waits for no frame on the server', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
-    on('server');
+    onPlatform('server');
     const browserWindow = TestBed.inject(BrowserWindowService);
 
     expect(browserWindow.size()).toBeNull();
@@ -74,7 +69,7 @@ describe('prerender safety', () => {
     const listen = vi.spyOn(document, 'addEventListener');
     const computed = vi.spyOn(window, 'getComputedStyle');
     const now = vi.spyOn(performance, 'now');
-    on('server');
+    onPlatform('server');
     const contexts = TestBed.inject(CanvasContextsService);
     const visibility = TestBed.inject(PageVisibilityService);
     const observer = TestBed.inject(ElementObserverService);
@@ -123,7 +118,7 @@ describe('prerender safety', () => {
         }
       },
     );
-    on('browser');
+    onPlatform('browser');
     const canvas = document.createElement('canvas');
     const heard: boolean[] = [];
 
@@ -154,7 +149,7 @@ describe('prerender safety', () => {
   });
 
   it('reads the viewport and stops listening when asked, in the browser', () => {
-    on('browser');
+    onPlatform('browser');
     const browserWindow = TestBed.inject(BrowserWindowService);
     const heard: string[] = [];
 
@@ -174,7 +169,7 @@ describe('prerender safety', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
     const addEventListener = vi.spyOn(window, 'addEventListener');
-    on('server');
+    onPlatform('server');
     const display = TestBed.inject(DisplayFormatService);
 
     display.publishOnRoot();
@@ -190,14 +185,9 @@ describe('prerender safety', () => {
   });
 
   it('loads no code of the phone on the server, even at a phone size', async () => {
-    vi.stubGlobal('innerWidth', 390);
-    vi.stubGlobal('innerHeight', 844);
-    vi.stubGlobal('matchMedia', () => ({
-      matches: true,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }));
-    on('server');
+    stubViewport(390, 844);
+    stubMedia(() => true);
+    onPlatform('server');
     const importer = vi.fn(() => Promise.resolve({}));
 
     const loaded = TestBed.runInInjectionContext(() =>
@@ -213,7 +203,7 @@ describe('prerender safety', () => {
   });
 
   it('loads no code of the desktop on the server, though it answers as a desktop', async () => {
-    on('server');
+    onPlatform('server');
     const importer = vi.fn(() => Promise.resolve({}));
 
     const loaded = TestBed.runInInjectionContext(() =>
@@ -228,7 +218,7 @@ describe('prerender safety', () => {
   });
 
   it('loads no code of the fingers on the server', async () => {
-    on('server');
+    onPlatform('server');
     const importer = vi.fn(() => Promise.resolve({}));
 
     const loaded = TestBed.runInInjectionContext(() =>
@@ -242,7 +232,7 @@ describe('prerender safety', () => {
   });
 
   it('leaves the cursor alone on the server', () => {
-    on('server');
+    onPlatform('server');
 
     TestBed.inject(CursorService).set('grabbing');
 
@@ -251,7 +241,7 @@ describe('prerender safety', () => {
 
   it('sets the cursor and reads the root tokens in the browser', () => {
     document.documentElement.style.setProperty('--ink', ' #2b2f3a ');
-    on('browser');
+    onPlatform('browser');
     const cursor = TestBed.inject(CursorService);
 
     cursor.set('grabbing');
@@ -268,7 +258,7 @@ describe('prerender safety', () => {
   it('reads no duration and waits for no gesture on the server', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     document.documentElement.style.setProperty('--arrival-at', '8700ms');
-    on('server');
+    onPlatform('server');
     const styles = TestBed.inject(DocumentStylesService);
     const called = vi.fn();
 
@@ -283,7 +273,7 @@ describe('prerender safety', () => {
   });
 
   it('reads a duration token in ms or s, and nothing else, in the browser', () => {
-    on('browser');
+    onPlatform('browser');
     const styles = TestBed.inject(DocumentStylesService);
     const read = (value: string): number | null => {
       document.documentElement.style.setProperty('--probe', value);
@@ -299,8 +289,8 @@ describe('prerender safety', () => {
 
   it('calls back once, at the first gesture or the timeout, in the browser', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    vi.stubGlobal('matchMedia', () => ({ matches: false }));
-    on('browser');
+    stubMedia();
+    onPlatform('browser');
     const presence = TestBed.inject(UserPresenceService);
     const byGesture = vi.fn();
     const byTime = vi.fn();

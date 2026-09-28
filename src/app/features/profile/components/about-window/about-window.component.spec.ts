@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { WindowComponent } from '@shared/windows/components';
 import { AboutWindowComponent } from './about-window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 
 type Part = 0 | 1 | 2 | 3;
 
@@ -83,10 +84,7 @@ describe('AboutWindowComponent', () => {
 
   it('emits partChange on a toolbar click, without changing the part by itself', async () => {
     const { fixture, host } = await mount({ part: 0 });
-    const emitted: number[] = [];
-    fixture.componentInstance.partChange.subscribe((value: number) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.partChange);
 
     const toolbar = host.querySelector(TOOLBAR);
     const buttons = [
@@ -282,10 +280,7 @@ describe('AboutWindowComponent', () => {
 
   it('shows the current title in the footer and a next-part button, on part 00', async () => {
     const { fixture, host } = await mount({ part: 0 });
-    const emitted: number[] = [];
-    fixture.componentInstance.partChange.subscribe((value: number) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.partChange);
 
     const footer = host.querySelector('.footer');
     expect(footer?.textContent).toContain(TITLES[0]);
@@ -302,10 +297,7 @@ describe('AboutWindowComponent', () => {
 
   it('shows the current title in the footer and a next-part button, on part 01', async () => {
     const { fixture, host } = await mount({ part: 1 });
-    const emitted: number[] = [];
-    fixture.componentInstance.partChange.subscribe((value: number) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.partChange);
 
     const footer = host.querySelector('.footer');
     expect(footer?.textContent).toContain(TITLES[1]);
@@ -322,10 +314,7 @@ describe('AboutWindowComponent', () => {
 
   it('shows the current title in the footer and a next-part button, on part 02', async () => {
     const { fixture, host } = await mount({ part: 2 });
-    const emitted: number[] = [];
-    fixture.componentInstance.partChange.subscribe((value: number) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.partChange);
 
     const footer = host.querySelector('.footer');
     expect(footer?.textContent).toContain(TITLES[2]);
@@ -379,10 +368,7 @@ describe('AboutWindowComponent', () => {
     'turns a swipe on part %i towards %s into the neighbouring part, within bounds',
     async (part, direction, emitted) => {
       const { fixture } = await mount({ part });
-      const values: number[] = [];
-      fixture.componentInstance.partChange.subscribe((value: number) =>
-        values.push(value),
-      );
+      const values = recordOutput(fixture.componentInstance.partChange);
       const window = fixture.debugElement.query(By.directive(WindowComponent))
         .componentInstance as WindowComponent;
 

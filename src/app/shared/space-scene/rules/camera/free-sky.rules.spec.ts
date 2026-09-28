@@ -1,45 +1,25 @@
-import type { PanelRect, SceneLayout } from '../../models/scene-layout.model';
-import { referenceRadius } from './camera-frames.rules';
+import type { SceneLayout } from '../../models/scene-layout.model';
 import { measureRest, RestMeasure } from './rest-frame.rules';
 import { restInFreeSky } from './free-sky.rules';
-
-type Box = readonly [left: number, top: number, right: number, bottom: number];
-
-const rect = ([left, top, right, bottom]: Box): PanelRect => ({
-  left,
-  top,
-  right,
-  bottom,
-  opacity: 1,
-});
+import {
+  chromeLayout,
+  Edges,
+  holeOf,
+  UPRIGHT_BAR,
+  UPRIGHT_PHONE,
+  UPRIGHT_TITLE,
+} from '@testing/fixtures/scene-layout.fixture';
 
 const layoutOf = (
   viewport: SceneLayout['viewport'],
-  chrome: readonly Box[],
+  chrome: readonly Edges[],
   ruleHeight = 133,
-): SceneLayout => ({
-  canvas: { left: 0, top: 0 },
-  viewport,
-  panels: chrome.map((box) => rect(box)),
-  topBarHeight: 56,
-  bottomBarHeight: ruleHeight,
-  approachEdge: null,
-  closeUpEdge: null,
-  chrome: chrome.map((box) => rect(box)),
-});
-
-const holeOf = (
-  rest: RestMeasure,
-  viewport: SceneLayout['viewport'],
-): { x: number; y: number; radius: number } => ({
-  x: rest.x * viewport.width,
-  y: rest.y * viewport.height,
-  radius: referenceRadius(viewport.width, viewport.height, rest.s),
-});
+): SceneLayout =>
+  chromeLayout(viewport, chrome, { bottomBarHeight: ruleHeight });
 
 const isMeeting = (
   hole: { x: number; y: number; radius: number },
-  [left, top, right, bottom]: Box,
+  [left, top, right, bottom]: Edges,
 ): boolean =>
   Math.hypot(
     hole.x - Math.min(Math.max(hole.x, left), right),
@@ -53,17 +33,16 @@ const restOf = (layout: SceneLayout): RestMeasure =>
   );
 
 const LYING_PHONE = { width: 844, height: 390 };
-const LYING_CHROME: readonly Box[] = [
+const LYING_CHROME: readonly Edges[] = [
   [0, 0, 422, 56],
   [34, 68, 382, 163],
   [372, 340, 416, 384],
   [428, 251, 832, 384],
 ];
 
-const UPRIGHT_PHONE = { width: 320, height: 568 };
-const UPRIGHT_CHROME: readonly Box[] = [
-  [0, 0, 320, 56],
-  [20, 68, 320, 207],
+const UPRIGHT_CHROME: readonly Edges[] = [
+  UPRIGHT_BAR,
+  UPRIGHT_TITLE,
   [20, 357, 300, 490],
 ];
 

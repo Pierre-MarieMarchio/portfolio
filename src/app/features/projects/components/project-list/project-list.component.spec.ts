@@ -12,6 +12,7 @@ import {
 } from '@app/features/projects/models';
 import { FEATURED } from '@app/features/projects/states';
 import { ProjectListComponent } from './project-list.component';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const rows = (host: HTMLElement) => [
   ...host.querySelectorAll<HTMLButtonElement>('button.row'),
@@ -113,10 +114,7 @@ describe('ProjectIndexComponent', () => {
 
   it('emits familyChange on a click, without changing its own filter', async () => {
     const { fixture, host } = await mount({ family: 'all' });
-    const emitted: string[] = [];
-    fixture.componentInstance.familyChange.subscribe((value: string) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.familyChange);
 
     const toolbar = host.querySelector('[aria-label="Filtrer les projets"]');
     const buttons = [
@@ -227,10 +225,7 @@ describe('ProjectIndexComponent', () => {
 
   it('toggles the selection on a click, and reports the row as pressed', async () => {
     const { fixture, host } = await mount({ selected: null });
-    const emitted: (string | null)[] = [];
-    fixture.componentInstance.selectedChange.subscribe((value: string | null) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.selectedChange);
 
     rows(host)[0]?.click();
     await fixture.whenStable();
@@ -291,10 +286,7 @@ describe('ProjectIndexComponent', () => {
 
   it('emits hoveredChange on a mouse hover or a keyboard focus, and null on leaving them', async () => {
     const { fixture, host } = await mount();
-    const emitted: (string | null)[] = [];
-    fixture.componentInstance.hoveredChange.subscribe((value: string | null) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.hoveredChange);
 
     const row = rows(host)[0];
     row?.dispatchEvent(

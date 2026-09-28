@@ -97,7 +97,7 @@ Aucun gabarit n'est à ouvrir pour changer un texte.
 **Relire l'anglais.** L'anglais a été rédigé sans relecture : chaque texte est
 marqué `draft('…')`. Pour en valider un, retirez l'appel à `draft(` (gardez le
 texte), puis mettez à jour le nombre attendu dans
-`src/integration/drafts.spec.ts`, qui compte ceux qui restent.
+`src/testing/integration/drafts.spec.ts`, qui compte ceux qui restent.
 
 **Les adresses** des vues, dans les deux langues, sont dans
 `src/app/i18n/data/paths.data.ts` : les routes, les liens, le sélecteur de langue et

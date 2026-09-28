@@ -10,6 +10,7 @@ import type {
 import { drivenHost } from '../doubles/driven-host.double';
 import { recordingContext } from '../doubles/recording-canvas.double';
 import { seededRandom } from '../doubles/seeded-random.double';
+import { ENGINE_OPTIONS } from './engine-scene.fixture';
 
 interface ShownBitmap {
   readonly width: number;
@@ -54,9 +55,10 @@ export const pairedScene = () => {
   const posted: FromSceneWorker[] = [];
   const mainFrames: ((time: number) => void)[] = [];
   const travels: boolean[] = [];
+  const { seed, ...look } = ENGINE_OPTIONS;
   const worker = new SceneWorkerEngine({
     timeOrigin: 0,
-    rnd: seededRandom(7),
+    rnd: seededRandom(seed),
     canvas: () => workerCanvas(names.shift() ?? 'extra', log, made),
     frame: (callback) => clock.host.frame(callback),
     now: () => clock.host.now(),
@@ -102,10 +104,8 @@ export const pairedScene = () => {
     },
     canvases,
     {
-      density: 600,
+      ...look,
       figures: 'constellations',
-      ink: '#e8ecf2',
-      accent: '#7cc4f0',
       viewportArea: 1280 * 800,
       timeOrigin: 0,
     },

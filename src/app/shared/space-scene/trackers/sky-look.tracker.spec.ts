@@ -1,42 +1,8 @@
-import type { LookableScene, WindowEvents } from '../models/scene-look.model';
 import { SkyLookTracker } from './sky-look.tracker';
-
-class SceneDouble implements LookableScene {
-  public readonly holds: [number, number][] = [];
-  public readonly stretches: [number, number, number][] = [];
-  public releases = 0;
-  public requests = 0;
-
-  public holdZoom(clientX: number, clientY: number): boolean {
-    this.holds.push([clientX, clientY]);
-    return true;
-  }
-
-  public stretchZoom(clientX: number, clientY: number, ratio: number): void {
-    this.stretches.push([clientX, clientY, ratio]);
-  }
-
-  public releaseZoom(): void {
-    this.releases += 1;
-  }
-
-  public request(): void {
-    this.requests += 1;
-  }
-
-  public lookCloser(): boolean {
-    return false;
-  }
-}
-
-const windowEvents: WindowEvents = {
-  onWindow: (type, handler, options) => {
-    window.addEventListener(type, handler, options);
-    return () => {
-      window.removeEventListener(type, handler, options);
-    };
-  },
-};
+import {
+  LookableSceneDouble,
+  windowEvents,
+} from '@testing/doubles/scene-look.double';
 
 const PIXELS = 0;
 const MIDDLE = 1;
@@ -88,7 +54,7 @@ const mouse = (
 describe('SkyLookTracker', () => {
   let sky: HTMLElement;
   let panel: HTMLElement;
-  let scene: SceneDouble;
+  let scene: LookableSceneDouble;
   let tracker: SkyLookTracker;
 
   beforeEach(() => {
@@ -97,7 +63,7 @@ describe('SkyLookTracker', () => {
     panel.dataset['panel'] = 'window';
     panel.append(document.createElement('p'));
     document.body.append(sky, panel);
-    scene = new SceneDouble();
+    scene = new LookableSceneDouble();
     tracker = new SkyLookTracker(scene, windowEvents);
   });
 

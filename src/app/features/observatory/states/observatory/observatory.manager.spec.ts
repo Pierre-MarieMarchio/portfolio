@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { ObservatoryEffect } from './observatory.effect';
 import { ObservatoryManager } from './observatory.manager';
+import { provideRecordingRouter } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 describe('StationManager', () => {
@@ -16,15 +16,7 @@ describe('StationManager', () => {
       providers: [
         provideTexts(),
         provideStatewise({ effects: [ObservatoryEffect] }),
-        {
-          provide: Router,
-          useValue: {
-            navigateByUrl: (url: string) => {
-              navigated.push(url);
-              return Promise.resolve(true);
-            },
-          },
-        },
+        provideRecordingRouter(navigated),
       ],
     });
 

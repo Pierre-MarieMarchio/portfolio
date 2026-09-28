@@ -1,41 +1,9 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DisplayFormatService } from './display-format.service';
-
-type Listener = (event: { matches: boolean }) => void;
-
-const stubMedia = (matching: Set<string>) => {
-  const listeners = new Map<string, Set<Listener>>();
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: matching.has(query),
-    addEventListener: (_type: string, listener: Listener) => {
-      listeners.set(query, (listeners.get(query) ?? new Set()).add(listener));
-    },
-    removeEventListener: (_type: string, listener: Listener) => {
-      listeners.get(query)?.delete(listener);
-    },
-  }));
-  return (query: string, isMatching: boolean) => {
-    for (const listener of listeners.get(query) ?? []) {
-      listener({ matches: isMatching });
-    }
-  };
-};
+import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
-
-const resizeTo = (width: number, height: number, event = 'resize') => {
-  vi.stubGlobal('innerWidth', width);
-  vi.stubGlobal('innerHeight', height);
-  window.dispatchEvent(new Event(event));
-};
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(DisplayFormatService);
-};
 
 describe('DisplayFormatService', () => {
   beforeEach(() => {
@@ -51,7 +19,7 @@ describe('DisplayFormatService', () => {
   it('is a desktop on the server, and writes nothing on the root', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
-    const display = inject('server');
+    const display = injectOn(DisplayFormatService, 'server');
 
     display.publishOnRoot();
     TestBed.tick();
@@ -65,13 +33,13 @@ describe('DisplayFormatService', () => {
     stubMedia(TOUCH);
     resizeTo(390, 844);
 
-    expect(inject('browser').format()).toBe('phone');
+    expect(injectOn(DisplayFormatService, 'browser').format()).toBe('phone');
   });
 
   it('follows a resize and a rotation', () => {
     stubMedia(TOUCH);
     resizeTo(390, 844);
-    const display = inject('browser');
+    const display = injectOn(DisplayFormatService, 'browser');
 
     resizeTo(820, 1180);
     expect(display.format()).toBe('tablet');
@@ -82,7 +50,7 @@ describe('DisplayFormatService', () => {
   it('follows a change of pointer', () => {
     const change = stubMedia(TOUCH);
     resizeTo(1180, 820);
-    const display = inject('browser');
+    const display = injectOn(DisplayFormatService, 'browser');
 
     change('(pointer: coarse)', false);
     expect(display.format()).toBe('tablet');
@@ -93,7 +61,7 @@ describe('DisplayFormatService', () => {
   it('writes the format on the root once rendered, and keeps it current', () => {
     stubMedia(TOUCH);
     resizeTo(390, 844);
-    const display = inject('browser');
+    const display = injectOn(DisplayFormatService, 'browser');
 
     display.publishOnRoot();
     expect(document.documentElement.dataset['format']).toBeUndefined();
@@ -108,7 +76,7 @@ describe('DisplayFormatService', () => {
   it('stops listening when destroyed', () => {
     stubMedia(TOUCH);
     resizeTo(390, 844);
-    const display = inject('browser');
+    const display = injectOn(DisplayFormatService, 'browser');
 
     TestBed.resetTestingModule();
     resizeTo(820, 1180);

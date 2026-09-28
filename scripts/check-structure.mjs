@@ -265,16 +265,24 @@ const appFileErrors = (path) => {
   return errors;
 };
 
+/** @type {Record<string, string>} */
+const TESTING_SUFFIX_OF = {
+  fixtures: 'fixture',
+  doubles: 'double',
+  integration: 'spec',
+};
+
 /**
  * @param {string} path
  * @returns {string[]}
  */
 const testingFileErrors = (path) => {
-  const [role, file = '', ...deeper] = posix.relative(TESTING, path).split('/');
-  const expected =
-    role === 'fixtures' ? 'fixture' : role === 'doubles' ? 'double' : null;
+  const [role = '', file = '', ...deeper] = posix
+    .relative(TESTING, path)
+    .split('/');
+  const expected = TESTING_SUFFIX_OF[role];
   if (!expected || deeper.length > 0) {
-    return ['src/testing holds fixtures/ and doubles/ only'];
+    return ['src/testing holds fixtures/, doubles/ and integration/ only'];
   }
   return file.endsWith(`.${expected}.ts`)
     ? []

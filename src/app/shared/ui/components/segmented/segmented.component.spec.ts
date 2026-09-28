@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { SegmentedComponent } from './segmented.component';
 import { SegmentedItem } from '../../models/segmented.model';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
+import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const ITEMS: readonly SegmentedItem[] = [
   { value: 'all', label: 'Tout', active: true },
@@ -14,14 +15,6 @@ const ITEMS: readonly SegmentedItem[] = [
     aria: 'Notes de veille',
   },
 ];
-
-const at = <T>(items: readonly T[], index: number): T => {
-  const item = items[index];
-  if (item === undefined) {
-    throw new Error(`expected an item at index ${String(index)}, found none`);
-  }
-  return item;
-};
 
 const mount = async (items: readonly SegmentedItem[] = ITEMS) => {
   TestBed.configureTestingModule({
@@ -121,10 +114,7 @@ describe('SegmentedComponent', () => {
     const { host, fixture } = await mount();
     const buttons = buttonsOf(host);
 
-    const received: string[] = [];
-    fixture.componentInstance.valueChange.subscribe((value: string) => {
-      received.push(value);
-    });
+    const received = recordOutput(fixture.componentInstance.valueChange);
 
     at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await fixture.whenStable();
@@ -142,10 +132,7 @@ describe('SegmentedComponent', () => {
       { value: 'a', label: 'Même', active: false },
       { value: 'b', label: 'Même', active: false },
     ]);
-    const received: string[] = [];
-    fixture.componentInstance.valueChange.subscribe((value: string) => {
-      received.push(value);
-    });
+    const received = recordOutput(fixture.componentInstance.valueChange);
 
     const buttons = buttonsOf(host);
     at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));

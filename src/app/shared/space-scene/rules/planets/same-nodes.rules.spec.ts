@@ -1,11 +1,9 @@
 import { isSameList } from './same-nodes.rules';
-
-const nodes = (count: number): HTMLElement[] =>
-  Array.from({ length: count }, () => document.createElement('span'));
+import { elements } from '@testing/fixtures/engine-scene.fixture';
 
 describe('isSameList', () => {
   it('holds two lists of the same nodes in the same order', () => {
-    const [a, b] = nodes(2);
+    const [a, b] = elements(2);
     if (!a || !b) {
       throw new Error('two nodes expected');
     }
@@ -15,7 +13,7 @@ describe('isSameList', () => {
   });
 
   it('tells apart another order, another node or another length', () => {
-    const [a, b, c] = nodes(3);
+    const [a, b, c] = elements(3);
     if (!a || !b || !c) {
       throw new Error('three nodes expected');
     }

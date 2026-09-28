@@ -9,6 +9,7 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { FEATURED } from '@app/features/projects/states';
 import { ProjectPreviewComponent } from './project-preview.component';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 
 describe('ProjectPreviewComponent', () => {
   const NAMES = ['One', 'Two', 'Three', 'Four', 'Five'];
@@ -92,10 +93,7 @@ describe('ProjectPreviewComponent', () => {
 
   it('emits chosen with the clicked project slug, without changing the shown project by itself', async () => {
     const { fixture, host } = await mount({ slug: 'proj-2' });
-    const emitted: string[] = [];
-    fixture.componentInstance.chosen.subscribe((slug: string) =>
-      emitted.push(slug),
-    );
+    const emitted = recordOutput(fixture.componentInstance.chosen);
 
     const toolbar = host.querySelector('[aria-label="Projets mis en avant"]');
     const buttons = [
@@ -158,10 +156,7 @@ describe('ProjectPreviewComponent', () => {
     'turns a swipe on %s towards %s into the neighbouring featured project, within bounds',
     async (slug, direction, emitted) => {
       const { fixture } = await mount({ slug });
-      const values: string[] = [];
-      fixture.componentInstance.chosen.subscribe((value: string) =>
-        values.push(value),
-      );
+      const values = recordOutput(fixture.componentInstance.chosen);
       const window = fixture.debugElement.query(By.directive(WindowComponent))
         .componentInstance as WindowComponent;
 

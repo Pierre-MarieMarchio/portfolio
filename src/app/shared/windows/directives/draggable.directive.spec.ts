@@ -1,6 +1,8 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DraggableDirective } from './draggable.directive';
+import { resizeTo, stubViewport } from '@testing/doubles/browser.double';
+import { pointer } from '@testing/fixtures/pointer.fixture';
 
 const stubRect = (
   el: Element,
@@ -20,36 +22,6 @@ const stubRect = (
     el.getBoundingClientRect = original;
   };
 };
-
-const stubViewport = (width: number, height: number): (() => void) => {
-  const widthDescriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
-  const heightDescriptor = Object.getOwnPropertyDescriptor(
-    window,
-    'innerHeight',
-  );
-  Object.defineProperty(window, 'innerWidth', {
-    value: width,
-    configurable: true,
-  });
-  Object.defineProperty(window, 'innerHeight', {
-    value: height,
-    configurable: true,
-  });
-  return () => {
-    if (widthDescriptor) {
-      Object.defineProperty(window, 'innerWidth', widthDescriptor);
-    }
-    if (heightDescriptor) {
-      Object.defineProperty(window, 'innerHeight', heightDescriptor);
-    }
-  };
-};
-
-const pointer = (
-  type: string,
-  init: { clientX: number; clientY: number; button?: number },
-): Event =>
-  new PointerEvent(type, { bubbles: true, cancelable: true, ...init });
 
 @Component({
   imports: [DraggableDirective],
@@ -75,8 +47,8 @@ class Host {
   }
 }
 
-const move = (clientX: number, clientY: number): void => {
-  window.dispatchEvent(pointer('pointermove', { clientX, clientY }));
+const move = (x: number, y: number): void => {
+  window.dispatchEvent(pointer('pointermove', { x, y }));
 };
 
 const RECT = { top: 300, left: 500, width: 200, height: 150 };
@@ -88,6 +60,7 @@ describe('DraggableDirective', () => {
     while (restorers.length > 0) {
       restorers.pop()?.();
     }
+    vi.unstubAllGlobals();
   });
 
   const setup = async () => {
@@ -98,11 +71,10 @@ describe('DraggableDirective', () => {
     const section = host.querySelector('section') as HTMLElement;
     const handle = host.querySelector('.handle') as HTMLElement;
     const grip = host.querySelector('.grip') as HTMLElement;
-    restorers.push(stubRect(section, RECT), stubViewport(1200, 800));
+    restorers.push(stubRect(section, RECT));
+    stubViewport(1200, 800);
     const grab = (from: Element = grip, button = 0): void => {
-      from.dispatchEvent(
-        pointer('pointerdown', { clientX: 600, clientY: 400, button }),
-      );
+      from.dispatchEvent(pointer('pointerdown', { x: 600, y: 400, button }));
     };
     return { fixture, host, section, handle, grab };
   };
@@ -121,7 +93,7 @@ describe('DraggableDirective', () => {
 
     grab();
     move(650, 430);
-    window.dispatchEvent(pointer('pointerup', { clientX: 650, clientY: 430 }));
+    window.dispatchEvent(pointer('pointerup', { x: 650, y: 430 }));
     grab();
     move(610, 410);
 
@@ -181,7 +153,7 @@ describe('DraggableDirective', () => {
 
       grab();
       move(650, 430);
-      window.dispatchEvent(pointer(end, { clientX: 650, clientY: 430 }));
+      window.dispatchEvent(pointer(end, { x: 650, y: 430 }));
       move(900, 700);
 
       expect(section.style.transform).toBe('translate(50px,30px)');
@@ -194,7 +166,7 @@ describe('DraggableDirective', () => {
     grab();
     expect(handle.style.cursor).toBe('grabbing');
 
-    window.dispatchEvent(pointer('pointerup', { clientX: 600, clientY: 400 }));
+    window.dispatchEvent(pointer('pointerup', { x: 600, y: 400 }));
     expect(handle.style.cursor).toBe('');
   });
 
@@ -220,7 +192,7 @@ describe('DraggableDirective', () => {
     move(610, 405);
     move(620, 410);
     await fixture.whenStable();
-    window.dispatchEvent(pointer('pointerup', { clientX: 620, clientY: 410 }));
+    window.dispatchEvent(pointer('pointerup', { x: 620, y: 410 }));
     await fixture.whenStable();
 
     expect(fixture.componentInstance.count).toBe(before);
@@ -247,15 +219,10 @@ describe('DraggableDirective', () => {
       const { section, grab } = await setup();
       grab();
       move(to.x, to.y);
-      window.dispatchEvent(
-        pointer('pointerup', { clientX: to.x, clientY: to.y }),
-      );
+      window.dispatchEvent(pointer('pointerup', { x: to.x, y: to.y }));
 
-      restorers.push(
-        stubRect(section, { ...RECT, ...movedRect }),
-        stubViewport(screen.width, screen.height),
-      );
-      window.dispatchEvent(new Event('resize'));
+      restorers.push(stubRect(section, { ...RECT, ...movedRect }));
+      resizeTo(screen.width, screen.height);
 
       expect(section.style.transform).toBe(transform);
     },
@@ -263,17 +230,14 @@ describe('DraggableDirective', () => {
 
   it('leaves an element that was never moved where the layout puts it', async () => {
     const { section } = await setup();
-    restorers.push(stubViewport(400, 300));
-
-    window.dispatchEvent(new Event('resize'));
+    resizeTo(400, 300);
 
     expect(section.style.transform).toBe('');
   });
 
   it('does not move at the phone format', async () => {
     const { section, grab } = await setup();
-    restorers.push(stubViewport(390, 844));
-    window.dispatchEvent(new Event('resize'));
+    resizeTo(390, 844);
 
     grab();
     move(650, 430);
@@ -285,10 +249,9 @@ describe('DraggableDirective', () => {
     const { section, grab } = await setup();
     grab();
     move(650, 430);
-    window.dispatchEvent(pointer('pointerup', { clientX: 650, clientY: 430 }));
+    window.dispatchEvent(pointer('pointerup', { x: 650, y: 430 }));
 
-    restorers.push(stubViewport(390, 844));
-    window.dispatchEvent(new Event('resize'));
+    resizeTo(390, 844);
 
     expect(section.style.transform).toBe('');
   });
@@ -298,12 +261,8 @@ describe('DraggableDirective', () => {
     grab();
     move(2600, 400);
     fixture.destroy();
-    restorers.push(
-      stubRect(section, { ...RECT, left: 1050 }),
-      stubViewport(820, 1180),
-    );
-
-    window.dispatchEvent(new Event('resize'));
+    restorers.push(stubRect(section, { ...RECT, left: 1050 }));
+    resizeTo(820, 1180);
 
     expect(section.style.transform).toBe('translate(550px,0px)');
   });

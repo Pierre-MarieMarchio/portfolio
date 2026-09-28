@@ -1,6 +1,11 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { TurnGestureDirective, TurnableScene } from './turn-gesture.directive';
+import {
+  firePointer,
+  HeardClicks,
+  heardClicks,
+} from '@testing/fixtures/pointer.fixture';
 
 class SceneDouble implements TurnableScene {
   public isTurnable = true;
@@ -32,34 +37,7 @@ class HostComponent {
   public readonly scene = signal<TurnableScene | null>(null);
 }
 
-let clicksHeard = 0;
-
-const hearClick = (): void => {
-  clicksHeard += 1;
-};
-
-const pointer = (
-  target: EventTarget,
-  type: string,
-  options: {
-    x?: number;
-    y?: number;
-    button?: number;
-    id?: number;
-    isPrimary?: boolean;
-  } = {},
-): void => {
-  target.dispatchEvent(
-    new PointerEvent(type, {
-      bubbles: true,
-      clientX: options.x ?? 0,
-      clientY: options.y ?? 0,
-      button: options.button ?? 0,
-      pointerId: options.id ?? 1,
-      isPrimary: options.isPrimary ?? true,
-    }),
-  );
-};
+let clicks: HeardClicks;
 
 const mount = async (scene: TurnableScene | null) => {
   TestBed.configureTestingModule({ imports: [HostComponent] });
@@ -68,17 +46,16 @@ const mount = async (scene: TurnableScene | null) => {
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   document.body.append(host);
-  return { fixture, host, clicks: () => clicksHeard };
+  return { fixture, host, clicks: clicks.count };
 };
 
 describe('TurnGestureDirective', () => {
   beforeEach(() => {
-    clicksHeard = 0;
-    document.addEventListener('click', hearClick);
+    clicks = heardClicks();
   });
 
   afterEach(() => {
-    document.removeEventListener('click', hearClick);
+    clicks.stop();
     TestBed.resetTestingModule();
     document.body.replaceChildren();
     document.body.style.cursor = '';
@@ -88,9 +65,9 @@ describe('TurnGestureDirective', () => {
     const scene = new SceneDouble();
     const { host } = await mount(scene);
 
-    pointer(host, 'pointerdown', { x: 10, y: 20 });
-    pointer(host, 'pointermove', { x: 30, y: 25 });
-    pointer(host, 'pointermove', { x: 40, y: 28 });
+    firePointer(host, 'pointerdown', { x: 10, y: 20 });
+    firePointer(host, 'pointermove', { x: 30, y: 25 });
+    firePointer(host, 'pointermove', { x: 40, y: 28 });
 
     expect(scene.grabs).toEqual([[10, 20]]);
     expect(scene.turns).toEqual([
@@ -103,19 +80,19 @@ describe('TurnGestureDirective', () => {
     const scene = new SceneDouble();
     const { host, clicks } = await mount(scene);
 
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointerup');
-    pointer(host, 'click');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointerup');
+    firePointer(host, 'click');
     expect(clicks()).toBe(1);
 
     scene.isDrag = true;
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointerup');
-    pointer(host, 'click');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointerup');
+    firePointer(host, 'click');
     expect(clicks()).toBe(1);
     expect(scene.releases).toBe(2);
 
-    pointer(host, 'click');
+    firePointer(host, 'click');
     expect(clicks()).toBe(2);
   });
 
@@ -124,11 +101,11 @@ describe('TurnGestureDirective', () => {
     scene.isDrag = true;
     const { host, clicks } = await mount(scene);
 
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointerup');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointerup');
     scene.isTurnable = false;
-    pointer(host, 'pointerdown');
-    pointer(host, 'click');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'click');
 
     expect(clicks()).toBe(1);
   });
@@ -138,9 +115,9 @@ describe('TurnGestureDirective', () => {
     scene.isDrag = true;
     const { host, clicks } = await mount(scene);
 
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointercancel');
-    pointer(host, 'click');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointercancel');
+    firePointer(host, 'click');
 
     expect(clicks()).toBe(0);
   });
@@ -149,10 +126,10 @@ describe('TurnGestureDirective', () => {
     const scene = new SceneDouble();
     const { host } = await mount(scene);
 
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointerup');
-    pointer(host, 'pointermove', { x: 50, y: 50 });
-    pointer(host, 'pointerup');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointerup');
+    firePointer(host, 'pointermove', { x: 50, y: 50 });
+    firePointer(host, 'pointerup');
 
     expect(scene.turns).toEqual([]);
     expect(scene.releases).toBe(1);
@@ -161,10 +138,10 @@ describe('TurnGestureDirective', () => {
   it('shows the grabbing cursor while the scene is held', async () => {
     const { host } = await mount(new SceneDouble());
 
-    pointer(host, 'pointerdown');
+    firePointer(host, 'pointerdown');
     expect(document.body.style.cursor).toBe('grabbing');
 
-    pointer(host, 'pointerup');
+    firePointer(host, 'pointerup');
     expect(document.body.style.cursor).toBe('');
   });
 
@@ -189,9 +166,9 @@ describe('TurnGestureDirective', () => {
       element.append(child);
       document.body.append(element);
 
-      pointer(child, 'pointerdown');
-      pointer(child, 'pointerup');
-      pointer(child, 'click');
+      firePointer(child, 'pointerdown');
+      firePointer(child, 'pointerup');
+      firePointer(child, 'click');
 
       expect(scene.grabs).toEqual([]);
       expect(clicks()).toBe(1);
@@ -202,11 +179,11 @@ describe('TurnGestureDirective', () => {
     const scene = new SceneDouble();
     const { host } = await mount(scene);
 
-    pointer(host, 'pointerdown', { x: 10, y: 20, id: 1 });
-    pointer(host, 'pointerdown', { x: 60, y: 20, id: 2, isPrimary: false });
-    pointer(host, 'pointermove', { x: 80, y: 30, id: 2, isPrimary: false });
-    pointer(host, 'pointerup', { x: 80, y: 30, id: 2, isPrimary: false });
-    pointer(host, 'pointermove', { x: 12, y: 24, id: 1 });
+    firePointer(host, 'pointerdown', { x: 10, y: 20, id: 1 });
+    firePointer(host, 'pointerdown', { x: 60, y: 20, id: 2, isPrimary: false });
+    firePointer(host, 'pointermove', { x: 80, y: 30, id: 2, isPrimary: false });
+    firePointer(host, 'pointerup', { x: 80, y: 30, id: 2, isPrimary: false });
+    firePointer(host, 'pointermove', { x: 12, y: 24, id: 1 });
 
     expect(scene.grabs).toEqual([[10, 20]]);
     expect(scene.turns).toEqual([[12, 24]]);
@@ -217,7 +194,7 @@ describe('TurnGestureDirective', () => {
     const scene = new SceneDouble();
     const { host } = await mount(scene);
 
-    pointer(host, 'pointerdown', { button: 2 });
+    firePointer(host, 'pointerdown', { button: 2 });
 
     expect(scene.grabs).toEqual([]);
   });
@@ -228,10 +205,10 @@ describe('TurnGestureDirective', () => {
     scene.isDrag = true;
     const { host, clicks } = await mount(scene);
 
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointermove', { x: 30, y: 30 });
-    pointer(host, 'pointerup');
-    pointer(host, 'click');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointermove', { x: 30, y: 30 });
+    firePointer(host, 'pointerup');
+    firePointer(host, 'click');
 
     expect(scene.turns).toEqual([]);
     expect(clicks()).toBe(1);
@@ -241,9 +218,9 @@ describe('TurnGestureDirective', () => {
   it('does nothing before a scene is there', async () => {
     const { host, clicks } = await mount(null);
 
-    pointer(host, 'pointerdown');
-    pointer(host, 'pointerup');
-    pointer(host, 'click');
+    firePointer(host, 'pointerdown');
+    firePointer(host, 'pointerup');
+    firePointer(host, 'click');
 
     expect(clicks()).toBe(1);
     expect(document.body.style.cursor).toBe('');
@@ -253,10 +230,10 @@ describe('TurnGestureDirective', () => {
     const scene = new SceneDouble();
     const { host, fixture } = await mount(scene);
 
-    pointer(host, 'pointerdown');
+    firePointer(host, 'pointerdown');
     fixture.destroy();
-    pointer(document.body, 'pointermove', { x: 30, y: 30 });
-    pointer(document.body, 'pointerdown');
+    firePointer(document.body, 'pointermove', { x: 30, y: 30 });
+    firePointer(document.body, 'pointerdown');
 
     expect(scene.turns).toEqual([]);
     expect(scene.grabs).toHaveLength(1);

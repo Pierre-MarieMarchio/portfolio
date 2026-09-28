@@ -1,60 +1,22 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ElementObserverService } from './element-observer.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(ElementObserverService);
-};
-
-const observers: {
-  kind: string;
-  callback: (entries: { isIntersecting: boolean }[]) => void;
-  options: unknown;
-  observed: Element[];
-  isDisconnected: boolean;
-}[] = [];
-
-const stubObserver = (kind: string) =>
-  class {
-    private readonly record;
-    public constructor(
-      callback: (entries: { isIntersecting: boolean }[]) => void,
-      options?: unknown,
-    ) {
-      this.record = {
-        kind,
-        callback,
-        options,
-        observed: [] as Element[],
-        isDisconnected: false,
-      };
-      observers.push(this.record);
-    }
-    public observe(element: Element): void {
-      this.record.observed.push(element);
-    }
-    public disconnect(): void {
-      this.record.isDisconnected = true;
-    }
-  };
+import { StubObserver, stubObservers } from '@testing/doubles/browser.double';
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('ElementObserverService', () => {
+  let observers: StubObserver[];
+
   beforeEach(() => {
-    vi.stubGlobal('ResizeObserver', stubObserver('resize'));
-    vi.stubGlobal('IntersectionObserver', stubObserver('intersection'));
+    observers = stubObservers();
   });
 
   afterEach(() => {
-    observers.length = 0;
     TestBed.resetTestingModule();
     vi.unstubAllGlobals();
   });
 
   it('is inert on the server: observes nothing', () => {
-    const observer = inject('server');
+    const observer = injectOn(ElementObserverService, 'server');
     const element = document.createElement('div');
     const called = vi.fn();
 
@@ -69,7 +31,10 @@ describe('ElementObserverService', () => {
     const element = document.createElement('div');
     const called = vi.fn();
 
-    const stop = inject('browser').onResize(element, called);
+    const stop = injectOn(ElementObserverService, 'browser').onResize(
+      element,
+      called,
+    );
     observers[0]?.callback([]);
     stop();
 
@@ -83,8 +48,10 @@ describe('ElementObserverService', () => {
     const element = document.createElement('div');
     const heard: boolean[] = [];
 
-    const stop = inject('browser').onVisible(element, 0.25, (isVisible) =>
-      heard.push(isVisible),
+    const stop = injectOn(ElementObserverService, 'browser').onVisible(
+      element,
+      0.25,
+      (isVisible) => heard.push(isVisible),
     );
     observers[0]?.callback([{ isIntersecting: true }]);
     observers[0]?.callback([]);
@@ -100,7 +67,7 @@ describe('ElementObserverService', () => {
   it('is inert in a browser without observers', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     vi.stubGlobal('IntersectionObserver', undefined);
-    const observer = inject('browser');
+    const observer = injectOn(ElementObserverService, 'browser');
     const element = document.createElement('div');
 
     expect(() => {

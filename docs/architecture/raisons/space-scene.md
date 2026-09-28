@@ -440,7 +440,7 @@ et de `src/testing/`, rangées par unité (D10).
 
 - Les textes de chaque couche et les liens sont fournis d'un coup : un spec de
   composant a besoin des mots, pas du chargement d'un chunk. Le vrai
-  branchement (`provideI18n`) est exercé par `src/integration/i18n.spec.ts`.
+  branchement (`provideI18n`) est exercé par `src/testing/integration/i18n.spec.ts`.
 
 ## `src/app/shared/space-scene/engine/motions/zoom.motion.ts`
 

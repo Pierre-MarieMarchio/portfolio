@@ -5,6 +5,8 @@ import { recordingContext } from '@testing/doubles/recording-canvas.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
 import {
   bodyId,
+  elements,
+  ENGINE_OPTIONS,
   SCENE_INPUTS,
   WIDE_LAYOUT,
 } from '@testing/fixtures/engine-scene.fixture';
@@ -13,9 +15,6 @@ import { pairedScene } from '@testing/fixtures/scene-worker.fixture';
 const WIDTH = 1280;
 const HEIGHT = 800;
 const PAST_CROSSING_MS = 12_000;
-
-const elements = (count: number): HTMLElement[] =>
-  Array.from({ length: count }, () => document.createElement('span'));
 
 const sceneNodes = () => ({
   buttons: elements(SCENE_INPUTS.bodies.length),
@@ -39,19 +38,14 @@ const drive = (engine: SceneEngine, nodes: SceneNodes): void => {
 const pageScene = () => {
   const log: string[] = [];
   const clock = drivenHost();
+  const { seed, ...look } = ENGINE_OPTIONS;
   const engine = new SpaceSceneEngine(
     clock.host,
     {
       matter: recordingContext('matter', log),
       sky: recordingContext('sky', log),
     },
-    {
-      rnd: seededRandom(7),
-      density: 600,
-      figures: 'constellations',
-      ink: '#e8ecf2',
-      accent: '#7cc4f0',
-    },
+    { ...look, rnd: seededRandom(seed), figures: 'constellations' },
     WIDTH * HEIGHT,
   );
   return { engine, log, run: (ms: number) => clock.step(ms) };

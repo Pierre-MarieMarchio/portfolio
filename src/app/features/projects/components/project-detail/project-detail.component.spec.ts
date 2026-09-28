@@ -10,6 +10,7 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { ProjectEntry } from '../../models';
 import { ProjectDetailComponent } from './project-detail.component';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 
 describe('ProjectSheetComponent', () => {
   const detail = sampleDetail({
@@ -122,10 +123,7 @@ describe('ProjectSheetComponent', () => {
 
   it('emits chapterChange on a toolbar click, without changing by itself', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b', chapter: 0 });
-    const emitted: number[] = [];
-    fixture.componentInstance.chapterChange.subscribe((value: number) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.chapterChange);
 
     const toolbar = host.querySelector('[aria-label="Parties"]');
     const buttons = [
@@ -249,10 +247,7 @@ describe('ProjectSheetComponent', () => {
 
   it('offers a next-chapter button before the last chapter', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b', chapter: 0 });
-    const emitted: number[] = [];
-    fixture.componentInstance.chapterChange.subscribe((value: number) =>
-      emitted.push(value),
-    );
+    const emitted = recordOutput(fixture.componentInstance.chapterChange);
 
     expect(host.querySelector('.position')?.textContent?.trim()).toBe(
       'Pourquoi',
@@ -306,10 +301,7 @@ describe('ProjectSheetComponent', () => {
     'turns a swipe on chapter %i towards %s into the neighbouring chapter, within bounds',
     async (chapter, direction, emitted) => {
       const { fixture } = await mount({ slug: 'proj-a', chapter });
-      const values: number[] = [];
-      fixture.componentInstance.chapterChange.subscribe((value: number) =>
-        values.push(value),
-      );
+      const values = recordOutput(fixture.componentInstance.chapterChange);
       const window = fixture.debugElement.query(By.directive(WindowComponent))
         .componentInstance as WindowComponent;
 

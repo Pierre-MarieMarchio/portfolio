@@ -1,6 +1,11 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { BottomEdgeVariableDirective } from './bottom-edge-variable.directive';
+import {
+  resizeObserved,
+  StubObserver,
+  stubObservers,
+} from '@testing/doubles/browser.double';
 
 @Component({
   imports: [BottomEdgeVariableDirective],
@@ -9,16 +14,6 @@ import { BottomEdgeVariableDirective } from './bottom-edge-variable.directive';
   </section>`,
 })
 class Scene {}
-
-const resizes: (() => void)[] = [];
-
-class StubResizeObserver {
-  public constructor(callback: () => void) {
-    resizes.push(callback);
-  }
-  public observe(): void {}
-  public disconnect(): void {}
-}
 
 const edges = (bottom: () => number) =>
   vi
@@ -45,13 +40,14 @@ const mount = async () => {
 };
 
 describe('BottomEdgeVariableDirective', () => {
+  let observers: StubObserver[];
+
   beforeEach(() => {
-    vi.stubGlobal('ResizeObserver', StubResizeObserver);
+    observers = stubObservers();
   });
 
   afterEach(() => {
     TestBed.resetTestingModule();
-    resizes.length = 0;
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -70,9 +66,7 @@ describe('BottomEdgeVariableDirective', () => {
     const { variable } = await mount();
 
     bottom = 150;
-    for (const resize of resizes) {
-      resize();
-    }
+    resizeObserved(observers);
 
     expect(variable()).toBe('120px');
   });

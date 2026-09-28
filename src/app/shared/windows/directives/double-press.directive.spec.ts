@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DoublePressDirective } from './double-press.directive';
+import { tap as tapOn } from '@testing/fixtures/pointer.fixture';
 
 type PointerKind = 'mouse' | 'touch' | 'pen';
 
@@ -10,21 +11,6 @@ interface Press {
   readonly at: number;
   readonly kind?: PointerKind;
 }
-
-const pointer = (
-  type: string,
-  { x = 100, y = 20, at, kind = 'touch' }: Press,
-): Event => {
-  const event = new PointerEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    clientX: x,
-    clientY: y,
-    pointerType: kind,
-  });
-  Object.defineProperty(event, 'timeStamp', { value: at });
-  return event;
-};
 
 @Component({
   imports: [DoublePressDirective],
@@ -51,8 +37,7 @@ const setup = async () => {
     release: Partial<Press> = {},
     on: Element = grip,
   ): void => {
-    on.dispatchEvent(pointer('pointerdown', press));
-    on.dispatchEvent(pointer('pointerup', { ...press, ...release }));
+    tapOn(on, { x: 100, y: 20, ...press }, release);
   };
   const doubleClick = (on: Element = grip): void => {
     on.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HoverFocusDirective } from './hover-focus.directive';
+import { stubMedia } from '@testing/doubles/browser.double';
 
 @Component({
   imports: [HoverFocusDirective],
@@ -17,16 +18,8 @@ class Host {
   public readonly heard: string[] = [];
 }
 
-const stubHover = (canHover: boolean): void => {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: query === '(hover: none)' && !canHover,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }));
-};
-
 const mount = async (canHover = true) => {
-  stubHover(canHover);
+  stubMedia((query) => query === '(hover: none)' && !canHover);
   TestBed.configureTestingModule({ imports: [Host] });
   const fixture = TestBed.createComponent(Host);
   await fixture.whenStable();

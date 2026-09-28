@@ -1,6 +1,11 @@
 import { Component, ElementRef, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { elementSize } from './element-size.signal';
+import {
+  resizeObserved,
+  StubObserver,
+  stubObservers,
+} from '@testing/doubles/browser.double';
 
 @Component({
   template: `<div #box></div>`,
@@ -8,21 +13,6 @@ import { elementSize } from './element-size.signal';
 class Measured {
   private readonly box = viewChild.required<ElementRef<HTMLElement>>('box');
   public readonly size = elementSize(() => this.box().nativeElement);
-}
-
-const resizes: (() => void)[] = [];
-const stopped: boolean[] = [];
-
-class StubResizeObserver {
-  private readonly index: number;
-  public constructor(callback: () => void) {
-    this.index = resizes.push(callback) - 1;
-    stopped.push(false);
-  }
-  public observe(): void {}
-  public disconnect(): void {
-    stopped[this.index] = true;
-  }
 }
 
 const sized = (width: number, height: number) =>
@@ -40,14 +30,14 @@ const mount = async () => {
 };
 
 describe('elementSize', () => {
+  let observers: StubObserver[];
+
   beforeEach(() => {
-    vi.stubGlobal('ResizeObserver', StubResizeObserver);
+    observers = stubObservers();
   });
 
   afterEach(() => {
     TestBed.resetTestingModule();
-    resizes.length = 0;
-    stopped.length = 0;
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -67,9 +57,7 @@ describe('elementSize', () => {
     const fixture = await mount();
 
     measure.mockReturnValue({ width: 200, height: 80 } as DOMRect);
-    for (const resize of resizes) {
-      resize();
-    }
+    resizeObserved(observers);
 
     expect(fixture.componentInstance.size()).toEqual({
       width: 200,
@@ -83,7 +71,9 @@ describe('elementSize', () => {
 
     fixture.destroy();
 
-    expect(stopped).toEqual([true]);
+    expect(observers.map((observer) => observer.isDisconnected)).toEqual([
+      true,
+    ]);
   });
 
   it('knows no size before the element is rendered', () => {

@@ -4,6 +4,13 @@ import { WindowComponent } from './window.component';
 import { loadGlassGestures } from '../../directives/glass-gesture.directive';
 import { WindowSize } from '../../models/window.model';
 import { ScrollMemoryService } from '../../services/scroll-memory.service';
+import { stubViewport } from '@testing/doubles/browser.double';
+import {
+  drag as dragAlong,
+  pointer,
+  tap as tapOn,
+} from '@testing/fixtures/pointer.fixture';
+import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const PIN_OFF_LABEL = 'Garder cette fenêtre ouverte en changeant de page';
@@ -13,43 +20,6 @@ const COLLAPSE_ON_LABEL = 'Déplier la fenêtre';
 const CLOSE_LABEL = 'Fermer la fenêtre';
 
 const CAPS: Record<WindowSize, number> = { s: 300, m: 470, l: 920 };
-
-const stubViewport = (width: number, height: number): (() => void) => {
-  const widthDescriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
-  const heightDescriptor = Object.getOwnPropertyDescriptor(
-    window,
-    'innerHeight',
-  );
-
-  Object.defineProperty(window, 'innerWidth', {
-    value: width,
-    configurable: true,
-  });
-  Object.defineProperty(window, 'innerHeight', {
-    value: height,
-    configurable: true,
-  });
-
-  return () => {
-    if (widthDescriptor) {
-      Object.defineProperty(window, 'innerWidth', widthDescriptor);
-    }
-    if (heightDescriptor) {
-      Object.defineProperty(window, 'innerHeight', heightDescriptor);
-    }
-  };
-};
-
-const pointerEvent = (
-  type: string,
-  init: { clientX: number; clientY: number; button?: number },
-): Event => {
-  const options = { bubbles: true, cancelable: true, ...init };
-
-  return typeof PointerEvent === 'function'
-    ? new PointerEvent(type, options)
-    : new MouseEvent(type, options);
-};
 
 @Component({
   selector: 'app-host-window-zones',
@@ -97,42 +67,24 @@ const titlebarButtons = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('.titlebar button'),
 ];
 
-const at = <T>(items: readonly T[], index: number): T => {
-  const item = items[index];
-  if (item === undefined) {
-    throw new Error(`expected an item at index ${String(index)}, found none`);
-  }
-  return item;
-};
-
-const touch = (type: string, x: number, y: number, at: number): Event => {
-  const event = new PointerEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    clientX: x,
-    clientY: y,
-    pointerId: 1,
-    isPrimary: true,
-    pointerType: 'touch',
-  });
-  Object.defineProperty(event, 'timeStamp', { value: at });
-  return event;
-};
-
 const drag = (on: Element, dx: number, dy: number): void => {
-  on.dispatchEvent(touch('pointerdown', 100, 100, 0));
-  on.dispatchEvent(touch('pointermove', 100 + dx / 2, 100 + dy / 2, 150));
-  on.dispatchEvent(touch('pointermove', 100 + dx, 100 + dy, 300));
-  on.dispatchEvent(touch('pointerup', 100 + dx, 100 + dy, 310));
+  dragAlong(
+    on,
+    [
+      { x: 100, y: 100, at: 0 },
+      { x: 100 + dx / 2, y: 100 + dy / 2, at: 150 },
+      { x: 100 + dx, y: 100 + dy, at: 300 },
+    ],
+    { x: 100 + dx, y: 100 + dy, at: 310 },
+  );
 };
 
 const tap = (on: Element): void => {
-  on.dispatchEvent(touch('pointerdown', 100, 10, 0));
-  on.dispatchEvent(touch('pointerup', 100, 10, 50));
+  tapOn(on, { x: 100, y: 10, at: 0 }, { at: 50 });
 };
 
-const mountOnPhone = async (restorers: (() => void)[]) => {
-  restorers.push(stubViewport(390, 844));
+const mountOnPhone = async () => {
+  stubViewport(390, 844);
   const mounted = await mount();
   await loadGlassGestures();
   await mounted.fixture.whenStable();
@@ -148,6 +100,7 @@ describe('WindowComponent', () => {
     while (restorers.length > 0) {
       restorers.pop()?.();
     }
+    vi.unstubAllGlobals();
   });
 
   it('writes no title attribute on its host when given a heading in a template', async () => {
@@ -245,10 +198,7 @@ describe('WindowComponent', () => {
       const { fixture, host } = await mount();
       const pin = at(titlebarButtons(host), 0);
 
-      const calls: void[] = [];
-      fixture.componentInstance.pinToggled.subscribe(() =>
-        calls.push(undefined),
-      );
+      const calls = recordOutput(fixture.componentInstance.pinToggled);
 
       pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await fixture.whenStable();
@@ -355,8 +305,7 @@ describe('WindowComponent', () => {
       expect(close.getAttribute('title')).toBe(CLOSE_LABEL);
       expect(close.textContent?.trim()).toBe('✕');
 
-      const calls: void[] = [];
-      fixture.componentInstance.closed.subscribe(() => calls.push(undefined));
+      const calls = recordOutput(fixture.componentInstance.closed);
       close.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await fixture.whenStable();
       expect(calls).toHaveLength(1);
@@ -415,7 +364,7 @@ describe('WindowComponent', () => {
   describe('height', () => {
     it('bounds the section to the ceiling of its size, and lets it go while folded', async () => {
       const { fixture, host, section } = await mount();
-      restorers.push(stubViewport(1200, 2000));
+      stubViewport(1200, 2000);
 
       for (const size of Object.keys(CAPS) as WindowSize[]) {
         fixture.componentRef.setInput('size', size);
@@ -435,7 +384,7 @@ describe('WindowComponent', () => {
 
     it('measures the room from its bottom edge when anchored at the bottom', async () => {
       const { fixture, section } = await mount();
-      restorers.push(stubViewport(1200, 2000));
+      stubViewport(1200, 2000);
       Object.defineProperty(section, 'offsetHeight', {
         value: 300,
         configurable: true,
@@ -452,27 +401,19 @@ describe('WindowComponent', () => {
   describe('drag', () => {
     it('moves by its title bar, never by one of its buttons', async () => {
       const { host, section } = await mount();
-      restorers.push(stubViewport(1200, 800));
+      stubViewport(1200, 800);
       section.getBoundingClientRect = () => new DOMRect(500, 300, 200, 150);
       const titlebar = host.querySelector('.titlebar') as HTMLElement;
 
       at(titlebarButtons(host), 0).dispatchEvent(
-        pointerEvent('pointerdown', { clientX: 0, clientY: 0, button: 0 }),
+        pointer('pointerdown', { x: 0, y: 0 }),
       );
-      window.dispatchEvent(
-        pointerEvent('pointermove', { clientX: 50, clientY: 30 }),
-      );
+      window.dispatchEvent(pointer('pointermove', { x: 50, y: 30 }));
       expect(section.style.transform).toBe('');
 
-      titlebar.dispatchEvent(
-        pointerEvent('pointerdown', { clientX: 0, clientY: 0, button: 0 }),
-      );
-      window.dispatchEvent(
-        pointerEvent('pointermove', { clientX: 50, clientY: 30 }),
-      );
-      window.dispatchEvent(
-        pointerEvent('pointerup', { clientX: 50, clientY: 30 }),
-      );
+      titlebar.dispatchEvent(pointer('pointerdown', { x: 0, y: 0 }));
+      window.dispatchEvent(pointer('pointermove', { x: 50, y: 30 }));
+      window.dispatchEvent(pointer('pointerup', { x: 50, y: 30 }));
       expect(section.style.transform).toBe('translate(50px,30px)');
     });
   });
@@ -503,8 +444,7 @@ describe('WindowComponent', () => {
 
   describe('at the phone format', () => {
     it('folds when its title bar is pulled down', async () => {
-      const { fixture, host, heading, collapse } =
-        await mountOnPhone(restorers);
+      const { fixture, host, heading, collapse } = await mountOnPhone();
 
       drag(heading, 0, 80);
       await fixture.whenStable();
@@ -514,7 +454,7 @@ describe('WindowComponent', () => {
     });
 
     it('unfolds on a lift or a tap of its folded bar', async () => {
-      const { fixture, heading, collapse } = await mountOnPhone(restorers);
+      const { fixture, heading, collapse } = await mountOnPhone();
       collapse.click();
       await fixture.whenStable();
 
@@ -531,7 +471,7 @@ describe('WindowComponent', () => {
     });
 
     it('stays open when its folded bar is tapped twice in a row', async () => {
-      const { fixture, heading, collapse } = await mountOnPhone(restorers);
+      const { fixture, heading, collapse } = await mountOnPhone();
       collapse.click();
       await fixture.whenStable();
 
@@ -544,11 +484,8 @@ describe('WindowComponent', () => {
     });
 
     it('emits swiped when its body is swiped sideways', async () => {
-      const { fixture, host } = await mountOnPhone(restorers);
-      const swipes: string[] = [];
-      fixture.componentInstance.swiped.subscribe((direction) =>
-        swipes.push(direction),
-      );
+      const { fixture, host } = await mountOnPhone();
+      const swipes = recordOutput(fixture.componentInstance.swiped);
 
       drag(bodyOf(host), -80, 4);
       drag(bodyOf(host), 80, 4);
@@ -557,17 +494,14 @@ describe('WindowComponent', () => {
     });
 
     it('neither folds nor swipes at the desktop format', async () => {
-      restorers.push(stubViewport(1200, 800));
+      stubViewport(1200, 800);
       const { fixture, host } = await mount();
       const heading = host.querySelector('.titlebar h2') as HTMLElement;
-      const swipes: string[] = [];
-      fixture.componentInstance.swiped.subscribe((direction) =>
-        swipes.push(direction),
-      );
+      const swipes = recordOutput(fixture.componentInstance.swiped);
 
       drag(bodyOf(host), -80, 4);
-      heading.dispatchEvent(touch('pointerdown', 100, 100, 0));
-      heading.dispatchEvent(touch('pointerup', 100, 200, 300));
+      heading.dispatchEvent(pointer('pointerdown', { x: 100, y: 100, at: 0 }));
+      heading.dispatchEvent(pointer('pointerup', { x: 100, y: 200, at: 300 }));
       await fixture.whenStable();
 
       expect(swipes).toEqual([]);

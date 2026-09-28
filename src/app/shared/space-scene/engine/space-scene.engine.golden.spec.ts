@@ -1,7 +1,7 @@
 import { fingerprintOf } from '@testing/doubles/recording-canvas.double';
 import {
   bodyId,
-  mountEngineScene as mountBareScene,
+  mountEngineScene,
   SCENE_INPUTS,
   SceneChange,
   sceneBodies,
@@ -9,13 +9,6 @@ import {
   WIDE_LAYOUT,
 } from '@testing/fixtures/engine-scene.fixture';
 import { SceneLayout } from '../models/scene-layout.model';
-import * as holeFocus from '../rules/hole-focus.rules';
-
-const mountEngineScene = (setup: Partial<SceneSetup> = {}) =>
-  mountBareScene({
-    ...setup,
-    inputs: { ...(setup.inputs ?? SCENE_INPUTS), holeFocus },
-  });
 
 const emphasised = (rank: number): SceneChange => ({
   direction: { emphasised: bodyId(rank) },
@@ -63,7 +56,12 @@ const AT_REST: SceneChange = {};
 
 describe('SpaceSceneEngine, drawn frame for frame', () => {
   it('draws every scene exactly as it did before the refactor', () => {
-    const { engine, run, styles, set: at } = mountEngineScene();
+    const {
+      engine,
+      run,
+      styles,
+      set: at,
+    } = mountEngineScene({ holeFocus: true });
     const scene = (ms: number): string =>
       fingerprintOf([...run(ms), ...styles()]);
     const drawn: Record<string, string> = {};
@@ -138,7 +136,7 @@ const NARROW_LAYOUT: SceneLayout = {
 const ARRIVED = 12_000;
 
 const mount = (setup: Partial<SceneSetup> = {}) => {
-  const scene = mountEngineScene(setup);
+  const scene = mountEngineScene({ ...setup, holeFocus: true });
   const print = (ms: number): string =>
     fingerprintOf([...scene.run(ms), ...scene.styles(), ...scene.attributes()]);
   return { ...scene, print };

@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { PageVisibilityService } from './page-visibility.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(PageVisibilityService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('PageVisibilityService', () => {
   afterEach(() => {
@@ -17,7 +10,7 @@ describe('PageVisibilityService', () => {
 
   it('is inert on the server: hidden, and listens to nothing', () => {
     const addEventListener = vi.spyOn(document, 'addEventListener');
-    const visibility = inject('server');
+    const visibility = injectOn(PageVisibilityService, 'server');
     const heard = vi.fn();
 
     expect(visibility.isHidden()).toBe(true);
@@ -29,7 +22,7 @@ describe('PageVisibilityService', () => {
   });
 
   it('reads and follows the tab visibility until stopped, in the browser', () => {
-    const visibility = inject('browser');
+    const visibility = injectOn(PageVisibilityService, 'browser');
     const heard: boolean[] = [];
 
     expect(visibility.isHidden()).toBe(document.hidden);

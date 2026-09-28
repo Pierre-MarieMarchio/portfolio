@@ -1,41 +1,18 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { DisplayFormat } from '../../models/display-format.model';
 import { FormatCodeService } from './format-code.service';
+import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
+import { onPlatform, Platform } from '@testing/fixtures/testbed.fixture';
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
-
-const stubTouch = () => {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: TOUCH.has(query),
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
-};
-
-const stubMouse = () => {
-  vi.stubGlobal('matchMedia', () => ({
-    matches: false,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
-};
-
-const resizeTo = (width: number, height: number) => {
-  vi.stubGlobal('innerWidth', width);
-  vi.stubGlobal('innerHeight', height);
-  window.dispatchEvent(new Event('resize'));
-};
 
 const CODE = { name: 'format code' };
 
 const loadOn = (
-  platform: 'browser' | 'server',
+  platform: Platform,
   formats: readonly DisplayFormat[] = ['phone'],
 ) => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
+  onPlatform(platform);
   const importer = vi.fn(() => Promise.resolve(CODE));
   const loaded = TestBed.runInInjectionContext(() =>
     TestBed.inject(FormatCodeService).load(formats, importer),
@@ -50,7 +27,7 @@ describe('FormatCodeService', () => {
   });
 
   it('asks for the code once the client starts as a phone, and gives it', async () => {
-    stubTouch();
+    stubMedia(TOUCH);
     resizeTo(390, 844);
     const { importer, loaded } = loadOn('browser');
 
@@ -64,7 +41,7 @@ describe('FormatCodeService', () => {
   });
 
   it('never asks for the code of the phone on a tablet or a desktop', async () => {
-    stubTouch();
+    stubMedia(TOUCH);
     resizeTo(1024, 768);
     const tablet = loadOn('browser');
     TestBed.tick();
@@ -81,7 +58,7 @@ describe('FormatCodeService', () => {
   });
 
   it('asks for it when the format turns to phone, and only once', async () => {
-    stubTouch();
+    stubMedia(TOUCH);
     resizeTo(1024, 768);
     const { importer, loaded } = loadOn('browser');
     TestBed.tick();
@@ -101,7 +78,7 @@ describe('FormatCodeService', () => {
   });
 
   it('asks again at the next phone format when the code failed to arrive', async () => {
-    stubTouch();
+    stubMedia(TOUCH);
     resizeTo(390, 844);
     TestBed.configureTestingModule({});
     const importer = vi
@@ -125,7 +102,7 @@ describe('FormatCodeService', () => {
   });
 
   it('asks for the code of the desktop once the client starts as a desktop', async () => {
-    stubMouse();
+    stubMedia();
     resizeTo(1280, 800);
     const { importer, loaded } = loadOn('browser', ['desktop']);
 
@@ -138,7 +115,7 @@ describe('FormatCodeService', () => {
   });
 
   it('never asks for the code of the desktop on a phone or a tablet', async () => {
-    stubTouch();
+    stubMedia(TOUCH);
     resizeTo(390, 844);
     const phone = loadOn('browser', ['desktop']);
     TestBed.tick();
@@ -161,7 +138,7 @@ describe('FormatCodeService', () => {
   });
 
   it('asks for the code of the fingers once at a phone or a tablet, and never at a desktop', async () => {
-    stubTouch();
+    stubMedia(TOUCH);
     resizeTo(1024, 768);
     const { importer, loaded } = loadOn('browser', ['phone', 'tablet']);
     TestBed.tick();
@@ -174,7 +151,7 @@ describe('FormatCodeService', () => {
 
     TestBed.resetTestingModule();
     vi.unstubAllGlobals();
-    stubMouse();
+    stubMedia();
     resizeTo(1280, 800);
     const desktop = loadOn('browser', ['phone', 'tablet']);
     TestBed.tick();

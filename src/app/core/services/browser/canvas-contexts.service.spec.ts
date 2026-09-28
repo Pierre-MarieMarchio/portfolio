@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CanvasContextsService } from './canvas-contexts.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(CanvasContextsService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('CanvasContextsService', () => {
   afterEach(() => {
@@ -17,7 +10,7 @@ describe('CanvasContextsService', () => {
 
   it('is inert on the server: no context, a ratio of 1', () => {
     const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext');
-    const contexts = inject('server');
+    const contexts = injectOn(CanvasContextsService, 'server');
 
     expect(contexts.context2d(document.createElement('canvas'))).toBeNull();
     expect(contexts.pixelRatio()).toBe(1);
@@ -30,9 +23,11 @@ describe('CanvasContextsService', () => {
       .spyOn(HTMLCanvasElement.prototype, 'getContext')
       .mockReturnValue(context);
 
-    expect(inject('browser').context2d(document.createElement('canvas'))).toBe(
-      context,
-    );
+    expect(
+      injectOn(CanvasContextsService, 'browser').context2d(
+        document.createElement('canvas'),
+      ),
+    ).toBe(context);
     expect(getContext).toHaveBeenCalledWith('2d');
   });
 
@@ -44,11 +39,15 @@ describe('CanvasContextsService', () => {
     );
 
     expect(
-      inject('browser').context2d(document.createElement('canvas')),
+      injectOn(CanvasContextsService, 'browser').context2d(
+        document.createElement('canvas'),
+      ),
     ).toBeNull();
   });
 
   it('reads the device pixel ratio in the browser', () => {
-    expect(inject('browser').pixelRatio()).toBe(window.devicePixelRatio || 1);
+    expect(injectOn(CanvasContextsService, 'browser').pixelRatio()).toBe(
+      window.devicePixelRatio || 1,
+    );
   });
 });

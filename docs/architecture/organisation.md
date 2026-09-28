@@ -240,8 +240,8 @@ qu'Angular ne connaît pas demande une entrée au journal.
 | `trackers/`     | `.tracker`                                                                 | un fichier par geste                                    |
 
 Les specs restent à côté du fichier qu'elles testent (convention
-d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
-(`.double`).
+d'Angular). `src/testing/` a `fixtures/` (`.fixture`), `doubles/`
+(`.double`) et `integration/` (des `.spec` seulement).
 
 ### 3.4 Les rôles permis dans chaque zone
 
@@ -264,7 +264,7 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
 - Un spec est à côté du fichier qu'il teste, et porte son nom
   (`x.service.spec.ts`). Les suites qui traversent plusieurs unités (la
   langue et les têtes de page, le prérendu, le zoneless) sont dans
-  `src/integration/`.
+  `src/testing/integration/`.
 - `src/testing/fixtures/` : des données d'exemple bâties avec les vraies
   règles (`project.fixture.ts` classe par la vraie `rank()`), et les
   fournisseurs d'un spec (`provideTexts`, `provideProjects`).
@@ -728,7 +728,25 @@ sa vue dans `data` et ses têtes par le resolver `page-head`.
 
 ### 4.10 `src/testing/`
 
-`fixtures/` et `doubles/`, décrits au §3.5.
+`fixtures/`, `doubles/` et `integration/`, décrits au §3.5 : tout ce qui ne
+part pas en production. Un outil de spec écrit deux fois vient ici, une seule
+fois.
+
+| Unité                                | But                                                                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `doubles/browser.double.ts`          | le navigateur d'un spec : `stubViewport`, `resizeTo`, `stubMedia` (et le déclencheur de ses changements), `stubObservers`, `resizeObserved` |
+| `doubles/driven-host.double.ts`      | l'hôte à horloge pilotée, à 60 Hz ou à la cadence donnée : `drivenHost`, `FRAME_MS`                                                         |
+| `doubles/recording-canvas.double.ts` | le canvas qui enregistre, et l'empreinte de son journal : `recordingContext`, `fingerprintOf`                                               |
+| `doubles/scene-look.double.ts`       | la scène qu'on regarde, qui note ses appels, et les événements de la fenêtre : `LookableSceneDouble`, `windowEvents`                        |
+| `doubles/seeded-random.double.ts`    | le générateur à graine : `seededRandom`                                                                                                     |
+| `fixtures/engine-scene.fixture.ts`   | la scène montée sur l'hôte piloté : `mountEngineScene` (option `holeFocus`), `ENGINE_OPTIONS`, `SCENE_INPUTS`, `WIDE_LAYOUT`, `elements`    |
+| `fixtures/observatory.fixture.ts`    | l'observatoire d'un spec : `provideRecordingRouter`, `stillObservatory` (pas de mouvement, pas de canvas, l'arrivée à 8700 ms)              |
+| `fixtures/pointer.fixture.ts`        | les gestes : `pointer`, `firePointer`, `tap`, `drag`, `heardClicks`                                                                         |
+| `fixtures/project.fixture.ts`        | les projets d'exemple et leur fournisseur : `sampleEntry`, `provideProjects`, `loadProjects`                                                |
+| `fixtures/scene-layout.fixture.ts`   | la géométrie des règles de la scène : `ROOM`, `isInside`, `isOverlapping`, `chromeLayout`, `holeOf`, le téléphone debout                    |
+| `fixtures/scene-worker.fixture.ts`   | la scène déportée et son worker, reliés : `pairedScene`, aux mêmes `ENGINE_OPTIONS` que la scène de la page                                 |
+| `fixtures/testbed.fixture.ts`        | le `TestBed` : `onPlatform`, `injectOn`, `recordOutput`, `componentOf`, `at`                                                                |
+| `fixtures/texts.fixture.ts`          | les textes et les liens en français : `provideTexts`                                                                                        |
 
 ## 5. Arborescence
 

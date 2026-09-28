@@ -6,6 +6,8 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
+import { stillObservatory } from '@testing/fixtures/observatory.fixture';
+import { componentOf } from '@testing/fixtures/testbed.fixture';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
@@ -23,11 +25,7 @@ const arrivals = (host: HTMLElement) =>
   );
 
 const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
-  (
-    fixture.debugElement.query(
-      (node) => node.componentInstance instanceof ObservatorySceneComponent,
-    ).componentInstance as ObservatorySceneComponent
-  ).revealed();
+  componentOf(fixture, ObservatorySceneComponent).revealed();
 
 describe('StationComponent', () => {
   const KNOWN_SLUG = 'known-project';
@@ -43,16 +41,11 @@ describe('StationComponent', () => {
       address?: string;
     } = {},
   ) => {
-    vi.stubGlobal('matchMedia', (query: string) => ({
-      matches:
-        query === '(prefers-reduced-motion: reduce)'
-          ? (options.reducedMotion ?? true)
-          : false,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }));
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    document.documentElement.style.setProperty('--arrival-at', '8700ms');
+    stillObservatory((query) =>
+      query === '(prefers-reduced-motion: reduce)'
+        ? (options.reducedMotion ?? true)
+        : false,
+    );
     TestBed.configureTestingModule({
       imports: [ObservatoryPageComponent],
       providers: [
@@ -269,16 +262,12 @@ describe('StationComponent', () => {
     const { fixture, station } = await mount();
     station.syncRoute('about');
     await fixture.whenStable();
-    const scene = fixture.debugElement.query(
-      (node) => node.componentInstance instanceof ObservatorySceneComponent,
-    ).componentInstance as ObservatorySceneComponent;
+    const scene = componentOf(fixture, ObservatorySceneComponent);
 
     scene.figureChosen.emit(2);
     await fixture.whenStable();
 
-    const about = fixture.debugElement.query(
-      (node) => node.componentInstance instanceof AboutWindowComponent,
-    ).componentInstance as AboutWindowComponent;
+    const about = componentOf(fixture, AboutWindowComponent);
     expect(station.section()).toBe(2);
     expect(about.part()).toBe(2);
   });

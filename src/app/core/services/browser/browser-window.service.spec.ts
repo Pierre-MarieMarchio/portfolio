@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { BrowserWindowService } from './browser-window.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(BrowserWindowService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('BrowserWindowService', () => {
   afterEach(() => {
@@ -17,7 +10,7 @@ describe('BrowserWindowService', () => {
 
   it('is inert on the server: no size, and listens to nothing', () => {
     const addEventListener = vi.spyOn(window, 'addEventListener');
-    const browserWindow = inject('server');
+    const browserWindow = injectOn(BrowserWindowService, 'server');
     const heard = vi.fn();
 
     expect(browserWindow.size()).toBeNull();
@@ -30,14 +23,14 @@ describe('BrowserWindowService', () => {
   });
 
   it('reads the window size in the browser', () => {
-    expect(inject('browser').size()).toEqual({
+    expect(injectOn(BrowserWindowService, 'browser').size()).toEqual({
       width: window.innerWidth,
       height: window.innerHeight,
     });
   });
 
   it('listens to a window event until stopped, in the browser', () => {
-    const browserWindow = inject('browser');
+    const browserWindow = injectOn(BrowserWindowService, 'browser');
     const heard: string[] = [];
 
     const stop = browserWindow.on('keydown', (event) => heard.push(event.type));

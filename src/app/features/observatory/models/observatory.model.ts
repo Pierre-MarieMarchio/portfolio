@@ -10,6 +10,8 @@ export const OBSERVATORY_WINDOWS = [
 
 export type ObservatoryWindow = (typeof OBSERVATORY_WINDOWS)[number];
 
+export type ViewSlot = ObservatoryWindow | 'home';
+
 export type ObservatoryPins = Readonly<Record<ObservatoryWindow, boolean>>;
 
 export interface Planet {

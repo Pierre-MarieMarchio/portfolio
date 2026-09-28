@@ -1,6 +1,7 @@
 import {
   computed,
   DestroyRef,
+  effect,
   inject,
   Service,
   signal,
@@ -28,6 +29,13 @@ export class HomeRevealService {
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.cancel();
+    });
+    effect(() => {
+      if (this.station.view() !== 'home') {
+        untracked(() => {
+          this.arrive();
+        });
+      }
     });
   }
 

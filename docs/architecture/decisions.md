@@ -1482,3 +1482,28 @@ au bas du corps couché : il cache la coupure sans l'ôter. Garder la règle
 couchée : l'opérateur a choisi un nom à la fois pour le téléphone.
 
 **Budget.** Le bundle initial passe de 528,81 à 529,39 kB.
+
+## 2026-09-28 — La page de l'observatoire n'assemble plus que ce qui se croise (D50, amende D11 pour la page)
+
+**Décision.** `ObservatoryPageComponent` garde ce que seule la page peut
+faire, parce que cela croise les features : `Project` → `Planet`, la fiche
+introuvable, le filtre typé, le projet désigné, le clic sur un corps, et
+l'état de départ lu dans l'adresse. Le reste descend là où il appartient.
+Le premier plan et le focus de la fenêtre de la vue passent dans
+`ViewWindowsService` et `ViewSlotDirective` (`features/observatory`) ; la
+navigation et les langues dans `ViewLinksService` (`i18n`) ; le rail de
+contact dans `ContactLinksComponent` (`features/profile`) ; « révéler
+l'accueil dès qu'on le quitte » dans `HomeRevealService`. La page importe
+chaque zone par son `index.ts`, et ses champs portent le nom de leur type
+(`observatory`, `featuredTour`, `homeReveal`).
+
+**Raison.** La page faisait 330 lignes ; elle en fait 199, dont 59
+d'imports. Le relevé de la session 3 (état des lieux) liste ce qui a été
+déplacé et ce qui a été écarté, avec le gain de chacun.
+
+**Écarté.** Des sous-compositions par vue : les fenêtres croisent
+`observatory` et `projects` ou `profile`, donc leur composition reste dans
+`pages/`, qui ne tient qu'un composant par écran. Une directive pour Échap :
+le `host` d'une ligne suffit. Un service pour l'état de départ lu dans
+l'adresse : trois lignes, au seul endroit qui connaît `i18n` et
+l'observatoire.

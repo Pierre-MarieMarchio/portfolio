@@ -1482,3 +1482,31 @@ au bas du corps couché : il cache la coupure sans l'ôter. Garder la règle
 couchée : l'opérateur a choisi un nom à la fois pour le téléphone.
 
 **Budget.** Le bundle initial passe de 528,81 à 529,39 kB.
+
+## 2026-09-28 — La CI se découpe, mesure la couverture, passe par Sonar et déploie son propre build (D48)
+
+**Décision.** Le workflow a cinq jobs. `lint` (format, types des outils,
+ESLint et Stylelint, structure, commentaires), `test` (Vitest avec la
+couverture, rapport lcov) et `build` (build de production, prérendu et
+`check:prerender`, le site gardé comme artefact) tournent en parallèle.
+`sonar` lit le rapport de `test` et attend la quality gate de SonarQube
+Cloud, qui échoue le job si elle est rouge. `deploy`, sur `main` seulement,
+attend `lint`, `build` et `sonar`, prend l'artefact du build, y ajoute ce
+que GitHub Pages demande (`404.html`, `.nojekyll`) et le publie. L'adresse
+du site devient une variable de build : `SITE_URL` (un `define`, dont
+`angular.json` porte le défaut) et `BASE_HREF`, lus dans les variables du
+dépôt, avec GitHub Pages pour défaut. Sous couverture, les tests ont 30 s
+chacun (`vitest-coverage.config.ts`) : l'instrumentation ralentit les
+scènes d'environ trois fois.
+
+**Raison.** Le job `deploy` refaisait un build, avec un autre `base-href`
+que celui qui avait été vérifié : ce qui partait n'était pas ce qui avait
+passé les contrôles. Un seul job d'un bloc ne disait pas ce qui avait
+cassé. Aucune couverture n'était mesurée ; elle est de 98 % des lignes et
+94 % des branches. Le jour du nom de domaine et du VPS, seul `deploy`
+change, et les deux variables du dépôt.
+
+**Écarté.** Garder les ajouts propres à Pages dans le build : ils
+n'auraient aucun sens sur un autre hébergeur. Lighthouse CI : utile, mais
+son budget de perf dépend de la session sur les fenêtres, à reprendre
+après.

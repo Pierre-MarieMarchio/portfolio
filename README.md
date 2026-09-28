@@ -25,12 +25,24 @@ npm start          # http://localhost:4200
 | `npm run build`           | build de production + prérendu de toutes les routes                                                       |
 | `npm run serve:static`    | sert `dist/portfolio/browser` comme un hébergeur static                                                   |
 | `npm test`                | Vitest + jsdom, une passe                                                                                 |
+| `npm run test:coverage`   | la même passe avec la couverture, rapport lcov dans `coverage/`                                           |
 | `npm run lint`            | ESLint, dont la loi de dépendance, puis Stylelint, zéro avertissement                                     |
 | `npm run check:structure` | la nomenclature d'`organisation.md` §3 ; échoue sur un écart                                              |
 | `npm run check:comments`  | aucun commentaire dans le code (D10) ; échoue en listant ceux qui restent                                 |
 | `npm run check`           | format:check → typecheck:tools → lint → test → build → check:prerender → check:structure → check:comments |
 
 Les messages de commit suivent les Conventional Commits (Husky + commitlint).
+
+## Intégration continue
+
+`.github/workflows/ci.yml` refait `npm run check` en jobs parallèles : format,
+lint et structure ; tests avec couverture ; build et prérendu. SonarQube Cloud
+analyse la couverture et bloque sur sa quality gate. Sur `main`, le job de
+déploiement publie l'artefact du build tel quel, sans second build (D48).
+
+L'adresse du site est une variable de build : `SITE_URL` et `BASE_HREF`,
+des variables du dépôt sur GitHub, avec pour défaut GitHub Pages. En local,
+`ng build --base-href /x/ --define "SITE_URL=\"https://…\""`.
 
 ## Les couches
 

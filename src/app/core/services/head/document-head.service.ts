@@ -4,7 +4,7 @@ import { DEFAULT_LANG, Lang, LANGS } from '../../models';
 
 export const SITE_NAME = 'Pierre-Marie Marchio';
 
-const SITE_URL = 'https://pierre-mariemarchio.github.io/portfolio';
+declare const SITE_URL: string;
 
 const absoluteUrl = (path: string): string => `${SITE_URL}${path}`;
 

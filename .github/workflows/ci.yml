@@ -1,5 +1,7 @@
-# One pipeline: every pull request and every push runs the same gate as a
-# local `npm run check`; a push to main then publishes the prerendered site.
+# Every pull request and every push to main runs the same checks as a local
+# `npm run check`, split into jobs that run side by side. The site is built
+# once; the deploy job ships that very artifact, and is the only job to
+# change the day the site moves off GitHub Pages.
 name: CI
 
 on:
@@ -16,8 +18,15 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Where the site lives. Repository variables override them, so a new domain
+# or a VPS needs no change here.
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://pierre-mariemarchio.github.io/portfolio' }}
+  BASE_HREF: ${{ vars.BASE_HREF || '/portfolio/' }}
+
 jobs:
-  check:
+  lint:
+    name: Format, lint, types, structure
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,10 +35,71 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run check
+      - run: npm run format:check
+      - run: npm run typecheck:tools
+      - run: npm run lint
+      - run: npm run check:structure
+      - run: npm run check:comments
+
+  test:
+    name: Tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          retention-days: 7
+
+  build:
+    name: Build and prerender
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx ng build --base-href "$BASE_HREF" --define "SITE_URL=\"$SITE_URL\""
+      - run: npm run check:prerender
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist/portfolio/browser
+          retention-days: 7
+
+  sonar:
+    name: SonarQube Cloud
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Sonar tells new code from old by the history.
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+      # A fork's pull request gets no secret: it is analysed once merged.
+      - if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
+        with:
+          args: -Dsonar.qualitygate.wait=true
 
   deploy:
-    needs: check
+    name: Deploy to GitHub Pages
+    needs: [lint, build, sonar]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -43,25 +113,18 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/download-artifact@v4
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - id: pages
-        uses: actions/configure-pages@v5
-      # A project site lives under /<repository>/, and every prerendered page
-      # must resolve its scripts and routes from there.
-      - run: npx ng build --base-href "${{ steps.pages.outputs.base_path }}/"
+          name: site
+          path: site
       # Pages answers an unknown path with 404.html: serving the client shell
       # there lets the router render its own not-found view. .nojekyll keeps
       # Pages from filtering the output through Jekyll.
       - run: |
-          cp dist/portfolio/browser/index.csr.html dist/portfolio/browser/404.html
-          touch dist/portfolio/browser/.nojekyll
+          cp site/index.csr.html site/404.html
+          touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/portfolio/browser
+          path: site
       - id: deployment
         uses: actions/deploy-pages@v4

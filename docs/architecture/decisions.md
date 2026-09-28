@@ -1431,3 +1431,54 @@ celle d'une recherche neuve. Garder aussi la place du trou dans ce qui doit
 rester égal : au repos, elle dérive d'environ 0,03 px par image, et rien
 n'était jamais repris. Précalculer le test du nom pour toutes les places :
 à 123 pièces, l'image montait à 40 ms.
+
+## 2026-09-28 — Cinq reprises sur captures : la vitre basse des petits téléphones, le relevé selon sa place, le titre, les segmentés de la tablette, l'accueil couché (D45, amende D27, D28, D34, D38 et D40)
+
+**Décision.** Au téléphone debout, quand l'écran fait 640 px de haut ou
+moins (`short-phone-portrait`), la vitre basse arrive à mi-hauteur
+(`--glass-lowered: 0.5` au lieu de 0,6), l'aperçu monte jusqu'à la moitié
+de l'écran (au lieu de 45 %), la barre de titre et le pied prennent les
+jetons serrés du téléphone couché (D34), et la fiche et l'aperçu
+resserrent l'intérieur de leur corps (retrait du haut à `--s2` ou `--s1`,
+écarts du chapitre et de l'en-tête d'un cran). Couchée, le pied de la
+fiche tient sur une ligne : la position s'y tronque, « Suite : … → »
+reste entier. Le relevé passe en cartes (D40) quand sa vitre fait moins
+de 500 px de large, par une requête de conteneur sur l'emplacement du
+relevé, quel que soit le format ; plus large, le tableau. Au téléphone,
+le titre de l'accueil laisse à droite la marge qu'il a à gauche et
+équilibre ses lignes (`text-wrap: balance`). Les segmentés tiennent sur
+une ligne à la tablette comme au téléphone (D28) : la règle vaut pour
+tout ce qui n'est pas le bureau (`handheld`). Au téléphone couché aussi,
+l'accueil dit un nom à la fois (D38) : la rangée « ‹ nom › » et « Tous
+les projets → » prend la place de la règle, dans la moitié droite, et la
+scène n'écrit plus le nom de la planète désignée sur le ciel ; la scène
+le décide sur le format seul, plus sur l'orientation. La requête
+`phone-portrait` se réduit à `(width < 620px) and (orientation:
+portrait)`, qui lui est équivalente : debout, une hauteur sous 500 px
+donne une largeur sous 620 px.
+
+**Raison.** La relecture extérieure des captures, en mouvement réduit,
+sous Chromium et WebKit. À 320 × 568, la vitre basse ne montrait que le
+haut d'une ligne sur l'aperçu et rien sous le titre de la fiche au
+chapitre 3 ; mesuré après, deux lignes entières au moins sur les deux,
+dans les deux moteurs, à 320 × 568 et 360 × 640. En dessous de 0,5, la
+caméra ne tient plus le trou dans le ciel (à 0,48, il passe sous la
+vitre) ; l'aperçu à 55 % le perd aussi. Couché à 568 × 320, le pied sur
+deux lignes tranchait la première ligne du chapitre 3 ; sur une ligne,
+aucune ligne n'est coupée, pour les sept fiches qui ont un chapitre 3.
+À la tablette debout, la vitre du relevé fait 459 px et le tableau y
+coupait ses mots ; au bureau à 924 × 540, elle en fait 517 et le tableau
+y tient : le seuil est entre les deux, pas à 560 px. Le titre touchait le
+bord droit sous WebKit à 360 px, et Chromium laissait « et » seul en fin
+de ligne à 640 × 360. « ET APRÈS » passait seul sur une seconde rangée
+sous WebKit à 820 × 1180.
+
+**Écarté.** Relever la vitre basse à tous les formats : aux écrans plus
+hauts, rien ne manquait. Descendre sous 0,5 : le trou sort du ciel. Un
+pied collé au bas visible (déjà écarté par D34). Un seuil du relevé à
+560 px : le bureau à 924 × 540 passait en cartes. Choisir les cartes par
+le format : une vitre étroite à la tablette gardait le tableau. Un fondu
+au bas du corps couché : il cache la coupure sans l'ôter. Garder la règle
+couchée : l'opérateur a choisi un nom à la fois pour le téléphone.
+
+**Budget.** Le bundle initial passe de 528,81 à 529,39 kB.

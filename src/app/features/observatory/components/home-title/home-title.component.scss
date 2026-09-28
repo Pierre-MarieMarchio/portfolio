@@ -18,6 +18,12 @@ $arrival-delay: 700ms;
   pointer-events: none;
 }
 
+@include formats.phone {
+  :host {
+    max-width: calc(100% - 2 * var(--gutter));
+  }
+}
+
 @include formats.phone-landscape {
   :host {
     max-width: calc(100% - var(--glass-width) - 2 * var(--gutter));
@@ -59,6 +65,7 @@ h1 {
 
   @include formats.phone {
     white-space: normal;
+    text-wrap: balance;
   }
 }
 

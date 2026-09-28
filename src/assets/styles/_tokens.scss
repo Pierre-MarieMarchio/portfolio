@@ -90,3 +90,12 @@
     --window-footer-gap: 0 var(--s3);
   }
 }
+
+@include formats.short-phone-portrait {
+  :root {
+    --glass-lowered: 0.5;
+    --window-bar-padding: 0 0 0 var(--s2);
+    --window-footer-padding: var(--s1) var(--s2);
+    --window-footer-gap: 0 var(--s3);
+  }
+}

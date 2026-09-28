@@ -1,5 +1,6 @@
 @use 'mixins/controls';
 @use 'mixins/facts';
+@use 'mixins/formats';
 @use 'mixins/type';
 
 :host {
@@ -56,4 +57,14 @@ dd {
   @include controls.next-link;
 
   flex: 0 0 auto;
+}
+
+@include formats.short-phone-portrait {
+  :host {
+    --window-body-padding: var(--s1) var(--s2) var(--s2);
+  }
+
+  dl {
+    margin-top: var(--s2);
+  }
 }

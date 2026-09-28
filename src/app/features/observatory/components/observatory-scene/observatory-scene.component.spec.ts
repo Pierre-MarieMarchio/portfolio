@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { SpaceSceneComponent } from '@shared/space-scene/components';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { ObservatorySceneComponent } from './observatory-scene.component';
 import { ObservatoryView, Planet } from '../../models';
@@ -40,6 +42,7 @@ const mount = async (
     view?: ObservatoryView;
     preview?: string;
     hovered?: string;
+    designated?: string;
     context?: boolean;
     touch?: boolean;
     ruleLines?: number;
@@ -72,6 +75,7 @@ const mount = async (
   fixture.componentRef.setInput('view', options.view ?? 'home');
   fixture.componentRef.setInput('preview', options.preview ?? null);
   fixture.componentRef.setInput('hovered', options.hovered ?? null);
+  fixture.componentRef.setInput('designated', options.designated ?? null);
   const clicked: string[] = [];
   const hovered: (string | null)[] = [];
   let clicksHeard = 0;
@@ -105,6 +109,37 @@ const mount = async (
       ...host.querySelectorAll<HTMLButtonElement>('button[data-scene-figure]'),
     ],
   };
+};
+
+const holdViewport = (width: number, height: number): void => {
+  const kept = {
+    innerWidth: Object.getOwnPropertyDescriptor(window, 'innerWidth'),
+    innerHeight: Object.getOwnPropertyDescriptor(window, 'innerHeight'),
+  };
+  Object.defineProperty(window, 'innerWidth', {
+    value: width,
+    configurable: true,
+  });
+  Object.defineProperty(window, 'innerHeight', {
+    value: height,
+    configurable: true,
+  });
+  unhear.push(() => {
+    for (const [size, descriptor] of Object.entries(kept)) {
+      if (descriptor) {
+        Object.defineProperty(window, size, descriptor);
+      }
+    }
+  });
+};
+
+const directionAt = async (width: number, height: number) => {
+  holdViewport(width, height);
+  const { fixture } = await mount({ designated: 'voice' });
+  const scene = fixture.debugElement.query(By.directive(SpaceSceneComponent))
+    .componentInstance as SpaceSceneComponent;
+  const { labels, emphasised } = scene.direction();
+  return { labels, emphasised };
 };
 
 const frames = (): Promise<void> =>
@@ -147,6 +182,29 @@ describe('ObservatorySceneComponent', () => {
         expect(line.style.transform).toBe('none');
         expect(line.style.pointerEvents).toBe('auto');
       }
+    });
+  });
+
+  describe('the name of the planet the row designates', () => {
+    it('is left to the row on a phone held sideways', async () => {
+      expect(await directionAt(568, 320)).toEqual({
+        labels: 'none',
+        emphasised: 'voice',
+      });
+    });
+
+    it('is left to the row on a phone held upright', async () => {
+      expect(await directionAt(320, 568)).toEqual({
+        labels: 'none',
+        emphasised: 'voice',
+      });
+    });
+
+    it('is written on the sky on a desktop, with no planet lit', async () => {
+      expect(await directionAt(1280, 800)).toEqual({
+        labels: 'names',
+        emphasised: null,
+      });
     });
   });
 

@@ -1,14 +1,12 @@
 import {
   Component,
   computed,
-  DestroyRef,
   inject,
   input,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
-import { BrowserWindowService, DisplayFormatService } from '@app/core/services';
+import { DisplayFormatService } from '@app/core/services';
 import { SpaceSceneComponent } from '@shared/space-scene/components';
 import { SCENE_SURROUNDINGS } from '@shared/space-scene/ports';
 import { ObservatoryView, Planet } from '../../models';
@@ -31,9 +29,7 @@ import { PlanetButtonsComponent } from '../planet-buttons/planet-buttons.compone
 })
 export class ObservatorySceneComponent {
   protected readonly texts = inject(OBSERVATORY_TEXTS);
-  private readonly browserWindow = inject(BrowserWindowService);
   private readonly format = inject(DisplayFormatService).format;
-  private readonly viewport = signal(this.browserWindow.size());
 
   public readonly bodies = input<readonly Planet[]>([]);
   public readonly featured = input(4);
@@ -54,14 +50,7 @@ export class ObservatorySceneComponent {
 
   private readonly scene = viewChild.required(SpaceSceneComponent);
 
-  private readonly upright = computed(() => {
-    const viewport = this.viewport();
-    return (
-      this.format() === 'phone' &&
-      viewport !== null &&
-      viewport.height >= viewport.width
-    );
-  });
+  private readonly phone = computed(() => this.format() === 'phone');
 
   public readonly animated = computed(() => this.scene().animated());
 
@@ -84,16 +73,8 @@ export class ObservatorySceneComponent {
       hovered: this.hovered(),
       selected: this.selected(),
       revealed: this.revealed(),
-      upright: this.upright(),
+      phone: this.phone(),
       designated: this.designated(),
     }),
   );
-
-  constructor() {
-    inject(DestroyRef).onDestroy(
-      this.browserWindow.on('resize', () => {
-        this.viewport.set(this.browserWindow.size());
-      }),
-    );
-  }
 }

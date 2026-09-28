@@ -17,7 +17,7 @@ const scene = (
   hovered: null,
   selected: null,
   revealed: true,
-  upright: false,
+  phone: false,
   designated: null,
   ...overrides,
 });
@@ -54,32 +54,32 @@ describe('sceneDirectionOf', () => {
     },
   );
 
-  it('leaves the name of the designated planet to the rule, on a phone held upright', () => {
+  it('leaves the name of the designated planet to the rule, on a phone', () => {
     expect(
-      sceneDirectionOf(scene('home', { upright: true, hovered: 'app' })),
+      sceneDirectionOf(scene('home', { phone: true, hovered: 'app' })),
     ).toMatchObject({ labels: 'none', emphasised: 'app' });
     expect(
-      sceneDirectionOf(scene('home', { upright: true, preview: 'app' })).labels,
+      sceneDirectionOf(scene('home', { phone: true, preview: 'app' })).labels,
     ).toBe('names');
     expect(sceneDirectionOf(scene('home')).labels).toBe('names');
   });
 
-  it('lights the planet the rule designates at rest, on a phone held upright', () => {
-    const upright = { upright: true, designated: 'voice' };
+  it('lights the planet the rule designates at rest, on a phone', () => {
+    const onPhone = { phone: true, designated: 'voice' };
 
-    expect(sceneDirectionOf(scene('home', upright)).emphasised).toBe('voice');
+    expect(sceneDirectionOf(scene('home', onPhone)).emphasised).toBe('voice');
     expect(
-      sceneDirectionOf(scene('home', { ...upright, hovered: 'app' }))
+      sceneDirectionOf(scene('home', { ...onPhone, hovered: 'app' }))
         .emphasised,
     ).toBe('app');
     expect(
-      sceneDirectionOf(scene('home', { ...upright, preview: 'app' }))
+      sceneDirectionOf(scene('home', { ...onPhone, preview: 'app' }))
         .emphasised,
     ).toBeNull();
     expect(
       sceneDirectionOf(scene('home', { designated: 'voice' })).emphasised,
     ).toBeNull();
-    expect(sceneDirectionOf(scene('index', upright)).emphasised).toBeNull();
+    expect(sceneDirectionOf(scene('index', onPhone)).emphasised).toBeNull();
   });
 
   it('closes up on the planet of the preview, on the home page only', () => {

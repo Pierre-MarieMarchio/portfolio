@@ -92,3 +92,22 @@ h1 {
   flex: 0 0 auto;
   white-space: nowrap;
 }
+
+@include formats.short-phone-portrait {
+  :host {
+    --window-body-padding: var(--s2) var(--s2) 0 var(--s2);
+  }
+
+  header {
+    padding-bottom: var(--s1);
+  }
+}
+
+@include formats.phone-landscape {
+  .position {
+    flex-basis: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

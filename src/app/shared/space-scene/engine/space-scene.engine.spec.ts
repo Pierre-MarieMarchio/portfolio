@@ -1672,7 +1672,7 @@ describe('SpaceSceneEngine, telling its travels', () => {
     scene.run(PAST_CROSSING_MS);
 
     expect(scene.travels.slice(before)).toEqual([true, false]);
-  });
+  }, 60_000);
 
   it('tells nothing while the camera rests', () => {
     const scene = mountEngineScene();

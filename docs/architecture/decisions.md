@@ -1760,3 +1760,14 @@ autres.
 caméra : inverser les deux lignes ne change rien de visible, aucun test ne
 peut le tenir. Tester le garde `if (!container)` de `BottomEdgeVariable` :
 aucun rendu réel n'y mène.
+
+## 2026-09-28 — Une scène qui s'ouvre sur un gros plan est déjà ouverte : un test le tient (D56, complète D55)
+
+**Décision.** Le spec du moteur vérifie qu'une page qui arrive sur un gros
+plan (une fiche ouverte par son adresse) montre le trou à sa taille dès la
+première image, sans l'animation d'ouverture.
+
+**Raison.** Après D54 et D55, la couverture de `main` passe de 96,99 à
+97,45 % des lignes et de 92,09 à 92,8 % des branches, mais une branche s'est
+perdue : ce départ ouvert (`startOpen(true)`). Seul un test coupé y passait,
+sans le vérifier. Le nouveau test échoue si la scène part fermée.

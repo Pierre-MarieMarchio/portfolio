@@ -297,6 +297,23 @@ describe('SpaceSceneEngine, fixed', () => {
     expect(hole().radius).toBeCloseTo(settled.radius, 0);
   });
 
+  it('opens already open when the page lands on a close-up: the hole keeps its size from the first frame', () => {
+    const { engine, step } = mountAt({
+      direction: {
+        ...SHOWN,
+        framing: { kind: 'close-up', body: bodyId(0) },
+        landed: true,
+      },
+    });
+    const hole = holeOn(engine);
+    step(FRAME_MS);
+    const first = hole();
+
+    step(3000);
+
+    expect(hole().radius).toBeCloseTo(first.radius, 0);
+  });
+
   it('bounds the lit figure by the figures there are, whatever it is asked', () => {
     const { step, texts } = mountAt(
       {

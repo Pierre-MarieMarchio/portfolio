@@ -28,6 +28,7 @@ export const EN: Catalog = {
       (place: number, count: number) =>
         `Page ${String(place)} of ${String(count)}`,
     ),
+    close: draft('Close'),
   },
 
   projects: {

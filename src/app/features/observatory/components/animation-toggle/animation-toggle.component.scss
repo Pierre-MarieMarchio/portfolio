@@ -1,4 +1,5 @@
 @use 'mixins/controls';
+@use 'mixins/formats';
 
 :host {
   display: contents;
@@ -10,4 +11,17 @@
 
 button {
   @include controls.icon-button(38px, var(--target-compact));
+}
+
+@include formats.phone {
+  .rule {
+    display: none;
+  }
+
+  button {
+    width: var(--target);
+    height: var(--target);
+    border-color: var(--line);
+    background: var(--paper);
+  }
 }

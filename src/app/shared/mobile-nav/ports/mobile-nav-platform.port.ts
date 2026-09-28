@@ -6,6 +6,13 @@ export interface MobileNavPlatform {
   readonly after: (ms: number, fn: () => void) => () => void;
   readonly hasScrollEnd: () => boolean;
   readonly onResize: (element: Element, fn: () => void) => () => void;
+  readonly whenStill: (element: Element) => Promise<void>;
+  readonly closesOnBack: () => boolean;
+  readonly historyState: () => unknown;
+  readonly pushHistory: (state: unknown) => void;
+  readonly historyBack: (steps: number) => void;
+  readonly onHistoryPop: (fn: (state: unknown) => void) => () => void;
+  readonly onLeave: (fn: () => void) => () => void;
 }
 
 export const MOBILE_NAV_PLATFORM = new InjectionToken<MobileNavPlatform>(

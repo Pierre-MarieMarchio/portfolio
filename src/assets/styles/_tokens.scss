@@ -65,6 +65,8 @@
   --intro-duration: 5600ms;
 
   --mnav-surface: var(--vitre);
+  --mnav-panel: var(--paper);
+  --mnav-scrim: color-mix(in oklab, var(--paper) 55%, transparent);
   --mnav-ink: var(--ink);
   --mnav-line: var(--line);
   --mnav-accent: var(--accent);

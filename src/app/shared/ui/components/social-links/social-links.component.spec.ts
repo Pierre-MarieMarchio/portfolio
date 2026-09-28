@@ -86,28 +86,11 @@ describe('SocialLinksComponent', () => {
     );
   });
 
-  it('folds its links behind one named toggle, which opens and closes them', async () => {
-    const { fixture, host } = await mount();
-    const toggle = host.querySelector('button');
-    const panel = host.querySelector('ul')?.parentElement;
-    const rail = host.querySelector<HTMLElement>('.rail');
-    if (!toggle || !panel || !rail) {
-      throw new Error('expected a toggle, its panel and the rail');
-    }
+  it('shows every link at once, behind no toggle', async () => {
+    const { host, links } = await mount();
 
-    expect(toggle.getAttribute('aria-label')).toBe('Me contacter');
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(panel.id).toBeTruthy();
-    expect(toggle.getAttribute('aria-controls')).toBe(panel.id);
-
-    toggle.click();
-    await fixture.whenStable();
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(rail.dataset['open']).toBe('true');
-
-    toggle.click();
-    await fixture.whenStable();
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(host.querySelector('button')).toBeNull();
+    expect(links()).toHaveLength(2);
   });
 
   it('places the control it is given after its links, with them', async () => {

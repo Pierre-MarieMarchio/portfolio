@@ -62,6 +62,51 @@ describe('ElementObserverService', () => {
     expect(heard).toEqual([true, false]);
   });
 
+  it('waits for the animations of an element to end, in the browser', async () => {
+    const element = document.createElement('div');
+    const ends: (() => void)[] = [];
+    const finished = new Promise<void>((resolve) => {
+      ends.push(resolve);
+    });
+    Object.defineProperty(element, 'getAnimations', {
+      value: () => [
+        { finished },
+        { finished: Promise.reject(new Error('cancelled')) },
+      ],
+    });
+    const still = vi.fn();
+
+    void injectOn(ElementObserverService, 'browser')
+      .whenStill(element)
+      .then(still);
+    await Promise.resolve();
+
+    expect(still).not.toHaveBeenCalled();
+
+    ends[0]?.();
+    await vi.waitFor(() => {
+      expect(still).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('is still at once on the server: reads no animation', async () => {
+    const element = document.createElement('div');
+    const getAnimations = vi.fn(() => []);
+    Object.defineProperty(element, 'getAnimations', { value: getAnimations });
+
+    await injectOn(ElementObserverService, 'server').whenStill(element);
+
+    expect(getAnimations).not.toHaveBeenCalled();
+  });
+
+  it('is still at once where elements have no animations', async () => {
+    await expect(
+      injectOn(ElementObserverService, 'browser').whenStill(
+        document.createElement('div'),
+      ),
+    ).resolves.toBeUndefined();
+  });
+
   it('is inert in a browser without observers', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     vi.stubGlobal('IntersectionObserver', undefined);

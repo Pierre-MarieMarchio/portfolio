@@ -1,0 +1,128 @@
+.action-menu {
+  --action-menu-travel: calc(2 * var(--mnav-duration, 180ms));
+
+  position: fixed;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--mnav-ink, canvastext);
+  overflow: visible;
+  transition:
+    display var(--action-menu-travel) allow-discrete,
+    overlay var(--action-menu-travel) allow-discrete;
+
+  &::backdrop {
+    background: var(--mnav-scrim, rgb(0 0 0 / 45%));
+    opacity: 1;
+    transition: opacity var(--action-menu-travel) var(--mnav-ease, ease);
+  }
+
+  &[data-leaving]::backdrop,
+  &:not([open])::backdrop {
+    opacity: 0;
+  }
+}
+
+.action-menu-panel {
+  box-sizing: border-box;
+  max-height: 85svh;
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--mnav-line, currentcolor);
+  border-radius: var(--mnav-radius, 8px) var(--mnav-radius, 8px) 0 0;
+  background: var(--mnav-panel, canvas);
+  transform: translateY(100%);
+  transition: transform var(--action-menu-travel) var(--mnav-ease, ease);
+}
+
+.action-menu[open] .action-menu-panel {
+  transform: none;
+}
+
+.action-menu[open][data-leaving] .action-menu-panel {
+  transform: translateY(100%);
+}
+
+@starting-style {
+  .action-menu[open] .action-menu-panel {
+    transform: translateY(100%);
+  }
+
+  .action-menu[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.action-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 4px 16px;
+}
+
+.action-menu-heading {
+  margin: 0;
+  font: inherit;
+  font-size: 0.8em;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.action-menu-close,
+.action-row {
+  box-sizing: border-box;
+  min-height: var(--mnav-target, 44px);
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--mnav-accent, highlight);
+    outline-offset: -2px;
+  }
+}
+
+.action-menu-close {
+  min-width: var(--mnav-target, 44px);
+  padding: 0 12px;
+  color: var(--mnav-accent, linktext);
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 16px;
+  border-top: 1px solid var(--mnav-line, currentcolor);
+  color: var(--mnav-ink, canvastext);
+  text-align: start;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+
+  > svg {
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    fill: var(--mnav-accent, currentcolor);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-menu,
+  .action-menu::backdrop,
+  .action-menu-panel {
+    transition: none;
+  }
+}

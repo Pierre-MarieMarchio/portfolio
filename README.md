@@ -63,14 +63,16 @@ src/app/
 
   core/                  infrastructure, aucun concept métier
     services/            le navigateur (un service par sujet), la présence
-                         du lecteur, le <head>, la langue, les erreurs
+                         du lecteur, le <head>, la langue, les erreurs,
+                         le presse-papiers, l'historique
     strategies/          la tête de chaque route (RouteHeadStrategy)
     models/ rules/       la langue et la localisation
     helpers/             petites fonctions pures, sans domaine
   shared/                quatre librairies, qui n'importent que core (D20)
     ui/                  les composants d'interface sans métier
     windows/             la fenêtre, son glissement, sa pile
-    mobile-nav/          la navigation du téléphone (pager, carrousel) ;
+    mobile-nav/          la navigation du téléphone (pager, carrousel,
+                         feuille d'actions, bouton retour) ;
                          elle n'importe pas même core, tout passe par ses
                          ports
     space-scene/         la scène canvas : moteur (dans un worker quand le
@@ -90,7 +92,8 @@ src/app/
       directives/        le créneau d'une fenêtre de la vue
       models/ ports/ rules/ states/observatory/ states/animation/
     profile/
-      components/        la fenêtre « à propos », le rail de contact
+      components/        la fenêtre « à propos », le rail de contact et,
+                         au téléphone, le menu « Contact »
       data/ models/ ports/
   pages/                 composition : un dossier par écran
     observatory/         l'écran de l'observatoire et sa feuille de route

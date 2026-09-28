@@ -5,17 +5,20 @@ import { LayoutAnchorDirective } from '@shared/ui/directives';
 import { Entrance, SocialLink } from '@shared/ui/models';
 import { CONTACT_ADDRESSES } from '../../data';
 import { PROFILE_TEXTS } from '../../ports';
+import { ContactMenuComponent } from '../contact-menu/contact-menu.component';
 
 @Component({
   selector: 'app-contact-links',
-  imports: [SocialLinksComponent, LayoutAnchorDirective],
+  imports: [ContactMenuComponent, SocialLinksComponent, LayoutAnchorDirective],
   template: `
     <app-social-links
       [appLayoutAnchor]="anchor"
       [links]="links()"
       [arrival]="arrival()"
+      [listOnPhone]="false"
     >
       <ng-content />
+      <app-contact-menu [links]="links()" />
     </app-social-links>
   `,
   styles: ':host { display: contents; }',

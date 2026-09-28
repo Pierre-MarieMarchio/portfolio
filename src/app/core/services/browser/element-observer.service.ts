@@ -44,6 +44,15 @@ export class ElementObserverService {
     };
   }
 
+  public async whenStill(el: Element): Promise<void> {
+    if (!this.isBrowser || typeof el.getAnimations !== 'function') {
+      return;
+    }
+    await Promise.allSettled(
+      el.getAnimations().map((animation) => animation.finished),
+    );
+  }
+
   private view(): (Window & typeof globalThis) | null {
     return this.isBrowser ? this.document.defaultView : null;
   }

@@ -170,7 +170,7 @@ describe('ObservatoryPageComponent', () => {
     );
   });
 
-  it('renders the page bar and the contact rail, with no pause button for now', async () => {
+  it('renders the page bar and the contact rail with its phone menu, with no pause button for now', async () => {
     const { host } = await mount();
     const links = [...host.querySelectorAll('nav a')];
     const words = TestBed.inject(PAGES_TEXTS)().navigation;
@@ -193,7 +193,10 @@ describe('ObservatoryPageComponent', () => {
     for (const label of [contact.email, contact.linkedin, contact.github]) {
       expect(rail?.querySelector(`[aria-label="${label}"]`)).not.toBeNull();
     }
-    expect(host.querySelector('app-social-links .links button')).toBeNull();
+    expect(
+      host.querySelector('app-social-links app-contact-menu dialog'),
+    ).not.toBeNull();
+    expect(host.querySelector('app-animation-toggle')).toBeNull();
   });
 
   it.each([

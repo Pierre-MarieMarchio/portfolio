@@ -85,3 +85,24 @@ export const resizeObserved = (observers: readonly StubObserver[]): void => {
     }
   }
 };
+
+export const stubDialogs = () => {
+  const showModal = vi.fn(function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  });
+  const close = vi.fn(function (this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  });
+  for (const [name, value] of Object.entries({ showModal, close })) {
+    Object.defineProperty(HTMLDialogElement.prototype, name, {
+      value,
+      configurable: true,
+    });
+  }
+  return { showModal, close };
+};
+
+export const restoreDialogs = (): void => {
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
+};

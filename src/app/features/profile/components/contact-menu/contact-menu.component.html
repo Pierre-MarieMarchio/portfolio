@@ -1,0 +1,39 @@
+<button
+  type="button"
+  class="opener"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="open()"
+  (click)="open.set(true)"
+>
+  {{ texts().contactMenu.open }}
+</button>
+<app-action-menu [heading]="sharedTexts().contactRail.label" [(open)]="open">
+  @if (mail(); as mail) {
+    <a appActionRow [href]="mail.href"
+      ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+        <path [attr.d]="icons.email" /></svg
+      ><span>{{ mail.label }}</span></a
+    >
+    <button type="button" appActionRow keepsOpen (click)="copy()">
+      <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+        <path [attr.d]="copyIcon" /></svg
+      ><span>{{ texts().contactMenu.copy }}</span>
+    </button>
+  }
+  @for (link of others(); track link.href) {
+    <a
+      appActionRow
+      [href]="link.href"
+      [attr.target]="link.external ? '_blank' : null"
+      [attr.rel]="link.external ? 'noopener' : null"
+      ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+        <path [attr.d]="icons[link.icon]" /></svg
+      ><span>{{ link.label }}</span></a
+    >
+  }
+  <p class="said" role="status">
+    @if (isCopied()) {
+      {{ texts().contactMenu.copied }}
+    }
+  </p>
+</app-action-menu>

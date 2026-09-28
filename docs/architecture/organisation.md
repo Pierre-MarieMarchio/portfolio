@@ -301,7 +301,7 @@ lui-même se vérifie par `scripts/check-prerender.mjs`.
 | `media-preferences.service.ts` `MediaPreferencesService` | ce que le lecteur a demandé au système              | `reducedMotion()`, `cannotHover()`, `hasCoarsePointer()`, `watch(query, handler)` |
 | `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai | `now()`, `nextFrame(fn)`, `after(ms, fn)`                                         |
 | `page-visibility.service.ts` `PageVisibilityService`     | l'onglet est-il visible                             | `isHidden()`, `watch(handler)`                                                    |
-| `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément             | `onResize(el, fn)`, `onVisible(el, threshold, fn)`                                |
+| `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément             | `onResize(el, fn)`, `onVisible(el, threshold, fn)`, `whenStill(el)`               |
 | `document-styles.service.ts` `DocumentStylesService`     | lire les jetons CSS, attendre les polices           | `token(name, el?)`, `duration(name)`, `fontsReady(fn)`                            |
 | `cursor.service.ts` `CursorService`                      | le curseur de la page                               | `set(cursor)`                                                                     |
 | `canvas-contexts.service.ts` `CanvasContextsService`     | un contexte 2D et la densité de pixels              | `context2d(canvas)`, `pixelRatio()`                                               |
@@ -312,6 +312,17 @@ fenêtre devient un `(scroll)` de gabarit.
 
 **Signal de réveil** : un composant qui injecte plus de quatre de ces
 services pour un seul besoin appelle une façade propre à ce besoin.
+
+#### `core/services/clipboard/` et `core/services/history/` (D60)
+
+- **`ClipboardService`** (`clipboard.service.ts`). But : copier un texte.
+  Contrat : `copy(text)` rend `true` si le presse-papiers l'a pris, `false`
+  au serveur, sans presse-papiers ou sur un refus.
+- **`SessionHistoryService`** (`session-history.service.ts`). But :
+  l'historique de l'onglet. Contrat : `state()`, `push(state)` (même
+  adresse), `back(steps)`, `onPop(fn)`, `hasCloseWatcher()`. Inerte au
+  serveur.
+- Deux dossiers à eux : `core/services/browser/` est à huit sources.
 
 #### `core/services/device/` : le format d'affichage
 
@@ -437,18 +448,23 @@ Des gestes d'application native, laissés au navigateur autant que possible
 (`scroll-snap`, rebond). Aucun import du dépôt, pas même `core` : tout passe
 par deux ports, auxquels la composition répond.
 
-| Unité                                                | But                                                                                                | Contrat                                                                                                                                      |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pager.component.ts` `PagerComponent`                | faire défiler des pages à l'horizontale, une à la fois, et dire où le lecteur s'est arrêté         | `index` ; `indexChange`, à la fin du défilement seulement                                                                                    |
-| `pager-page.component.ts` `PagerPageComponent`       | une page, qui défile seule à la verticale, hors d'atteinte quand elle n'est pas la page posée      | projetée dans `app-pager` ; écrit `inert`, `data-current`, son nom                                                                           |
-| `pager.rules.ts`                                     | la page d'une position, la position d'une page : `clampPage`, `pageAt`, `offsetOfPage`, `isAt`     | pures                                                                                                                                        |
-| `card-carousel.component.ts` `CardCarouselComponent` | faire défiler des cartes touchables, la suivante au bord, et dire où le lecteur s'est arrêté (D58) | `items`, `active`, `label`, `controls`, un `ng-template` par carte ; `activeChange`, à la fin du défilement seulement ; `chosen`, au toucher |
-| `carousel.rules.ts`                                  | la carte d'une position, la position qui centre une carte : `cardAt`, `centredOffset`              | pures                                                                                                                                        |
-| `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM`  | le navigateur de la librairie, inerte au serveur                                                   | `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`                                                                            |
-| `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`        | ses mots                                                                                           | `pageOf(place, count)`                                                                                                                       |
+| Unité                                                | But                                                                                                | Contrat                                                                                                                                                                 |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pager.component.ts` `PagerComponent`                | faire défiler des pages à l'horizontale, une à la fois, et dire où le lecteur s'est arrêté         | `index` ; `indexChange`, à la fin du défilement seulement                                                                                                               |
+| `pager-page.component.ts` `PagerPageComponent`       | une page, qui défile seule à la verticale, hors d'atteinte quand elle n'est pas la page posée      | projetée dans `app-pager` ; écrit `inert`, `data-current`, son nom                                                                                                      |
+| `pager.rules.ts`                                     | la page d'une position, la position d'une page : `clampPage`, `pageAt`, `offsetOfPage`, `isAt`     | pures                                                                                                                                                                   |
+| `card-carousel.component.ts` `CardCarouselComponent` | faire défiler des cartes touchables, la suivante au bord, et dire où le lecteur s'est arrêté (D58) | `items`, `active`, `label`, `controls`, un `ng-template` par carte ; `activeChange`, à la fin du défilement seulement ; `chosen`, au toucher                            |
+| `carousel.rules.ts`                                  | la carte d'une position, la position qui centre une carte : `cardAt`, `centredOffset`              | pures                                                                                                                                                                   |
+| `action-menu.component.ts` `ActionMenuComponent`     | une feuille d'actions qui monte du bas, sur un `<dialog>` modal (D60)                              | `heading`, `open` (model), des rangées projetées ; `dismiss()`                                                                                                          |
+| `action-row.directive.ts` `ActionRowDirective`       | une rangée de la feuille, sur un `<a>` ou un `<button>` : icône (`svg`), libellé, 44 px            | `keepsOpen` ; sinon ferme la feuille au toucher                                                                                                                         |
+| `back-layers.service.ts` `BackLayersService`         | le bouton retour ferme d'abord ce qui est ouvert                                                   | `push(onBack)` rend la fonction qui relâche la couche                                                                                                                   |
+| `back-layers.rules.ts`                               | l'état d'une couche dans l'historique : `withLayer`, `layerOf`, `closedBy`, `stepsBack`            | pures                                                                                                                                                                   |
+| `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM`  | le navigateur de la librairie, inerte au serveur                                                   | `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`, `whenStill`, `closesOnBack`, `historyState`, `pushHistory`, `historyBack`, `onHistoryPop`, `onLeave` |
+| `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`        | ses mots                                                                                           | `pageOf(place, count)`, `close`                                                                                                                                         |
 
 - `provideMobileNav()` (`pages/providers/`) répond à `MOBILE_NAV_PLATFORM`
-  avec les services de `core/services/browser/` ; `provideI18n` répond à
+  avec les services de `core/services/browser/` et `core/services/history/`,
+  et le `NavigationStart` du routeur pour `onLeave` ; `provideI18n` répond à
   `MOBILE_NAV_TEXTS`. Les ports grandissent avec les briques suivantes.
 - Une page réglée d'en haut (`index`) défile en douceur après l'image
   suivante, sans animation sous `prefers-reduced-motion`, et ne se renvoie
@@ -467,6 +483,18 @@ par deux ports, auxquels la composition répond.
   `ink`, `line`, `accent`, `radius`, `target`, `duration`, `ease`), que
   `_tokens.scss` relie aux jetons du site ; seuls `opacity` et `transform`
   s'animent, sans `backdrop-filter`.
+- La feuille d'actions s'ouvre par `showModal()` quand `open` passe à vrai,
+  jamais au serveur (`afterRenderEffect`) : piège du focus, couche du haut,
+  Échap par `cancel`, qui ne remonte pas à la page. Son panneau est opaque
+  (`--mnav-panel`), sous un voile (`--mnav-scrim`), et monte par
+  `transform` depuis `@starting-style`. Pour la fermer, la sortie joue
+  d'abord (`whenStill`), puis `close()`, puis `open` passe à faux ; sans
+  animation en mouvement réduit. Le focus revient à ce qui l'a ouverte. Le
+  bouton retour la ferme avant de quitter la vue : là où le navigateur a
+  `CloseWatcher`, il l'envoie au `<dialog>` lui-même ; ailleurs,
+  `BackLayersService` pose une entrée d'historique sur la même adresse,
+  l'état gardé, la reprend par `history.go(-n)` quand la page ferme la
+  feuille et avale ce retour, et ferme tout au `NavigationStart`.
 
 #### L'ordre des fenêtres : `shared/windows/`
 
@@ -512,8 +540,10 @@ par deux ports, auxquels la composition répond.
   (la navigation), composés par l'écran.
 - **`social-links/`** (ex-`contact-rail`) : `SocialLinksComponent`, une liste
   de liens à icône. Le bouton pause, qui commande l'animation du bureau,
-  part dans `features/observatory`. Au format `phone`, la liste se replie
-  derrière un seul bouton, qui l'ouvre dans la rangée du bas (D27).
+  part dans `features/observatory`. Au format `phone`, la liste se cache
+  si l'écran le demande (`listOnPhone` à faux) et le rail ne garde que ce
+  qu'on lui projette, chaque commande sur son fond (D60, remplace le repli
+  de D27).
 - **`ViewFocusService`** (ex-`landing-focus`) :
   `claim(container)`, avec `ViewHeadingDirective`. But : mettre le focus sur
   le titre de la vue qui vient d'apparaître.
@@ -716,10 +746,16 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 - `components/about-window/` : la fenêtre « à propos », une section par page
   du pager (« part » devient « section »).
 - `components/contact-links/` : le rail de contact, `SocialLinksComponent`
-  garni des adresses de `contact.data.ts` et de leurs noms (D50).
+  garni des adresses de `contact.data.ts` et de leurs noms (D50), avec le
+  menu du téléphone.
+- `components/contact-menu/` : au téléphone, le bouton « Contact » et sa
+  feuille d'actions (`app-action-menu`) : écrire, copier l'adresse (par
+  `ClipboardService`, dit dans une région `status`), LinkedIn, GitHub, le
+  CV (D60).
 - `data/contact.data.ts` : les liens de contact (ex-`app.contact.ts`).
 - `models/contact.model.ts` : la forme d'une adresse de contact.
-- `ports/profile-texts.port.ts` : sa tranche de textes (`about`, `contact`).
+- `ports/profile-texts.port.ts` : sa tranche de textes (`about`, `contact`,
+  `contactMenu`).
 
 ### 4.7 `i18n/`
 
@@ -780,22 +816,22 @@ sa vue dans `data` et ses têtes par le resolver `page-head`.
 part pas en production. Un outil de spec écrit deux fois vient ici, une seule
 fois.
 
-| Unité                                   | But                                                                                                                                                           |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `doubles/browser.double.ts`             | le navigateur d'un spec : `stubViewport`, `resizeTo`, `stubMedia` (et le déclencheur de ses changements), `stubObservers`, `resizeObserved`                   |
-| `doubles/mobile-nav-platform.double.ts` | le navigateur de `mobile-nav`, piloté (images, délais, largeur, `scrollend` ou non, mouvement réduit) : `MobileNavPlatformDouble`, `provideMobileNavPlatform` |
-| `doubles/driven-host.double.ts`         | l'hôte à horloge pilotée, à 60 Hz ou à la cadence donnée : `drivenHost`, `FRAME_MS`                                                                           |
-| `doubles/recording-canvas.double.ts`    | le canvas qui enregistre, et l'empreinte de son journal : `recordingContext`, `fingerprintOf`                                                                 |
-| `doubles/scene-look.double.ts`          | la scène qu'on regarde, qui note ses appels, et les événements de la fenêtre : `LookableSceneDouble`, `windowEvents`                                          |
-| `doubles/seeded-random.double.ts`       | le générateur à graine : `seededRandom`                                                                                                                       |
-| `fixtures/engine-scene.fixture.ts`      | la scène montée sur l'hôte piloté : `mountEngineScene` (option `holeFocus`), `ENGINE_OPTIONS`, `SCENE_INPUTS`, `WIDE_LAYOUT`, `elements`                      |
-| `fixtures/observatory.fixture.ts`       | l'observatoire d'un spec : `provideRecordingRouter`, `stillObservatory` (pas de mouvement, pas de canvas, l'arrivée à 8700 ms)                                |
-| `fixtures/pointer.fixture.ts`           | les gestes : `pointer`, `firePointer`, `tap`, `drag`, `heardClicks`                                                                                           |
-| `fixtures/project.fixture.ts`           | les projets d'exemple et leur fournisseur : `sampleEntry`, `provideProjects`, `loadProjects`                                                                  |
-| `fixtures/scene-layout.fixture.ts`      | la géométrie des règles de la scène : `ROOM`, `isInside`, `isOverlapping`, `chromeLayout`, `holeOf`, le téléphone debout                                      |
-| `fixtures/scene-worker.fixture.ts`      | la scène déportée et son worker, reliés : `pairedScene`, aux mêmes `ENGINE_OPTIONS` que la scène de la page                                                   |
-| `fixtures/testbed.fixture.ts`           | le `TestBed` : `onPlatform`, `injectOn`, `recordOutput`, `componentOf`, `at`                                                                                  |
-| `fixtures/texts.fixture.ts`             | les textes et les liens en français : `provideTexts`                                                                                                          |
+| Unité                                   | But                                                                                                                                                                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `doubles/browser.double.ts`             | le navigateur d'un spec : `stubViewport`, `resizeTo`, `stubMedia` (et le déclencheur de ses changements), `stubObservers`, `resizeObserved`, `stubDialogs`, `restoreDialogs`                                                                            |
+| `doubles/mobile-nav-platform.double.ts` | le navigateur de `mobile-nav`, piloté (images, délais, largeur, `scrollend` ou non, mouvement réduit, fin des animations, historique et bouton retour, `CloseWatcher` ou non, sortie de la vue) : `MobileNavPlatformDouble`, `provideMobileNavPlatform` |
+| `doubles/driven-host.double.ts`         | l'hôte à horloge pilotée, à 60 Hz ou à la cadence donnée : `drivenHost`, `FRAME_MS`                                                                                                                                                                     |
+| `doubles/recording-canvas.double.ts`    | le canvas qui enregistre, et l'empreinte de son journal : `recordingContext`, `fingerprintOf`                                                                                                                                                           |
+| `doubles/scene-look.double.ts`          | la scène qu'on regarde, qui note ses appels, et les événements de la fenêtre : `LookableSceneDouble`, `windowEvents`                                                                                                                                    |
+| `doubles/seeded-random.double.ts`       | le générateur à graine : `seededRandom`                                                                                                                                                                                                                 |
+| `fixtures/engine-scene.fixture.ts`      | la scène montée sur l'hôte piloté : `mountEngineScene` (option `holeFocus`), `ENGINE_OPTIONS`, `SCENE_INPUTS`, `WIDE_LAYOUT`, `elements`                                                                                                                |
+| `fixtures/observatory.fixture.ts`       | l'observatoire d'un spec : `provideRecordingRouter`, `stillObservatory` (pas de mouvement, pas de canvas, l'arrivée à 8700 ms)                                                                                                                          |
+| `fixtures/pointer.fixture.ts`           | les gestes : `pointer`, `firePointer`, `tap`, `drag`, `heardClicks`                                                                                                                                                                                     |
+| `fixtures/project.fixture.ts`           | les projets d'exemple et leur fournisseur : `sampleEntry`, `provideProjects`, `loadProjects`                                                                                                                                                            |
+| `fixtures/scene-layout.fixture.ts`      | la géométrie des règles de la scène : `ROOM`, `isInside`, `isOverlapping`, `chromeLayout`, `holeOf`, le téléphone debout                                                                                                                                |
+| `fixtures/scene-worker.fixture.ts`      | la scène déportée et son worker, reliés : `pairedScene`, aux mêmes `ENGINE_OPTIONS` que la scène de la page                                                                                                                                             |
+| `fixtures/testbed.fixture.ts`           | le `TestBed` : `onPlatform`, `injectOn`, `recordOutput`, `componentOf`, `at`                                                                                                                                                                            |
+| `fixtures/texts.fixture.ts`             | les textes et les liens en français : `provideTexts`                                                                                                                                                                                                    |
 
 ## 5. Arborescence
 
@@ -810,9 +846,11 @@ src/app/
   core/ports/                                  site-name.port
   core/rules/                                  display-format.rules · draft.rules · localize.rules
   core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
+  core/services/clipboard/                     clipboard.service
   core/services/device/                        display-format.service · format-code.service
   core/services/errors/                        console-error-handler.service
   core/services/head/                          document-head.service
+  core/services/history/                       session-history.service
   core/services/i18n/                          locale.service
   core/services/presence/                      user-presence.service
   core/strategies/                             route-head.strategy
@@ -834,6 +872,7 @@ src/app/
   features/observatory/states/observatory/     observatory.action · observatory.effect · observatory.manager · observatory.state · observatory.updater
   features/profile/components/about-window/    about-window.component
   features/profile/components/contact-links/   contact-links.component
+  features/profile/components/contact-menu/    contact-menu.component
   features/profile/data/                       contact.data
   features/profile/models/                     contact.model
   features/profile/ports/                      profile-texts.port
@@ -859,11 +898,14 @@ src/app/
   pages/providers/                             mobile-nav.provider
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component
+  shared/mobile-nav/components/action-menu/    action-menu.component
   shared/mobile-nav/components/card-carousel/  card-carousel.component
   shared/mobile-nav/components/pager/          pager.component
   shared/mobile-nav/components/pager-page/     pager-page.component
+  shared/mobile-nav/directives/                action-row.directive
   shared/mobile-nav/ports/                     mobile-nav-platform.port · mobile-nav-texts.port
-  shared/mobile-nav/rules/                     carousel.rules · pager.rules
+  shared/mobile-nav/rules/                     back-layers.rules · carousel.rules · pager.rules
+  shared/mobile-nav/services/                  back-layers.service
   shared/space-scene/components/space-scene/   space-scene.component
   shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
   shared/space-scene/engine/                   frame-loop.engine · node-recorder.engine · remote-scene.engine · scene-worker.engine · scene.worker · space-scene.engine

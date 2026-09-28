@@ -610,6 +610,7 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 | `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                                            |
 | `models/scene.model.ts`                                       | `SceneBody`, `SceneDirection`, `CameraFraming`, `BodiesPresence`, `LabelStyle`                                                  |
 | `models/scene-layout.model.ts`                                | `SceneLayout`, `PanelRect`, `ScenePanelRole`                                                                                    |
+| `models/scene-config.model.ts`                                | `SCENE_CONFIG` : les réglages de la scène en un lieu (matière, ciel, canvas, caméra, main, gestes, planètes, figures) (D49)     |
 | `rules/`                                                      | état de scène, cadre, voile, corps et orbites, mise en page, résolution ; `camera/`, `gestures/`, `matter/`, `planets/`, `sky/` |
 | `engine/`                                                     | la boucle et ses couches (D11)                                                                                                  |
 
@@ -779,7 +780,7 @@ src/app/
   shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · sky-pan.motion · star-flow.motion · turntable.motion · zoom.motion
   shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
   shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · figure-strokes.renderer · figure-targets.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
-  shared/space-scene/models/                   scene-constants.model · scene-engine.model · scene-layout.model · scene-look.model · scene-node.model · scene-worker.model · scene.model
+  shared/space-scene/models/                   scene-config.model · scene-constants.model · scene-engine.model · scene-layout.model · scene-look.model · scene-node.model · scene-worker.model · scene.model
   shared/space-scene/ports/                    scene-surroundings.port
   shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · layout-change.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
   shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules

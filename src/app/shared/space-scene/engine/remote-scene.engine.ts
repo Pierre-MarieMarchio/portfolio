@@ -1,4 +1,4 @@
-import { HAND_DRAG_PX } from './motions/turntable.motion';
+import { SCENE_CONFIG } from '../models/scene-config.model';
 import { SkyPanMotion } from './motions/sky-pan.motion';
 import { clientOnCanvas } from '../rules/camera/pointer.rules';
 import { canLookCloser } from '../rules/camera/zoom.rules';
@@ -182,7 +182,7 @@ export class RemoteSceneEngine implements SceneEngine {
     }
     this.grip = null;
     this.send('release', []);
-    return grip.d > HAND_DRAG_PX;
+    return grip.d > SCENE_CONFIG.gestures.dragPx;
   }
 
   public holdZoom(clientX: number, clientY: number): boolean {

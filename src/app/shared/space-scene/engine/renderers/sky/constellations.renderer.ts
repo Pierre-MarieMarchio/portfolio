@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../../models/scene-config.model';
 import type { SkyPan } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
 import type { ScreenHole } from '../../../rules/camera/projection.rules';
@@ -70,9 +71,9 @@ interface ConstellationsLayer {
 }
 
 const FIGURE_DEPTH = 0.16;
-const UNLIT_LIGHT = 0.2;
-const UNLIT_LIGHT_IN_ABOUT = 0.45;
-const HOVERED_LIGHT = 0.7;
+const UNLIT_LIGHT = SCENE_CONFIG.figures.light.unlit;
+const UNLIT_LIGHT_IN_ABOUT = SCENE_CONFIG.figures.light.unlitInAbout;
+const HOVERED_LIGHT = SCENE_CONFIG.figures.light.hovered;
 const UNLIT_GROWTH = 0.25;
 const TARGETS_FROM = 0.5;
 

@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { TAU } from '@app/core/helpers';
 
 export interface Star {
@@ -34,8 +35,8 @@ export interface StarField {
   readonly count: number;
 }
 
-const PIXELS_PER_STAR = 3600;
-const PHONE_STAR_RATIO = 2;
+const PIXELS_PER_STAR = SCENE_CONFIG.sky.pixelsPerStar;
+const PHONE_STAR_RATIO = SCENE_CONFIG.sky.phoneStarRatio;
 
 export const starCount = (
   w: number,

@@ -1,9 +1,10 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { clamp } from '@app/core/helpers';
 import type { SceneState } from '../scene-state.rules';
 
-export const ZOOM_MIN = 1;
-export const ZOOM_MAX = 3;
-export const CLOSE_LOOK = 2.2;
+export const ZOOM_MIN = SCENE_CONFIG.camera.zoom.min;
+export const ZOOM_MAX = SCENE_CONFIG.camera.zoom.max;
+export const CLOSE_LOOK = SCENE_CONFIG.camera.zoom.closeLook;
 
 export const clampZoom = (factor: number): number =>
   clamp(factor, ZOOM_MIN, ZOOM_MAX);

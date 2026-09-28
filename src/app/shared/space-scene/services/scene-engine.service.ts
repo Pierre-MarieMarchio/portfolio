@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../models/scene-config.model';
 import { DestroyRef, inject, PendingTasks, Service } from '@angular/core';
 import { AnimatedCanvasService } from './animated-canvas.service';
 import type { EngineHost, EngineOptions } from '../engine/space-scene.engine';
@@ -12,7 +13,7 @@ import type {
   ToSceneWorker,
 } from '../models/scene-worker.model';
 
-const DENSITY = 3800;
+const DENSITY = SCENE_CONFIG.matter.density;
 
 export interface SceneCanvases {
   readonly matter: HTMLCanvasElement;

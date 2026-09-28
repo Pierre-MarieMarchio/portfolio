@@ -1,8 +1,9 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { isUnderPanel, Zone } from '../panel-veil.rules';
 import type { SkyRoom } from './figure-room.rules';
 
-export const FIGURE_TARGET_MIN = 44;
-const FIGURE_DRAG_WITHIN_PX = 6;
+export const FIGURE_TARGET_MIN = SCENE_CONFIG.figures.targetMin;
+const FIGURE_DRAG_WITHIN_PX = SCENE_CONFIG.gestures.dragPx;
 
 export const isDraggedClick = (
   press: { readonly x: number; readonly y: number } | null,

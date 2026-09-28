@@ -1,5 +1,6 @@
 import { draft } from '@app/core/rules';
 import { Catalog } from '../models/catalog.model';
+import { OWNER_NAME } from './owner.data';
 import { EN_PROFILE } from './en-profile.data';
 
 export const EN: Catalog = {
@@ -115,7 +116,7 @@ export const EN: Catalog = {
     },
     home: {
       void: draft('Close the windows'),
-      name: 'Pierre-Marie Marchio',
+      name: OWNER_NAME,
       trade: draft('.NET and Angular developer'),
       status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',

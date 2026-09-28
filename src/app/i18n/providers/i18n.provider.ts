@@ -5,6 +5,7 @@ import {
   provideAppInitializer,
   Provider,
 } from '@angular/core';
+import { SITE_NAME } from '@app/core/ports';
 import { LocaleService } from '@app/core/services';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
@@ -15,6 +16,7 @@ import { WINDOW_TEXTS } from '@shared/windows/ports';
 import { Catalog, PAGES_TEXTS } from '../models/catalog.model';
 import { CatalogLoaderService } from '../services/catalog-loader.service';
 import { pathOf } from '../rules/paths.rules';
+import { OWNER_NAME } from '../data/owner.data';
 
 const slice = <K extends keyof Catalog>(key: K) => {
   const catalogs = inject(CatalogLoaderService);
@@ -47,6 +49,7 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
       provide: PAGES_TEXTS,
       useFactory: () => slice('pages'),
     },
+    { provide: SITE_NAME, useValue: OWNER_NAME },
     {
       provide: LINKS,
       useFactory: (): ILinks => {

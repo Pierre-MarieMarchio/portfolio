@@ -13,6 +13,5 @@ export { PageVisibilityService } from './browser/page-visibility.service';
 export { DisplayFormatService } from './device/display-format.service';
 export { FormatCodeService } from './device/format-code.service';
 export { ConsoleErrorHandlerService } from './errors/console-error-handler.service';
-export { SITE_NAME } from './head/document-head.service';
 export { LocaleService } from './i18n/locale.service';
 export { UserPresenceService } from './presence/user-presence.service';

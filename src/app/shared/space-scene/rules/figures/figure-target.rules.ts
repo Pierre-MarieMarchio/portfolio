@@ -2,6 +2,16 @@ import { isUnderPanel, Zone } from '../panel-veil.rules';
 import type { SkyRoom } from './figure-room.rules';
 
 export const FIGURE_TARGET_MIN = 44;
+const FIGURE_DRAG_WITHIN_PX = 6;
+
+export const isDraggedClick = (
+  press: { readonly x: number; readonly y: number } | null,
+  click: Pick<MouseEvent, 'clientX' | 'clientY' | 'detail'>,
+): boolean =>
+  click.detail > 0 &&
+  press !== null &&
+  Math.hypot(click.clientX - press.x, click.clientY - press.y) >
+    FIGURE_DRAG_WITHIN_PX;
 
 export interface FigureTarget {
   readonly x: number;

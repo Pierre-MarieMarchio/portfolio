@@ -30,6 +30,8 @@ import { SCENE_SURROUNDINGS } from '../../ports/scene-surroundings.port';
 import { canvasResolution } from '../../rules/canvas-resolution.rules';
 import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
 import { isSameList } from '../../rules/planets/same-nodes.rules';
+import { canMoveLayout } from '../../rules/layout-change.rules';
+import { isDraggedClick } from '../../rules/figures/figure-target.rules';
 import { SceneTargetsService } from '../../services/scene-targets.service';
 import {
   FALLBACK_VIEWPORT,
@@ -37,7 +39,6 @@ import {
 } from '../../models/scene-constants.model';
 
 const DENSITY = 3800;
-const FIGURE_DRAG_WITHIN_PX = 6;
 
 export const loadHoleFocus = () => import('../../rules/hole-focus.rules');
 
@@ -92,6 +93,7 @@ export class SpaceSceneComponent {
   private labelsGiven: readonly HTMLElement[] = [];
   private figuresGiven: readonly HTMLElement[] = [];
   private figurePress: { readonly x: number; readonly y: number } | null = null;
+  private cancelMeasure: (() => void) | null = null;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -131,6 +133,7 @@ export class SpaceSceneComponent {
       for (const stop of this.stops) {
         stop();
       }
+      this.cancelMeasure?.();
       this.engine()?.stop();
       this.engine.set(null);
     });
@@ -156,12 +159,7 @@ export class SpaceSceneComponent {
   protected onFigureClick(figure: number, event: MouseEvent): void {
     const press = this.figurePress;
     this.figurePress = null;
-    const isDragged =
-      event.detail > 0 &&
-      press !== null &&
-      Math.hypot(event.clientX - press.x, event.clientY - press.y) >
-        FIGURE_DRAG_WITHIN_PX;
-    if (!isDragged) {
+    if (!isDraggedClick(press, event)) {
       this.figureChosen.emit(figure);
     }
   }
@@ -241,29 +239,23 @@ export class SpaceSceneComponent {
         this.resize();
         this.measure();
       }),
-      this.canvas.onVisible(matter, 0.01, (visible) => {
-        engine.setVisible(visible);
-      }),
-      this.canvas.watchHidden((hidden) => {
-        if (hidden) {
-          engine.stop();
-        } else {
-          engine.request();
-        }
-      }),
+      this.canvas.onVisible(matter, 0.01, (visible) =>
+        engine.setVisible(visible),
+      ),
+      this.canvas.watchHidden((hidden) =>
+        hidden ? engine.stop() : engine.request(),
+      ),
       this.canvas.watchMedia('(prefers-reduced-motion: reduce)', (reduce) => {
         this.reduced.set(reduce);
       }),
-      this.canvas.onWindow('resize', () => this.measure(), { passive: true }),
-      this.canvas.onWindow('pointerup', () => this.measure(), {
-        passive: true,
-      }),
-      this.canvas.onWindow('animationend', () => this.measure(), {
-        capture: true,
-      }),
-      this.canvas.onWindow('transitionend', () => this.measure(), {
-        capture: true,
-      }),
+      ...(
+        ['resize', 'pointerup', 'animationend', 'transitionend'] as const
+      ).map((type) =>
+        this.canvas.onWindow(type, (event) => this.measureSoon(event), {
+          capture: true,
+          passive: true,
+        }),
+      ),
       this.canvas.onWindow(
         'pointermove',
         (event) => {
@@ -296,6 +288,16 @@ export class SpaceSceneComponent {
     }
     engine.resize(width, height, pixelRatio);
     engine.setViewportArea(this.viewportArea());
+  }
+
+  private measureSoon(event: Event): void {
+    if (!canMoveLayout(event)) {
+      return;
+    }
+    this.cancelMeasure ??= this.canvas.nextFrame(() => {
+      this.cancelMeasure = null;
+      this.measure();
+    });
   }
 
   private measure(): void {

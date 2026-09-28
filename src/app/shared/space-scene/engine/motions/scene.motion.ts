@@ -8,6 +8,7 @@ import { CameraMotion } from './camera.motion';
 import { ClockMotion } from './clock.motion';
 import { GrainsMotion } from './grains.motion';
 import { ZoomMotion } from './zoom.motion';
+import { isSameFraming } from '../../rules/camera/zoom.rules';
 
 const LANDED_ENTRY_WITHIN = 0.6;
 const HURRIED_WITHIN = 0.9;
@@ -51,6 +52,9 @@ export class SceneMotion {
   }
 
   public follow(previous: SceneState, state: SceneState): void {
+    if (!isSameFraming(previous, state)) {
+      this.zoom.reset();
+    }
     if (previous === NO_STATE) {
       this.start(state);
     } else if (previous.reduced && !state.reduced) {

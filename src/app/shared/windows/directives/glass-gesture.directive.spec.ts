@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { PhoneCodeService } from '@app/core/services';
+import { FormatCodeService } from '@app/core/services';
 import * as glassGestures from '../trackers/glass-gesture.tracker';
 import {
   GlassGesturesDirective,
@@ -159,7 +159,7 @@ describe('GlassGesturesDirective', () => {
     const load = vi.fn(() => code.asReadonly());
     TestBed.configureTestingModule({
       imports: [GlassHost],
-      providers: [{ provide: PhoneCodeService, useValue: { load } }],
+      providers: [{ provide: FormatCodeService, useValue: { load } }],
     });
     const fixture = TestBed.createComponent(GlassHost);
     fixture.componentInstance.folded.set(isFolded);
@@ -401,10 +401,10 @@ describe('GlassGesturesDirective', () => {
     expect(fixture.componentInstance.clicks).toBe(1);
   });
 
-  it('asks for its code through the phone code loader', async () => {
+  it('asks for its code through the format code loader, for the phone', async () => {
     const { load } = await setup();
 
-    expect(load).toHaveBeenCalledWith(loadGlassGestures);
+    expect(load).toHaveBeenCalledWith(['phone'], loadGlassGestures);
   });
 
   it('holds a gesture made before its code arrives, then plays it', async () => {

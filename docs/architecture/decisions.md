@@ -1308,3 +1308,76 @@ positions tiennent.
 d'avertissement à 530 kB) : les cibles et leur écriture servent à tous les
 formats et restent dans l'initial ; le rangement (4,7 kB) est dans
 `hole-focus-rules`, qui passe de 3,1 à 6,6 kB.
+
+## 2026-09-27 — Au bureau, la molette rapproche et le clic molette déplace la caméra (D43, étend D32, amende D39)
+
+**Décision.** Au format `desktop`, sur le ciel (le canvas, `.void`, un
+bouton de planète ou de figure), la molette rapproche ou éloigne la caméra
+autour du point sous le pointeur, avec le facteur borné à [1, 3] du
+pincement (D32) : un cran vaut × 1,1 (100 px, 3 lignes ou une page), un
+petit delta de pavé tactile zoome d'autant moins, et `ctrl` + molette, le
+pincement du pavé, fait pareil sans agrandir la page. Le bouton du milieu
+maintenu sur le ciel déplace la caméra : le dessin suit le pointeur, borné
+pour que le centre du trou reste dans le canvas ; relâcher garde le
+décalage. Le décalage se pose après le facteur, et la molette zoome autour
+du point vu sous le pointeur. Sur une fenêtre, le châssis, un lien ou un
+champ, la molette et le bouton du milieu gardent leur effet natif ;
+`preventDefault` (la molette, et le `mousedown` du bouton du milieu, qui
+lance l'autodéfilement) ne vaut que sur le ciel. Un clic
+molette sans glisser ne fait rien. Le facteur et le décalage reviennent à 1
+et 0, avec l'amorti de la caméra, à chaque changement de cadrage et de
+taille du canvas ; sous `prefers-reduced-motion`, sans amorti. À décalage
+nul, l'image est celle d'avant : les goldens ne bougent pas.
+
+- Le chargeur du téléphone se généralise : `PhoneCodeService` devient
+  `FormatCodeService`, `load(formats, importer)`, qui charge dès que le
+  format est l'un de `formats`. Il ne charge jamais au serveur, qui répond
+  `desktop` (le spec de prérendu le tient).
+- Les gestes du ciel se chargent à part, par format. Au doigt (`phone`,
+  `tablet`), le pincement et le double toucher de D32 : la directive
+  `zoom-gesture` devient `ZoomGestureTracker`
+  (`shared/space-scene/trackers/`, rôle ouvert à la scène). Au bureau, la
+  molette et le clic molette : `SkyLookTracker`, `SkyPanMotion` et
+  `sky-look.rules.ts` (`rules/gestures/`, avec `sky-touch.rules.ts`). Le
+  morceau du doigt n'est jamais demandé au bureau ni au serveur, celui du
+  bureau jamais au doigt. Une fois leur code là, les gestes de D32 font ce
+  qu'ils faisaient : pincement borné, double toucher de l'accueil, un doigt
+  sur une planète ou une figure peut commencer un pincement, clic avalé
+  après un pincement, remise à 1.
+- Au premier rendu reste une seule enveloppe : un effet de
+  `SpaceSceneComponent` démarre, par `SceneLookService`, le tracker du
+  format courant quand l'engine et son code sont là, l'arrête au changement
+  de format et à la destruction, et donne le décalage du bureau à l'engine
+  avec ses entrées (`SceneInputs.pan`) ; l'engine le pose par le crochet
+  `ZoomMotion.pan`. Un pincement, un double toucher, un tour de molette ou
+  un clic molette fait avant l'arrivée de son code est perdu : il n'est ni
+  retenu ni rejoué, et l'autodéfilement du bouton du milieu peut encore
+  partir. Chaque code est demandé au démarrage du client, ou au passage à
+  l'un de ses formats. Si le format quitte `desktop`, le décalage est rendu.
+- D39 est amendée : elle gardait `zoom-gesture.directive.ts` dans le bundle
+  initial, parce que la tablette s'en sert ; il se charge maintenant avec
+  la tablette et le téléphone.
+
+**Raison.** La demande de l'opérateur : « sur desktop, avec la molette,
+faire comme le zoom sur mobile si c'est possible, et pouvoir bouger la
+caméra avec le clic molette ». Elle étend le bureau, que le cadrage
+d'origine figeait. D32 écartait la molette parce que « rien ne le
+demande » : c'est maintenant demandé. Le code du bureau seul ne tenait pas
+sous le seuil : son enveloppe et son crochet dans l'initial pesaient plus
+que les 90 octets qui restaient (530,52 kB mesurés). L'opérateur a choisi
+de charger aussi à part le pincement plutôt que de relever le seuil. Même
+argument que pour la molette : c'est un geste d'exploration, pas une
+commande, et un regard perdu avant l'arrivée du code se refait.
+
+**Écarté.** Faire défiler la page : elle ne défile pas. Un bouton de zoom
+visible : il ajouterait une place au châssis. Relever le seuil du bundle :
+c'est ce que l'opérateur a refusé. Retenir et rejouer les événements comme
+la vitre (D39) : l'enveloppe pèserait presque autant que le geste, et un
+regard perdu se refait.
+
+**Budget.** Le bundle initial passe de 529,91 à 528,73 kB ; le seuil
+d'avertissement reste à 530 kB. Deux morceaux paresseux s'ajoutent :
+`zoom-gesture-tracker` (2,09 kB), demandé au téléphone et à la tablette,
+et `sky-look-tracker` (1,97 kB), demandé au bureau. `sky-touch.rules.ts`,
+que la directive du tour de l'objet partage avec les deux, sort dans un
+petit morceau initial de 315 octets, compté dans ces 528,73 kB.

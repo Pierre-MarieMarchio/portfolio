@@ -101,6 +101,7 @@ const ROLES_IN = {
     'services',
     'engine',
     'rules',
+    'trackers',
     'models',
     'ports',
   ],

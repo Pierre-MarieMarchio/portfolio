@@ -11,7 +11,7 @@ import {
   DisplayFormatService,
   DocumentStylesService,
   MediaPreferencesService,
-  PhoneCodeService,
+  FormatCodeService,
 } from '@app/core/services';
 import type { GlassGesture, GlassSurface } from '../models/glass-gesture.model';
 import type { GlassGestureTracker } from '../trackers/glass-gesture.tracker';
@@ -32,7 +32,10 @@ export class GlassGesturesDirective {
   private readonly display = inject(DisplayFormatService);
   private readonly media = inject(MediaPreferencesService);
   private readonly styles = inject(DocumentStylesService);
-  private readonly code = inject(PhoneCodeService).load(loadGlassGestures);
+  private readonly code = inject(FormatCodeService).load(
+    ['phone'],
+    loadGlassGestures,
+  );
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 

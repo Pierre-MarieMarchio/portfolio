@@ -1,7 +1,7 @@
 import { DestroyRef, Directive, inject, input } from '@angular/core';
 import { BrowserWindowService, CursorService } from '@app/core/services';
 import { SpaceSceneEngine } from '../engine/space-scene.engine';
-import { isOnSky } from '../rules/sky-touch.rules';
+import { isOnSky } from '../rules/gestures/sky-touch.rules';
 import { ClickAbsorberService } from '../services/click-absorber.service';
 
 export type TurnableScene = Pick<SpaceSceneEngine, 'grab' | 'turn' | 'release'>;

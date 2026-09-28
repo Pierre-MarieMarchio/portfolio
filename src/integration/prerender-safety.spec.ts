@@ -10,7 +10,7 @@ import {
   ElementObserverService,
   MediaPreferencesService,
   PageVisibilityService,
-  PhoneCodeService,
+  FormatCodeService,
   UserPresenceService,
 } from '@app/core/services';
 
@@ -201,7 +201,7 @@ describe('prerender safety', () => {
     const importer = vi.fn(() => Promise.resolve({}));
 
     const loaded = TestBed.runInInjectionContext(() =>
-      TestBed.inject(PhoneCodeService).load(importer),
+      TestBed.inject(FormatCodeService).load(['phone'], importer),
     );
     TestBed.tick();
     await Promise.resolve();
@@ -210,6 +210,35 @@ describe('prerender safety', () => {
     expect(loaded()).toBeNull();
 
     vi.unstubAllGlobals();
+  });
+
+  it('loads no code of the desktop on the server, though it answers as a desktop', async () => {
+    on('server');
+    const importer = vi.fn(() => Promise.resolve({}));
+
+    const loaded = TestBed.runInInjectionContext(() =>
+      TestBed.inject(FormatCodeService).load(['desktop'], importer),
+    );
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(TestBed.inject(DisplayFormatService).format()).toBe('desktop');
+    expect(importer).not.toHaveBeenCalled();
+    expect(loaded()).toBeNull();
+  });
+
+  it('loads no code of the fingers on the server', async () => {
+    on('server');
+    const importer = vi.fn(() => Promise.resolve({}));
+
+    const loaded = TestBed.runInInjectionContext(() =>
+      TestBed.inject(FormatCodeService).load(['phone', 'tablet'], importer),
+    );
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(importer).not.toHaveBeenCalled();
+    expect(loaded()).toBeNull();
   });
 
   it('leaves the cursor alone on the server', () => {

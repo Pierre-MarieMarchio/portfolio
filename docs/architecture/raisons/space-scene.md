@@ -471,10 +471,13 @@ et de `src/testing/`, rangées par unité (D10).
   la section allumée : un survol ou une sélection au relevé ne remettent pas
   le facteur à 1.
 
-## `src/app/shared/space-scene/directives/zoom-gesture.directive.ts`
+## `src/app/shared/space-scene/trackers/zoom-gesture.tracker.ts`
 
 - Seuls les doigts comptent (`pointerType: 'touch'`), et seulement hors du
   format `desktop` : un écran tactile de bureau garde le pincement natif.
+  Le tracker n'est démarré qu'aux formats `phone` et `tablet` (D43) : c'est
+  l'enveloppe de `SpaceSceneComponent` qui tient la règle du format, et
+  qui l'arrête quand le format devient `desktop`.
 - Un doigt compte s'il se pose sur le ciel ou sur une cible de la scène
   (`[data-scene-target]`, `isOnScene`) ; le double toucher, lui, ne compte
   que les taps posés sur le ciel (`isOnSky`) : deux taps sur une planète

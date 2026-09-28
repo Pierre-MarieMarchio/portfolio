@@ -29,9 +29,11 @@ import {
   SceneChange,
   sceneBodies,
   SceneSetup,
+  WIDE_LAYOUT,
 } from '@testing/fixtures/engine-scene.fixture';
 import { sceneLayout } from '../rules/scene-layout.rules';
 import * as holeFocus from '../rules/hole-focus.rules';
+import { SkyPanMotion } from './motions/sky-pan.motion';
 
 const mountEngineScene = (setup: Partial<SceneSetup> = {}) =>
   mountBareScene({
@@ -1259,6 +1261,120 @@ describe('SpaceSceneEngine, looked at up close', () => {
     scene.run(EASED_MS);
     expect(scene.scheduled()).toBe(false);
   });
+});
+
+const DESK = WIDE_LAYOUT.viewport;
+
+const deskLooked = ({ direction, ...change }: SceneChange = {}) => {
+  const pan = new SkyPanMotion();
+  const scene = markedScene(WIDE_LAYOUT, 2, {
+    ...SCENE_INPUTS,
+    format: 'desktop',
+    pan,
+    ...change,
+    direction: { ...SCENE_INPUTS.direction, ...direction },
+  });
+  scene.run(PAST_CROSSING_MS);
+  const drag = (dx: number, dy: number): void => {
+    pan.by(dx, dy);
+    scene.engine.request();
+    scene.run(FRAME_MS);
+  };
+  return { ...scene, pan, drag };
+};
+
+describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
+  it('draws the same at no offset', () => {
+    const bare = markedScene(WIDE_LAYOUT, 2, {
+      ...SCENE_INPUTS,
+      format: 'desktop',
+    });
+    bare.run(PAST_CROSSING_MS);
+    const scene = deskLooked();
+
+    expect(scene.hole()).toEqual(bare.hole());
+  }, 15_000);
+
+  it('moves the drawing with the pointer, and keeps it there once let go', () => {
+    const scene = deskLooked();
+    const before = scene.hole();
+
+    scene.drag(-120, 40);
+    const moved = scene.hole();
+    scene.run(EASED_MS);
+
+    expect(moved.x).toBeCloseTo(before.x - 120, 0);
+    expect(moved.y).toBeCloseTo(before.y + 40, 0);
+    expect(moved.radius).toBeCloseTo(before.radius, 1);
+    expect(scene.hole()).toEqual(moved);
+  }, 15_000);
+
+  it('stops once the centre of the hole reaches an edge of the canvas', () => {
+    const scene = deskLooked();
+
+    scene.drag(-5000, 5000);
+    expect(scene.hole().x).toBeCloseTo(0, 0);
+    expect(scene.hole().y).toBeCloseTo(DESK.height, 0);
+
+    scene.drag(80, -60);
+    expect(scene.hole().x).toBeCloseTo(80, 0);
+    expect(scene.hole().y).toBeCloseTo(DESK.height - 60, 0);
+  }, 15_000);
+
+  it('keeps the point under the pointer when the wheel rolls on a moved camera', () => {
+    const scene = deskLooked();
+    scene.drag(-100, 0);
+    expect(scene.pan.x).toBe(-100);
+    const before = scene.hole();
+    const at = { x: before.x + 50, y: before.y };
+
+    const unmoved = { x: at.x - scene.pan.x, y: at.y - scene.pan.y };
+    expect(scene.engine.holdZoom(unmoved.x, unmoved.y)).toBe(true);
+    scene.engine.stretchZoom(unmoved.x, unmoved.y, 2);
+    scene.engine.releaseZoom();
+    scene.run(FRAME_MS);
+
+    expect(scene.hole().radius / before.radius).toBeCloseTo(2, 1);
+    expect(scene.hole().x).toBeCloseTo(at.x - 50 * 2, 0);
+  }, 15_000);
+
+  it('comes back with the camera at the next view, and settles', () => {
+    const scene = deskLooked();
+    const before = scene.hole();
+    scene.drag(-150, 0);
+
+    scene.set({
+      direction: { framing: { kind: 'overview' }, labels: 'tags' },
+    });
+    scene.run(FRAME_MS * 3);
+    expect(scene.pan.x).toBeLessThan(0);
+    expect(scene.pan.x).toBeGreaterThan(-150);
+
+    scene.set({ paused: true });
+    scene.run(EASED_MS);
+    expect(scene.pan.x).toBe(0);
+    expect(scene.hole().x).toBeCloseTo(before.x, 0);
+    expect(scene.scheduled()).toBe(false);
+  }, 15_000);
+
+  it('comes back at once under reduced motion, and when the canvas changes size', () => {
+    const scene = deskLooked({ reduced: true });
+    scene.drag(-150, 30);
+    expect(scene.pan.x).toBe(-150);
+
+    scene.set({
+      direction: { framing: { kind: 'overview' }, labels: 'tags' },
+    });
+    scene.run(FRAME_MS);
+    expect(scene.pan.x).toBe(0);
+    expect(scene.pan.y).toBe(0);
+
+    scene.drag(-150, 30);
+    expect(scene.pan.y).toBe(30);
+    scene.engine.resize(DESK.width * 2 - 20, DESK.height * 2, 2);
+    scene.run(FRAME_MS);
+    expect(scene.pan.x).toBe(0);
+  }, 15_000);
 });
 
 const PHONE_SCREEN = { width: 390, height: 844, dpr: 3 } as const;

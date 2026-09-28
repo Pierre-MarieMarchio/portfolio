@@ -12,7 +12,6 @@ import {
   TitleStrategy,
   withComponentInputBinding,
   withInMemoryScrolling,
-  withViewTransitions,
 } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { routes } from './app.routes';
@@ -34,7 +33,6 @@ export const appConfig: ApplicationConfig = {
         anchorScrolling: 'enabled',
         scrollPositionRestoration: 'enabled',
       }),
-      withViewTransitions({ skipInitialTransition: true }),
     ),
     { provide: TitleStrategy, useClass: RouteHeadStrategy },
     provideClientHydration(),

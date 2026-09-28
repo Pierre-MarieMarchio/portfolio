@@ -1381,3 +1381,53 @@ d'avertissement reste à 530 kB. Deux morceaux paresseux s'ajoutent :
 et `sky-look-tracker` (1,97 kB), demandé au bureau. `sky-touch.rules.ts`,
 que la directive du tour de l'objet partage avec les deux, sort dans un
 petit morceau initial de 315 octets, compté dans ces 528,73 kB.
+
+## 2026-09-28 — Au téléphone, le cadrage du trou garde ce que la planète n'a pas changé (D44, étend D35)
+
+**Décision.** Au format `phone`, le cadrage qui fait du trou noir le sujet
+(`hole-focus.rules.ts`, D35) se calcule toujours à chaque image, mais garde
+d'une image à l'autre ce qui n'a pas bougé. Des quatorze angles essayés, les
+treize angles fixes placent la planète au même endroit de l'écran à tout
+moment de son orbite : leurs rayons tenus, pour chaque place du nom et
+chaque pièce du ciel, sont repris tant que la taille du canvas, les pièces,
+l'inclinaison, la taille du nom, le rayon du trou et la place de la planète
+à cet angle ne bougent pas de plus d'un millième de pixel. Seul l'angle
+d'aujourd'hui, où la planète est vue, se replace à chaque image quand elle
+tourne. Les distances des pièces au trou, qui ne servent qu'à départager,
+se recalculent à part, à chaque image. Le choix entre les places se refait
+entier, dans le même ordre : une ligne qui ne peut plus gagner est sautée,
+et le test du nom sur le disque n'a lieu que pour une place qui gagnerait.
+La règle rend le cadrage et ce qu'elle garde (`FocusMemo`) ; la scène le lui
+rend à l'image suivante (`FramingScene.focusMemo`). La géométrie des
+groupes et des angles passe dans `rules/focus/focus-choices.rules.ts`, ce
+qui se garde et le choix dans `rules/focus/focus-rows.rules.ts` ; seul
+`hole-focus.rules.ts` les importe, ils restent dans son morceau paresseux.
+La caméra, son amorti et les goldens ne changent pas.
+
+**Raison.** Mesuré sur le build de production, Chromium à 384 × 854, dpr 3,
+processeur ralenti × 4, sur 3 s au repos (JS des rappels
+`requestAnimationFrame`, moyenne par image) :
+
+| Vue                       | avant   | après  |
+| ------------------------- | ------- | ------ |
+| accueil au repos, vedette | 9,6 ms  | 6,1 ms |
+| aperçu                    | 7,4 ms  | 5,7 ms |
+| fiche                     | 5,75 ms | 5,6 ms |
+
+Le plancher, la même recherche sans planète visée comme avant D38, est à
+5,5 ms. Le ciel du téléphone compte 123 pièces à l'accueil : la recherche
+plaçait jusqu'à 84 groupes dans chacune, à chaque image. Le trou relevé
+(`data-hole-x`, `data-hole-y`, `data-hole-radius`) est le même qu'avant, et
+un spec suit une orbite entière, trou en dérive, contre une recherche neuve
+à chaque pas : l'écart reste sous 0,01 px, même quand le cadrage change
+d'angle. Le morceau `hole-focus-rules` passe de 6,65 à 8,32 kB, le bundle
+initial de 528,73 à 528,81 kB.
+
+**Écarté.** Garder la place choisie tant que la planète ne s'est pas
+déplacée d'un pixel, ou refaire la recherche à un rythme plus lent : au
+moment où le meilleur angle change, le cadrage attendait le prochain
+recalcul ; le long d'une orbite, la cible s'écartait alors de 114 px de
+celle d'une recherche neuve. Garder aussi la place du trou dans ce qui doit
+rester égal : au repos, elle dérive d'environ 0,03 px par image, et rien
+n'était jamais repris. Précalculer le test du nom pour toutes les places :
+à 123 pièces, l'image montait à 40 ms.

@@ -542,6 +542,21 @@ et de `src/testing/`, rangées par unité (D10).
 - La fiche couchée à 844 × 390 s'arrête sous la plus grande taille que son
   disque seul permettrait (77 px au lieu de 85) : la planète et son nom
   doivent tenir à gauche de la vitre avec lui.
+- Le cadrage se refait à chaque image (D44), mais ne replace que ce qui a
+  bougé. Un angle essayé fixe l'endroit où la planète est vue, pas son
+  moment sur l'orbite : sa place ne change pas quand la planète tourne, et
+  ses rayons tenus, pièce par pièce, sont repris d'une image à l'autre
+  (`FocusMemo`), tant que la taille, les pièces, l'inclinaison, le nom, le
+  rayon du trou et la place de la planète à cet angle n'ont pas bougé de
+  plus d'un millième de pixel. Seul l'angle d'aujourd'hui, qui suit la
+  planète à l'accueil, se replace à chaque image. Le choix, lui, se refait
+  entier, dans le même ordre : il donne le cadrage d'une recherche neuve.
+- La place du trou n'entre que dans le départage, la pièce la plus proche :
+  les distances se recalculent à chaque image, à part, et une dérive du
+  repos ne fait rien replacer. Une ligne dont le plus grand rayon ne dépasse
+  pas le meilleur de plus de l'égalité (0,01 px) est sautée : venue après,
+  elle ne peut gagner qu'en le dépassant. Le test du nom sur le disque ne se
+  fait qu'au moment où une place gagnerait, et se garde.
 
 ## `src/app/shared/space-scene/rules/planets/planet-focus.rules.ts`
 

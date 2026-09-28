@@ -1482,3 +1482,44 @@ au bas du corps couché : il cache la coupure sans l'ôter. Garder la règle
 couchée : l'opérateur a choisi un nom à la fois pour le téléphone.
 
 **Budget.** Le bundle initial passe de 528,81 à 529,39 kB.
+
+## 2026-09-28 — Les navigations ne figent plus la page pour rien (D46)
+
+**Décision.** Quatre correctifs, une PR chacun. Le routeur n'a plus de
+View Transition : la page ne change jamais de composant et les fenêtres ont
+leur propre entrée. La scène ne remesure plus ses vitres à chaque fin de
+transition CSS : les mesures venues d'un événement attendent l'image
+suivante et se fusionnent, et une transition qui ne fait que repeindre
+(couleur, ombre, `fill`, filtre) n'en demande plus. L'écouteur `touchmove`
+non passif n'existe plus que dans le tracker de la vitre du téléphone. La
+vitre du téléphone garde sa teinte et son ombre mais perd son flou pendant
+que la caméra voyage : la scène lève `data-sky-travel` sur la racine, et le
+flou revient en fondu à l'arrivée.
+
+**Raison.** Mesuré sur le build de production, Chrome sans interface à
+390 × 844, dpr 3, processeur ralenti × 4, pire image longue
+(`long-animation-frame`) dans les 3,5 s qui suivent le clic, moyenne de
+trois passages :
+
+| Navigation    | avant  | après  |
+| ------------- | ------ | ------ |
+| vers Projets  | 121 ms | 110 ms |
+| vers la fiche | 103 ms | 83 ms  |
+| vers À propos | 111 ms | 77 ms  |
+| vers Accueil  | 89 ms  | 82 ms  |
+
+Le critère de la session, aucune image au-delà de 50 ms, n'est pas atteint.
+Au repos, le thread principal passe déjà 382 ms sur 500 à dessiner la scène
+à × 4 ; une navigation n'ajoute qu'une cinquantaine de millisecondes, mais
+elle tombe sur un thread plein. Ce qui reste dans la pire image : la vue que
+crée Angular, son style et son layout (forcé par le `focus()` de
+`ViewFocusService`, qu'il faudrait faire de toute façon), et le dessin du
+ciel de la même image. La suite est de sortir la scène du thread principal.
+
+**Écarté.** N'ajouter l'écouteur `touchmove` qu'au début d'un tirage :
+Chrome décide au `touchstart` si la séquence attend la page, et le tirage
+casserait. `touch-action: pan-y` sur la zone : le tirage du corps en haut de
+son contenu et le défilement du rail ne se disent pas ainsi. Une vitre
+opaque sans flou au téléphone : elle change le verre au repos. Ne plus
+écrire `scrollTop` sur une fenêtre neuve déjà en haut : le layout forcé
+passe simplement au `focus()` qui suit, sans rien gagner.

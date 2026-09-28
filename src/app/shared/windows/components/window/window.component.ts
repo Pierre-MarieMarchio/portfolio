@@ -17,7 +17,7 @@ import {
   WindowAnchor,
   WindowSize,
 } from '../../models/window.model';
-import { GlassGesture, SwipeDirection } from '../../models/glass-gesture.model';
+import { GlassGesture } from '../../models/glass-gesture.model';
 import { WINDOW_TEXTS } from '../../ports/window-texts.port';
 
 @Component({
@@ -48,7 +48,6 @@ export class WindowComponent {
 
   public readonly pinToggled = output();
   public readonly closed = output();
-  public readonly swiped = output<SwipeDirection>();
 
   protected readonly collapsed = signal(false);
   protected readonly name = computed(() => this.label() || this.heading());
@@ -67,10 +66,6 @@ export class WindowComponent {
   }
 
   protected answer(gesture: GlassGesture): void {
-    if (gesture === 'next' || gesture === 'previous') {
-      this.swiped.emit(gesture);
-      return;
-    }
     this.collapsed.set(gesture === 'fold');
   }
 }

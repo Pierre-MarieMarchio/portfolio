@@ -6,7 +6,6 @@
   [pinned]="pinned()"
   (pinToggled)="pinToggled.emit()"
   (closed)="closed.emit()"
-  (swiped)="step($event)"
 >
   <app-segmented
     toolbar
@@ -14,10 +13,10 @@
     [items]="parts()"
     (valueChange)="partChange.emit($event)"
   />
-  <div body>
+  <div body class="about">
     <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
-    @switch (current().key) {
-      @case ('profile') {
+    <app-pager [index]="index()" (indexChange)="partChange.emit($event)">
+      <app-pager-page>
         <p class="lead">{{ about().profile.lead }}</p>
         <dl class="facts">
           @for (fact of about().profile.facts; track fact.term) {
@@ -35,8 +34,8 @@
         @for (paragraph of about().profile.prose; track $index) {
           <p class="prose" [class.first]="$first">{{ paragraph }}</p>
         }
-      }
-      @case ('skills') {
+      </app-pager-page>
+      <app-pager-page>
         <section>
           <p class="caps">{{ about().skills.heading }}</p>
           <dl class="domains">
@@ -50,8 +49,21 @@
           </dl>
           <p class="prose after">{{ about().skills.prose }}</p>
         </section>
-      }
-      @case ('method') {
+      </app-pager-page>
+      <app-pager-page>
+        <section>
+          <p class="caps">{{ about().path.heading }}</p>
+          <dl class="milestones">
+            @for (milestone of about().path.milestones; track milestone.fact) {
+              <div>
+                <dt>{{ milestone.year }}</dt>
+                <dd>{{ milestone.fact }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+      </app-pager-page>
+      <app-pager-page>
         <section>
           <p class="caps">{{ about().method.heading }}</p>
           <ul class="method">
@@ -68,21 +80,8 @@
             >.
           </p>
         </section>
-      }
-      @case ('path') {
-        <section>
-          <p class="caps">{{ about().path.heading }}</p>
-          <dl class="milestones">
-            @for (milestone of about().path.milestones; track milestone.fact) {
-              <div>
-                <dt>{{ milestone.year }}</dt>
-                <dd>{{ milestone.fact }}</dd>
-              </div>
-            }
-          </dl>
-        </section>
-      }
-    }
+      </app-pager-page>
+    </app-pager>
   </div>
   <ng-container footer>
     <p class="position">{{ current().title }}</p>

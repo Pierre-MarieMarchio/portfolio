@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  flex: 0 0 100%;
+  min-width: 0;
+  overflow-y: auto;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}

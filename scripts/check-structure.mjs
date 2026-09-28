@@ -96,6 +96,14 @@ const ROLES_IN = {
     'models',
     'ports',
   ],
+  'shared/mobile-nav': [
+    'components',
+    'directives',
+    'services',
+    'rules',
+    'models',
+    'ports',
+  ],
   'shared/space-scene': [
     'components',
     'directives',

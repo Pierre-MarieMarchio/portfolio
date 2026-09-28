@@ -431,15 +431,5 @@ describe('WindowComponent', () => {
 
       expect(collapse.getAttribute('aria-expanded')).toBe('true');
     });
-
-    it('emits swiped when its body is swiped sideways', async () => {
-      const { fixture, host } = await mountOnPhone();
-      const swipes = recordOutput(fixture.componentInstance.swiped);
-
-      drag(bodyOf(host), -80, 4);
-      drag(bodyOf(host), 80, 4);
-
-      expect(swipes).toEqual(['next', 'previous']);
-    });
   });
 });

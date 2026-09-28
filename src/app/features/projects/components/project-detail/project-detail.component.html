@@ -9,7 +9,6 @@
     [pinned]="pinned()"
     (pinToggled)="pinToggled.emit()"
     (closed)="closed.emit()"
-    (swiped)="step($event)"
   >
     <app-segmented
       toolbar
@@ -17,49 +16,55 @@
       [items]="chapters()"
       (valueChange)="chapterChange.emit($event)"
     />
-    <div body>
+    <div body class="sheet">
       <header>
         <h1 tabindex="-1" appViewHeading>{{ project()?.title }}</h1>
-        @if (chapter() === 0) {
-          <p class="lede">{{ detail.lede }}</p>
-        }
       </header>
-      @if (identity(); as facts) {
-        <dl class="identity">
-          <div>
-            <dt>{{ texts().sheet.terms.access }}</dt>
-            <dd class="data">{{ facts.proof }}</dd>
-          </div>
-          <div>
-            <dt>{{ texts().sheet.terms.role }}</dt>
-            <dd class="text">{{ facts.role }}</dd>
-          </div>
-          <div>
-            <dt>{{ texts().sheet.terms.stack }}</dt>
-            <dd class="data quiet">{{ facts.stack }}</dd>
-          </div>
-          <div>
-            <dt>{{ texts().sheet.terms.context }}</dt>
-            <dd class="text quiet">{{ facts.context }}</dd>
-          </div>
-          <div>
-            <dt>{{ texts().sheet.terms.period }}</dt>
-            <dd class="data quiet">{{ facts.period }}</dd>
-          </div>
-        </dl>
-      }
-      @if (current(); as chapter) {
-        <app-project-chapter [chapter]="chapter" />
-      }
-      @if (detail.links.length > 0) {
-        <p class="links">
-          @for (link of detail.links; track link.href) {
-            <a [href]="link.href" target="_blank" rel="noopener"
-              >{{ link.label }} ↗</a
-            >
-          }
-        </p>
-      }
+      <app-pager [index]="chapter()" (indexChange)="chapterChange.emit($event)">
+        @for (page of pages(); track $index) {
+          <app-pager-page>
+            <div class="opening">
+              @if ($first) {
+                <p class="lede">{{ detail.lede }}</p>
+              }
+            </div>
+            @if ($first && project(); as project) {
+              <dl class="identity">
+                <div>
+                  <dt>{{ texts().sheet.terms.access }}</dt>
+                  <dd class="data">{{ project.facts.proof }}</dd>
+                </div>
+                <div>
+                  <dt>{{ texts().sheet.terms.role }}</dt>
+                  <dd class="text">{{ project.facts.role }}</dd>
+                </div>
+                <div>
+                  <dt>{{ texts().sheet.terms.stack }}</dt>
+                  <dd class="data quiet">{{ project.facts.stack }}</dd>
+                </div>
+                <div>
+                  <dt>{{ texts().sheet.terms.context }}</dt>
+                  <dd class="text quiet">{{ project.facts.context }}</dd>
+                </div>
+                <div>
+                  <dt>{{ texts().sheet.terms.period }}</dt>
+                  <dd class="data quiet">{{ project.facts.period }}</dd>
+                </div>
+              </dl>
+            }
+            <app-project-chapter [chapter]="page" />
+            @if (detail.links.length > 0) {
+              <p class="links">
+                @for (link of detail.links; track link.href) {
+                  <a [href]="link.href" target="_blank" rel="noopener"
+                    >{{ link.label }} ↗</a
+                  >
+                }
+              </p>
+            }
+          </app-pager-page>
+        }
+      </app-pager>
     </div>
     <ng-container footer>
       <p class="position">{{ current()?.heading }}</p>

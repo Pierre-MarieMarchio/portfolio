@@ -11,7 +11,7 @@ import { drag, pointer, PointerAt } from '@testing/fixtures/pointer.fixture';
 
 const stubNumber = (
   element: Element,
-  key: 'scrollTop' | 'scrollWidth' | 'clientWidth',
+  key: 'scrollTop',
   value: number,
 ): void => {
   Object.defineProperty(element, key, { value, configurable: true });
@@ -44,13 +44,12 @@ const isTouchMoveHeld = (on: Element): boolean => {
           <span class="grip">grip</span>
           <button type="button">button</button>
         </div>
-        <div class="toolbar" data-glass-zone="toolbar">
-          <ul class="strip" style="overflow-x: auto">
-            <li class="item">item</li>
-          </ul>
-        </div>
+        <div class="toolbar" data-glass-zone="toolbar">toolbar</div>
         <div class="body" data-glass-zone="body">
           <p class="text">text</p>
+          <div class="pages">
+            <p class="page">page</p>
+          </div>
           <button type="button" class="link" (click)="clicks = clicks + 1">
             link
           </button>
@@ -200,66 +199,46 @@ describe('GlassGesturesDirective', () => {
     expect(gestures).toEqual(['unfold', 'unfold']);
   });
 
-  it('turns a swipe on the body or the toolbar into next or previous', async () => {
-    const { find, drag, gestures } = await setup();
-
-    drag(find('.text'), slow(-60, 10));
-    drag(find('.item'), slow(60, -10));
-
-    expect(gestures).toEqual(['next', 'previous']);
-  });
-
-  it('moves the body a little with a swipe, never beyond 24 px', async () => {
-    const { find } = await setup();
-    const text = find('.text');
-    const body = find('.body');
-
-    text.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
-    text.dispatchEvent(pointer('pointermove', { x: -300, y: 100, at: 50 }));
-    const followed = Number.parseFloat(
-      body.style.transform.replace('translateX(', ''),
-    );
-    text.dispatchEvent(pointer('pointerup', { x: -300, y: 100, at: 60 }));
-
-    expect(followed).toBeLessThan(0);
-    expect(followed).toBeGreaterThanOrEqual(-24);
-    expect(body.style.transform).toBe('');
-  });
-
-  it('leaves a swipe to an element that scrolls sideways itself', async () => {
-    const { find, drag, gestures } = await setup();
-    const strip = find('.strip');
-    stubNumber(strip, 'scrollWidth', 600);
-    stubNumber(strip, 'clientWidth', 300);
-
-    drag(find('.item'), slow(-80, 0));
-
-    expect(gestures).toEqual([]);
-  });
-
-  it('does not swipe from the footer', async () => {
-    const { find, drag, gestures } = await setup();
-
-    drag(find('.footer'), slow(-80, 0));
-
-    expect(gestures).toEqual([]);
-  });
-
   it('drops the gesture when a second finger comes down', async () => {
     const { find, gestures } = await setup();
-    const text = find('.text');
-    const body = find('.body');
+    const grip = find('.grip');
+    const section = find('section');
 
-    text.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
-    text.dispatchEvent(pointer('pointermove', { x: 150, y: 100, at: 50 }));
-    text.dispatchEvent(
+    grip.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    grip.dispatchEvent(pointer('pointermove', { x: 200, y: 150, at: 50 }));
+    grip.dispatchEvent(
       pointer('pointerdown', { x: 260, y: 100, at: 60, id: 2 }),
     );
-    text.dispatchEvent(pointer('pointermove', { x: 100, y: 100, at: 90 }));
-    text.dispatchEvent(pointer('pointerup', { x: 100, y: 100, at: 400 }));
+    grip.dispatchEvent(pointer('pointermove', { x: 200, y: 200, at: 90 }));
+    grip.dispatchEvent(pointer('pointerup', { x: 200, y: 200, at: 400 }));
 
     expect(gestures).toEqual([]);
-    expect(body.style.transform).toBe('');
+    expect(section.style.transform).toBe('');
+  });
+
+  it('leaves a sideways drag to the native scroll, holding nothing', async () => {
+    const { find, drag, gestures } = await setup();
+    const text = find('.text');
+
+    text.dispatchEvent(pointer('pointerdown', { x: 200, y: 100, at: 0 }));
+    text.dispatchEvent(pointer('pointermove', { x: 170, y: 102, at: 20 }));
+    const isHeld = isTouchMoveHeld(text);
+    text.dispatchEvent(pointer('pointerup', { x: 100, y: 102, at: 60 }));
+    drag(find('.text'), slow(-120, 0));
+
+    expect(isHeld).toBe(false);
+    expect(gestures).toEqual([]);
+    expect(find('section').style.transform).toBe('');
+  });
+
+  it('does not pull from a scroller of the body that has scrolled', async () => {
+    const { find, drag, gestures } = await setup();
+    stubNumber(find('.pages'), 'scrollTop', 40);
+
+    drag(find('.page'), slow(0, 80));
+    drag(find('.text'), slow(0, 80));
+
+    expect(gestures).toEqual(['fold']);
   });
 
   it('holds the touch from the native scroll only while the drag is its own', async () => {

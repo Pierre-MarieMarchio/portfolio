@@ -25,7 +25,9 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   );
 }
 
-const SHARED_LIBS = ['space-scene', 'ui', 'windows'];
+const SHARED_LIBS = ['mobile-nav', 'space-scene', 'ui', 'windows'];
+
+const STANDALONE_LIBS = ['mobile-nav'];
 
 const libsOnDisk = readdirSync(`${APP}/shared`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
@@ -120,6 +122,9 @@ const FEATURE_WHY =
 const LIBRARY_WHY =
   'a shared library, extractable as it stands: it may use core, and neither the portfolio nor another library';
 
+const STANDALONE_WHY =
+  'a shared library that stands alone: it imports nothing from this repository, core included, and reaches the browser and the texts through its ports';
+
 /**
  * @typedef {object} Zone
  * @property {string[]} files
@@ -139,8 +144,9 @@ const ZONES = [
   ...SHARED_LIBS.map((lib) => ({
     files: [`${APP}/shared/${lib}/**/*.ts`],
     name: `shared/${lib}/`,
-    why: LIBRARY_WHY,
+    why: STANDALONE_LIBS.includes(lib) ? STANDALONE_WHY : LIBRARY_WHY,
     denies: [
+      ...(STANDALONE_LIBS.includes(lib) ? ['core'] : []),
       ...SHARED_LIBS.filter((other) => other !== lib).map(
         (other) => `library:${other}`,
       ),
@@ -189,6 +195,7 @@ const GROUPS = {
     '**/core',
     '**/core/**',
     '!@angular/core',
+    '!@angular/core/**',
   ],
   shared: ['@shared/**', '@app/shared/**', '**/shared/**'],
   features: ['@app/features/**', '**/features/**'],

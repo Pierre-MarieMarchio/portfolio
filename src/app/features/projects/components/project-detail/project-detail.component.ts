@@ -1,10 +1,13 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
+import {
+  PagerComponent,
+  PagerPageComponent,
+} from '@shared/mobile-nav/components';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
-import { SwipeDirection } from '@shared/windows/models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
@@ -19,6 +22,8 @@ import {
   selector: 'app-project-detail',
   imports: [
     ViewHeadingDirective,
+    PagerComponent,
+    PagerPageComponent,
     ProjectChapterComponent,
     RouterLink,
     SegmentedComponent,
@@ -54,32 +59,26 @@ export class ProjectDetailComponent {
       : '';
   });
 
-  protected readonly identity = computed(() =>
-    this.chapter() === 0 ? (this.project()?.facts ?? null) : null,
+  protected readonly pages = computed<readonly ChapterOnShow[]>(() =>
+    (this.detail()?.chapters ?? []).map((chapter, index) => ({
+      ...chapter,
+      number: twoDigits(index + 1),
+      heading: this.titleOf(index),
+    })),
   );
 
-  protected readonly current = computed<ChapterOnShow | null>(() => {
-    const index = this.chapter();
-    const chapter = this.detail()?.chapters[index];
-    return chapter
-      ? {
-          ...chapter,
-          number: twoDigits(index + 1),
-          heading: this.titleOf(index),
-        }
-      : null;
-  });
+  protected readonly current = computed(
+    () => this.pages()[this.chapter()] ?? null,
+  );
 
   protected readonly chapters = computed<readonly SegmentedItem<number>[]>(() =>
-    (this.detail()?.chapters ?? []).map((_, index) => {
-      const number = twoDigits(index + 1);
-      return {
-        value: index,
-        label: number,
-        active: index === this.chapter(),
-        aria: this.texts().sheet.approach(number, this.titleOf(index)),
-      };
-    }),
+    this.pages().map((page, index) => ({
+      value: index,
+      label: page.number,
+      phoneLabel: page.heading,
+      active: index === this.chapter(),
+      aria: this.texts().sheet.approach(page.number, page.heading),
+    })),
   );
 
   private readonly last = computed(
@@ -113,12 +112,5 @@ export class ProjectDetailComponent {
 
   protected advance(): void {
     this.chapterChange.emit(Math.min(this.chapter() + 1, this.last()));
-  }
-
-  protected step(direction: SwipeDirection): void {
-    const target = this.chapter() + (direction === 'next' ? 1 : -1);
-    if (target >= 0 && target <= this.last()) {
-      this.chapterChange.emit(target);
-    }
   }
 }

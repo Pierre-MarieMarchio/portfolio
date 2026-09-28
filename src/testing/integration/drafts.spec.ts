@@ -4,6 +4,6 @@ import { draftsLeft } from '@app/core/rules';
 
 describe('English drafts', () => {
   it('counts the English texts still to review, catalogue and projects loaded', () => {
-    expect(draftsLeft()).toBe(245);
+    expect(draftsLeft()).toBe(246);
   });
 });

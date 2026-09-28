@@ -12,6 +12,7 @@ describe('BrowserWindowService', () => {
     const heard = vi.fn();
 
     expect(browserWindow.size()).toBeNull();
+    expect(browserWindow.supportsEvent('scroll')).toBe(false);
     const stop = browserWindow.on('resize', heard);
     window.dispatchEvent(new Event('resize'));
     stop();
@@ -25,6 +26,13 @@ describe('BrowserWindowService', () => {
       width: window.innerWidth,
       height: window.innerHeight,
     });
+  });
+
+  it('tells which events the browser knows', () => {
+    const browserWindow = injectOn(BrowserWindowService, 'browser');
+
+    expect(browserWindow.supportsEvent('scroll')).toBe(true);
+    expect(browserWindow.supportsEvent('made-up')).toBe(false);
   });
 
   it('listens to a window event until stopped, in the browser', () => {

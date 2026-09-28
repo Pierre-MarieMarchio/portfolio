@@ -1771,3 +1771,44 @@ première image, sans l'animation d'ouverture.
 97,45 % des lignes et de 92,09 à 92,8 % des branches, mais une branche s'est
 perdue : ce départ ouvert (`startOpen(true)`). Seul un test coupé y passait,
 sans le vérifier. Le nouveau test échoue si la scène part fermée.
+
+## 2026-09-28 — Le téléphone a une librairie de navigation, et les chapitres se tournent comme des pages (D57, amende D37)
+
+**Décision.** Une librairie `shared/mobile-nav/` donne au téléphone des
+gestes d'application native. Elle n'importe rien du dépôt, pas même `core` :
+le navigateur lui arrive par `MOBILE_NAV_PLATFORM`, auquel
+`provideMobileNav()` (`pages/providers/`) répond avec les services de
+`core/services/browser/`, et ses mots par `MOBILE_NAV_TEXTS`, que
+`provideI18n` fournit. Le lint le tient. Sa première brique est le pager :
+un `scroll-snap` horizontal, une page à la fois, chaque page défile seule. Il
+dit la page du lecteur à la fin du défilement (`scrollend`, sinon 120 ms
+après le dernier `scroll`), jamais avant ; une page réglée d'en haut défile
+après l'image suivante, sans animation en mouvement réduit ; les autres
+pages sont `inert`. La fiche et l'à-propos mettent chaque chapitre et chaque
+section dans une page, à tous les formats. Au téléphone, la page remplit le
+corps et suit son défilement ; ailleurs, seule la page posée s'affiche, comme
+avant. Au téléphone, les onglets de la fiche portent les titres des
+chapitres. Le balayage de la vitre (`swiped`) disparaît : un glisser
+horizontal est natif. Le tirage reste.
+
+**Raison.** Le balayage écrit à la main suivait le doigt de 24 px au plus,
+puis changeait de chapitre d'un coup, sans élan ni rebond. Le navigateur
+fait tout cela lui-même, au doigt. Un même DOM pour tous les formats met
+chaque chapitre dans le HTML prérendu et garde le bureau intact.
+`overflow-y: inherit` fait suivre aux pages l'état de la vitre sans qu'elles
+la connaissent. Les titres disent où mène un onglet mieux que « 02 ». Les
+liens d'un projet sont répétés dans chaque page : chaque page défile seule,
+et des liens posés hors du pager seraient hors d'atteinte. Le bundle initial
+passe de 477,6 à 483,9 kB.
+
+**Écarté.** Un pager seulement au téléphone, choisi par
+`DisplayFormatService` : le prérendu est au bureau, et le téléphone
+basculerait après l'hydratation. Deux gabarits, l'un par format : chaque
+chapitre deux fois dans le DOM. Une variable CSS publiée par la fenêtre pour
+l'état du corps : la feuille de la fenêtre dépassait son budget de 4 kB. Les
+variables `--mnav-*` : le pager ne dessine rien ; elles viendront avec les
+briques qui dessinent. Garder le balayage de l'aperçu : il part avec la
+sortie `swiped` ; ses onglets restent, et le carrousel de l'accueil vient
+ensuite. Le panneau coulissant : il remplace la coque de la fenêtre au
+téléphone, que la session 6 refait, et il lui faut une fenêtre qui survive
+aux changements de vue pour ne changer d'état qu'à la fin de son animation.

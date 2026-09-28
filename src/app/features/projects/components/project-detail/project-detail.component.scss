@@ -1,6 +1,7 @@
 @use 'mixins/controls';
 @use 'mixins/facts';
 @use 'mixins/formats';
+@use 'mixins/pager';
 @use 'mixins/type';
 
 :host {
@@ -8,7 +9,11 @@
   --window-body-padding: var(--s3) var(--s2) 0 var(--s2);
 }
 
-header {
+.sheet {
+  @include pager.in-window;
+}
+
+.opening {
   border-bottom: 1px solid var(--ink);
   padding-bottom: var(--s2);
 }
@@ -93,12 +98,23 @@ h1 {
   white-space: nowrap;
 }
 
-@include formats.short-phone-portrait {
+@include formats.phone {
   :host {
-    --window-body-padding: var(--s2) var(--s2) 0 var(--s2);
+    --window-body-padding: var(--s3) 0 0;
   }
 
-  header {
+  header,
+  app-pager-page {
+    padding-inline: var(--s2);
+  }
+}
+
+@include formats.short-phone-portrait {
+  :host {
+    --window-body-padding: var(--s2) 0 0;
+  }
+
+  .opening {
     padding-bottom: var(--s1);
   }
 }

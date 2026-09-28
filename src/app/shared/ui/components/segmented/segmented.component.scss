@@ -38,6 +38,10 @@ button {
   }
 }
 
+.phone-label {
+  display: none;
+}
+
 .count {
   font-size: var(--m1);
   color: var(--ink-2);
@@ -64,6 +68,16 @@ button {
     padding: 5px 4px;
     font-size: var(--m1);
     letter-spacing: normal;
+  }
+}
+
+@include formats.phone {
+  .label--wide {
+    display: none;
+  }
+
+  .phone-label {
+    display: inline;
   }
 }
 

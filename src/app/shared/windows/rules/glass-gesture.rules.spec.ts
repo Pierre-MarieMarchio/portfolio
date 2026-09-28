@@ -4,17 +4,12 @@ import {
   GlassPress,
   GlassRelease,
 } from '../models/glass-gesture.model';
-import {
-  glassGestureOf,
-  glassIntentOf,
-  swipeFollowOf,
-} from './glass-gesture.rules';
+import { glassGestureOf, glassIntentOf } from './glass-gesture.rules';
 
 const OPEN_ON_BAR: GlassPress = {
   zone: 'bar',
   isFolded: false,
   canPull: true,
-  isOnSideScroller: false,
 };
 
 const pressOn = (overrides: Partial<GlassPress>): GlassPress => ({
@@ -26,9 +21,7 @@ const FOLDED = pressOn({ isFolded: true, canPull: false });
 const ON_BODY = pressOn({ zone: 'body' });
 
 const released = (overrides: Partial<GlassRelease>): GlassRelease => ({
-  dx: 0,
   dy: 0,
-  vx: 0,
   vy: 0,
   ...overrides,
 });
@@ -105,36 +98,22 @@ describe('glassIntentOf', () => {
       intent: 'native',
     },
     {
-      name: 'swipes sideways from the toolbar of an open glass',
+      name: 'leaves a sideways drag of the toolbar to the native scroll',
       press: pressOn({ zone: 'toolbar' }),
       dx: -9,
       dy: 2,
-      intent: 'swipe',
+      intent: 'native',
     },
     {
-      name: 'swipes sideways from the body of an open glass',
-      press: pressOn({ zone: 'body', canPull: false }),
+      name: 'leaves a sideways drag of the body to the native scroll',
+      press: ON_BODY,
       dx: 9,
       dy: -2,
-      intent: 'swipe',
-    },
-    {
-      name: 'leaves a sideways drag to an element that scrolls sideways itself',
-      press: pressOn({ zone: 'toolbar', isOnSideScroller: true }),
-      dx: -12,
-      dy: 0,
       intent: 'native',
     },
     {
-      name: 'does not swipe from the bar',
+      name: 'leaves a sideways drag of the bar to the native scroll',
       press: OPEN_ON_BAR,
-      dx: 12,
-      dy: 0,
-      intent: 'native',
-    },
-    {
-      name: 'does not swipe a folded glass',
-      press: pressOn({ zone: 'body', isFolded: true }),
       dx: 12,
       dy: 0,
       intent: 'native',
@@ -212,7 +191,7 @@ describe('glassGestureOf', () => {
       name: 'unfolds a folded glass on a tap of its bar',
       intent: 'pending',
       press: FOLDED,
-      release: { dx: 2 },
+      release: {},
       gesture: 'unfold',
     },
     {
@@ -230,62 +209,6 @@ describe('glassGestureOf', () => {
       gesture: 'none',
     },
     {
-      name: 'turns a swipe of 56 px to the left into next',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: -56 },
-      gesture: 'next',
-    },
-    {
-      name: 'turns a swipe of 56 px to the right into previous',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: 56 },
-      gesture: 'previous',
-    },
-    {
-      name: 'leaves a swipe of 55 px',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: -55 },
-      gesture: 'none',
-    },
-    {
-      name: 'leaves a swipe only 1.5 times as wide as it is tall',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: -90, dy: 60 },
-      gesture: 'none',
-    },
-    {
-      name: 'takes a swipe more than 1.5 times as wide as it is tall',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: -91, dy: 60 },
-      gesture: 'next',
-    },
-    {
-      name: 'turns a short swipe let go faster than 0.5 px/ms to the left into next',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: -20, vx: -0.51 },
-      gesture: 'next',
-    },
-    {
-      name: 'turns a short swipe let go faster than 0.5 px/ms to the right into previous',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: 20, vx: 0.51 },
-      gesture: 'previous',
-    },
-    {
-      name: 'leaves a short swipe let go fast the other way',
-      intent: 'swipe',
-      press: ON_BODY,
-      release: { dx: -20, vx: 0.9 },
-      gesture: 'none',
-    },
-    {
       name: 'never acts on a native drag',
       intent: 'native',
       press: OPEN_ON_BAR,
@@ -294,16 +217,5 @@ describe('glassGestureOf', () => {
     },
   ])('$name', ({ intent, press, release, gesture }) => {
     expect(glassGestureOf(intent, press, released(release))).toBe(gesture);
-  });
-});
-
-describe('swipeFollowOf', () => {
-  it('follows the finger less and less, never beyond 24 px', () => {
-    expect(swipeFollowOf(0)).toBe(0);
-    expect(swipeFollowOf(20)).toBeGreaterThan(0);
-    expect(swipeFollowOf(20)).toBeLessThan(20);
-    expect(swipeFollowOf(400)).toBeLessThanOrEqual(24);
-    expect(swipeFollowOf(-4000)).toBeGreaterThanOrEqual(-24);
-    expect(swipeFollowOf(-40)).toBe(-swipeFollowOf(40));
   });
 });

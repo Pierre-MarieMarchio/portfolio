@@ -7,10 +7,12 @@ import { PAGES_TEXTS, pathOf } from '@app/i18n';
 import { FR } from '@app/i18n/data/fr.data';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { WINDOW_TEXTS } from '@shared/windows/ports';
+import { MOBILE_NAV_TEXTS } from '@shared/mobile-nav/ports';
 
 export const provideTexts = (): (Provider | EnvironmentProviders)[] => [
   { provide: SHARED_TEXTS, useValue: signal(FR.shared) },
   { provide: WINDOW_TEXTS, useValue: signal(FR.windows) },
+  { provide: MOBILE_NAV_TEXTS, useValue: signal(FR.mobileNav) },
   { provide: PROJECTS_TEXTS, useValue: signal(FR.projects) },
   { provide: OBSERVATORY_TEXTS, useValue: signal(FR.observatory) },
   { provide: PROFILE_TEXTS, useValue: signal(FR.profile) },

@@ -11,6 +11,11 @@ export class BrowserWindowService {
     return view ? { width: view.innerWidth, height: view.innerHeight } : null;
   }
 
+  public supportsEvent(type: string): boolean {
+    const view = this.view();
+    return view ? `on${type}` in view : false;
+  }
+
   public on<K extends keyof WindowEventMap>(
     type: K,
     handler: (event: WindowEventMap[K]) => void,

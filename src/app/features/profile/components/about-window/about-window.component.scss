@@ -1,10 +1,15 @@
 @use 'mixins/controls';
 @use 'mixins/facts';
 @use 'mixins/formats';
+@use 'mixins/pager';
 @use 'mixins/type';
 
 :host {
   display: contents;
+}
+
+.about {
+  @include pager.in-window;
 }
 
 .lead {
@@ -167,4 +172,14 @@ dt,
   @include controls.next-link($button: true);
 
   flex: 0 0 auto;
+}
+
+@include formats.phone {
+  :host {
+    --window-body-padding: var(--s3) 0 0;
+  }
+
+  app-pager-page {
+    padding: 0 var(--s2) var(--s2);
+  }
 }

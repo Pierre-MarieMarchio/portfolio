@@ -16,7 +16,7 @@ export interface ObservatoryScene {
   readonly hovered: string | null;
   readonly selected: string | null;
   readonly revealed: boolean;
-  readonly upright: boolean;
+  readonly phone: boolean;
   readonly designated: string | null;
 }
 
@@ -77,7 +77,7 @@ function homeDirection(
   scene: ObservatoryScene,
   shared: SceneDirection,
 ): SceneDirection {
-  const isNamedByRule = scene.upright && scene.preview === null;
+  const isNamedByRule = scene.phone && scene.preview === null;
   return {
     ...shared,
     framing: homeFraming(scene.preview),

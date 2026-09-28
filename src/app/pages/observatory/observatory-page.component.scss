@@ -63,6 +63,7 @@ main {
 
 .slot--index {
   width: min(78ch, max(56vw, 320px));
+  container-type: inline-size;
 }
 
 .slot--preview {
@@ -175,6 +176,12 @@ $contact-room: calc(var(--target) + 2 * var(--s1));
     position: absolute;
     inset: auto 0 var(--floor);
     border-bottom: 1px solid var(--line);
+  }
+}
+
+@include formats.short-phone-portrait {
+  .slot--preview {
+    max-height: calc(50% - var(--floor));
   }
 }
 

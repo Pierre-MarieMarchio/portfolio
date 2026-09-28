@@ -8,6 +8,8 @@
   --window-body-padding: 0 var(--s2) var(--s2) var(--s2);
 }
 
+$cards-below: 500px;
+
 @mixin lit-row {
   color: var(--accent);
   border-left-color: var(--accent);
@@ -174,7 +176,7 @@
   color: var(--ink-2);
 }
 
-@include formats.phone {
+@container (width < #{$cards-below}) {
   .columns,
   .opened > :first-child,
   .row:not([data-selected='true']) :is(.stack, .role) {

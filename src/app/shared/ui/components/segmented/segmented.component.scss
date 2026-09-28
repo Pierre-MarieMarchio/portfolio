@@ -47,7 +47,7 @@ button {
   }
 }
 
-@include formats.phone {
+@include formats.handheld {
   ul {
     flex-wrap: nowrap;
     overflow-x: auto;

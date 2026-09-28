@@ -10,13 +10,25 @@ $short-screen-height-up-to: 640px;
 }
 
 @mixin phone-portrait {
-  @media ((width < $phone-width-below) or ((height < $phone-height-below-with-coarse-pointer) and (pointer: coarse))) and (orientation: portrait) {
+  @media (width < $phone-width-below) and (orientation: portrait) {
     @content;
   }
 }
 
 @mixin phone-landscape {
   @media ((width < $phone-width-below) or ((height < $phone-height-below-with-coarse-pointer) and (pointer: coarse))) and (orientation: landscape) {
+    @content;
+  }
+}
+
+@mixin short-phone-portrait {
+  @media (width < $phone-width-below) and (orientation: portrait) and (height <= $short-screen-height-up-to) {
+    @content;
+  }
+}
+
+@mixin handheld {
+  @media (width < $phone-width-below), (pointer: coarse), (hover: none) {
     @content;
   }
 }

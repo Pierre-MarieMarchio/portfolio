@@ -123,7 +123,7 @@ jobs:
       - run: |
           cp site/index.csr.html site/404.html
           touch site/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deployment

@@ -14,9 +14,18 @@ interface Waiting {
 export class MobileNavPlatformDouble implements MobileNavPlatform {
   public isReduced = false;
   public knowsScrollEnd = true;
+  public hasCloseWatcher = false;
+  public entries: unknown[] = [{ navigationId: 1 }];
+  public place = 0;
+  public readonly backs: number[] = [];
+  public readonly moving: Element[] = [];
   private frames: (() => void)[] = [];
   private waiting: Waiting[] = [];
   private readonly resized: (() => void)[] = [];
+  private stillnesses: (() => void)[] = [];
+  private pops: ((state: unknown) => void)[] = [];
+  private leaves: (() => void)[] = [];
+  private pendingPops: unknown[] = [];
 
   public readonly reducedMotion = (): boolean => this.isReduced;
 
@@ -42,6 +51,42 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
     return ignore;
   };
 
+  public readonly whenStill = (element: Element): Promise<void> => {
+    this.moving.push(element);
+    return new Promise((resolve) => {
+      this.stillnesses.push(resolve);
+    });
+  };
+
+  public readonly closesOnBack = (): boolean => this.hasCloseWatcher;
+
+  public readonly historyState = (): unknown => this.entries[this.place];
+
+  public readonly pushHistory = (state: unknown): void => {
+    this.entries = [...this.entries.slice(0, this.place + 1), state];
+    this.place = this.entries.length - 1;
+  };
+
+  public readonly historyBack = (steps: number): void => {
+    this.backs.push(steps);
+    this.place = Math.max(this.place - steps, 0);
+    this.pendingPops.push(this.entries[this.place]);
+  };
+
+  public readonly onHistoryPop = (fn: (state: unknown) => void) => {
+    this.pops.push(fn);
+    return () => {
+      this.pops = this.pops.filter((pop) => pop !== fn);
+    };
+  };
+
+  public readonly onLeave = (fn: () => void) => {
+    this.leaves.push(fn);
+    return () => {
+      this.leaves = this.leaves.filter((leave) => leave !== fn);
+    };
+  };
+
   public frame(): void {
     const frames = this.frames;
     this.frames = [];
@@ -61,6 +106,40 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   public resize(): void {
     for (const fn of this.resized) {
       fn();
+    }
+  }
+
+  public async settle(): Promise<void> {
+    const stillnesses = this.stillnesses;
+    this.stillnesses = [];
+    for (const resolve of stillnesses) {
+      resolve();
+    }
+    await Promise.resolve();
+  }
+
+  public pressBack(): void {
+    this.place = Math.max(this.place - 1, 0);
+    this.pop(this.entries[this.place]);
+  }
+
+  public deliverPops(): void {
+    const pending = this.pendingPops;
+    this.pendingPops = [];
+    for (const state of pending) {
+      this.pop(state);
+    }
+  }
+
+  public leave(): void {
+    for (const fn of this.leaves) {
+      fn();
+    }
+  }
+
+  private pop(state: unknown): void {
+    for (const fn of this.pops) {
+      fn(state);
     }
   }
 }

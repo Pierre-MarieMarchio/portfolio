@@ -32,14 +32,6 @@ $rise-delay: 800ms;
   padding: 3px;
 }
 
-.links {
-  display: contents;
-}
-
-.toggle {
-  display: none;
-}
-
 ul {
   display: flex;
   gap: 2px;
@@ -79,54 +71,22 @@ svg {
     bottom: var(--s1);
   }
 
-  .rail {
-    position: relative;
-    display: block;
+  .rail[data-list-on-phone='false'] {
+    gap: var(--s1);
     padding: 0;
     border: 0;
     background: none;
     backdrop-filter: none;
-  }
 
-  .toggle {
-    @include controls.icon-button(var(--target), var(--target));
-  }
-
-  .rail[data-open='true'] .toggle {
-    @include controls.glass;
-
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .links {
-    @include controls.glass;
-
-    position: absolute;
-    right: calc(100% + var(--s1));
-    bottom: 0;
-    width: calc(100vw - 3 * var(--s1) - var(--target));
-    display: none;
-    justify-content: flex-end;
-    align-items: center;
-    gap: var(--s2);
-    padding: 3px;
-    background: var(--paper);
-  }
-
-  .rail[data-open='true'] .links {
-    display: flex;
+    ul {
+      display: none;
+    }
   }
 }
 
 @include formats.phone-portrait {
   :host {
     top: var(--s1);
-    bottom: auto;
-  }
-
-  .links {
-    top: 0;
     bottom: auto;
   }
 }
@@ -136,10 +96,9 @@ svg {
     right: calc(var(--glass-width, 50vw) + var(--s1));
   }
 
-  .links {
-    width: calc(
-      100vw - var(--glass-width, 50vw) - 3 * var(--s1) - var(--target)
-    );
+  .rail[data-list-on-phone='false'] {
+    flex-direction: column;
+    align-items: flex-end;
   }
 }
 

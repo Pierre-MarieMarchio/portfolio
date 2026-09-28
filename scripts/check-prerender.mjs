@@ -115,6 +115,9 @@ for (const page of PAGES) {
       fail(`${element}> should not be there`);
     }
   }
+  if (/<dialog[^>]*sopen[s=>]/.test(html)) {
+    fail('a <dialog> is open before any reader asked');
+  }
   const headings = html.match(/<h1[\s>]/g)?.length ?? 0;
   if (headings !== 1) {
     fail(`${String(headings)} <h1>, one expected`);

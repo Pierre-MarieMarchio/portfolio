@@ -129,4 +129,9 @@ export const FR_PROFILE: ProfileTexts = {
     github: 'Dépôts GitHub de Pierre-Marie Marchio',
     cv: 'Ouvrir mon CV en PDF',
   },
+  contactMenu: {
+    open: 'Contact',
+    copy: 'Copier l’adresse',
+    copied: 'Adresse copiée',
+  },
 };

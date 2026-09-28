@@ -1866,3 +1866,35 @@ mène nulle part n'a pas de sens. Choisir par `DisplayFormatService` : le
 prérendu est au bureau (D57). Un lien étiré par-dessus le bouton : deux
 commandes pour une carte. Montrer la pile et le rôle de la carte quittée :
 la carte changerait de taille au retour.
+
+## 2026-09-28 — Au téléphone, « Contact » ouvre une feuille d'actions, et le retour la ferme d'abord (D60, amende D27)
+
+**Décision.** `shared/mobile-nav/` gagne une feuille d'actions sur un
+`<dialog>` ouvert par `showModal()`. Elle a un titre, des rangées projetées
+(`appActionRow`, lien ou bouton, icône et libellé, 44 px) et « Fermer ». Son
+panneau est opaque et monte du bas. À la fermeture, la sortie joue, puis
+`close()`, puis `open` passe à faux ; en mouvement réduit, tout de suite. Le
+focus revient au bouton d'origine. Échap ne ferme qu'elle. Le retour la ferme
+avant la vue : `CloseWatcher` l'envoie au `<dialog>` ; sans lui,
+`BackLayersService` pose une entrée d'historique sur la même adresse et la
+reprend si la page ferme. Au téléphone, « @ » devient « Contact » : m'écrire,
+copier l'adresse, LinkedIn, GitHub, CV. La copie passe par `ClipboardService`
+et dit « Adresse copiée ». La pause a son propre bouton à côté. Le bureau ne
+change pas.
+
+**Raison.** L'état des lieux : des icônes sans nom, la pause mêlée aux
+adresses, la bande qui couvrait la langue. Un libellé dit ce que fait le
+bouton ; chaque rangée reprend la phrase déjà écrite de son adresse. Le
+`<dialog>` modal donne le focus, la couche du haut, Échap et le retour
+Android. Fermer après la sortie garde un état qui ne ment pas. Le routeur
+ignore un retour sur la même adresse. Le prérendu vérifie qu'aucun
+`<dialog>` n'est ouvert. Quatre mots neufs. Le bundle initial passe de 491,5
+à 501,8 kB.
+
+**Écarté.** Un flou sous la feuille : un coût à chaque image (D36, D38). La
+pause dans la feuille : ce n'est pas un contact. La pause dans la barre
+couchée : 244 px ne la tiennent pas. Deux pauses dans le DOM : le rail la
+prend à tous les formats. Toucher au bureau : le rail y nomme déjà tout.
+Charger la feuille à part (`@defer`) : le bouton « Contact » doit être dans
+le HTML prérendu et ouvrir la feuille au premier toucher ; différée, elle
+demanderait deux touchers, pour environ 2,5 kB transférés.

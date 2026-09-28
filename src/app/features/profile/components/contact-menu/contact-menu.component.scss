@@ -1,0 +1,42 @@
+@use 'mixins/formats';
+@use 'mixins/type';
+
+:host {
+  display: contents;
+}
+
+.opener {
+  display: none;
+}
+
+@include formats.phone {
+  .opener {
+    @include type.title(var(--m1));
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: calc(2 * var(--target));
+    height: var(--target);
+    padding: 0 var(--s2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+
+    &[aria-expanded='true'] {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+  }
+}
+
+.said {
+  @include type.mono(var(--m2));
+
+  min-height: var(--target);
+  margin: 0;
+  padding: var(--s2) 16px 0;
+  color: var(--accent);
+}

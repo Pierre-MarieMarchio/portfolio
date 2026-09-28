@@ -1,0 +1,22 @@
+<dialog
+  #dialog
+  class="action-menu"
+  tabindex="-1"
+  [attr.aria-labelledby]="headingId"
+  (cancel)="onCancel($event)"
+  (close)="onClose()"
+  (click)="onClick($event)"
+  (keydown.escape)="$event.stopPropagation()"
+>
+  <div #panel class="action-menu-panel">
+    <div class="action-menu-head">
+      <h2 class="action-menu-heading" [id]="headingId">{{ heading() }}</h2>
+      <button type="button" class="action-menu-close" (click)="dismiss()">
+        {{ texts().close }}
+      </button>
+    </div>
+    <div class="action-menu-rows">
+      <ng-content />
+    </div>
+  </div>
+</dialog>

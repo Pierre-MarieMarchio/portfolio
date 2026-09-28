@@ -53,6 +53,11 @@ export interface ProfileTexts {
     readonly github: string;
     readonly cv: string;
   };
+  readonly contactMenu: {
+    readonly open: string;
+    readonly copy: string;
+    readonly copied: string;
+  };
 }
 
 export const PROFILE_TEXTS = new InjectionToken<Signal<ProfileTexts>>(

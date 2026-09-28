@@ -24,6 +24,7 @@ export const FR: Catalog = {
 
   mobileNav: {
     pageOf: (place, count) => `Page ${String(place)} sur ${String(count)}`,
+    close: 'Fermer',
   },
 
   projects: {

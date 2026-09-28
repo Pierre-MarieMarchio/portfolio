@@ -157,4 +157,9 @@ export const EN_PROFILE: ProfileTexts = {
     github: draft('GitHub repositories of Pierre-Marie Marchio'),
     cv: draft('Open my CV as a PDF'),
   },
+  contactMenu: {
+    open: draft('Contact'),
+    copy: draft('Copy the address'),
+    copied: draft('Address copied'),
+  },
 };

@@ -1563,3 +1563,28 @@ fenêtre recréée à chaque vue.
 page, mais les noms, qui sont du DOM, décrocheraient de leurs planètes dès
 que la page est occupée. Un worker pour le ciel seul : les étoiles et les
 planètes glisseraient l'une contre l'autre pendant un vol.
+
+## 2026-09-28 — Les réglages de la scène tiennent dans un fichier (D49)
+
+**Décision.** `models/scene-config.model.ts` porte `SCENE_CONFIG`, typé par
+`SceneConfig` et rangé par thème : la matière (densité, réserve, part au
+téléphone, entrée, couleurs du disque), le ciel (étoiles, dérive,
+parallaxe, portée du curseur, traînées), le canvas (budget de pixels,
+densité d'affichage), la caméra (vitesse des orbites, échelle de repos,
+zoom), la main (frottement, vitesse, entraînement des orbites), les gestes
+(seuil de glisser, appui et double appui, cran de molette), les planètes
+(écart) et les figures (cible tactile, noms, lumières). Chaque fichier
+garde le nom de sa constante et la lit dans la config. Les trois seuils de
+6 px (la main, la figure, l'appui) n'en font plus qu'un,
+`gestures.dragPx`.
+
+**Raison.** Ces valeurs se réglaient dans seize fichiers ; on les change
+maintenant en un seul, sans chercher. La config est une donnée pure : elle
+vit dans le worker (D47) comme dans la page, sans rien à transmettre. Les
+valeurs n'ont pas changé : les goldens de la scène passent tels quels.
+
+**Écarté.** Les tolérances de convergence, les valeurs tirées d'autres
+valeurs, les sélecteurs et les réglages internes des placements : les
+changer casse un invariant, cela ne règle pas un rendu. Une config fournie
+à l'exécution (`provideSpaceScene`) : un seul site s'en sert, et il
+faudrait la faire passer jusqu'aux règles pures et au worker.

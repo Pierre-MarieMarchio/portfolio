@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { clamp } from '@app/core/helpers';
 import { CameraMotion } from '../motions/camera.motion';
 import { GrainsMotion } from '../motions/grains.motion';
@@ -15,9 +16,11 @@ import {
 import { veilAt } from '../../rules/panel-veil.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 
-const HOT = '#ffe6c2';
-const CORE_RAMP = ['#e7f2fb', '#e2eefa', HOT, '#fbd9ad', '#f0bb87'];
-const MATTER_RAMP = ['#d2e6f7', '#d8e3f0', '#dfe4ee', '#ebdfd0', '#e2cbad'];
+const {
+  hot: HOT,
+  core: CORE_RAMP,
+  matter: MATTER_RAMP,
+} = SCENE_CONFIG.matter.colors;
 
 export class GrainsRenderer {
   private readonly spot: GrainSpot = {

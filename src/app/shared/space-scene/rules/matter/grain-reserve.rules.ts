@@ -1,3 +1,4 @@
+import { SCENE_CONFIG } from '../../models/scene-config.model';
 import { clamp, finiteOr, gaussian, TAU } from '@app/core/helpers';
 import { Grain } from '../scene-bodies.rules';
 import { REFERENCE_VIEWPORT } from '../../models/scene-constants.model';
@@ -10,11 +11,11 @@ interface GrainShape {
   readonly g: number;
 }
 
-export const RESERVE = 1.9;
+export const RESERVE = SCENE_CONFIG.matter.reserve;
 
 const PART_BASE = 1 / RESERVE;
 
-const PHONE_MATTER = 0.6;
+const PHONE_MATTER = SCENE_CONFIG.matter.phoneShare;
 
 export const densityShare = (viewportArea: number): number =>
   clamp(

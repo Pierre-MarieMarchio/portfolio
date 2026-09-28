@@ -47,7 +47,6 @@ describe('BottomEdgeVariableDirective', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });

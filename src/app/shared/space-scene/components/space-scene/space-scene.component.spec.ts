@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import type { DisplayFormat } from '@app/core/models';
 import { DisplayFormatService, FormatCodeService } from '@app/core/services';
 import { recordingContext } from '@testing/doubles/recording-canvas.double';
+import { pointer } from '@testing/fixtures/pointer.fixture';
 import { SkyPanMotion } from '../../engine/motions/sky-pan.motion';
 import { SpaceSceneEngine } from '../../engine/space-scene.engine';
 import type { SceneLook, StartLook } from '../../models/scene-look.model';
@@ -92,16 +93,14 @@ describe('SpaceSceneComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('asks for the framing code of the phone through the format code loader', async () => {
-    const { load, given, lastHoleFocus } = await mount();
+  it('asks for the framing code of the phone and for the gestures of each format through the format code loader, and gives the framing code to its engine once it arrives', async () => {
+    const { fixture, code, load, lastHoleFocus, lastPan } = await mount();
 
     expect(load).toHaveBeenCalledWith(['phone'], loadHoleFocus);
-    expect(given).toHaveBeenCalled();
+    expect(load).toHaveBeenCalledWith(['phone', 'tablet'], loadTouchLook);
+    expect(load).toHaveBeenCalledWith(['desktop'], loadSkyLook);
     expect(lastHoleFocus()).toBeNull();
-  });
-
-  it('gives that code to its engine once it arrives', async () => {
-    const { fixture, code, lastHoleFocus } = await mount();
+    expect(lastPan()).toBeNull();
 
     code.set(holeFocus);
     await fixture.whenStable();
@@ -109,34 +108,21 @@ describe('SpaceSceneComponent', () => {
     expect(lastHoleFocus()).toBe(holeFocus);
   });
 
-  it('asks for the gestures of the fingers and of the desktop, each for its own formats', async () => {
-    const { load, lastPan } = await mount();
-
-    expect(load).toHaveBeenCalledWith(['phone', 'tablet'], loadTouchLook);
-    expect(load).toHaveBeenCalledWith(['desktop'], loadSkyLook);
-    expect(lastPan()).toBeNull();
-  });
-
-  it('starts the wheel and the middle button on the desktop once their code arrives, and gives their pan to the engine', async () => {
-    const { touch, desk, arrive, lastPan } = await mount();
-
-    await arrive();
-
-    expect(desk.start).toHaveBeenCalledTimes(1);
-    expect(touch.start).not.toHaveBeenCalled();
-    expect(lastPan()).toBeInstanceOf(SkyPanMotion);
-  });
-
-  it.each(['phone', 'tablet'] as const)(
-    'starts the pinch and the double tap on a %s, and never the wheel',
-    async (format) => {
+  it.each([
+    { format: 'desktop', gestures: 'the wheel and the middle button' },
+    { format: 'phone', gestures: 'the pinch and the double tap' },
+    { format: 'tablet', gestures: 'the pinch and the double tap' },
+  ] as const)(
+    'starts $gestures alone on a $format once their code arrives, and gives their pan to the engine',
+    async ({ format }) => {
       const { touch, desk, arrive, lastPan } = await mount(format);
+      const isDesk = format === 'desktop';
 
       await arrive();
 
-      expect(touch.start).toHaveBeenCalledTimes(1);
-      expect(desk.start).not.toHaveBeenCalled();
-      expect(lastPan()).toBeNull();
+      expect((isDesk ? desk : touch).start).toHaveBeenCalledTimes(1);
+      expect((isDesk ? touch : desk).start).not.toHaveBeenCalled();
+      expect(lastPan()).toEqual(isDesk ? expect.any(SkyPanMotion) : null);
     },
   );
 
@@ -194,5 +180,19 @@ describe('SpaceSceneComponent', () => {
     flush();
 
     expect(laid).not.toHaveBeenCalled();
+  });
+
+  it('follows a mouse pointer over the scene, not a finger', async () => {
+    const followed = vi.spyOn(SpaceSceneEngine.prototype, 'setPointer');
+    await mount();
+
+    globalThis.dispatchEvent(
+      pointer('pointermove', { x: 120, y: 80, kind: 'mouse' }),
+    );
+    globalThis.dispatchEvent(
+      pointer('pointermove', { x: 60, y: 40, kind: 'touch' }),
+    );
+
+    expect(followed.mock.calls).toEqual([[120, 80]]);
   });
 });

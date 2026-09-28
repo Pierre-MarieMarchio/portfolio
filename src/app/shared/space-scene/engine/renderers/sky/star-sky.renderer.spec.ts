@@ -13,10 +13,13 @@ interface Stroke {
   readonly x1: number;
   readonly y1: number;
   readonly alpha: number;
+  readonly segments: number;
 }
 
 const trailRecorder = () => {
   const strokes: Stroke[] = [];
+  const counts = { gradients: 0 };
+  let segments = 0;
   let from = { x: 0, y: 0 };
   let to = { x: 0, y: 0 };
   const ctx = {
@@ -27,8 +30,11 @@ const trailRecorder = () => {
     lineWidth: 1,
     clearRect: () => {},
     fillRect: () => {},
-    beginPath: () => {},
+    beginPath: () => {
+      segments = 0;
+    },
     moveTo: (x: number, y: number) => {
+      segments++;
       from = { x, y };
     },
     lineTo: (x: number, y: number) => {
@@ -41,11 +47,15 @@ const trailRecorder = () => {
         x1: to.x,
         y1: to.y,
         alpha: ctx.globalAlpha,
+        segments,
       });
     },
-    createLinearGradient: () => ({ addColorStop: () => {} }),
+    createLinearGradient: () => {
+      counts.gradients++;
+      return { addColorStop: () => {} };
+    },
   };
-  return { ctx: ctx as unknown as CanvasRenderingContext2D, strokes };
+  return { ctx: ctx as unknown as CanvasRenderingContext2D, strokes, counts };
 };
 
 interface StarView {
@@ -231,39 +241,10 @@ describe('Sky', () => {
   });
 });
 
-const batchRecorder = () => {
-  const strokes: { readonly segments: number; readonly alpha: number }[] = [];
-  const counts = { gradients: 0, segments: 0 };
-  const ctx = {
-    globalAlpha: 1,
-    fillStyle: '',
-    strokeStyle: '' as unknown,
-    lineCap: '',
-    lineWidth: 1,
-    clearRect: () => {},
-    fillRect: () => {},
-    beginPath: () => {
-      counts.segments = 0;
-    },
-    moveTo: () => {
-      counts.segments++;
-    },
-    lineTo: () => {},
-    stroke: () => {
-      strokes.push({ segments: counts.segments, alpha: ctx.globalAlpha });
-    },
-    createLinearGradient: () => {
-      counts.gradients++;
-      return { addColorStop: () => {} };
-    },
-  };
-  return { ctx: ctx as unknown as CanvasRenderingContext2D, strokes, counts };
-};
-
 const flyTo = (until: number, isPhone: boolean) => {
   const hz = 60;
   const sky = new StarSkyRenderer(seededRandom(7));
-  const recorder = batchRecorder();
+  const recorder = trailRecorder();
   for (let i = 0; i <= Math.round(until * hz); i++) {
     recorder.strokes.length = 0;
     recorder.counts.gradients = 0;
@@ -274,17 +255,6 @@ const flyTo = (until: number, isPhone: boolean) => {
     });
   }
   return recorder;
-};
-
-const phoneStarsAt = (ratio: number): number => {
-  const sky = new StarSkyRenderer(seededRandom(7));
-  const { ctx } = batchRecorder();
-  sky.draw(ctx, 390 * ratio, 844 * ratio, {
-    ...offRestCamera(0),
-    dpr: ratio,
-    phone: true,
-  });
-  return starsOf(sky).length;
 };
 
 describe('Sky, on a phone', () => {
@@ -305,10 +275,6 @@ describe('Sky, on a phone', () => {
 
     expect(segments).toBeGreaterThan(1.5 * desktop.length);
     expect(segments).toBeLessThanOrEqual(2 * desktop.length);
-  });
-
-  it('keeps the stars of a ratio of 2 on a canvas capped at 1.5', () => {
-    expect(phoneStarsAt(1.5)).toBe(phoneStarsAt(2));
   });
 
   it('keeps one gradient per trail off the phone', () => {

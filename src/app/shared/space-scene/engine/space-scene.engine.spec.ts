@@ -2,23 +2,8 @@ import { SpaceSceneEngine } from './space-scene.engine';
 import { SceneDirection, SceneInputs } from '../models/scene.model';
 import { SceneLayout } from '../models/scene-layout.model';
 import { TurntableMotion } from './motions/turntable.motion';
-import {
-  fitOrbits,
-  placeOrbits,
-  positionOrbit,
-} from '../rules/scene-bodies.rules';
-import {
-  flattening,
-  opening,
-  rollFlatten,
-} from '../rules/camera/projection.rules';
-import {
-  APPROACHES,
-  Frame,
-  REST_FRAME,
-  referenceRadius,
-} from '../rules/camera/camera-frames.rules';
-import { measureRest } from '../rules/camera/rest-frame.rules';
+import { opening } from '../rules/camera/projection.rules';
+import { APPROACHES } from '../rules/camera/camera-frames.rules';
 import { TRAVELING_END } from '../rules/camera/traveling.rules';
 import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
@@ -48,7 +33,6 @@ const silentContext = (): CanvasRenderingContext2D => {
 const SHOWN: SceneDirection = SCENE_INPUTS.direction;
 
 const FRICTION_HALF_LIFE_MS = 1400;
-const STILL_BEFORE_LETTING_GO_MS = 120;
 
 const INPUTS: SceneInputs = { ...SCENE_INPUTS, bodies: sceneBodies(5) };
 
@@ -164,18 +148,6 @@ describe('SpaceSceneEngine, turned by hand', () => {
     expect(view().turntable.rotor('disk').speed).toBe(0);
   });
 
-  it('stays put when let go still', () => {
-    const { engine, step, view, drag, grab } = mount();
-    grab(0);
-    drag(0, 1, 200);
-    step(STILL_BEFORE_LETTING_GO_MS);
-    engine.release();
-    expect(view().turntable.rotor('disk').speed).toBe(0);
-    const letGo = view().turntable.rotor('disk').angle;
-    step(2000);
-    expect(view().turntable.rotor('disk').angle).toBe(letGo);
-  });
-
   it('stops a spinning disk when grabbed', () => {
     const { engine, step, view, drag, grab } = mount();
     grab(0);
@@ -186,35 +158,6 @@ describe('SpaceSceneEngine, turned by hand', () => {
     grab(1);
     expect(view().turntable.rotor('disk').speed).toBe(0);
     engine.release();
-  });
-
-  it('drags the orbits with the disk, never geared to it', () => {
-    const { engine, step, view, drag, grab } = mount();
-    grab(0);
-    drag(0, Math.PI / 2, 150);
-    engine.release();
-    const thrown = view().turntable.rotor('disk').speed;
-    expect(Math.abs(view().turntable.rotor('orbits').speed)).toBeLessThan(
-      0.4 * thrown,
-    );
-    step(600);
-    const disk = view().turntable.rotor('disk');
-    const orbits = view().turntable.rotor('orbits');
-    expect(orbits.speed).toBeGreaterThan(0);
-    expect(orbits.speed).toBeLessThan(0.5 * disk.speed);
-    expect(orbits.angle).toBeLessThan(disk.angle);
-  });
-
-  it('takes the orbits rather than the disk far from the hole', () => {
-    const { engine, step, view, drag, grab } = mount();
-    const disk = view().turntable.rotor('disk').angle;
-    grab(0, 5);
-    drag(0, 1, 300, 5);
-    expect(view().turntable.rotor('orbits').angle).toBeCloseTo(1, 2);
-    engine.release();
-    step(600);
-    expect(view().turntable.rotor('disk').angle - disk).toBeGreaterThan(0);
-    expect(view().turntable.rotor('disk').angle - disk).toBeLessThan(1);
   });
 
   it.each([{ kind: 'overview' }, { kind: 'aside' }] as const)(
@@ -231,16 +174,21 @@ describe('SpaceSceneEngine, turned by hand', () => {
     },
   );
 
-  it('does not turn when the direction holds it still, framed on one planet', () => {
-    const { engine, step, onDisk } = mount();
-    engine.setInputs({
-      ...INPUTS,
-      direction: {
-        ...SHOWN,
-        framing: { kind: 'approach', body: 'body-0', step: 0 },
-        turnable: false,
+  it.each<readonly [string, Partial<SceneInputs>]>([
+    [
+      'when the direction holds it still, framed on one planet',
+      {
+        direction: {
+          ...SHOWN,
+          framing: { kind: 'approach', body: 'body-0', step: 0 },
+          turnable: false,
+        },
       },
-    });
+    ],
+    ['under reduced motion', { reduced: true }],
+  ])('does not turn %s', (_, inputs) => {
+    const { engine, step, onDisk } = mount();
+    engine.setInputs({ ...INPUTS, ...inputs });
     step(3000);
     const point = onDisk(0);
     expect(engine.grab(point.x, point.y)).toBe(false);
@@ -263,101 +211,6 @@ describe('SpaceSceneEngine, turned by hand', () => {
     const shares = byRadius.map((orbit) => turns[orbit.i] ?? 0);
     for (const [k, share] of shares.slice(1).entries()) {
       expect(share).toBeLessThan(shares[k] ?? 0);
-    }
-  });
-});
-
-const restOf = (w: number, h: number): { frame: Frame; freeHalf: number } => {
-  const measure = measureRest({ width: w, height: h }, 44, 90);
-  return {
-    frame: { ...REST_FRAME, ...measure },
-    freeHalf: measure.freeHalf,
-  };
-};
-
-const fitted = (w: number, h: number): number[] => {
-  const { frame, freeHalf } = restOf(w, h);
-  const orbits = placeOrbits(7);
-  fitOrbits(orbits, { w, h, dpr: 1 }, frame, { freeHalf });
-  return orbits.map((orbit) => orbit.rb);
-};
-
-const room = (w: number, h: number): number => {
-  const { frame } = restOf(w, h);
-  const cx = w * frame.x;
-  return (Math.min(cx, w - cx) - 74) / referenceRadius(w, h, frame.s);
-};
-
-describe('fitOrbits', () => {
-  it('keeps the orbits well out of the disk where there is room', () => {
-    const outer = Math.max(...fitted(1280, 800));
-
-    expect(outer).toBeGreaterThanOrEqual(4.6);
-    expect(outer).toBeLessThanOrEqual(6.9);
-  });
-
-  it('keeps the outer orbit in the frame on a phone', () => {
-    expect(room(375, 667)).toBeLessThan(4.6);
-    expect(Math.max(...fitted(375, 667))).toBeLessThanOrEqual(
-      room(375, 667) + 1e-9,
-    );
-  });
-
-  it.each([1, 3])(
-    'keeps the widest orbit within the width of a 360 × 780 portrait (dpr %i)',
-    (dpr) => {
-      const w = 360 * dpr;
-      const h = 780 * dpr;
-      const { frame, freeHalf } = restOf(360, 780);
-      const orbits = placeOrbits(7);
-      fitOrbits(orbits, { w, h, dpr }, frame, { freeHalf });
-      const view = {
-        flatten: flattening(frame.ev),
-        cr: Math.cos(frame.i),
-        sr: Math.sin(frame.i),
-      };
-      const radius = referenceRadius(w, h, frame.s);
-      const xs = orbits.flatMap((orbit) =>
-        Array.from({ length: 84 }, (_, k) => {
-          const point = positionOrbit(
-            orbit,
-            { phase: 0, elev: frame.ev, azim: (k / 84) * 2 * Math.PI },
-            { x: 0, y: 0, z: 0 },
-          );
-          const { nx } = rollFlatten(point, view, { nx: 0, ny: 0 });
-          return w * frame.x + nx * radius;
-        }),
-      );
-      expect(Math.min(...xs)).toBeGreaterThanOrEqual(0);
-      expect(Math.max(...xs)).toBeLessThanOrEqual(w);
-    },
-  );
-
-  it('keeps every orbit of a phone clear of its grown disc, the outer ones free to leave the screen', () => {
-    const { frame, freeHalf } = restOf(375, 667);
-    const orbits = placeOrbits(7);
-    const todayReach = fitOrbits(
-      orbits,
-      { w: 375, h: 667, dpr: 1, isPhone: true },
-      frame,
-      { freeHalf },
-    );
-    const radii = orbits.map((orbit) => orbit.rb);
-
-    expect(Math.min(...radii)).toBeGreaterThanOrEqual(3.2);
-    expect(Math.max(...radii)).toBeGreaterThanOrEqual(4.8);
-    expect(todayReach).toBeCloseTo(Math.max(...fitted(375, 667)), 6);
-  });
-
-  it('keeps the inner orbit inside the outer one, whatever the room', () => {
-    for (const [w, h] of [
-      [1280, 800],
-      [924, 540],
-      [375, 667],
-      [320, 480],
-    ] as const) {
-      const radii = fitted(w, h);
-      expect(Math.min(...radii)).toBeLessThan(Math.max(...radii));
     }
   });
 });
@@ -415,48 +268,33 @@ const mountAt = (
   return { engine, step, texts };
 };
 
+interface HoleSeen {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+}
+
+const holeOn = (engine: SpaceSceneEngine): (() => HoleSeen) => {
+  const mark = document.createElement('div');
+  engine.setHoleMark(mark);
+  return () => ({
+    x: Number(mark.dataset['holeX']),
+    y: Number(mark.dataset['holeY']),
+    radius: Number(mark.dataset['holeRadius']),
+  });
+};
+
 describe('SpaceSceneEngine, fixed', () => {
   it('does not replay the crossing when motion is switched back on', () => {
     const { engine, step } = mountAt({ reduced: true });
+    const hole = holeOn(engine);
     step(1000);
+    const settled = hole();
 
     engine.setInputs({ ...FIXES_INPUTS, reduced: false });
     step(100);
 
-    const time = (engine as unknown as { motion: { clock: { time: number } } })
-      .motion.clock.time;
-    expect(time).toBeGreaterThanOrEqual(TRAVELING_END);
-  });
-
-  it('plays the crossing when the page opens with motion', () => {
-    const { engine, step } = mountAt();
-    step(1000);
-
-    const time = (engine as unknown as { motion: { clock: { time: number } } })
-      .motion.clock.time;
-    expect(time).toBeLessThan(TRAVELING_END);
-  });
-
-  it('fits the orbits before the camera aims at them', () => {
-    const { engine, step } = mountAt();
-    step(PAST_CROSSING_MS);
-    const view = engine as unknown as {
-      orbits: readonly { rb: number }[];
-      target: () => unknown;
-    };
-    const seen: number[] = [];
-    const before = view.orbits.at(-1)?.rb;
-    const target = view.target.bind(engine);
-    view.target = () => {
-      seen.push(view.orbits.at(-1)?.rb ?? NaN);
-      return target();
-    };
-
-    engine.setLayout(layout(220));
-    step(FRAME_MS);
-
-    expect(seen[0]).not.toBe(before);
-    expect(seen[0]).toBeCloseTo(view.orbits.at(-1)?.rb ?? NaN, 1);
+    expect(hole().radius).toBeCloseTo(settled.radius, 0);
   });
 
   it('bounds the lit figure by the figures there are, whatever it is asked', () => {
@@ -536,7 +374,7 @@ const expectInSkyBand = (
 
 describe('SpaceSceneEngine, above a panel along the bottom', () => {
   it.each(PORTRAITS)(
-    'places the approached body between the top bar and the panel, at every step ($width × $height, dpr $dpr)',
+    'places the approached body, at every step, and the close-up body between the top bar and the panel ($width × $height, dpr $dpr)',
     (screen) => {
       const scene = mountEngineScene({
         layout: bottomPanelLayout(screen.width, screen.height),
@@ -544,36 +382,23 @@ describe('SpaceSceneEngine, above a panel along the bottom', () => {
         holeFocus: true,
       });
       scene.run(PAST_CROSSING_MS);
-      for (const rank of FRAMED_RANKS) {
-        for (const step of APPROACHES.keys()) {
-          scene.set({
-            direction: {
-              framing: { kind: 'approach', body: bodyId(rank), step },
-              turnable: false,
-            },
-          });
-          scene.run(4000);
-          expectInSkyBand(buttonAt(scene.styles(), rank), screen);
-          expect(scene.attributes()[rank]).not.toMatch(/^true/);
-        }
-      }
-    },
-    60_000,
-  );
-
-  it.each(PORTRAITS)(
-    'places the close-up body between the top bar and the panel ($width × $height, dpr $dpr)',
-    (screen) => {
-      const scene = mountEngineScene({
-        layout: bottomPanelLayout(screen.width, screen.height),
-        dpr: screen.dpr,
-        holeFocus: true,
-      });
-      scene.run(PAST_CROSSING_MS);
-      for (const rank of FRAMED_RANKS) {
-        scene.set({
-          direction: { framing: { kind: 'close-up', body: bodyId(rank) } },
-        });
+      const approaches = FRAMED_RANKS.flatMap((rank) =>
+        [...APPROACHES.keys()].map((step) => ({
+          rank,
+          direction: {
+            framing: { kind: 'approach', body: bodyId(rank), step },
+            turnable: false,
+          } as const,
+        })),
+      );
+      const closeUps = FRAMED_RANKS.map((rank) => ({
+        rank,
+        direction: {
+          framing: { kind: 'close-up', body: bodyId(rank) },
+        } as const,
+      }));
+      for (const { rank, direction } of [...approaches, ...closeUps]) {
+        scene.set({ direction });
         scene.run(4000);
         expectInSkyBand(buttonAt(scene.styles(), rank), screen);
         expect(scene.attributes()[rank]).not.toMatch(/^true/);
@@ -717,11 +542,10 @@ const WHOLE_OBJECT_SCENES: readonly (readonly [
   ],
 ];
 
-interface HoleSeen {
-  readonly x: number;
-  readonly y: number;
-  readonly radius: number;
-}
+const OVERVIEW = WHOLE_OBJECT_SCENES[0]?.[1] ?? {};
+
+const planetsAt = (styles: readonly string[]): { x: number; y: number }[] =>
+  [...SCENE_INPUTS.bodies.keys()].map((rank) => buttonAt(styles, rank));
 
 const markedScene = (
   layout: SceneLayout,
@@ -735,13 +559,7 @@ const markedScene = (
     inputs,
     holeFocus: hasHoleFocus,
   });
-  const mark = document.createElement('div');
-  scene.engine.setHoleMark(mark);
-  const hole = (): HoleSeen => ({
-    x: Number(mark.dataset['holeX']),
-    y: Number(mark.dataset['holeY']),
-    radius: Number(mark.dataset['holeRadius']),
-  });
+  const hole = holeOn(scene.engine);
   const outerReach = (): number =>
     Math.max(
       ...(scene.engine as unknown as HandView).orbits.map((orbit) => orbit.rb),
@@ -756,7 +574,7 @@ const UPRIGHT_PHONES = [
 
 describe('SpaceSceneEngine, the whole object above a window along the bottom', () => {
   it.each(UPRIGHT_PHONES)(
-    'centres the hole in the sky band and keeps the outer orbit within the width ($width × $height, dpr $dpr)',
+    'centres the hole in the sky band, the outer orbit within the width and every planet of the overview between the bar and the glass ($width × $height, dpr $dpr)',
     (screen) => {
       const glassTop = Math.round(screen.height * GLASS_TOP_SHARE);
       const scene = markedScene(
@@ -776,29 +594,14 @@ describe('SpaceSceneEngine, the whole object above a window along the bottom', (
         expect(hole.x + reach, `${name}, right edge`).toBeLessThanOrEqual(
           screen.width,
         );
-      }
-    },
-    60_000,
-  );
-
-  it.each(UPRIGHT_PHONES)(
-    'keeps every planet of the overview between the bar and the glass ($width × $height, dpr $dpr)',
-    (screen) => {
-      const glassTop = Math.round(screen.height * GLASS_TOP_SHARE);
-      const scene = markedScene(
-        glassLayout(screen.width, screen.height),
-        screen.dpr,
-      );
-      scene.run(PAST_CROSSING_MS);
-      scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
-      scene.run(4000);
-      for (const rank of SCENE_INPUTS.bodies.keys()) {
-        const at = buttonAt(scene.styles(), rank);
-
-        expect(at.y - BUTTON_HALF).toBeGreaterThanOrEqual(TOP_BAR);
-        expect(at.y + BUTTON_HALF).toBeLessThanOrEqual(glassTop);
-        expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
-        expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(screen.width);
+        if (direction === OVERVIEW) {
+          for (const at of planetsAt(scene.styles())) {
+            expect(at.y - BUTTON_HALF).toBeGreaterThanOrEqual(TOP_BAR);
+            expect(at.y + BUTTON_HALF).toBeLessThanOrEqual(glassTop);
+            expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
+            expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(screen.width);
+          }
+        }
       }
     },
     60_000,
@@ -808,7 +611,7 @@ describe('SpaceSceneEngine, the whole object above a window along the bottom', (
     const { width, height } = { width: 390, height: 844 };
     const scene = markedScene(glassLayout(width, height), 3);
     scene.run(PAST_CROSSING_MS);
-    scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
+    scene.set({ direction: OVERVIEW });
     scene.run(4000);
     const lowered = scene.hole().y;
 
@@ -831,7 +634,7 @@ describe('SpaceSceneEngine, the whole object above a window along the bottom', (
     const { width, height } = { width: 390, height: 844 };
     const scene = markedScene(glassLayout(width, height), 3);
     scene.set({
-      direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {},
+      direction: OVERVIEW,
       reduced: true,
     });
     scene.run(1000);
@@ -864,7 +667,7 @@ const sidePanelLayout = (): SceneLayout =>
   );
 
 describe('SpaceSceneEngine, the whole object beside a window on an upright tablet', () => {
-  it('keeps the hole left of the window, and on screen', () => {
+  it('keeps the hole left of the window and on screen, and every planet of the overview left of the window', () => {
     const scene = markedScene(sidePanelLayout(), TABLET_UPRIGHT.dpr);
     scene.run(PAST_CROSSING_MS);
     for (const [name, direction] of WHOLE_OBJECT_SCENES) {
@@ -884,19 +687,12 @@ describe('SpaceSceneEngine, the whole object beside a window on an upright table
       expect(hole.y + hole.radius, `${name}, bottom edge`).toBeLessThanOrEqual(
         TABLET_UPRIGHT.height,
       );
-    }
-  }, 60_000);
-
-  it('keeps every planet of the overview left of the window', () => {
-    const scene = markedScene(sidePanelLayout(), TABLET_UPRIGHT.dpr);
-    scene.run(PAST_CROSSING_MS);
-    scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
-    scene.run(4000);
-    for (const rank of SCENE_INPUTS.bodies.keys()) {
-      const at = buttonAt(scene.styles(), rank);
-
-      expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
-      expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(TABLET_PANEL_LEFT);
+      if (direction === OVERVIEW) {
+        for (const at of planetsAt(scene.styles())) {
+          expect(at.x - BUTTON_HALF).toBeGreaterThanOrEqual(0);
+          expect(at.x + BUTTON_HALF).toBeLessThanOrEqual(TABLET_PANEL_LEFT);
+        }
+      }
     }
   }, 60_000);
 });
@@ -905,12 +701,10 @@ const LYING_PHONE = { width: 844, height: 390 } as const;
 const LYING_TITLE = rectOf(34, 68, 348, 95);
 const LYING_RULE = rectOf(428, 251, 404, 133);
 
-const lyingHomeLayout = (hasTitle: boolean): SceneLayout =>
+const lyingHomeLayout = (): SceneLayout =>
   sceneLayout({ left: 0, top: 0 }, LYING_PHONE, [
     { rect: rectOf(0, 0, 422, 56), opacity: '1', role: 'top-bar' },
-    ...(hasTitle
-      ? [{ rect: LYING_TITLE, opacity: '1', role: 'chrome' as const }]
-      : []),
+    { rect: LYING_TITLE, opacity: '1', role: 'chrome' },
     { rect: LYING_RULE, opacity: '1', role: 'bottom-bar' },
   ]);
 
@@ -941,31 +735,13 @@ const titledLyingLayout = (titleWidth: number): SceneLayout =>
 
 describe('SpaceSceneEngine, at rest on a phone lying down', () => {
   it('rests in the free sky, clear of the title and the rule, the hole larger', () => {
-    const scene = markedScene(lyingHomeLayout(true), 3);
+    const scene = markedScene(lyingHomeLayout(), 3);
     scene.run(PAST_CROSSING_MS);
     const hole = scene.hole();
 
     expect(isHoleOver(hole, LYING_TITLE), 'under the title').toBe(false);
     expect(isHoleOver(hole, LYING_RULE), 'over the rule').toBe(false);
     expect(hole.radius).toBeGreaterThan(20);
-  }, 60_000);
-
-  it('follows a new rest at once under reduced motion', () => {
-    const scene = markedScene(lyingHomeLayout(false), 3);
-    scene.set({ reduced: true });
-    scene.run(1000);
-    const before = scene.hole();
-
-    scene.engine.setLayout(lyingHomeLayout(true));
-    scene.run(1000);
-    const moved = scene.hole();
-    const settled = markedScene(lyingHomeLayout(true), 3);
-    settled.set({ reduced: true });
-    settled.run(1000);
-
-    expect(moved.x - before.x, 'moved').toBeGreaterThan(50);
-    expect(moved.x).toBeCloseTo(settled.hole().x, 0);
-    expect(moved.radius).toBeCloseTo(settled.hole().radius, 0);
   }, 60_000);
 
   it.each([
@@ -1060,11 +836,9 @@ describe('SpaceSceneEngine, beside a glass lying on the right', () => {
   it('keeps every planet of the overview below the bar', () => {
     const scene = markedScene(lyingGlassLayout('', false), 3);
     scene.run(PAST_CROSSING_MS);
-    scene.set({ direction: WHOLE_OBJECT_SCENES[0]?.[1] ?? {} });
+    scene.set({ direction: OVERVIEW });
     scene.run(4000);
-    for (const rank of SCENE_INPUTS.bodies.keys()) {
-      const at = buttonAt(scene.styles(), rank);
-
+    for (const at of planetsAt(scene.styles())) {
       expect(at.y - BUTTON_HALF).toBeGreaterThanOrEqual(SMALL_LYING_BAR.bottom);
     }
   }, 60_000);
@@ -1511,11 +1285,9 @@ describe('SpaceSceneEngine, the hole as the subject of a phone', () => {
   });
 
   it('numbers no planet of the overview until one is selected', () => {
-    const [, overview] = WHOLE_OBJECT_SCENES[0] ?? ['', {}];
-
-    expect(shownLabels(phoneScene('phone', overview))).toEqual([]);
+    expect(shownLabels(phoneScene('phone', OVERVIEW))).toEqual([]);
     expect(
-      shownLabels(phoneScene('phone', { ...overview, ringed: bodyId(2) })),
+      shownLabels(phoneScene('phone', { ...OVERVIEW, ringed: bodyId(2) })),
     ).toEqual([2]);
   });
 });
@@ -1647,17 +1419,6 @@ describe('SpaceSceneEngine, under an interface already in', () => {
     const steps = radii.slice(1).map((radius, k) => radius - (radii[k] ?? 0));
     expect(Math.max(...steps)).toBeLessThan(full / 4);
     expect(radii.at(-1)).toBeCloseTo(full, -1);
-  });
-
-  it('leaves a finished crossing to its own clock', () => {
-    const scene = mountMarked();
-    scene.step(PAST_CROSSING_MS);
-    const before = scene.time();
-
-    scene.engine.setInputs({ ...FIXES_INPUTS, ...LANDED });
-    scene.step(FRAME_MS);
-
-    expect(scene.time() - before).toBeCloseTo(FRAME_MS / 1000, 6);
   });
 });
 

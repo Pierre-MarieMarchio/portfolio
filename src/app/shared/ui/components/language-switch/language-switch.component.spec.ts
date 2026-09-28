@@ -34,10 +34,6 @@ const mount = async () => {
 };
 
 describe('LanguageSwitchComponent', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
   it('offers the other language as a link to the same page', async () => {
     const { host } = await mount();
     const other = host.querySelector('.language a');

@@ -1,19 +1,71 @@
+import type { DisplayFormat } from '@app/core/models';
 import { canvasResolution } from './canvas-resolution.rules';
 
 describe('canvasResolution', () => {
-  it('follows the device ratio below the cap', () => {
-    expect(canvasResolution({ width: 800, height: 600 }, 1.5)).toEqual({
-      width: 1200,
-      height: 900,
+  it.each<{
+    readonly screen: string;
+    readonly size: { readonly width: number; readonly height: number };
+    readonly dpr: number;
+    readonly format?: DisplayFormat;
+    readonly pixelRatio: number;
+  }>([
+    {
+      screen: 'follows the device ratio below the cap',
+      size: { width: 800, height: 600 },
+      dpr: 1.5,
       pixelRatio: 1.5,
-    });
-  });
-
-  it('caps the ratio at 2 on a denser screen', () => {
-    expect(canvasResolution({ width: 800, height: 600 }, 3)).toEqual({
-      width: 1600,
-      height: 1200,
+    },
+    {
+      screen: 'caps the ratio at 2 on a denser screen',
+      size: { width: 800, height: 600 },
+      dpr: 3,
       pixelRatio: 2,
+    },
+    {
+      screen: 'keeps a 1080p screen at 150%',
+      size: { width: 1280, height: 720 },
+      dpr: 1.5,
+      pixelRatio: 1.5,
+    },
+    {
+      screen: 'keeps a 13-inch retina screen at full sharpness',
+      size: { width: 1280, height: 800 },
+      dpr: 2,
+      pixelRatio: 2,
+    },
+    {
+      screen: 'caps the ratio at 1.5 on a phone',
+      size: { width: 390, height: 844 },
+      dpr: 3,
+      format: 'phone',
+      pixelRatio: 1.5,
+    },
+    {
+      screen: 'follows a phone below its cap',
+      size: { width: 390, height: 844 },
+      dpr: 1.25,
+      format: 'phone',
+      pixelRatio: 1.25,
+    },
+    {
+      screen: 'leaves the tablet at 2',
+      size: { width: 820, height: 1180 },
+      dpr: 3,
+      format: 'tablet',
+      pixelRatio: 2,
+    },
+    {
+      screen: 'leaves the desktop at 2',
+      size: { width: 800, height: 600 },
+      dpr: 3,
+      format: 'desktop',
+      pixelRatio: 2,
+    },
+  ])('$screen', ({ size, dpr, format, pixelRatio }) => {
+    expect(canvasResolution(size, dpr, format)).toEqual({
+      width: Math.round(size.width * pixelRatio),
+      height: Math.round(size.height * pixelRatio),
+      pixelRatio,
     });
   });
 
@@ -27,32 +79,6 @@ describe('canvasResolution', () => {
     expect(width).toBe(Math.round(3840 * pixelRatio));
     expect(height).toBe(Math.round(2160 * pixelRatio));
     expect(width * height).toBeLessThanOrEqual(4_201_000);
-  });
-
-  it('keeps a 1080p screen at 150% and a 13-inch retina screen at full sharpness', () => {
-    expect(canvasResolution({ width: 1280, height: 720 }, 1.5).pixelRatio).toBe(
-      1.5,
-    );
-    expect(canvasResolution({ width: 1280, height: 800 }, 2).pixelRatio).toBe(
-      2,
-    );
-  });
-
-  it('caps the ratio at 1.5 on a phone, and leaves the tablet at 2', () => {
-    expect(canvasResolution({ width: 390, height: 844 }, 3, 'phone')).toEqual({
-      width: 585,
-      height: 1266,
-      pixelRatio: 1.5,
-    });
-    expect(
-      canvasResolution({ width: 390, height: 844 }, 1.25, 'phone').pixelRatio,
-    ).toBe(1.25);
-    expect(
-      canvasResolution({ width: 820, height: 1180 }, 3, 'tablet').pixelRatio,
-    ).toBe(2);
-    expect(
-      canvasResolution({ width: 800, height: 600 }, 3, 'desktop').pixelRatio,
-    ).toBe(2);
   });
 
   it('never answers a canvas smaller than one pixel', () => {

@@ -23,10 +23,6 @@ const mount = async (current: string | null = null) => {
 };
 
 describe('MainNavComponent', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
   it('lists one link per navigation item, in order', async () => {
     const { host } = await mount();
     const links = [...host.querySelectorAll('nav a')];

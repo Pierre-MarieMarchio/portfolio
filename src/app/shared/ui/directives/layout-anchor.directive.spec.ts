@@ -35,27 +35,18 @@ const mount = async () => {
 };
 
 describe('LayoutAnchorDirective', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
-  it('signs in every declared element under its kind, in document order', async () => {
+  it('signs in every declared element under its kind, in document order, and marks it data-panel with its kind', async () => {
     const { anchors, host } = await mount();
 
     expect(anchors.list('head')).toEqual([host.querySelector('header')]);
     expect(anchors.list('rule')).toEqual([host.querySelector('#rule')]);
     expect(anchors.list('panel')).toEqual([host.querySelector('aside')]);
+    expect(host.querySelector('header')?.dataset['panel']).toBe('head');
+    expect(host.querySelector('aside')?.dataset['panel']).toBe('panel');
     expect(anchors.list('line')).toEqual([
       host.querySelector('#first'),
       host.querySelector('#second'),
     ]);
-  });
-
-  it('keeps data-panel on the element, set to its kind', async () => {
-    const { host } = await mount();
-
-    expect(host.querySelector('header')?.dataset['panel']).toBe('head');
-    expect(host.querySelector('aside')?.dataset['panel']).toBe('panel');
   });
 
   it('moves an element to the kind it changes to', async () => {

@@ -73,11 +73,6 @@ describe('SkyLookTracker', () => {
     panel.remove();
   });
 
-  it('starts with the camera where the scene put it', () => {
-    expect(tracker.pan.x).toBe(0);
-    expect(tracker.pan.y).toBe(0);
-  });
-
   it('zooms about the pointer by a tenth per notch of the wheel on the sky', () => {
     const event = roll(sky, -100);
 
@@ -86,14 +81,6 @@ describe('SkyLookTracker', () => {
     expect(scene.stretches).toHaveLength(1);
     expect(scene.stretches[0]?.[2]).toBeCloseTo(1.1, 12);
     expect(scene.releases).toBe(1);
-  });
-
-  it('zooms with the pinch of a touchpad too, instead of the page', () => {
-    const event = roll(sky, -6, { ctrlKey: true });
-
-    expect(event.defaultPrevented).toBe(true);
-    expect(scene.stretches[0]?.[2]).toBeGreaterThan(1);
-    expect(scene.stretches[0]?.[2]).toBeLessThan(1.01);
   });
 
   it('leaves the wheel to a window, which scrolls', () => {

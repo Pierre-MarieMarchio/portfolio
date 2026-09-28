@@ -41,21 +41,28 @@ describe('FrameLoopEngine', () => {
     expect(covered).toBeCloseTo((steps.at(-1)?.at ?? 0) / 1000, 6);
   });
 
-  it('leaves a 60 or a 90 Hz screen alone under a finger', () => {
-    const at60 = loopOn(60, true);
-    at60.refresh(60);
-    const at90 = loopOn(90, true);
-    at90.refresh(90);
+  it.each([
+    { hz: 60, isTouch: true, where: 'under a finger' },
+    { hz: 90, isTouch: true, where: 'under a finger' },
+    { hz: 120, isTouch: false, where: 'on a desktop' },
+  ])('steps every refresh of a $hz Hz screen $where', ({ hz, isTouch }) => {
+    const { steps, refresh } = loopOn(hz, isTouch);
+    refresh(hz);
 
-    expect(at60.steps).toHaveLength(60);
-    expect(at90.steps).toHaveLength(90);
+    expect(steps).toHaveLength(hz);
   });
 
-  it('steps every refresh of a fast desktop screen', () => {
-    const { steps, refresh } = loopOn(120, false);
-    refresh(120);
+  it('does not start in a hidden tab', () => {
+    const display = drivenHost();
+    const loop = new FrameLoopEngine(
+      { ...display.host, hidden: () => true },
+      () => true,
+    );
 
-    expect(steps).toHaveLength(120);
+    loop.setVisible(true);
+    loop.wake();
+
+    expect(display.isScheduled()).toBe(false);
   });
 
   it('keeps the pace when woken right after a step', () => {

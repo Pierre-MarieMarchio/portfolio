@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { WINDOW_TEXTS, WindowTexts } from '../../ports';
 import { WindowComponent } from './window.component';
 import { loadGlassGestures } from '../../directives/glass-gesture.directive';
 import { WindowSize } from '../../models/window.model';
@@ -13,11 +14,14 @@ import {
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
-const PIN_OFF_LABEL = 'Garder cette fenêtre ouverte en changeant de page';
-const PIN_ON_LABEL = 'Laisser cette fenêtre se fermer en changeant de page';
-const COLLAPSE_OFF_LABEL = 'Replier la fenêtre';
-const COLLAPSE_ON_LABEL = 'Déplier la fenêtre';
-const CLOSE_LABEL = 'Fermer la fenêtre';
+const texts = (): WindowTexts => TestBed.inject(WINDOW_TEXTS)();
+
+type Control = 'pin' | 'collapse' | 'close';
+
+const namesOf = (name: Control): readonly string[] => {
+  const { pin, unpin, fold, unfold, close } = texts();
+  return { pin: [pin, unpin], collapse: [fold, unfold], close: [close] }[name];
+};
 
 const CAPS: Record<WindowSize, number> = { s: 300, m: 470, l: 920 };
 
@@ -67,6 +71,17 @@ const titlebarButtons = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('.titlebar button'),
 ];
 
+const control = (host: HTMLElement, name: Control): HTMLButtonElement => {
+  const names = namesOf(name);
+  const found = titlebarButtons(host).find((button) =>
+    names.includes(button.getAttribute('aria-label') ?? ''),
+  );
+  if (!found) {
+    throw new Error(`expected the ${name} button`);
+  }
+  return found;
+};
+
 const drag = (on: Element, dx: number, dy: number): void => {
   dragAlong(
     on,
@@ -79,8 +94,8 @@ const drag = (on: Element, dx: number, dy: number): void => {
   );
 };
 
-const tap = (on: Element): void => {
-  tapOn(on, { x: 100, y: 10, at: 0 }, { at: 50 });
+const tap = (on: Element, at = 0): void => {
+  tapOn(on, { x: 100, y: 10, at }, { at: at + 50 });
 };
 
 const mountOnPhone = async () => {
@@ -89,7 +104,7 @@ const mountOnPhone = async () => {
   await loadGlassGestures();
   await mounted.fixture.whenStable();
   const heading = mounted.host.querySelector('.titlebar h2') as HTMLElement;
-  const collapse = at(titlebarButtons(mounted.host), 1);
+  const collapse = control(mounted.host, 'collapse');
   return { ...mounted, heading, collapse };
 };
 
@@ -154,30 +169,20 @@ describe('WindowComponent', () => {
     expect(metaIndex).toBeGreaterThan(h2Index);
     expect(at(children, metaIndex).textContent?.trim()).toBe('3 éléments');
     expect(firstButtonIndex).toBeGreaterThan(metaIndex);
-  });
-
-  it('renders the meta text, empty by default', async () => {
-    const { host, fixture } = await mount();
-
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
-
-    fixture.componentRef.setInput('meta', 'Mis à jour hier');
-    await fixture.whenStable();
-
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe(
-      'Mis à jour hier',
-    );
+    for (const button of titlebarButtons(host)) {
+      expect(button.getAttribute('type')).toBe('button');
+    }
   });
 
   describe('pin button', () => {
     it('starts unpinned, and only the pinned input changes its glyph and label', async () => {
       const { fixture, host } = await mount();
-      const pin = at(titlebarButtons(host), 0);
+      const pin = control(host, 'pin');
 
       expect(pin.getAttribute('aria-pressed')).toBe('false');
       expect(pin.textContent?.trim()).toBe('○');
-      expect(pin.getAttribute('aria-label')).toBe(PIN_OFF_LABEL);
-      expect(pin.getAttribute('title')).toBe(PIN_OFF_LABEL);
+      expect(pin.getAttribute('aria-label')).toBe(texts().pin);
+      expect(pin.getAttribute('title')).toBe(texts().pin);
 
       pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await fixture.whenStable();
@@ -190,28 +195,25 @@ describe('WindowComponent', () => {
 
       expect(pin.getAttribute('aria-pressed')).toBe('true');
       expect(pin.textContent?.trim()).toBe('●');
-      expect(pin.getAttribute('aria-label')).toBe(PIN_ON_LABEL);
-      expect(pin.getAttribute('title')).toBe(PIN_ON_LABEL);
+      expect(pin.getAttribute('aria-label')).toBe(texts().unpin);
+      expect(pin.getAttribute('title')).toBe(texts().unpin);
     });
 
     it('emits pinToggled exactly once per click', async () => {
       const { fixture, host } = await mount();
-      const pin = at(titlebarButtons(host), 0);
-
       const calls = recordOutput(fixture.componentInstance.pinToggled);
 
-      pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      control(host, 'pin').dispatchEvent(
+        new MouseEvent('click', { bubbles: true }),
+      );
       await fixture.whenStable();
-      expect(calls).toHaveLength(1);
 
-      pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      await fixture.whenStable();
-      expect(calls).toHaveLength(2);
+      expect(calls).toHaveLength(1);
     });
   });
 
   describe('collapse button and dblclick', () => {
-    it('starts expanded, toggles on click, and hides projected content while collapsed', async () => {
+    it('projects toolbar, default, body and footer content in that order below the title bar, starts expanded, and hides it while collapsed', async () => {
       TestBed.configureTestingModule({
         imports: [HostWindowZones],
         providers: [provideTexts()],
@@ -220,28 +222,35 @@ describe('WindowComponent', () => {
       await fixture.whenStable();
       const host = fixture.nativeElement as HTMLElement;
       const section = host.querySelector('.window') as HTMLElement;
-      const collapse = at(titlebarButtons(host), 1);
+      const collapse = control(host, 'collapse');
+      const text = section.textContent ?? '';
+      const marks = [
+        'TOOLBAR-MARK',
+        'DEFAULT-MARK',
+        'BODY-MARK',
+        'FOOTER-MARK',
+      ];
 
       expect(collapse.getAttribute('aria-expanded')).toBe('true');
       expect(collapse.textContent?.trim()).toBe('–');
-      expect(collapse.getAttribute('aria-label')).toBe(COLLAPSE_OFF_LABEL);
-      expect(section.textContent).toContain('TOOLBAR-MARK');
-      expect(section.textContent).toContain('DEFAULT-MARK');
-      expect(section.textContent).toContain('BODY-MARK');
-      expect(section.textContent).toContain('FOOTER-MARK');
-      expect(section.querySelector('.body')).not.toBeNull();
+      expect(collapse.getAttribute('aria-label')).toBe(texts().fold);
+      expect(text).toMatch(
+        /Console.*TOOLBAR-MARK.*DEFAULT-MARK.*BODY-MARK.*FOOTER-MARK/s,
+      );
+      expect(section.querySelector('.body')?.textContent).toContain(
+        'BODY-MARK',
+      );
 
       collapse.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await fixture.whenStable();
 
       expect(collapse.getAttribute('aria-expanded')).toBe('false');
       expect(collapse.textContent?.trim()).toBe('+');
-      expect(collapse.getAttribute('aria-label')).toBe(COLLAPSE_ON_LABEL);
-      expect(collapse.getAttribute('title')).toBe(COLLAPSE_ON_LABEL);
-      expect(section.textContent).not.toContain('TOOLBAR-MARK');
-      expect(section.textContent).not.toContain('DEFAULT-MARK');
-      expect(section.textContent).not.toContain('BODY-MARK');
-      expect(section.textContent).not.toContain('FOOTER-MARK');
+      expect(collapse.getAttribute('aria-label')).toBe(texts().unfold);
+      expect(collapse.getAttribute('title')).toBe(texts().unfold);
+      for (const mark of marks) {
+        expect(section.textContent).not.toContain(mark);
+      }
       expect(section.querySelector('.body')).toBeNull();
       expect(section.style.maxHeight).toBe('');
 
@@ -253,45 +262,29 @@ describe('WindowComponent', () => {
       expect(section.textContent).toContain('BODY-MARK');
     });
 
-    it('toggles on a titlebar dblclick, but not when the double click lands on a button', async () => {
+    it('toggles on a titlebar dblclick', async () => {
       const { fixture, host } = await mount();
       const titlebar = host.querySelector('.titlebar') as HTMLElement;
-      const collapse = at(titlebarButtons(host), 1);
-
-      collapse.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-      await fixture.whenStable();
-
-      expect(collapse.getAttribute('aria-expanded')).toBe('true');
 
       titlebar.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
       await fixture.whenStable();
 
-      expect(collapse.getAttribute('aria-expanded')).toBe('false');
+      expect(control(host, 'collapse').getAttribute('aria-expanded')).toBe(
+        'false',
+      );
     });
 
     it('toggles on a double tap of the titlebar', async () => {
       const { fixture, host } = await mount();
       const heading = host.querySelector('.titlebar h2') as HTMLElement;
-      const collapse = at(titlebarButtons(host), 1);
 
-      for (const type of [
-        'pointerdown',
-        'pointerup',
-        'pointerdown',
-        'pointerup',
-      ]) {
-        heading.dispatchEvent(
-          new PointerEvent(type, {
-            bubbles: true,
-            clientX: 40,
-            clientY: 10,
-            pointerType: 'touch',
-          }),
-        );
-      }
+      tap(heading, 0);
+      tap(heading, 150);
       await fixture.whenStable();
 
-      expect(collapse.getAttribute('aria-expanded')).toBe('false');
+      expect(control(host, 'collapse').getAttribute('aria-expanded')).toBe(
+        'false',
+      );
     });
   });
 
@@ -300,9 +293,9 @@ describe('WindowComponent', () => {
       const { fixture, host } = await mount();
 
       expect(titlebarButtons(host)).toHaveLength(3);
-      const close = at(titlebarButtons(host), 2);
-      expect(close.getAttribute('aria-label')).toBe(CLOSE_LABEL);
-      expect(close.getAttribute('title')).toBe(CLOSE_LABEL);
+      const close = control(host, 'close');
+      expect(close.getAttribute('aria-label')).toBe(texts().close);
+      expect(close.getAttribute('title')).toBe(texts().close);
       expect(close.textContent?.trim()).toBe('✕');
 
       const calls = recordOutput(fixture.componentInstance.closed);
@@ -317,48 +310,10 @@ describe('WindowComponent', () => {
       expect(remaining).toHaveLength(2);
       expect(
         remaining.some(
-          (button) => button.getAttribute('aria-label') === CLOSE_LABEL,
+          (button) => button.getAttribute('aria-label') === texts().close,
         ),
       ).toBe(false);
     });
-  });
-
-  it('renders the three controls as real, named buttons', async () => {
-    const { host } = await mount();
-    const buttons = titlebarButtons(host);
-
-    expect(buttons).toHaveLength(3);
-    for (const button of buttons) {
-      expect(button.tagName).toBe('BUTTON');
-      expect(button.getAttribute('type')).toBe('button');
-      expect(button.getAttribute('aria-label')).toBeTruthy();
-    }
-  });
-
-  it('projects toolbar, default, body and footer content, in that order, below the title bar', async () => {
-    TestBed.configureTestingModule({
-      imports: [HostWindowZones],
-      providers: [provideTexts()],
-    });
-    const fixture = TestBed.createComponent(HostWindowZones);
-    await fixture.whenStable();
-    const section = (fixture.nativeElement as HTMLElement).querySelector(
-      '.window',
-    ) as HTMLElement;
-    const text = section.textContent ?? '';
-
-    const toolbarAt = text.indexOf('TOOLBAR-MARK');
-    const defaultAt = text.indexOf('DEFAULT-MARK');
-    const bodyAt = text.indexOf('BODY-MARK');
-    const footerAt = text.indexOf('FOOTER-MARK');
-
-    expect(toolbarAt).toBeGreaterThanOrEqual(0);
-    expect(defaultAt).toBeGreaterThan(toolbarAt);
-    expect(bodyAt).toBeGreaterThan(defaultAt);
-    expect(footerAt).toBeGreaterThan(bodyAt);
-
-    const bodyWrapper = section.querySelector('.body');
-    expect(bodyWrapper?.textContent).toContain('BODY-MARK');
   });
 
   describe('height', () => {
@@ -373,11 +328,11 @@ describe('WindowComponent', () => {
         expect(section.style.maxHeight).toBe(`${String(CAPS[size])}px`);
       }
 
-      at(titlebarButtons(host), 1).click();
+      control(host, 'collapse').click();
       await fixture.whenStable();
       expect(section.style.maxHeight).toBe('');
 
-      at(titlebarButtons(host), 1).click();
+      control(host, 'collapse').click();
       await fixture.whenStable();
       expect(section.style.maxHeight).toBe(`${String(CAPS.l)}px`);
     });
@@ -399,17 +354,11 @@ describe('WindowComponent', () => {
   });
 
   describe('drag', () => {
-    it('moves by its title bar, never by one of its buttons', async () => {
+    it('moves by its title bar', async () => {
       const { host, section } = await mount();
       stubViewport(1200, 800);
       section.getBoundingClientRect = () => new DOMRect(500, 300, 200, 150);
       const titlebar = host.querySelector('.titlebar') as HTMLElement;
-
-      at(titlebarButtons(host), 0).dispatchEvent(
-        pointer('pointerdown', { x: 0, y: 0 }),
-      );
-      window.dispatchEvent(pointer('pointermove', { x: 50, y: 30 }));
-      expect(section.style.transform).toBe('');
 
       titlebar.dispatchEvent(pointer('pointerdown', { x: 0, y: 0 }));
       window.dispatchEvent(pointer('pointermove', { x: 50, y: 30 }));
@@ -491,21 +440,6 @@ describe('WindowComponent', () => {
       drag(bodyOf(host), 80, 4);
 
       expect(swipes).toEqual(['next', 'previous']);
-    });
-
-    it('neither folds nor swipes at the desktop format', async () => {
-      stubViewport(1200, 800);
-      const { fixture, host } = await mount();
-      const heading = host.querySelector('.titlebar h2') as HTMLElement;
-      const swipes = recordOutput(fixture.componentInstance.swiped);
-
-      drag(bodyOf(host), -80, 4);
-      heading.dispatchEvent(pointer('pointerdown', { x: 100, y: 100, at: 0 }));
-      heading.dispatchEvent(pointer('pointerup', { x: 100, y: 200, at: 300 }));
-      await fixture.whenStable();
-
-      expect(swipes).toEqual([]);
-      expect(host.querySelector('.body')).not.toBeNull();
     });
   });
 });

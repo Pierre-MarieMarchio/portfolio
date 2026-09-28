@@ -41,7 +41,6 @@ const mount = async (canHover = true) => {
 
 describe('HoverFocusDirective', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.unstubAllGlobals();
   });
 

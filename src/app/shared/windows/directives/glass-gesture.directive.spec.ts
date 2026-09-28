@@ -279,14 +279,18 @@ describe('GlassGesturesDirective', () => {
     expect(isRiseHeld).toBe(false);
   });
 
-  it('does nothing outside the phone format', async () => {
-    const { find, drag, gestures } = await setup({ width: 1200 });
+  it('does nothing outside the phone format, and keeps every click', async () => {
+    const { fixture, find, drag, gestures } = await setup({ width: 1200 });
+    const link = find('.link');
 
     drag(find('.grip'), slow(0, 120));
     drag(find('.text'), slow(-120, 0));
+    drag(link, slow(-80, 0));
+    link.click();
 
     expect(gestures).toEqual([]);
     expect(find('section').style.transform).toBe('');
+    expect(fixture.componentInstance.clicks).toBe(1);
   });
 
   it('swallows the click that follows a drag of more than 6 px, once', async () => {
@@ -315,16 +319,6 @@ describe('GlassGesturesDirective', () => {
     link.click();
 
     expect(fixture.componentInstance.clicks).toBe(0);
-  });
-
-  it('keeps every click outside the phone format', async () => {
-    const { fixture, find, drag } = await setup({ width: 1200 });
-    const link = find('.link');
-
-    drag(link, slow(-80, 0));
-    link.click();
-
-    expect(fixture.componentInstance.clicks).toBe(1);
   });
 
   it('asks for its code through the format code loader, for the phone', async () => {

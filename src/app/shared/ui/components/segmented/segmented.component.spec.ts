@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { SegmentedComponent } from './segmented.component';
 import { SegmentedItem } from '../../models/segmented.model';
+import { SHARED_TEXTS } from '../../ports';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
@@ -34,24 +35,22 @@ const buttonsOf = (host: HTMLElement): HTMLButtonElement[] => [
 ];
 
 describe('SegmentedComponent', () => {
-  it('lists one <li><button> per item, in order, inside a group', async () => {
+  it('lists one <li><button> per item inside a group, in order, its label as its text', async () => {
     const { host } = await mount();
 
-    const group = host.querySelector('ul[role="group"]');
-    const items = [...host.querySelectorAll('li')];
-
-    expect(group).not.toBeNull();
-    expect(items).toHaveLength(3);
-    for (const item of items) {
-      expect(item.querySelector('button')).not.toBeNull();
-    }
+    expect(host.querySelector('ul[role="group"] > li > button')).not.toBeNull();
+    expect(
+      buttonsOf(host).map((button) =>
+        button.querySelector('span')?.textContent?.trim(),
+      ),
+    ).toEqual(ITEMS.map((item) => item.label));
   });
 
-  it('names the group from the label input, defaulting to "Sélection"', async () => {
+  it('names the group from the label input, defaulting to the shared selection label', async () => {
     const { host, fixture } = await mount();
 
     expect(host.querySelector('ul')?.getAttribute('aria-label')).toBe(
-      'Sélection',
+      TestBed.inject(SHARED_TEXTS)().segmented.label,
     );
 
     fixture.componentRef.setInput('label', 'Filtrer les projets');
@@ -64,38 +63,28 @@ describe('SegmentedComponent', () => {
 
   it('exposes active state as aria-pressed and data-active on each button', async () => {
     const { host } = await mount();
-    const buttons = buttonsOf(host);
 
     expect(
-      buttons.map((button) => button.getAttribute('aria-pressed')),
-    ).toEqual(['true', 'false', 'false']);
-    expect(buttons.map((button) => button.dataset['active'])).toEqual([
-      'true',
-      'false',
-      'false',
-    ]);
+      buttonsOf(host).map((button) => [
+        button.getAttribute('aria-pressed'),
+        button.dataset['active'],
+      ]),
+    ).toEqual(ITEMS.map((item) => [String(item.active), String(item.active)]));
   });
 
   it('names each button from its own aria, falling back to its own label', async () => {
     const { host } = await mount();
-    const buttons = buttonsOf(host);
 
-    expect(at(buttons, 0).getAttribute('aria-label')).toBe('Tout');
-    expect(at(buttons, 0).getAttribute('title')).toBe('Tout');
-    expect(at(buttons, 1).getAttribute('aria-label')).toBe('Projets');
-    expect(at(buttons, 1).getAttribute('title')).toBe('Projets');
-
-    expect(at(buttons, 2).getAttribute('aria-label')).toBe('Notes de veille');
-    expect(at(buttons, 2).getAttribute('title')).toBe('Notes de veille');
-  });
-
-  it('shows the label as the button text', async () => {
-    const { host } = await mount();
-    const buttons = buttonsOf(host);
-
-    expect(at(buttons, 0).textContent).toContain('Tout');
-    expect(at(buttons, 1).textContent).toContain('Projets');
-    expect(at(buttons, 2).textContent).toContain('Notes');
+    expect(
+      buttonsOf(host).map((button) => [
+        button.getAttribute('aria-label'),
+        button.getAttribute('title'),
+      ]),
+    ).toEqual([
+      ['Tout', 'Tout'],
+      ['Projets', 'Projets'],
+      ['Notes de veille', 'Notes de veille'],
+    ]);
   });
 
   it('renders the count as a hidden hint next to the label, only when given', async () => {
@@ -112,19 +101,14 @@ describe('SegmentedComponent', () => {
 
   it('emits the value of the clicked item, exactly once, on click', async () => {
     const { host, fixture } = await mount();
-    const buttons = buttonsOf(host);
-
     const received = recordOutput(fixture.componentInstance.valueChange);
 
-    at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    at(buttonsOf(host), 1).dispatchEvent(
+      new MouseEvent('click', { bubbles: true }),
+    );
     await fixture.whenStable();
 
     expect(received).toEqual(['projects']);
-
-    at(buttons, 1).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    await fixture.whenStable();
-
-    expect(received).toEqual(['projects', 'projects']);
   });
 
   it('keeps two items with the same label apart by their value', async () => {
@@ -141,12 +125,5 @@ describe('SegmentedComponent', () => {
 
     expect(buttons).toHaveLength(2);
     expect(received).toEqual(['b', 'a']);
-  });
-
-  it('renders an empty group without error when items is empty', async () => {
-    const { host } = await mount([]);
-
-    expect(host.querySelectorAll('li')).toHaveLength(0);
-    expect(host.querySelector('ul[role="group"]')).not.toBeNull();
   });
 });

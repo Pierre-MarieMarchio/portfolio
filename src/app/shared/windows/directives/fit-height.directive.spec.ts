@@ -59,22 +59,29 @@ describe('FitHeightDirective', () => {
     return { fixture, host, section, refit };
   };
 
-  it('keeps to its ceiling when the screen has room to spare', async () => {
-    const { section } = await setup({ offsetTop: 100 }, 2000);
+  it.each([
+    {
+      room: 'keeps to its ceiling when the screen has room to spare',
+      offsetTop: 100,
+      viewportHeight: 2000,
+      maxHeight: '470px',
+    },
+    {
+      room: 'takes the room left under its layout top, minus the reserve',
+      offsetTop: 100,
+      viewportHeight: 500,
+      maxHeight: '374px',
+    },
+    {
+      room: 'keeps 200px however cramped the screen',
+      offsetTop: 750,
+      viewportHeight: 800,
+      maxHeight: '200px',
+    },
+  ])('$room', async ({ offsetTop, viewportHeight, maxHeight }) => {
+    const { section } = await setup({ offsetTop }, viewportHeight);
 
-    expect(section.style.maxHeight).toBe('470px');
-  });
-
-  it('takes the room left under its layout top, minus the reserve', async () => {
-    const { section } = await setup({ offsetTop: 100 }, 500);
-
-    expect(section.style.maxHeight).toBe('374px');
-  });
-
-  it('keeps 200px however cramped the screen', async () => {
-    const { section } = await setup({ offsetTop: 750 }, 800);
-
-    expect(section.style.maxHeight).toBe('200px');
+    expect(section.style.maxHeight).toBe(maxHeight);
   });
 
   it('reads the reserve from --window-reserve, inherited from where it sits', async () => {

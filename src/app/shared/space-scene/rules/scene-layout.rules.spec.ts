@@ -173,14 +173,6 @@ describe('sceneLayout', () => {
       expect(layout.panelBandTop).toBeNull();
     });
 
-    it('reads no side panel on a screen lying down', () => {
-      const layout = sceneLayout(CANVAS, VIEWPORT, [
-        anchor('', { left: 540, top: 90, width: 700, height: 600 }),
-      ]);
-
-      expect(layout.sidePanelLeft).toBeNull();
-    });
-
     it('reads a window flush with the bottom right of a screen lying down as a corner panel', () => {
       const LYING = { width: 568, height: 320 };
       const layout = sceneLayout(CANVAS, LYING, [
@@ -201,6 +193,7 @@ describe('sceneLayout', () => {
       ]);
 
       expect(floating.cornerPanelLeft).toBeNull();
+      expect(floating.sidePanelLeft).toBeNull();
       expect(upright.cornerPanelLeft).toBeNull();
     });
 
@@ -223,9 +216,7 @@ describe('sceneLayout', () => {
       expect(upright.cornerBandTop).toBeNull();
     });
   });
-});
 
-describe('sceneLayout, the top bar', () => {
   it('keeps the box of the top bar that shows', () => {
     const layout = sceneLayout(CANVAS, VIEWPORT, [
       anchor('top-bar', { left: 0, top: 0, width: 244, height: 56 }),
@@ -235,9 +226,7 @@ describe('sceneLayout, the top bar', () => {
     expect(layout.topBar).toEqual({ left: 0, top: 0, right: 244, bottom: 56 });
     expect(bare.topBar).toBeNull();
   });
-});
 
-describe('sceneLayout, the chrome', () => {
   it('keeps the bars and the chrome, shown, apart from the windows', () => {
     const layout = sceneLayout(CANVAS, VIEWPORT, [
       anchor('top-bar', { left: 0, top: 0, width: 640, height: 56 }),

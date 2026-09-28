@@ -1898,3 +1898,23 @@ prend à tous les formats. Toucher au bureau : le rail y nomme déjà tout.
 Charger la feuille à part (`@defer`) : le bouton « Contact » doit être dans
 le HTML prérendu et ouvrir la feuille au premier toucher ; différée, elle
 demanderait deux touchers, pour environ 2,5 kB transférés.
+
+## 2026-09-28 — Les onglets du téléphone restent dans `shared/ui`, et les transitions orientées attendent les fenêtres qui durent (D61)
+
+**Décision.** La barre d'onglets du téléphone debout reste
+`MainNavComponent` (`shared/ui`), telle que D38 l'a posée : elle n'entre pas
+dans `shared/mobile-nav/`. Les transitions orientées (pousser en avant,
+revenir en arrière entre la liste et la fiche) passent à la session 6.
+
+**Raison.** La barre fait déjà ce que la brique devait apporter : fixée en
+bas, `env(safe-area-inset-bottom)`, des cibles de 44 px, `aria-current`, et
+ses mots par un port. La déplacer ne changerait rien pour le lecteur ; on ne
+déplace pas pour déplacer. Les transitions animeraient une vue dont les
+fenêtres sont recréées à chaque changement : c'est ce qui fige encore la
+page au-delà de 50 ms à ×4, et D46 a retiré les View Transitions pour cette
+raison. La session 6 garde les fenêtres montées ; on pourra y mesurer une
+transition sur une vue qui ne se reconstruit plus.
+
+**Écarté.** Une copie de la barre dans la librairie pour qu'elle soit
+complète : deux barres pour un seul usage. Des transitions tout de suite,
+sans mesure : elles risquaient de défaire D46.

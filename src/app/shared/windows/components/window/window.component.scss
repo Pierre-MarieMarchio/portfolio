@@ -26,6 +26,8 @@
 .window {
   @include controls.glass(var(--glass-blur-window));
 
+  position: relative;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -35,10 +37,6 @@
   animation: window-rise 560ms both;
 }
 
-.window--folded {
-  overflow: visible;
-}
-
 .titlebar {
   flex: 0 0 auto;
   display: flex;
@@ -46,6 +44,8 @@
   gap: 8px;
   padding: var(--window-bar-padding);
   border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 2;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -114,10 +114,6 @@ h2 {
 }
 
 @include formats.phone {
-  .window {
-    flex: 1 1 auto;
-  }
-
   .pane {
     background: var(--vitre-pane);
     backdrop-filter: var(--glass-blur-pane);

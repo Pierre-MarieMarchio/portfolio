@@ -7,10 +7,8 @@ import {
   WindowTexts,
 } from '../../ports';
 import { WindowComponent } from './window.component';
-import { WindowSize } from '../../models/window.model';
 import { ScrollMemoryService } from '../../services/scroll-memory.service';
-import { stubViewport } from '@testing/doubles/browser.double';
-import { pointer, tap as tapOn } from '@testing/fixtures/pointer.fixture';
+import { tap as tapOn } from '@testing/fixtures/pointer.fixture';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -19,15 +17,13 @@ const texts = (): WindowTexts => TestBed.inject(WINDOW_TEXTS)();
 type Control = 'pin' | 'collapse' | 'close';
 
 const namesOf = (name: Control): readonly string[] => {
-  const { pin, unpin, fold, unfold, close, phone } = texts();
+  const { pin, unpin, close, phone } = texts();
   return {
     pin: [pin, unpin, phone.pin, phone.unpin],
-    collapse: [fold, unfold, phone.fold, phone.unfold],
+    collapse: [phone.fold, phone.unfold],
     close: [close],
   }[name];
 };
-
-const CAPS: Record<WindowSize, number> = { s: 300, m: 470, l: 920 };
 
 @Component({
   selector: 'app-host-window-zones',
@@ -220,75 +216,36 @@ describe('WindowComponent', () => {
     });
   });
 
-  describe('collapse button and dblclick', () => {
-    it('projects toolbar, default, body and footer content in that order below the title bar, starts expanded, and hides it while collapsed', async () => {
+  describe('content', () => {
+    it('projects toolbar, default, body and footer content in that order below the title bar', async () => {
       TestBed.configureTestingModule({
         imports: [HostWindowZones],
         providers: [provideTexts()],
       });
       const fixture = TestBed.createComponent(HostWindowZones);
       await fixture.whenStable();
-      const host = fixture.nativeElement as HTMLElement;
-      const section = host.querySelector('.window') as HTMLElement;
-      const collapse = control(host, 'collapse');
-      const text = section.textContent ?? '';
-      const marks = [
-        'TOOLBAR-MARK',
-        'DEFAULT-MARK',
-        'BODY-MARK',
-        'FOOTER-MARK',
-      ];
+      const section = (fixture.nativeElement as HTMLElement).querySelector(
+        '.window',
+      ) as HTMLElement;
 
-      expect(collapse.getAttribute('aria-expanded')).toBe('true');
-      expect(collapse.getAttribute('aria-label')).toBe(texts().fold);
-      expect(text).toMatch(
+      expect(section.textContent ?? '').toMatch(
         /Console.*TOOLBAR-MARK.*DEFAULT-MARK.*BODY-MARK.*FOOTER-MARK/s,
       );
       expect(section.querySelector('.body')?.textContent).toContain(
         'BODY-MARK',
       );
-
-      collapse.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      await fixture.whenStable();
-
-      expect(collapse.getAttribute('aria-expanded')).toBe('false');
-      expect(collapse.getAttribute('aria-label')).toBe(texts().unfold);
-      for (const mark of marks) {
-        expect(section.textContent).not.toContain(mark);
-      }
-      expect(section.querySelector('.body')).toBeNull();
-      expect(section.style.maxHeight).toBe('');
-
-      collapse.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      await fixture.whenStable();
-
-      expect(collapse.getAttribute('aria-expanded')).toBe('true');
-      expect(section.textContent).toContain('BODY-MARK');
     });
 
-    it('toggles on a titlebar dblclick', async () => {
+    it('has no fold beyond the phone, and keeps its content on a double click', async () => {
       const { fixture, host } = await mount();
-      const titlebar = host.querySelector('.titlebar') as HTMLElement;
 
-      titlebar.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      host
+        .querySelector('.titlebar')
+        ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
       await fixture.whenStable();
 
-      expect(control(host, 'collapse').getAttribute('aria-expanded')).toBe(
-        'false',
-      );
-    });
-
-    it('toggles on a double tap of the titlebar', async () => {
-      const { fixture, host } = await mount();
-      const heading = host.querySelector('.titlebar h2') as HTMLElement;
-
-      tap(heading, 0);
-      tap(heading, 150);
-      await fixture.whenStable();
-
-      expect(control(host, 'collapse').getAttribute('aria-expanded')).toBe(
-        'false',
-      );
+      expect(() => control(host, 'collapse')).toThrow();
+      expect(host.querySelector('.body')).not.toBeNull();
     });
   });
 
@@ -296,7 +253,7 @@ describe('WindowComponent', () => {
     it('is present by default, emits closed, and disappears when closable is false', async () => {
       const { fixture, host } = await mount();
 
-      expect(titlebarButtons(host)).toHaveLength(3);
+      expect(titlebarButtons(host)).toHaveLength(2);
       const close = control(host, 'close');
       expect(close.getAttribute('aria-label')).toBe(texts().close);
 
@@ -309,7 +266,7 @@ describe('WindowComponent', () => {
       await fixture.whenStable();
 
       const remaining = titlebarButtons(host);
-      expect(remaining).toHaveLength(2);
+      expect(remaining).toHaveLength(1);
       expect(
         remaining.some(
           (button) => button.getAttribute('aria-label') === texts().close,
@@ -332,57 +289,6 @@ describe('WindowComponent', () => {
             'Fermer et revenir à l’accueil',
         ),
       ).toBe(true);
-    });
-  });
-
-  describe('height', () => {
-    it('bounds the section to the ceiling of its size, and lets it go while folded', async () => {
-      const { fixture, host, section } = await mount();
-      stubViewport(1200, 2000);
-
-      for (const size of Object.keys(CAPS) as WindowSize[]) {
-        fixture.componentRef.setInput('size', size);
-        await fixture.whenStable();
-
-        expect(section.style.maxHeight).toBe(`${String(CAPS[size])}px`);
-      }
-
-      control(host, 'collapse').click();
-      await fixture.whenStable();
-      expect(section.style.maxHeight).toBe('');
-
-      control(host, 'collapse').click();
-      await fixture.whenStable();
-      expect(section.style.maxHeight).toBe(`${String(CAPS.l)}px`);
-    });
-
-    it('measures the room from its bottom edge when anchored at the bottom', async () => {
-      const { fixture, section } = await mount();
-      stubViewport(1200, 2000);
-      Object.defineProperty(section, 'offsetHeight', {
-        value: 300,
-        configurable: true,
-      });
-      restorers.push(() => Reflect.deleteProperty(section, 'offsetHeight'));
-
-      fixture.componentRef.setInput('anchor', 'bottom');
-      await fixture.whenStable();
-
-      expect(section.style.maxHeight).toBe('300px');
-    });
-  });
-
-  describe('drag', () => {
-    it('moves by its title bar', async () => {
-      const { host, section } = await mount();
-      stubViewport(1200, 800);
-      section.getBoundingClientRect = () => new DOMRect(500, 300, 200, 150);
-      const titlebar = host.querySelector('.titlebar') as HTMLElement;
-
-      titlebar.dispatchEvent(pointer('pointerdown', { x: 0, y: 0 }));
-      window.dispatchEvent(pointer('pointermove', { x: 50, y: 30 }));
-      window.dispatchEvent(pointer('pointerup', { x: 50, y: 30 }));
-      expect(section.style.transform).toBe('translate(50px,30px)');
     });
   });
 
@@ -422,16 +328,19 @@ describe('WindowComponent', () => {
       expect(fold.handles).toEqual([]);
     });
 
-    it('asks the port to fold from its button and its title bar, and keeps its content', async () => {
+    it('asks the port to fold from its button, a double click and a double tap of its title bar, and keeps its content', async () => {
       const { fixture, host, fold, collapse } = await mountHeld();
+      const heading = host.querySelector('.titlebar h2') as HTMLElement;
 
       collapse.click();
       host
         .querySelector('.titlebar')
         ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      tap(heading, 1000);
+      tap(heading, 1150);
       await fixture.whenStable();
 
-      expect(fold.toggles).toBe(2);
+      expect(fold.toggles).toBe(3);
       expect(host.querySelector('.body')?.textContent).toContain('BODY-MARK');
     });
 
@@ -442,7 +351,7 @@ describe('WindowComponent', () => {
       await fixture.whenStable();
 
       expect(collapse.getAttribute('aria-expanded')).toBe('false');
-      expect(collapse.getAttribute('aria-label')).toBe(texts().unfold);
+      expect(collapse.getAttribute('aria-label')).toBe(texts().phone.unfold);
       expect(host.querySelector('.below')?.hasAttribute('inert')).toBe(true);
       expect(host.querySelector('.body')?.textContent).toContain('BODY-MARK');
 
@@ -452,19 +361,24 @@ describe('WindowComponent', () => {
       expect(host.querySelector('.below')?.hasAttribute('inert')).toBe(false);
     });
 
-    it('folds itself as without a port while the port is not in charge', async () => {
-      const { fixture, host, fold, collapse } = await mountHeld();
+    it('offers no fold while the port is not in charge', async () => {
+      const fold = new FoldDouble();
       fold.active.set(false);
-      fold.folded.set(true);
+      TestBed.configureTestingModule({
+        imports: [HostWindowZones],
+        providers: [provideTexts(), { provide: WINDOW_FOLD, useValue: fold }],
+      });
+      const fixture = TestBed.createComponent(HostWindowZones);
+      await fixture.whenStable();
+      const host = fixture.nativeElement as HTMLElement;
+
+      host
+        .querySelector('.titlebar')
+        ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
       await fixture.whenStable();
 
-      expect(collapse.getAttribute('aria-expanded')).toBe('true');
-
-      collapse.click();
-      await fixture.whenStable();
-
+      expect(() => control(host, 'collapse')).toThrow();
       expect(fold.toggles).toBe(0);
-      expect(host.querySelector('.body')).toBeNull();
     });
   });
 });

@@ -2,6 +2,7 @@ import { Component, computed, signal } from '@angular/core';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
+import { WindowFrameDirective } from '@shared/windows/directives';
 import { WindowSize } from '@shared/windows/models';
 
 type Scenario = 'index' | 'preview' | 'short' | 'fixed';
@@ -22,7 +23,7 @@ const SIZES: Readonly<Record<Scenario, WindowSize>> = {
 
 @Component({
   selector: 'app-workbench-page',
-  imports: [WindowComponent, SegmentedComponent],
+  imports: [WindowComponent, WindowFrameDirective, SegmentedComponent],
   templateUrl: './workbench-page.component.html',
   styleUrl: './workbench-page.component.scss',
   host: { class: 'page' },

@@ -1,0 +1,12 @@
+<div
+  #rail
+  class="rail"
+  [appScrollRelease]="isActive()"
+  (pressed)="press()"
+  (released)="letGo($event)"
+  (settled)="settle()"
+>
+  <div #half class="half" aria-hidden="true"></div>
+  <div class="lead" aria-hidden="true"></div>
+  <div #content class="content"><ng-content /></div>
+</div>

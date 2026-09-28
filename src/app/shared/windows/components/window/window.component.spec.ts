@@ -1,16 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { WINDOW_TEXTS, WindowTexts } from '../../ports';
+import {
+  WINDOW_FOLD,
+  WINDOW_TEXTS,
+  WindowFold,
+  WindowTexts,
+} from '../../ports';
 import { WindowComponent } from './window.component';
-import { loadGlassGestures } from '../../directives/glass-gesture.directive';
 import { WindowSize } from '../../models/window.model';
 import { ScrollMemoryService } from '../../services/scroll-memory.service';
 import { stubViewport } from '@testing/doubles/browser.double';
-import {
-  drag as dragAlong,
-  pointer,
-  tap as tapOn,
-} from '@testing/fixtures/pointer.fixture';
+import { pointer, tap as tapOn } from '@testing/fixtures/pointer.fixture';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -86,30 +86,39 @@ const control = (host: HTMLElement, name: Control): HTMLButtonElement => {
   return found;
 };
 
-const drag = (on: Element, dx: number, dy: number): void => {
-  dragAlong(
-    on,
-    [
-      { x: 100, y: 100, at: 0 },
-      { x: 100 + dx / 2, y: 100 + dy / 2, at: 150 },
-      { x: 100 + dx, y: 100 + dy, at: 300 },
-    ],
-    { x: 100 + dx, y: 100 + dy, at: 310 },
-  );
-};
-
 const tap = (on: Element, at = 0): void => {
   tapOn(on, { x: 100, y: 10, at }, { at: at + 50 });
 };
 
-const mountOnPhone = async () => {
-  stubViewport(390, 844);
-  const mounted = await mount();
-  await loadGlassGestures();
-  await mounted.fixture.whenStable();
-  const heading = mounted.host.querySelector('.titlebar h2') as HTMLElement;
-  const collapse = control(mounted.host, 'collapse');
-  return { ...mounted, heading, collapse };
+class FoldDouble implements WindowFold {
+  public readonly active = signal(true);
+  public readonly folded = signal(false);
+  public readonly handles: HTMLElement[] = [];
+  public toggles = 0;
+
+  public readonly isActive = (): boolean => this.active();
+  public readonly isFolded = (): boolean => this.folded();
+  public readonly toggle = (): void => {
+    this.toggles += 1;
+  };
+  public readonly hold = (handle: HTMLElement): (() => void) => {
+    this.handles.push(handle);
+    return () => {
+      this.handles.splice(this.handles.indexOf(handle), 1);
+    };
+  };
+}
+
+const mountHeld = async () => {
+  const fold = new FoldDouble();
+  TestBed.configureTestingModule({
+    imports: [HostWindowZones],
+    providers: [provideTexts(), { provide: WINDOW_FOLD, useValue: fold }],
+  });
+  const fixture = TestBed.createComponent(HostWindowZones);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  return { fixture, host, fold, collapse: control(host, 'collapse') };
 };
 
 describe('WindowComponent', () => {
@@ -402,45 +411,60 @@ describe('WindowComponent', () => {
     });
   });
 
-  describe('at the phone format', () => {
-    it('folds when its title bar is pulled down', async () => {
-      const { fixture, host, heading, collapse } = await mountOnPhone();
+  describe('held by a fold port', () => {
+    it('hands its title bar to the port as the handle, and takes it back when destroyed', async () => {
+      const { fixture, host, fold } = await mountHeld();
 
-      drag(heading, 0, 80);
+      expect(fold.handles).toEqual([host.querySelector('.titlebar')]);
+
+      fixture.destroy();
+
+      expect(fold.handles).toEqual([]);
+    });
+
+    it('asks the port to fold from its button and its title bar, and keeps its content', async () => {
+      const { fixture, host, fold, collapse } = await mountHeld();
+
+      collapse.click();
+      host
+        .querySelector('.titlebar')
+        ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      await fixture.whenStable();
+
+      expect(fold.toggles).toBe(2);
+      expect(host.querySelector('.body')?.textContent).toContain('BODY-MARK');
+    });
+
+    it('says folded when the port does, and takes what lies under its bar out of reach', async () => {
+      const { fixture, host, fold, collapse } = await mountHeld();
+
+      fold.folded.set(true);
       await fixture.whenStable();
 
       expect(collapse.getAttribute('aria-expanded')).toBe('false');
+      expect(collapse.getAttribute('aria-label')).toBe(texts().unfold);
+      expect(host.querySelector('.below')?.hasAttribute('inert')).toBe(true);
+      expect(host.querySelector('.body')?.textContent).toContain('BODY-MARK');
+
+      fold.folded.set(false);
+      await fixture.whenStable();
+
+      expect(host.querySelector('.below')?.hasAttribute('inert')).toBe(false);
+    });
+
+    it('folds itself as without a port while the port is not in charge', async () => {
+      const { fixture, host, fold, collapse } = await mountHeld();
+      fold.active.set(false);
+      fold.folded.set(true);
+      await fixture.whenStable();
+
+      expect(collapse.getAttribute('aria-expanded')).toBe('true');
+
+      collapse.click();
+      await fixture.whenStable();
+
+      expect(fold.toggles).toBe(0);
       expect(host.querySelector('.body')).toBeNull();
-    });
-
-    it('unfolds on a lift or a tap of its folded bar', async () => {
-      const { fixture, heading, collapse } = await mountOnPhone();
-      collapse.click();
-      await fixture.whenStable();
-
-      drag(heading, 0, -60);
-      await fixture.whenStable();
-      const afterLift = collapse.getAttribute('aria-expanded');
-      collapse.click();
-      await fixture.whenStable();
-      tap(heading);
-      await fixture.whenStable();
-
-      expect(afterLift).toBe('true');
-      expect(collapse.getAttribute('aria-expanded')).toBe('true');
-    });
-
-    it('stays open when its folded bar is tapped twice in a row', async () => {
-      const { fixture, heading, collapse } = await mountOnPhone();
-      collapse.click();
-      await fixture.whenStable();
-
-      tap(heading);
-      await fixture.whenStable();
-      tap(heading);
-      await fixture.whenStable();
-
-      expect(collapse.getAttribute('aria-expanded')).toBe('true');
     });
   });
 });

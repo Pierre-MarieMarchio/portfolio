@@ -126,6 +126,12 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
   .slot {
     inset: 0;
     width: auto;
+    --window-body-overscroll: auto;
+    --mnav-sheet-room: calc(100svh - var(--floor, 0px));
+  }
+
+  .slot:has(> [data-detent='folded']) {
+    top: auto;
   }
 
   .slot[data-docked='true'] {
@@ -151,30 +157,33 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
 
   .slot {
     top: calc(var(--glass-lowered) * 100%);
+    bottom: var(--floor);
 
-    --glass-inset: calc(
-        -100% * var(--glass-lowered) / (1 - var(--glass-lowered))
-      )
-      0 var(--floor);
-    --glass-raised-top: calc(var(--head-bottom, 0px) + var(--s1));
+    --mnav-sheet-top: calc(var(--head-bottom, 0px) + var(--s1));
+    --mnav-sheet-half: calc((1 - var(--glass-lowered)) * 100svh - var(--floor));
+    --mnav-sheet-fill: var(--mnav-sheet-half);
+    --mnav-sheet-shade: var(--glass-shade-raised);
+  }
+
+  .slot:not(.slot--preview, :has(> [data-detent='full'])) {
+    --window-body-overflow: hidden;
   }
 
   .slot--preview {
     top: auto;
-    bottom: var(--floor);
     max-height: calc(45% - var(--floor));
-  }
 
-  .slot:has(.glass--folded) {
-    top: auto;
-    bottom: var(--floor);
+    --mnav-sheet-top: 55svh;
+    --mnav-sheet-half: 100%;
+    --mnav-sheet-fill: 0px;
+    --mnav-sheet-shade: none;
   }
 
   :host:has(app-observatory-dock li)
-    .slot:not(.slot--preview, :has(.glass--folded))::after {
+    .slot:not(.slot--preview, :has(> [data-detent='folded']))::after {
     content: '';
     position: absolute;
-    inset: auto 0 var(--floor);
+    inset: auto 0 0;
     border-bottom: 1px solid var(--line);
   }
 }
@@ -182,6 +191,8 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
 @include formats.short-phone-portrait {
   .slot--preview {
     max-height: calc(50% - var(--floor));
+
+    --mnav-sheet-top: 50svh;
   }
 }
 
@@ -205,15 +216,16 @@ $glass-landscape-min: 324px;
 
   .slot {
     left: calc(100% - var(--glass-width));
+
+    --mnav-sheet-half: 100%;
+    --mnav-sheet-fill: 100%;
   }
 
   .slot--preview {
     top: auto;
     max-height: 100%;
-  }
 
-  .slot:has(.glass--folded) {
-    top: auto;
+    --mnav-sheet-fill: 0px;
   }
 }
 

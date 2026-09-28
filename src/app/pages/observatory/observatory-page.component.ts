@@ -7,11 +7,7 @@ import {
   linkedSignal,
   untracked,
 } from '@angular/core';
-import {
-  DisplayFormatService,
-  FormatCodeService,
-  LocaleService,
-} from '@app/core/services';
+import { DisplayFormatService, LocaleService } from '@app/core/services';
 import { SceneAnchorKind } from '@app/features/common';
 import {
   AnimationToggleComponent,
@@ -21,7 +17,10 @@ import {
   ObservatoryDockComponent,
   ObservatorySceneComponent,
 } from '@app/features/observatory/components';
-import { ViewSlotDirective } from '@app/features/observatory/directives';
+import {
+  ViewSlotDirective,
+  WindowSheetDirective,
+} from '@app/features/observatory/directives';
 import {
   OBSERVATORY_IDS,
   ObservatoryView,
@@ -53,6 +52,8 @@ import { FAMILIES, FamilyFilter } from '@app/features/projects/models';
 import { restingPickOf } from '@app/features/projects/rules';
 import { ProjectsManager } from '@app/features/projects/states';
 import { pathOf, ViewLinksService } from '@app/i18n';
+import { BottomSheetComponent } from '@shared/mobile-nav/components';
+import type { SheetDetent } from '@shared/mobile-nav/models';
 import {
   LanguageSwitchComponent,
   MainNavComponent,
@@ -63,10 +64,11 @@ import {
 } from '@shared/ui/directives';
 import {
   KeptWindowDirective,
-  loadGlassGestures,
   StackedWindowDirective,
 } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
+
+const PREVIEW_DETENTS: readonly SheetDetent[] = ['folded', 'half'];
 
 interface SheetOnShow {
   readonly slug: string | null;
@@ -79,6 +81,7 @@ interface SheetOnShow {
     AboutWindowComponent,
     AnimationToggleComponent,
     BottomEdgeVariableDirective,
+    BottomSheetComponent,
     ContactLinksComponent,
     FeaturedBarComponent,
     HomeTitleComponent,
@@ -95,6 +98,7 @@ interface SheetOnShow {
     ProjectPreviewComponent,
     StackedWindowDirective,
     ViewSlotDirective,
+    WindowSheetDirective,
   ],
   providers: [
     HomeRevealService,
@@ -117,6 +121,7 @@ export class ObservatoryPageComponent {
   protected readonly links = inject(ViewLinksService);
   protected readonly observatoryTexts = inject(OBSERVATORY_TEXTS);
   protected readonly ids = OBSERVATORY_IDS;
+  protected readonly previewDetents = PREVIEW_DETENTS;
   protected readonly anchor: {
     readonly [K in Exclude<SceneAnchorKind, 'line'>]: K;
   } = {
@@ -207,7 +212,6 @@ export class ObservatoryPageComponent {
     const loaded = viewAtAddress(locale.path(), (at) => pathOf(at, lang));
     this.observatory.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
-    inject(FormatCodeService).load(['phone'], loadGlassGestures);
     const windows = inject(ViewWindowsService);
     effect(() => {
       if (this.arrival() === 'shown') {

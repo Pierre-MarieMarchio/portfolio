@@ -1,6 +1,7 @@
 import { InjectionToken } from '@angular/core';
 
 export interface MobileNavPlatform {
+  readonly isCompact: () => boolean;
   readonly reducedMotion: () => boolean;
   readonly nextFrame: (fn: () => void) => () => void;
   readonly after: (ms: number, fn: () => void) => () => void;

@@ -23,7 +23,7 @@ describe('provideMobileNav', () => {
     vi.restoreAllMocks();
   });
 
-  it('is inert on the server: no frame, no delay, no observer, no scrollend, no history', async () => {
+  it('is inert on the server: not compact, no frame, no delay, no observer, no scrollend, no history', async () => {
     vi.useFakeTimers();
     const observers = stubObservers();
     const pushState = vi.spyOn(history, 'pushState');
@@ -41,6 +41,7 @@ describe('provideMobileNav', () => {
     expect(called).not.toHaveBeenCalled();
     expect(observers).toEqual([]);
     expect(pushState).not.toHaveBeenCalled();
+    expect(platform.isCompact()).toBe(false);
     expect(platform.hasScrollEnd()).toBe(false);
     expect(platform.closesOnBack()).toBe(false);
     expect(platform.historyState()).toBeNull();

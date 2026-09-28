@@ -71,15 +71,17 @@
       [appLayoutAnchor]="observatory.showsAbout() ? anchor.panel : null"
     >
       @if (observatory.kept().includes('about')) {
-        <app-about-window
-          [current]="observatory.view() === 'about'"
-          [pinned]="observatory.pins().about"
-          [part]="observatory.section()"
-          (partChange)="observatory.chooseSection($event)"
-          (pinToggled)="observatory.togglePin('about')"
-          [closeLabel]="closeLabels().about"
-          (closed)="observatory.close('about')"
-        />
+        <app-bottom-sheet appWindowSheet>
+          <app-about-window
+            [current]="observatory.view() === 'about'"
+            [pinned]="observatory.pins().about"
+            [part]="observatory.section()"
+            (partChange)="observatory.chooseSection($event)"
+            (pinToggled)="observatory.togglePin('about')"
+            [closeLabel]="closeLabels().about"
+            (closed)="observatory.close('about')"
+          />
+        </app-bottom-sheet>
       }
     </div>
 
@@ -93,19 +95,21 @@
       [appLayoutAnchor]="observatory.showsList() ? anchor.panel : null"
     >
       @if (observatory.kept().includes('index')) {
-        <app-project-list
-          [current]="observatory.view() === 'index'"
-          [pinned]="observatory.pins().index"
-          [selected]="observatory.selected()"
-          [visited]="observatory.visited()"
-          [family]="family()"
-          (familyChange)="observatory.filter($event)"
-          (selectedChange)="observatory.select($event)"
-          (hoveredChange)="observatory.hover($event)"
-          (pinToggled)="observatory.togglePin('index')"
-          [closeLabel]="closeLabels().index"
-          (closed)="observatory.close('index')"
-        />
+        <app-bottom-sheet appWindowSheet>
+          <app-project-list
+            [current]="observatory.view() === 'index'"
+            [pinned]="observatory.pins().index"
+            [selected]="observatory.selected()"
+            [visited]="observatory.visited()"
+            [family]="family()"
+            (familyChange)="observatory.filter($event)"
+            (selectedChange)="observatory.select($event)"
+            (hoveredChange)="observatory.hover($event)"
+            (pinToggled)="observatory.togglePin('index')"
+            [closeLabel]="closeLabels().index"
+            (closed)="observatory.close('index')"
+          />
+        </app-bottom-sheet>
       }
     </div>
 
@@ -119,26 +123,28 @@
       [appLayoutAnchor]="observatory.showsSheet() ? anchor.detail : null"
     >
       @if (observatory.kept().includes('sheet')) {
-        @let shown = sheet();
-        @if (shown.slug === null) {
-          <app-not-found-window
-            [current]="observatory.showsSheet()"
-            [total]="projects.ranked().length"
-            [closeLabel]="closeLabels().sheet"
-            (closed)="observatory.close('sheet')"
-          />
-        } @else {
-          <app-project-detail
-            [current]="observatory.showsSheet()"
-            [slug]="shown.slug"
-            [pinned]="observatory.pins().sheet"
-            [chapter]="shown.chapter"
-            (chapterChange)="observatory.chooseChapter($event)"
-            (pinToggled)="observatory.togglePin('sheet')"
-            [closeLabel]="closeLabels().sheet"
-            (closed)="observatory.close('sheet')"
-          />
-        }
+        <app-bottom-sheet appWindowSheet>
+          @let shown = sheet();
+          @if (shown.slug === null) {
+            <app-not-found-window
+              [current]="observatory.showsSheet()"
+              [total]="projects.ranked().length"
+              [closeLabel]="closeLabels().sheet"
+              (closed)="observatory.close('sheet')"
+            />
+          } @else {
+            <app-project-detail
+              [current]="observatory.showsSheet()"
+              [slug]="shown.slug"
+              [pinned]="observatory.pins().sheet"
+              [chapter]="shown.chapter"
+              (chapterChange)="observatory.chooseChapter($event)"
+              (pinToggled)="observatory.togglePin('sheet')"
+              [closeLabel]="closeLabels().sheet"
+              (closed)="observatory.close('sheet')"
+            />
+          }
+        </app-bottom-sheet>
       }
     </div>
 
@@ -152,13 +158,15 @@
     >
       @if (observatory.showsPreview()) {
         @if (observatory.preview(); as slug) {
-          <app-project-preview
-            [slug]="slug"
-            [pinned]="observatory.pins().preview"
-            (chosen)="observatory.openPreview($event)"
-            (pinToggled)="observatory.togglePin('preview')"
-            (closed)="observatory.close('preview')"
-          />
+          <app-bottom-sheet appWindowSheet [detents]="previewDetents">
+            <app-project-preview
+              [slug]="slug"
+              [pinned]="observatory.pins().preview"
+              (chosen)="observatory.openPreview($event)"
+              (pinToggled)="observatory.togglePin('preview')"
+              (closed)="observatory.close('preview')"
+            />
+          </app-bottom-sheet>
         }
       }
     </div>

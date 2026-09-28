@@ -1,4 +1,4 @@
-import { Provider } from '@angular/core';
+import { Provider, signal } from '@angular/core';
 import {
   MOBILE_NAV_PLATFORM,
   MobileNavPlatform,
@@ -12,6 +12,7 @@ interface Waiting {
 }
 
 export class MobileNavPlatformDouble implements MobileNavPlatform {
+  public readonly compact = signal(false);
   public isReduced = false;
   public knowsScrollEnd = true;
   public hasCloseWatcher = false;
@@ -26,6 +27,8 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   private pops: ((state: unknown) => void)[] = [];
   private leaves: (() => void)[] = [];
   private pendingPops: unknown[] = [];
+
+  public readonly isCompact = (): boolean => this.compact();
 
   public readonly reducedMotion = (): boolean => this.isReduced;
 

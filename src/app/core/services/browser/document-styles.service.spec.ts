@@ -71,4 +71,17 @@ describe('DocumentStylesService', () => {
 
     expect(onFonts).toHaveBeenCalledTimes(1);
   });
+
+  it('raises and lowers a flag on the root in the browser, and leaves it alone on the server', () => {
+    const root = document.documentElement;
+    inject('server').flagRoot('probe', true);
+    expect('probe' in root.dataset).toBe(false);
+    TestBed.resetTestingModule();
+
+    const styles = inject('browser');
+    styles.flagRoot('probe', true);
+    expect('probe' in root.dataset).toBe(true);
+    styles.flagRoot('probe', false);
+    expect('probe' in root.dataset).toBe(false);
+  });
 });

@@ -75,6 +75,10 @@
   :root {
     --window-bar-padding: 5px 0 5px var(--s2);
   }
+
+  :root[data-sky-travel] {
+    --glass-blur-pane: blur(0) brightness(0.7) saturate(1.08);
+  }
 }
 
 @include formats.phone-portrait {

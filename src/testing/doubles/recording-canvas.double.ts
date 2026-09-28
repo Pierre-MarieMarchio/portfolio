@@ -41,8 +41,12 @@ export const recordingContext = (
               `${name}.${property}(${args.map((arg) => printed(arg)).join(',')})`,
             );
           },
-    set: (_object, property: string, value: unknown) => {
-      log.push(`${name}.${property}=${printed(value)}`);
+    set: (object, property: string, value: unknown) => {
+      if (typeof value === 'function') {
+        object[property] = value;
+      } else {
+        log.push(`${name}.${property}=${printed(value)}`);
+      }
       return true;
     },
   }) as unknown as CanvasRenderingContext2D;

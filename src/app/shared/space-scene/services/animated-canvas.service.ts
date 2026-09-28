@@ -27,6 +27,39 @@ export class AnimatedCanvasService {
     return this.contexts.pixelRatio();
   }
 
+  public canDrawOffThread(): boolean {
+    return (
+      this.browserWindow.size() !== null &&
+      typeof Worker === 'function' &&
+      typeof OffscreenCanvas === 'function' &&
+      'transferToImageBitmap' in OffscreenCanvas.prototype
+    );
+  }
+
+  public bitmapContext(
+    canvas: HTMLCanvasElement,
+  ): ImageBitmapRenderingContext | null {
+    try {
+      return canvas.getContext('bitmaprenderer');
+    } catch {
+      return null;
+    }
+  }
+
+  public sceneWorker(): Worker | null {
+    try {
+      return new Worker(new URL('../engine/scene.worker', import.meta.url), {
+        type: 'module',
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  public timeOrigin(): number {
+    return globalThis.performance.timeOrigin;
+  }
+
   public nextFrame(fn: (time: number) => void): () => void {
     return this.clock.nextFrame(fn);
   }

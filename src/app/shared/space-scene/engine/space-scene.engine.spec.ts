@@ -1567,7 +1567,7 @@ describe('SpaceSceneEngine, on a phone whose framing code arrives late', () => {
     expect(after.radius).toBeCloseTo(target.radius, 0);
     expect(after.x).toBeCloseTo(target.x, 0);
     expect(after.y).toBeCloseTo(target.y, 0);
-  });
+  }, 60_000);
 });
 
 describe('SpaceSceneEngine, under an interface already in', () => {

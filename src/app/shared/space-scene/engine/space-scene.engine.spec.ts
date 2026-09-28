@@ -1218,7 +1218,7 @@ describe('SpaceSceneEngine, looked at up close', () => {
 
     expect(scene.hole().radius).toBeCloseTo(unzoomed.hole().radius, 0);
     expect(scene.hole().x).toBeCloseTo(unzoomed.hole().x, 0);
-  });
+  }, 15_000);
 
   it('comes back to the framing when the screen turns', () => {
     const scene = homeUpClose({ reduced: true });

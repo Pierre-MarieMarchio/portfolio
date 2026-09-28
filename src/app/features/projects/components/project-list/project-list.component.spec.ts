@@ -198,6 +198,23 @@ describe('ProjectIndexComponent', () => {
     expect(row?.querySelector('.role')?.textContent).toContain('Role proj-a');
   });
 
+  it('keeps every fact of a card inside its row, the number before the title and the title before the proof', async () => {
+    const { host } = await mount();
+    const row = rows(host)[0];
+    const [number, title, proof] = ['.number', '.title', '.proof'].map(
+      (selector) => row?.querySelector(selector),
+    );
+
+    expect(row?.querySelector('.stack')).not.toBeNull();
+    expect(row?.querySelector('.role')).not.toBeNull();
+    expect(number && title && number.compareDocumentPosition(title)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(title && proof && title.compareDocumentPosition(proof)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
   it('marks a visited row consulted, and only that one', async () => {
     const { host } = await mount({ visited: ['proj-b'] });
     const titles = rows(host).map((row) => row.querySelector('.title'));

@@ -2,6 +2,7 @@ import {
   FIGURE_TARGET_MIN,
   figureTargetOf,
   isOverTarget,
+  isDraggedClick,
 } from './figure-target.rules';
 
 const STAGE = {
@@ -97,5 +98,27 @@ describe('figureTargetOf', () => {
     expect(
       isOverTarget({ ...target, isInert: true }, { x: 300, y: 200 }, 2),
     ).toBe(false);
+  });
+});
+
+describe('isDraggedClick', () => {
+  const press = { x: 100, y: 100 };
+
+  it('takes a click that barely moved as a choice of the figure', () => {
+    expect(
+      isDraggedClick(press, { clientX: 104, clientY: 103, detail: 1 }),
+    ).toBe(false);
+  });
+
+  it('takes a click that ends a drag of the sky as no choice at all', () => {
+    expect(
+      isDraggedClick(press, { clientX: 130, clientY: 100, detail: 1 }),
+    ).toBe(true);
+  });
+
+  it('keeps a keyboard click, which has no press, as a choice', () => {
+    expect(isDraggedClick(null, { clientX: 0, clientY: 0, detail: 0 })).toBe(
+      false,
+    );
   });
 });

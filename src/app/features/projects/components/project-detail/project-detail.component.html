@@ -16,9 +16,13 @@
       [items]="chapters()"
       (valueChange)="chapterChange.emit($event)"
     />
-    <div body class="sheet">
+    <div #sheet body class="sheet">
       <header>
-        <h1 tabindex="-1" appViewHeading>{{ project()?.title }}</h1>
+        @if (current()) {
+          <h1 tabindex="-1" appViewHeading>{{ project()?.title }}</h1>
+        } @else {
+          <h2>{{ project()?.title }}</h2>
+        }
       </header>
       <app-pager [index]="chapter()" (indexChange)="chapterChange.emit($event)">
         @for (page of pages(); track $index) {
@@ -67,7 +71,7 @@
       </app-pager>
     </div>
     <ng-container footer>
-      <p class="position">{{ current()?.heading }}</p>
+      <p class="position">{{ shownChapter()?.heading }}</p>
       @if (nextChapter(); as label) {
         <button type="button" class="next" (click)="advance()">
           {{ label }}

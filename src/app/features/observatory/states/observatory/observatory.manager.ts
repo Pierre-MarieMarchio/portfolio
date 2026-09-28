@@ -14,10 +14,11 @@ import {
   observatorySelected,
   observatorySteppedBack,
   observatoryWindowClosed,
+  observatoryWindowPrepared,
 } from './observatory.action';
 import { ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
-import { dockedOf, stepBack } from '../../rules/view.rules';
+import { dockedOf, keptOf, stepBack, windowOf } from '../../rules/view.rules';
 
 @Service()
 export class ObservatoryManager {
@@ -43,6 +44,16 @@ export class ObservatoryManager {
   public readonly showsAbout = computed(
     () => this.view() === 'about' || this.pins().about,
   );
+  public readonly showsSheet = computed(
+    () => windowOf(this.view()) === 'sheet',
+  );
+  public readonly kept = computed(() =>
+    keptOf({
+      view: this.view(),
+      pins: this.pins(),
+      seen: this.state.seen(),
+    }),
+  );
   public readonly showsPreview = computed(
     () =>
       this.preview() !== null &&
@@ -67,6 +78,10 @@ export class ObservatoryManager {
 
   public syncRoute(view: ObservatoryView, slug: string | null = null): void {
     this.statewise.dispatch(observatoryRouteSynced({ view, slug }));
+  }
+
+  public prepare(window: ObservatoryWindow): void {
+    this.statewise.dispatch(observatoryWindowPrepared(window));
   }
 
   public togglePin(window: ObservatoryWindow): void {

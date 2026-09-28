@@ -1,4 +1,4 @@
-import { inject, Service } from '@angular/core';
+import { afterNextRender, inject, Injector, Service } from '@angular/core';
 import { ClockService } from '@app/core/services';
 
 const CLAIM_DEADLINE_MS = 2500;
@@ -6,6 +6,7 @@ const CLAIM_DEADLINE_MS = 2500;
 @Service()
 export class ViewFocusService {
   private readonly clock = inject(ClockService);
+  private readonly injector = inject(Injector);
   private readonly headings = new Set<HTMLElement>();
   private claim: {
     readonly within: () => Element | undefined;
@@ -23,7 +24,12 @@ export class ViewFocusService {
   public claimWithin(within: () => Element | undefined): () => void {
     const claim = { within, until: this.clock.now() + CLAIM_DEADLINE_MS };
     this.claim = claim;
-    this.settle();
+    afterNextRender(
+      () => {
+        this.settle();
+      },
+      { injector: this.injector },
+    );
     return () => {
       if (this.claim === claim) {
         this.claim = null;
@@ -44,9 +50,9 @@ export class ViewFocusService {
     const heading = container
       ? [...this.headings].find((each) => container.contains(each))
       : undefined;
-    if (heading) {
+    heading?.focus({ preventScroll: true });
+    if (heading && heading.ownerDocument.activeElement === heading) {
       this.claim = null;
-      heading.focus({ preventScroll: true });
     }
   }
 }

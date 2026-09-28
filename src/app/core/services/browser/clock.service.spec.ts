@@ -60,4 +60,43 @@ describe('ClockService', () => {
     expect(kept).toHaveBeenCalledTimes(1);
     expect(cancelled).not.toHaveBeenCalled();
   });
+
+  it('calls back once the browser is idle, within 2 s, unless cancelled', () => {
+    const idle = vi.fn(() => 3);
+    const cancel = vi.fn();
+    vi.stubGlobal('requestIdleCallback', idle);
+    vi.stubGlobal('cancelIdleCallback', cancel);
+    const clock = injectOn(ClockService, 'browser');
+    const called = vi.fn();
+
+    clock.whenIdle(called)();
+
+    expect(idle).toHaveBeenCalledWith(called, { timeout: 2000 });
+    expect(cancel).toHaveBeenCalledWith(3);
+    vi.unstubAllGlobals();
+  });
+
+  it('falls back to a short delay where the browser has no idle callback', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    vi.stubGlobal('requestIdleCallback', undefined);
+    const clock = injectOn(ClockService, 'browser');
+    const called = vi.fn();
+
+    clock.whenIdle(called);
+    vi.advanceTimersByTime(199);
+    expect(called).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+
+    expect(called).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
+  it('never calls back on the server when idle', () => {
+    const clock = injectOn(ClockService, 'server');
+    const called = vi.fn();
+
+    clock.whenIdle(called)();
+
+    expect(called).not.toHaveBeenCalled();
+  });
 });

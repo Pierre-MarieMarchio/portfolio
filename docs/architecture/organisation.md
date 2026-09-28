@@ -299,7 +299,7 @@ lui-même se vérifie par `scripts/check-prerender.mjs`.
 | -------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `browser-window.service.ts` `BrowserWindowService`       | la fenêtre : sa taille, ses événements              | `size()`, `on(type, handler)`                                                     |
 | `media-preferences.service.ts` `MediaPreferencesService` | ce que le lecteur a demandé au système              | `reducedMotion()`, `cannotHover()`, `hasCoarsePointer()`, `watch(query, handler)` |
-| `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai | `now()`, `nextFrame(fn)`, `after(ms, fn)`                                         |
+| `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai | `now()`, `nextFrame(fn)`, `after(ms, fn)`, `whenIdle(fn)`                         |
 | `page-visibility.service.ts` `PageVisibilityService`     | l'onglet est-il visible                             | `isHidden()`, `watch(handler)`                                                    |
 | `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément             | `onResize(el, fn)`, `onVisible(el, threshold, fn)`, `whenStill(el)`               |
 | `document-styles.service.ts` `DocumentStylesService`     | lire les jetons CSS, attendre les polices           | `token(name, el?)`, `duration(name)`, `fontsReady(fn)`                            |
@@ -406,6 +406,7 @@ contenait remonte dans une feature ou devient générique.
 | `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                              | `appDoublePress` ; `doublePressed`                                                                                        |
 | `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                                                  | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                             |
 | `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                | `appRememberScroll` (clé), `resetOn`                                                                                      |
+| `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                              |
 | `scroll-stops.directive.ts` `ScrollStopsDirective`       | faire reposer une zone qui défile à son début ou à sa fin, du côté où on l'a poussée ; dire où elle repose      | `appScrollStops` ; écrit `data-rest` (`start`, `end`)                                                                     |
 | `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                      | `save(key, top)`, `read(key)`                                                                                             |
 | `glass-gesture.directive.ts` `GlassGesturesDirective`    | au format `phone`, tirer la vitre pour la replier ou la rouvrir (D37) ; un glisser horizontal reste natif (D57) | `appGlassGestures` (repliée ou non) ; `glassGesture`                                                                      |
@@ -675,8 +676,10 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
   (`appViewSlot`). But : faire suivre la vue aux fenêtres. À chaque
   navigation, la fenêtre de la vue (`windowOf`) passe au premier plan de
   `WindowStackService` et, sauf au premier chargement, reçoit le focus par
-  `ViewFocusService` ; sur l'accueil, c'est le titre. Chaque créneau de la
-  page se déclare avec `appViewSlot` (D50).
+  `ViewFocusService` dès qu'elle est montrée ; sur l'accueil, c'est le
+  titre. Chaque créneau de la page se déclare avec `appViewSlot` (D50).
+  Une fois l'accueil révélé, `prepareWhenIdle()` monte, cachées, la liste et
+  l'à-propos quand le navigateur est libre (D62).
 
 #### La scène qu'il anime : `shared/space-scene/`
 
@@ -934,7 +937,7 @@ src/app/
   shared/ui/services/                          layout-anchors.service · view-focus.service
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
-  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · glass-gesture.directive · remember-scroll.directive · scroll-stops.directive · stacked-window.directive
+  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · glass-gesture.directive · kept-window.directive · remember-scroll.directive · scroll-stops.directive · stacked-window.directive
   shared/windows/models/                       glass-gesture.model · window.model
   shared/windows/ports/                        window-texts.port
   shared/windows/rules/                        glass-gesture.rules

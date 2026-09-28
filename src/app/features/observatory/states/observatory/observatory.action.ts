@@ -60,3 +60,8 @@ export const observatoryHovered = defineSingleAction(
   'OBSERVATORY_HOVERED',
   payload<string | null>(),
 );
+
+export const observatoryWindowPrepared = defineSingleAction(
+  'OBSERVATORY_WINDOW_PREPARED',
+  payload<ObservatoryWindow>(),
+);

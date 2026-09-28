@@ -14,6 +14,7 @@ import { ViewHeadingDirective } from '@shared/ui/directives';
 })
 export class NotFoundWindowComponent {
   public readonly total = input.required<number>();
+  public readonly current = input(true);
 
   public readonly closed = output();
 

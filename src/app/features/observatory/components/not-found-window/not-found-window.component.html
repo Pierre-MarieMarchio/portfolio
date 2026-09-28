@@ -6,7 +6,11 @@
   (closed)="closed.emit()"
 >
   <div body>
-    <h1 tabindex="-1" appViewHeading>{{ texts().notFound.title }}</h1>
+    @if (current()) {
+      <h1 tabindex="-1" appViewHeading>{{ texts().notFound.title }}</h1>
+    } @else {
+      <h2>{{ texts().notFound.title }}</h2>
+    }
     <p>{{ texts().notFound.sentence(count()) }}</p>
   </div>
   <ng-container footer>

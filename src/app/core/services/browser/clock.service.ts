@@ -1,6 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT, inject, PLATFORM_ID, Service } from '@angular/core';
 
+const IDLE_TIMEOUT_MS = 2000;
+const IDLE_FALLBACK_MS = 200;
+
 @Service()
 export class ClockService {
   private readonly document = inject(DOCUMENT);
@@ -28,6 +31,20 @@ export class ClockService {
     const timer = setTimeout(fn, ms);
     return () => {
       clearTimeout(timer);
+    };
+  }
+
+  public whenIdle(fn: () => void): () => void {
+    const view = this.view();
+    if (!view) {
+      return () => {};
+    }
+    if (typeof view.requestIdleCallback !== 'function') {
+      return this.after(IDLE_FALLBACK_MS, fn);
+    }
+    const id = view.requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS });
+    return () => {
+      view.cancelIdleCallback(id);
     };
   }
 

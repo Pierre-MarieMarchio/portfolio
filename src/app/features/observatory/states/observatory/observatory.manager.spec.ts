@@ -48,6 +48,19 @@ describe('ObservatoryManager', () => {
     expect(manager.lastSheet()).toBe('a');
   });
 
+  it('keeps the windows the reader has seen, and shows only those of the view or pinned', () => {
+    manager.syncRoute('about');
+    manager.syncRoute('sheet', 'a');
+    manager.syncRoute('home');
+
+    expect(manager.kept()).toEqual(['about', 'sheet']);
+    expect(manager.showsAbout()).toBe(false);
+    expect(manager.showsSheet()).toBe(false);
+
+    manager.syncRoute('not-found');
+    expect(manager.showsSheet()).toBe(true);
+  });
+
   it.each<{
     case: string;
     arrange: (manager: ObservatoryManager) => void;

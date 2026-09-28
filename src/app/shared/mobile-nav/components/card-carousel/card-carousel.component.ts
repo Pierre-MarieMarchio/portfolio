@@ -117,7 +117,7 @@ export class CardCarouselComponent<T> {
   private goTo(target: number): void {
     this.stopFrame();
     this.isHeading = false;
-    if (this.isShowing(target)) {
+    if (this.settled() === null ? target === 0 : this.isShowing(target)) {
       this.settled.set(target);
       return;
     }

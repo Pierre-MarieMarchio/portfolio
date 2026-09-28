@@ -4,6 +4,7 @@ import {
   viewAtAddress,
   DockFrom,
   dockedOf,
+  keptOf,
   parentOf,
   stepBack,
   StepBackFrom,
@@ -154,6 +155,37 @@ describe('dockedOf', () => {
         lastSheet: 'b',
       }),
     ).toEqual(['about', 'index', 'sheet']);
+  });
+});
+
+describe('keptOf', () => {
+  const NONE: ObservatoryPins = {
+    about: false,
+    index: false,
+    sheet: false,
+    preview: false,
+  };
+
+  it('mounts nothing before the reader opens a window', () => {
+    expect(keptOf({ view: 'home', pins: NONE, seen: [] })).toEqual([]);
+  });
+
+  it('keeps every window the reader has seen, in a fixed order', () => {
+    expect(
+      keptOf({ view: 'home', pins: NONE, seen: ['sheet', 'about'] }),
+    ).toEqual(['about', 'sheet']);
+  });
+
+  it('keeps the window of the current view and the pinned ones, seen or not', () => {
+    expect(
+      keptOf({ view: 'not-found', pins: { ...NONE, index: true }, seen: [] }),
+    ).toEqual(['index', 'sheet']);
+  });
+
+  it('leaves the preview to its own rule', () => {
+    expect(
+      keptOf({ view: 'home', pins: { ...NONE, preview: true }, seen: [] }),
+    ).toEqual([]);
   });
 });
 

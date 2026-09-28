@@ -30,6 +30,7 @@ const PARTS = ['profile', 'skills', 'path', 'method'] as const;
 })
 export class AboutWindowComponent {
   public readonly pinned = input(false);
+  public readonly current = input(true);
   public readonly part = input(0);
 
   public readonly pinToggled = output();
@@ -55,12 +56,12 @@ export class AboutWindowComponent {
       ? part
       : 0;
   });
-  protected readonly current = computed(
+  protected readonly section = computed(
     () => this.about()[PARTS[this.index()] ?? 'profile'],
   );
 
   protected readonly heading = computed(() =>
-    this.about().title(this.current().title),
+    this.about().title(this.section().title),
   );
 
   protected readonly parts = computed<readonly SegmentedItem<number>[]>(() =>

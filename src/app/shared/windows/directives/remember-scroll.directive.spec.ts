@@ -69,6 +69,36 @@ describe('RememberScrollDirective', () => {
     expect(memory.read('index')).toBe(80);
   });
 
+  it('leaves a new zone alone when nothing was saved under its key', async () => {
+    const writes: number[] = [];
+    const set = vi
+      .spyOn(HTMLElement.prototype, 'scrollTop', 'set')
+      .mockImplementation((top: number) => {
+        writes.push(top);
+      });
+
+    await setup();
+
+    expect(writes).toEqual([]);
+    set.mockRestore();
+  });
+
+  it('writes nothing when the zone already sits where it should', async () => {
+    const { fixture, host, zone, scrollTo } = await setup({ 'sheet:b': 40 });
+    scrollTo(40);
+    const writes: number[] = [];
+    Object.defineProperty(zone(), 'scrollTop', {
+      get: () => 40,
+      set: (top: number) => writes.push(top),
+      configurable: true,
+    });
+
+    host.key.set('sheet:b');
+    await fixture.whenStable();
+
+    expect(writes).toEqual([]);
+  });
+
   it('keeps no memory under an empty key', async () => {
     const { fixture, host, memory, scrollTo } = await setup({ '': 60 });
     host.key.set('');

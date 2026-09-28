@@ -108,6 +108,15 @@ const setup = async ({ active = 0 } = {}) => {
 };
 
 describe('CardCarouselComponent', () => {
+  it('rests on its first card from birth without reading its layout', async () => {
+    const reads = vi.spyOn(Element.prototype, 'scrollLeft', 'get');
+
+    await setup();
+
+    expect(reads).not.toHaveBeenCalled();
+    reads.mockRestore();
+  });
+
   it('renders a labelled region with one card button per item, drawn by the template', async () => {
     const { host, cards } = await setup();
     const region = host.querySelector('app-card-carousel');

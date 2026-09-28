@@ -3,9 +3,10 @@
   [class.glass--folded]="collapsed()"
   [class.glass--rising]="anchor() !== 'bottom'"
 >
-  <div class="rail" appScrollStops>
+  <div #rail class="rail" appScrollStops>
     <div class="lead"></div>
     <section
+      #frame
       class="window"
       [attr.aria-label]="name()"
       [appDraggable]="bar"

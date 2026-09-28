@@ -51,7 +51,6 @@ const mount = async (
 
 describe('PlanetButtonsComponent', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.unstubAllGlobals();
   });
 

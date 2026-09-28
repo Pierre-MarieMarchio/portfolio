@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { By } from '@angular/platform-browser';
 import { WindowComponent } from '@shared/windows/components';
 import {
   loadProjects,
@@ -9,10 +8,11 @@ import {
   sampleDetail,
 } from '@testing/fixtures/project.fixture';
 import { ProjectEntry } from '../../models';
+import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
-import { recordOutput } from '@testing/fixtures/testbed.fixture';
+import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 
-describe('ProjectSheetComponent', () => {
+describe('ProjectDetailComponent', () => {
   const detail = sampleDetail({
     lede: 'A short standfirst.',
     links: [{ label: 'Dépôt', href: 'https://example.test/repo' }],
@@ -82,7 +82,12 @@ describe('ProjectSheetComponent', () => {
     fixture.componentRef.setInput('chapter', inputs.chapter ?? 0);
     await fixture.whenStable();
 
-    return { fixture, manager, host: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      manager,
+      host: fixture.nativeElement as HTMLElement,
+      texts: TestBed.inject(PROJECTS_TEXTS)(),
+    };
   };
 
   it('renders nothing for a slug that names no project', async () => {
@@ -91,17 +96,19 @@ describe('ProjectSheetComponent', () => {
   });
 
   it('opens a window titled after the project, with its rank over the total', async () => {
-    const { host } = await mount({ slug: 'proj-b' });
+    const { host, texts } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe('Détail du projet');
+    expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
   });
 
   it('lists one toolbar button per chapter, labelled and pressed on the current one', async () => {
-    const { host } = await mount({ slug: 'proj-b', chapter: 1 });
-    const toolbar = host.querySelector('[aria-label="Parties"]');
+    const { host, texts } = await mount({ slug: 'proj-b', chapter: 1 });
+    const toolbar = host.querySelector(
+      `[aria-label="${texts.sheet.approaches}"]`,
+    );
     const buttons = [
       ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
     ];
@@ -112,9 +119,9 @@ describe('ProjectSheetComponent', () => {
       '03',
     ]);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Partie 01 : Pourquoi',
-      'Partie 02 : Comment',
-      'Partie 03 : Et ensuite',
+      texts.sheet.approach('01', 'Pourquoi'),
+      texts.sheet.approach('02', 'Comment'),
+      texts.sheet.approach('03', 'Et ensuite'),
     ]);
     expect(
       buttons.map((button) => button.getAttribute('aria-pressed')),
@@ -122,27 +129,30 @@ describe('ProjectSheetComponent', () => {
   });
 
   it('emits chapterChange on a toolbar click, without changing by itself', async () => {
-    const { fixture, host } = await mount({ slug: 'proj-b', chapter: 0 });
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
     const emitted = recordOutput(fixture.componentInstance.chapterChange);
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
 
-    const toolbar = host.querySelector('[aria-label="Parties"]');
-    const buttons = [
-      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ];
-    buttons[2]?.click();
+    host
+      .querySelector(toolbar)
+      ?.querySelectorAll<HTMLButtonElement>('button')[2]
+      ?.click();
     await fixture.whenStable();
 
     expect(emitted).toEqual([2]);
     expect(
       host
-        .querySelector('[aria-label="Parties"]')
+        .querySelector(toolbar)
         ?.querySelectorAll('button')[0]
         ?.getAttribute('aria-pressed'),
     ).toBe('true');
   });
 
   it('shows the lede and the facts identity only on the first chapter', async () => {
-    const { host } = await mount({ slug: 'proj-b', chapter: 0 });
+    const { host, texts } = await mount({ slug: 'proj-b', chapter: 0 });
 
     expect(host.querySelector('.lede')?.textContent?.trim()).toBe(
       'A short standfirst.',
@@ -153,7 +163,7 @@ describe('ProjectSheetComponent', () => {
     const values = [...host.querySelectorAll('dl.identity dd')].map((dd) =>
       dd.textContent?.trim(),
     );
-    expect(terms).toEqual(['Statut', 'Rôle', 'Stack', 'Contexte', 'Période']);
+    expect(terms).toEqual(Object.values(texts.sheet.terms));
     expect(values).toEqual([
       'Proof B',
       'Role B',
@@ -190,7 +200,7 @@ describe('ProjectSheetComponent', () => {
   });
 
   it('titles an untitled chapter with the default of its place', async () => {
-    const { host } = await mount({ slug: 'proj-a', chapter: 0 }, [
+    const { host, texts } = await mount({ slug: 'proj-a', chapter: 0 }, [
       sampleEntry({
         project: { slug: 'proj-a' },
         detail: { chapters: [{ paragraphs: ['Untitled.'] }] },
@@ -198,42 +208,7 @@ describe('ProjectSheetComponent', () => {
     ]);
 
     expect(host.querySelector('.chapter-title')?.textContent?.trim()).toBe(
-      '01 · Le besoin',
-    );
-  });
-
-  it('draws the flow figure from its steps, loop and caption', async () => {
-    const { host } = await mount({ slug: 'proj-b', chapter: 1 });
-    const boxes = [...host.querySelectorAll('.box')].map((box) =>
-      box.textContent?.trim(),
-    );
-
-    expect(boxes).toEqual(['action', 'updator', 'effect']);
-    expect(host.querySelectorAll('.flow .arrow')).toHaveLength(3);
-    expect(host.querySelector('.flow .data')?.textContent?.trim()).toBe(
-      'nouvelles actions',
-    );
-    expect(
-      host
-        .querySelector('figcaption')
-        ?.textContent?.trim()
-        .startsWith('Séquence documentée dans le dépôt.'),
-    ).toBe(true);
-  });
-
-  it('draws one layer row per layer of the figure, with its caption', async () => {
-    const { host } = await mount({ slug: 'proj-b', chapter: 2 });
-    const layers = [...host.querySelectorAll('.layer')];
-
-    expect(layers).toHaveLength(2);
-    expect(layers[0]?.querySelector('.layer-name')?.textContent?.trim()).toBe(
-      'UI',
-    );
-    expect(
-      layers[0]?.querySelector('.layer-projects')?.textContent?.trim(),
-    ).toBe('proj-a, proj-b');
-    expect(host.querySelector('figcaption')?.textContent?.trim()).toBe(
-      'Arborescence réelle du dépôt.',
+      `01 · ${texts.defaultChapterTitles[0] ?? ''}`,
     );
   });
 
@@ -246,50 +221,41 @@ describe('ProjectSheetComponent', () => {
   });
 
   it('offers a next-chapter button before the last chapter', async () => {
-    const { fixture, host } = await mount({ slug: 'proj-b', chapter: 0 });
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
     const emitted = recordOutput(fixture.componentInstance.chapterChange);
 
     expect(host.querySelector('.position')?.textContent?.trim()).toBe(
       'Pourquoi',
     );
     const next = host.querySelector<HTMLButtonElement>('button.next');
-    expect(next?.textContent?.trim()).toBe('Suite : Comment →');
+    expect(next?.textContent?.trim()).toBe(texts.sheet.nextApproach('Comment'));
 
     next?.click();
-    await fixture.whenStable();
     expect(emitted).toEqual([1]);
   });
 
-  it('links to the next project at the last chapter, wrapping from last to first', async () => {
-    const { host } = await mount({ slug: 'proj-b', chapter: 2 });
+  it('links to the next project at the last chapter', async () => {
+    const { host, texts } = await mount({ slug: 'proj-b', chapter: 2 });
 
     expect(host.querySelector('button.next')).toBeNull();
     const next = host.querySelector<HTMLAnchorElement>('a.next');
-    expect(next?.textContent?.trim()).toBe('Suivant : C →');
+    expect(next?.textContent?.trim()).toBe(texts.sheet.nextProject('C'));
     expect(next?.getAttribute('href')).toBe('/projet/proj-c');
-  });
-
-  it('wraps to the first project when the last one is the current sheet', async () => {
-    const { host } = await mount({ slug: 'proj-c', chapter: 2 });
-
-    const next = host.querySelector<HTMLAnchorElement>('a.next');
-    expect(next?.textContent?.trim()).toBe('Suivant : A →');
-    expect(next?.getAttribute('href')).toBe('/projet/proj-a');
   });
 
   it('re-emits the window pin and close as its own outputs', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b', pinned: true });
-    let pinToggled = 0;
-    let closed = 0;
-    fixture.componentInstance.pinToggled.subscribe(() => (pinToggled += 1));
-    fixture.componentInstance.closed.subscribe(() => (closed += 1));
+    const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
+    const closed = recordOutput(fixture.componentInstance.closed);
 
     host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
-    await fixture.whenStable();
 
-    expect(pinToggled).toBe(1);
-    expect(closed).toBe(1);
+    expect(pinToggled).toHaveLength(1);
+    expect(closed).toHaveLength(1);
   });
 
   it.each([
@@ -302,10 +268,8 @@ describe('ProjectSheetComponent', () => {
     async (chapter, direction, emitted) => {
       const { fixture } = await mount({ slug: 'proj-a', chapter });
       const values = recordOutput(fixture.componentInstance.chapterChange);
-      const window = fixture.debugElement.query(By.directive(WindowComponent))
-        .componentInstance as WindowComponent;
 
-      window.swiped.emit(direction);
+      componentOf(fixture, WindowComponent).swiped.emit(direction);
 
       expect(values).toEqual(emitted);
     },

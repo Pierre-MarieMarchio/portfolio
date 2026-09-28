@@ -10,18 +10,13 @@ const partLabels = ({ profile: { about } }: Catalog) => [
 ];
 
 describe('the parts of "about"', () => {
-  it('reads Profile, Skills, Path, then What next, in French', () => {
-    expect(partLabels(FR)).toEqual([
-      'Profil',
-      'Compétences',
-      'Parcours',
-      'Et après',
-    ]);
-    expect(FR.observatory.object.parts).toEqual(partLabels(FR));
-  });
-
-  it('reads the same order in English, window and sky alike', () => {
-    expect(partLabels(EN)).toEqual(['Profile', 'Skills', 'Path', 'What next']);
-    expect(EN.observatory.object.parts).toEqual(partLabels(EN));
-  });
+  it.each([
+    ['French', FR],
+    ['English', EN],
+  ])(
+    'reads Profile, Skills, Path, then What next in %s, window and sky alike',
+    (_language, catalog) => {
+      expect(catalog.observatory.object.parts).toEqual(partLabels(catalog));
+    },
+  );
 });

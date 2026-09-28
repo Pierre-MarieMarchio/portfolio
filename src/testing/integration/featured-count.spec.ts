@@ -59,7 +59,6 @@ const mount = async (featured: number, total: number) => {
 describe('featured count', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -76,15 +75,10 @@ describe('featured count', () => {
   ])('featuring %i of %i projects', (featured, total) => {
     const shown = Math.min(featured, total);
 
-    it('draws one marker per featured project on the rule', async () => {
-      const { markers } = await mount(featured, total);
+    it('draws one marker per featured project on the rule, and tells the object as many', async () => {
+      const { markers, object } = await mount(featured, total);
 
       expect(markers()).toBe(shown);
-    });
-
-    it('tells the object how many it features', async () => {
-      const { object } = await mount(featured, total);
-
       expect(object.featured()).toBe(shown);
     });
 

@@ -1,10 +1,8 @@
-import { TestBed } from '@angular/core/testing';
 import { CanvasContextsService } from './canvas-contexts.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('CanvasContextsService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
   });
 

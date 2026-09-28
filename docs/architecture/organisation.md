@@ -263,7 +263,7 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`), `doubles/`
 
 - Un spec est à côté du fichier qu'il teste, et porte son nom
   (`x.service.spec.ts`). Les suites qui traversent plusieurs unités (la
-  langue et les têtes de page, le prérendu, le zoneless) sont dans
+  langue et les têtes de page, le zoneless) sont dans
   `src/testing/integration/`.
 - `src/testing/fixtures/` : des données d'exemple bâties avec les vraies
   règles (`project.fixture.ts` classe par la vraie `rank()`), et les
@@ -287,7 +287,10 @@ Chaque fiche donne : **but** · **contrat** · **rôle** · **d'où elle vient**
 
 `BrowserEnvironment` mêlait neuf sujets ; chacun devient une unité, avec son
 spec « inerte côté serveur ». Rien d'autre dans le dépôt ne touche une
-globale.
+globale. Ce spec simule le serveur par `PLATFORM_ID`, tandis que jsdom fournit
+toujours `matchMedia`, un document et une mise en page : une méthode qui
+oublierait sa garde les atteindrait, et le spec le verrait. Le HTML prérendu
+lui-même se vérifie par `scripts/check-prerender.mjs`.
 
 | Unité                                                    | But                                                 | Contrat                                                                           |
 | -------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |

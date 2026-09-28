@@ -11,14 +11,14 @@ describe('DisplayFormatService', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.unstubAllGlobals();
     delete document.documentElement.dataset['format'];
   });
 
-  it('is a desktop on the server, and writes nothing on the root', () => {
+  it('is a desktop on the server, listens to nothing and writes nothing on the root', () => {
     const matchMedia = vi.fn();
     vi.stubGlobal('matchMedia', matchMedia);
+    const addEventListener = vi.spyOn(window, 'addEventListener');
     const display = injectOn(DisplayFormatService, 'server');
 
     display.publishOnRoot();
@@ -26,7 +26,9 @@ describe('DisplayFormatService', () => {
 
     expect(display.format()).toBe('desktop');
     expect(matchMedia).not.toHaveBeenCalled();
+    expect(addEventListener).not.toHaveBeenCalled();
     expect(document.documentElement.dataset['format']).toBeUndefined();
+    addEventListener.mockRestore();
   });
 
   it('reads the viewport and the pointer in the browser', () => {

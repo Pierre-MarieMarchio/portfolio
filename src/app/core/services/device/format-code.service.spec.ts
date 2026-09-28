@@ -22,39 +22,117 @@ const loadOn = (
 
 describe('FormatCodeService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.unstubAllGlobals();
   });
 
-  it('asks for the code once the client starts as a phone, and gives it', async () => {
+  it.each<{
+    case: string;
+    formats: readonly DisplayFormat[];
+    touch: boolean;
+    width: number;
+    height: number;
+  }>([
+    {
+      case: 'the phone once the client starts as a phone',
+      formats: ['phone'],
+      touch: true,
+      width: 390,
+      height: 844,
+    },
+    {
+      case: 'the desktop once the client starts as a desktop',
+      formats: ['desktop'],
+      touch: false,
+      width: 1280,
+      height: 800,
+    },
+  ])(
+    'asks for the code of $case, and gives it',
+    async ({ formats, touch, width, height }) => {
+      stubMedia(touch ? TOUCH : undefined);
+      resizeTo(width, height);
+      const { importer, loaded } = loadOn('browser', formats);
+
+      expect(loaded()).toBeNull();
+      TestBed.tick();
+      await Promise.resolve();
+      TestBed.tick();
+
+      expect(importer).toHaveBeenCalledTimes(1);
+      expect(loaded()).toBe(CODE);
+    },
+  );
+
+  it.each<{
+    case: string;
+    formats: readonly DisplayFormat[];
+    touch: boolean;
+    width: number;
+    height: number;
+  }>([
+    {
+      case: 'the phone on a tablet',
+      formats: ['phone'],
+      touch: true,
+      width: 1024,
+      height: 768,
+    },
+    {
+      case: 'the phone on a desktop',
+      formats: ['phone'],
+      touch: false,
+      width: 1440,
+      height: 900,
+    },
+    {
+      case: 'the desktop on a phone',
+      formats: ['desktop'],
+      touch: true,
+      width: 390,
+      height: 844,
+    },
+    {
+      case: 'the desktop on a tablet',
+      formats: ['desktop'],
+      touch: true,
+      width: 1024,
+      height: 768,
+    },
+    {
+      case: 'the fingers on a desktop',
+      formats: ['phone', 'tablet'],
+      touch: false,
+      width: 1280,
+      height: 800,
+    },
+  ])(
+    'never asks for the code of $case',
+    async ({ formats, touch, width, height }) => {
+      stubMedia(touch ? TOUCH : undefined);
+      resizeTo(width, height);
+      const { importer, loaded } = loadOn('browser', formats);
+      TestBed.tick();
+      await Promise.resolve();
+
+      expect(importer).not.toHaveBeenCalled();
+      expect(loaded()).toBeNull();
+    },
+  );
+
+  it.each<{ case: string; formats: readonly DisplayFormat[] }>([
+    { case: 'the phone, even at a phone size', formats: ['phone'] },
+    { case: 'the desktop, which it answers as', formats: ['desktop'] },
+    { case: 'the fingers, even at a phone size', formats: ['phone', 'tablet'] },
+  ])('never asks for the code of $case on the server', async ({ formats }) => {
     stubMedia(TOUCH);
     resizeTo(390, 844);
-    const { importer, loaded } = loadOn('browser');
+    const { importer, loaded } = loadOn('server', formats);
 
+    TestBed.tick();
+    await Promise.resolve();
+
+    expect(importer).not.toHaveBeenCalled();
     expect(loaded()).toBeNull();
-    TestBed.tick();
-    await Promise.resolve();
-    TestBed.tick();
-
-    expect(importer).toHaveBeenCalledTimes(1);
-    expect(loaded()).toBe(CODE);
-  });
-
-  it('never asks for the code of the phone on a tablet or a desktop', async () => {
-    stubMedia(TOUCH);
-    resizeTo(1024, 768);
-    const tablet = loadOn('browser');
-    TestBed.tick();
-    TestBed.resetTestingModule();
-    vi.unstubAllGlobals();
-    resizeTo(1440, 900);
-    const desktop = loadOn('browser');
-    TestBed.tick();
-    await Promise.resolve();
-
-    expect(tablet.importer).not.toHaveBeenCalled();
-    expect(desktop.importer).not.toHaveBeenCalled();
-    expect(desktop.loaded()).toBeNull();
   });
 
   it('asks for it when the format turns to phone, and only once', async () => {
@@ -101,43 +179,7 @@ describe('FormatCodeService', () => {
     expect(loaded()).toBe(CODE);
   });
 
-  it('asks for the code of the desktop once the client starts as a desktop', async () => {
-    stubMedia();
-    resizeTo(1280, 800);
-    const { importer, loaded } = loadOn('browser', ['desktop']);
-
-    TestBed.tick();
-    await Promise.resolve();
-    TestBed.tick();
-
-    expect(importer).toHaveBeenCalledTimes(1);
-    expect(loaded()).toBe(CODE);
-  });
-
-  it('never asks for the code of the desktop on a phone or a tablet', async () => {
-    stubMedia(TOUCH);
-    resizeTo(390, 844);
-    const phone = loadOn('browser', ['desktop']);
-    TestBed.tick();
-    resizeTo(1024, 768);
-    TestBed.tick();
-    await Promise.resolve();
-
-    expect(phone.importer).not.toHaveBeenCalled();
-    expect(phone.loaded()).toBeNull();
-  });
-
-  it('never asks for the code of the desktop on the server, which answers as a desktop', async () => {
-    const { importer, loaded } = loadOn('server', ['desktop']);
-
-    TestBed.tick();
-    await Promise.resolve();
-
-    expect(importer).not.toHaveBeenCalled();
-    expect(loaded()).toBeNull();
-  });
-
-  it('asks for the code of the fingers once at a phone or a tablet, and never at a desktop', async () => {
+  it('asks for the code of the fingers only once, from a tablet to a phone', async () => {
     stubMedia(TOUCH);
     resizeTo(1024, 768);
     const { importer, loaded } = loadOn('browser', ['phone', 'tablet']);
@@ -148,16 +190,5 @@ describe('FormatCodeService', () => {
 
     expect(importer).toHaveBeenCalledTimes(1);
     expect(loaded()).toBe(CODE);
-
-    TestBed.resetTestingModule();
-    vi.unstubAllGlobals();
-    stubMedia();
-    resizeTo(1280, 800);
-    const desktop = loadOn('browser', ['phone', 'tablet']);
-    TestBed.tick();
-    await Promise.resolve();
-
-    expect(desktop.importer).not.toHaveBeenCalled();
-    expect(desktop.loaded()).toBeNull();
   });
 });

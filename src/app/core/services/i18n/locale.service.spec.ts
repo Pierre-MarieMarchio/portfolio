@@ -25,7 +25,6 @@ const locale = (startUrl: string) => {
 describe('LocaleService', () => {
   afterEach(() => {
     document.documentElement.setAttribute('lang', 'fr');
-    TestBed.resetTestingModule();
   });
 
   it('reads the language of the loaded address before the first navigation', () => {

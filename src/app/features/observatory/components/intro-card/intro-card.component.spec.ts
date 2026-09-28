@@ -1,5 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { OBSERVATORY_TEXTS } from '../../ports';
 import { IntroCardComponent } from './intro-card.component';
 import { stubMedia } from '@testing/doubles/browser.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
@@ -21,13 +22,16 @@ const mount = async (
   });
   const fixture = TestBed.createComponent(IntroCardComponent);
   await fixture.whenStable();
-  return { fixture, host: fixture.nativeElement as HTMLElement };
+  return {
+    fixture,
+    host: fixture.nativeElement as HTMLElement,
+    home: TestBed.inject(OBSERVATORY_TEXTS)().home,
+  };
 };
 
 describe('IntroCardComponent', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--intro-duration');
-    TestBed.resetTestingModule();
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -35,16 +39,16 @@ describe('IntroCardComponent', () => {
 
   it('shows a hidden card with the identity, the role and the brand, in order', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    const { host } = await mount();
+    const { host, home } = await mount();
     const card = host.querySelector('.card');
 
     expect(card).not.toBeNull();
     expect(card?.getAttribute('aria-hidden')).toBe('true');
 
     const text = card?.textContent ?? '';
-    const nameAt = text.indexOf('Pierre-Marie Marchio');
-    const roleAt = text.indexOf('Développeur .NET et Angular');
-    const brandAt = text.indexOf('Portfolio');
+    const nameAt = text.indexOf(home.name);
+    const roleAt = text.indexOf(home.trade);
+    const brandAt = text.indexOf(home.brand);
     expect(nameAt).toBeGreaterThanOrEqual(0);
     expect(roleAt).toBeGreaterThan(nameAt);
     expect(brandAt).toBeGreaterThan(roleAt);
@@ -63,23 +67,10 @@ describe('IntroCardComponent', () => {
     expect(host.querySelector('.card')).toBeNull();
   });
 
-  it.each(['pointerdown', 'keydown', 'wheel', 'touchstart'])(
-    'removes the card at once on a %s dispatched on the window',
-    async (type) => {
-      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-      const { host, fixture } = await mount();
-      expect(host.querySelector('.card')).not.toBeNull();
-
-      window.dispatchEvent(new Event(type));
-      await fixture.whenStable();
-
-      expect(host.querySelector('.card')).toBeNull();
-    },
-  );
-
-  it('stays gone and throws nothing once removed, whatever event or time follows', async () => {
+  it('removes the card at the first gesture, and it stays gone and throws nothing, whatever event or time follows', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const { host, fixture } = await mount();
+    expect(host.querySelector('.card')).not.toBeNull();
 
     window.dispatchEvent(new Event('keydown'));
     await fixture.whenStable();

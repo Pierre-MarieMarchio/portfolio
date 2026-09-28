@@ -32,7 +32,7 @@ class SilentEffect {
   });
 }
 
-describe('AppErrorHandler', () => {
+describe('ConsoleErrorHandlerService', () => {
   let logged: unknown[];
 
   beforeEach(() => {

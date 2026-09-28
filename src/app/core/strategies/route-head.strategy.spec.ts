@@ -17,7 +17,7 @@ const tag = (selector: string) =>
 
 const SITE_NAME = 'Pierre-Marie Marchio';
 
-describe('PageTitleStrategy', () => {
+describe('RouteHeadStrategy', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [

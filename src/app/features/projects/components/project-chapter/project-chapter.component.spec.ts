@@ -40,10 +40,6 @@ const mount = async (chapter: ChapterOnShow) => {
 };
 
 describe('ProjectChapterComponent', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
   it('titles the chapter with its number and heading', async () => {
     const host = await mount(FLOW);
 

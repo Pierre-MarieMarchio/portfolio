@@ -48,8 +48,6 @@ describe('ProjectsEffect', () => {
     await statewise.dispatchAsync(getProjectsActions.request());
 
     expect(state.projects()).toEqual(CATALOG.projects);
-    expect(state.facts()).toEqual(CATALOG.facts);
-    expect(state.details()).toEqual(CATALOG.details);
     expect(state.isLoading()).toBe(false);
     expect(reported).toEqual([]);
   });

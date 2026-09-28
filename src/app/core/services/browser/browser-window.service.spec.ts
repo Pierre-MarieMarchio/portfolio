@@ -1,10 +1,8 @@
-import { TestBed } from '@angular/core/testing';
 import { BrowserWindowService } from './browser-window.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('BrowserWindowService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
   });
 

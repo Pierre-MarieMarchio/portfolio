@@ -1,10 +1,8 @@
-import { TestBed } from '@angular/core/testing';
 import { PageVisibilityService } from './page-visibility.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('PageVisibilityService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
   });
 

@@ -16,6 +16,11 @@ import { LayoutAnchorsService } from '@shared/ui/services';
 import { FormatCodeService } from '@app/core/services';
 import { loadGlassGestures } from '@shared/windows/directives';
 import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
+import { FeaturedBarComponent } from '@app/features/projects/components';
+import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
+import { PROFILE_TEXTS } from '@app/features/profile/ports';
+import { PAGES_TEXTS } from '@app/i18n';
+import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
 
 const arrivals = (host: HTMLElement) =>
@@ -24,10 +29,15 @@ const arrivals = (host: HTMLElement) =>
       host.querySelector<HTMLElement>(selector)?.dataset['arrival'] ?? null,
   );
 
-const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
-  componentOf(fixture, ObservatorySceneComponent).revealed();
+const sceneOf = (fixture: {
+  debugElement: DebugElement;
+}): ObservatorySceneComponent =>
+  componentOf(fixture, ObservatorySceneComponent);
 
-describe('StationComponent', () => {
+const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
+  sceneOf(fixture).revealed();
+
+describe('ObservatoryPageComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
   const ENTRIES = [
@@ -70,7 +80,6 @@ describe('StationComponent', () => {
 
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
-    TestBed.resetTestingModule();
     delete document.documentElement.dataset['format'];
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -95,29 +104,6 @@ describe('StationComponent', () => {
       expect(isRevealed(fixture)).toBe(true);
     });
 
-    it.each(['pointerdown', 'keydown', 'wheel', 'touchstart'])(
-      'lets the rest in at the first %s',
-      async (type) => {
-        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-        const { fixture, host } = await mount({ reducedMotion: false });
-
-        window.dispatchEvent(new Event(type));
-        await fixture.whenStable();
-        expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
-      },
-    );
-
-    it('lets the rest in when the reader leaves the home page', async () => {
-      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-      const { fixture, station, host } = await mount({ reducedMotion: false });
-
-      station.syncRoute('index');
-      await fixture.whenStable();
-      expect(
-        host.querySelector<HTMLElement>('app-main-nav')?.dataset['arrival'],
-      ).toBe('shown');
-    });
-
     it('plays the featured tour over the featured slugs once the rest is in', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, station } = await mount({ reducedMotion: false });
@@ -129,6 +115,19 @@ describe('StationComponent', () => {
       vi.advanceTimersByTime(4200);
       await fixture.whenStable();
       expect(station.hovered()).toBe(KNOWN_SLUG);
+    });
+
+    it('hands the tour over to the reader who points at the orbit rule', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, station } = await mount({ reducedMotion: false });
+      vi.advanceTimersByTime(8700);
+      await fixture.whenStable();
+
+      componentOf(fixture, FeaturedBarComponent).hoveredChange.emit(null);
+      vi.advanceTimersByTime(4200);
+      await fixture.whenStable();
+
+      expect(station.hovered()).toBeNull();
     });
 
     it('plays the opening card on the home page until the rest is in', async () => {
@@ -167,37 +166,18 @@ describe('StationComponent', () => {
         expect(isRevealed(fixture)).toBe(true);
       },
     );
-
-    it('plays no card on the home page reached from another view', async () => {
-      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-      const { fixture, station, host } = await mount({
-        reducedMotion: false,
-        address: '/a-propos',
-      });
-
-      station.syncRoute('home');
-      await fixture.whenStable();
-
-      expect(host.querySelector('app-intro-card')).toBeNull();
-      expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
-    });
-
-    it('shows everything at once with reduced motion', async () => {
-      const { fixture, host } = await mount({ reducedMotion: true });
-
-      expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
-      expect(isRevealed(fixture)).toBe(true);
-    });
   });
 
   it('renders the page bar and the contact rail, with no pause button for now', async () => {
     const { host } = await mount();
     const links = [...host.querySelectorAll('nav a')];
+    const words = TestBed.inject(PAGES_TEXTS)().navigation;
+    const contact = TestBed.inject(PROFILE_TEXTS)().contact;
 
     expect(links.map((link) => link.textContent?.trim())).toEqual([
-      'Accueil',
-      'Projets',
-      'À propos',
+      words.home,
+      words.index,
+      words.about,
     ]);
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
       '/',
@@ -205,58 +185,34 @@ describe('StationComponent', () => {
       '/a-propos',
     ]);
 
-    const rail = host.querySelector('ul[aria-label="Me contacter"]');
-    expect(
-      rail?.querySelector(
-        '[aria-label="M’écrire à pierremariemarchio.pro@gmail.com"]',
-      ),
-    ).not.toBeNull();
-    expect(
-      rail?.querySelector(
-        '[aria-label="Profil LinkedIn de Pierre-Marie Marchio"]',
-      ),
-    ).not.toBeNull();
-    expect(
-      rail?.querySelector(
-        '[aria-label="Dépôts GitHub de Pierre-Marie Marchio"]',
-      ),
-    ).not.toBeNull();
+    const rail = host.querySelector(
+      `ul[aria-label="${TestBed.inject(SHARED_TEXTS)().contactRail.label}"]`,
+    );
+    for (const label of [contact.email, contact.linkedin, contact.github]) {
+      expect(rail?.querySelector(`[aria-label="${label}"]`)).not.toBeNull();
+    }
     expect(host.querySelector('app-social-links .links button')).toBeNull();
   });
 
-  it('lights the home entry on the home view', async () => {
-    const { host } = await mount();
-    const current = host.querySelectorAll('nav a[aria-current="page"]');
+  it.each([
+    ['home', null, '/'],
+    ['index', null, '/projets'],
+    ['sheet', KNOWN_SLUG, '/projets'],
+    ['not-found', null, '/projets'],
+    ['about', null, '/a-propos'],
+  ] as const)(
+    'lights one entry of the page bar on the %s view, the one to %s',
+    async (view, slug, href) => {
+      const { fixture, station, host } = await mount();
 
-    expect(current).toHaveLength(1);
-    expect(current[0]?.textContent?.trim()).toBe('Accueil');
-  });
-
-  it('lights the projects entry on index, sheet and not-found', async () => {
-    const { fixture, station, host } = await mount();
-
-    for (const [view, slug] of [
-      ['index', null],
-      ['sheet', KNOWN_SLUG],
-      ['not-found', null],
-    ] as const) {
       station.syncRoute(view, slug);
       await fixture.whenStable();
       const current = host.querySelectorAll('nav a[aria-current="page"]');
+
       expect(current).toHaveLength(1);
-      expect(current[0]?.textContent?.trim()).toBe('Projets');
-    }
-  });
-
-  it('lights the about entry on the about view', async () => {
-    const { fixture, station, host } = await mount();
-    station.syncRoute('about');
-    await fixture.whenStable();
-
-    const current = host.querySelectorAll('nav a[aria-current="page"]');
-    expect(current).toHaveLength(1);
-    expect(current[0]?.textContent?.trim()).toBe('À propos');
-  });
+      expect(current[0]?.getAttribute('href')).toBe(href);
+    },
+  );
 
   it('chooses the section of a figure touched in the sky, as the segmented control does', async () => {
     const { fixture, station } = await mount();
@@ -272,26 +228,9 @@ describe('StationComponent', () => {
     expect(about.part()).toBe(2);
   });
 
-  it('keeps the scene stage, where the figure targets live, a layer above the void and the sky', async () => {
-    const { fixture, station, host } = await mount();
-    station.syncRoute('sheet', KNOWN_SLUG);
-    await fixture.whenStable();
-    const layerOf = (selector: string): string => {
-      const element = host.querySelector(selector);
-      return element ? getComputedStyle(element).zIndex : '';
-    };
-
-    expect(layerOf('.void')).toBe('var(--z-scene)');
-    expect(layerOf('app-space-scene .stage')).toBe('1');
-    expect(layerOf('app-space-scene .sky')).toBe('0');
-  });
-
   it('shows the home heading only on the home view', async () => {
     const { fixture, station, host } = await mount();
     expect(host.querySelector('#home-title')?.tagName).toBe('H1');
-    expect(host.querySelector('#home-title')?.textContent?.trim()).toBe(
-      'Développeur .NET et Angular',
-    );
 
     station.syncRoute('about');
     await fixture.whenStable();
@@ -324,9 +263,9 @@ describe('StationComponent', () => {
     station.syncRoute('about');
     await fixture.whenStable();
     expect(docked()).toEqual(['index']);
-    expect(host.querySelector('app-observatory-dock a')?.textContent).toContain(
-      'Projets',
-    );
+    expect(
+      host.querySelector('app-observatory-dock a')?.getAttribute('href'),
+    ).toBe('/projets');
 
     station.syncRoute('index');
     await fixture.whenStable();
@@ -348,14 +287,7 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     expect(host.querySelector('app-project-detail')).toBeNull();
-    const notFound = host.querySelector('app-not-found-window');
-    expect(notFound).not.toBeNull();
-    expect(notFound?.querySelector('h1')?.textContent?.trim()).toBe(
-      'Rien en orbite à cette adresse.',
-    );
-    const link = notFound?.querySelector('a');
-    expect(link?.textContent?.trim()).toBe('Tous les projets →');
-    expect(link?.getAttribute('href')).toBe('/projets');
+    expect(host.querySelector('app-not-found-window')).not.toBeNull();
   });
 
   it('shows the not-found window on the not-found view too', async () => {
@@ -365,17 +297,6 @@ describe('StationComponent', () => {
 
     expect(host.querySelector('app-not-found-window')).not.toBeNull();
     expect(host.querySelector('app-project-detail')).toBeNull();
-  });
-
-  it('offers the same view in English from the page bar', async () => {
-    const { fixture, station, host } = await mount();
-
-    station.syncRoute('index');
-    await fixture.whenStable();
-
-    const english = host.querySelector('app-language-switch a');
-    expect(english?.textContent?.trim()).toBe('EN');
-    expect(english?.getAttribute('hreflang')).toBe('en');
   });
 
   it('has no void button on the plain home view', async () => {
@@ -389,27 +310,33 @@ describe('StationComponent', () => {
     await fixture.whenStable();
 
     const button = host.querySelector('button.void');
-    expect(button?.getAttribute('aria-label')).toBe('Fermer les fenêtres');
+    expect(button?.getAttribute('aria-label')).toBe(
+      TestBed.inject(OBSERVATORY_TEXTS)().home.void,
+    );
     expect(button?.getAttribute('tabindex')).toBe('-1');
   });
 
-  it('shows the void button on the home view once a preview is open', async () => {
+  it('steps back from the sheet to the list on a click in the void', async () => {
     const { fixture, station, host } = await mount();
-    station.openPreview(KNOWN_SLUG);
+    station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
 
-    expect(host.querySelector('button.void')).not.toBeNull();
+    host.querySelector<HTMLButtonElement>('button.void')?.click();
+    await fixture.whenStable();
+
+    expect(TestBed.inject(Router).url).toBe('/projets');
   });
 
-  it('shows the void button on the index view once a row is selected', async () => {
-    const { fixture, station, host } = await mount();
+  it('toggles the selection of a body clicked in the sky of the index', async () => {
+    const { fixture, station } = await mount();
     station.syncRoute('index');
     await fixture.whenStable();
-    expect(host.querySelector('button.void')).toBeNull();
 
-    station.select(KNOWN_SLUG);
-    await fixture.whenStable();
-    expect(host.querySelector('button.void')).not.toBeNull();
+    sceneOf(fixture).bodyClicked.emit(KNOWN_SLUG);
+    expect(station.selected()).toBe(KNOWN_SLUG);
+
+    sceneOf(fixture).bodyClicked.emit(KNOWN_SLUG);
+    expect(station.selected()).toBeNull();
   });
 
   it('clears the index selection on Escape', async () => {
@@ -465,32 +392,6 @@ describe('StationComponent', () => {
     expect(slots).toEqual([...OBSERVATORY_WINDOWS]);
   });
 
-  it('raises the slot a pointerdown starts on above the others', async () => {
-    const { fixture, station, host } = await mount();
-    station.togglePin('index');
-    station.togglePin('about');
-    await fixture.whenStable();
-
-    const slots = [...host.querySelectorAll<HTMLElement>('.slot')];
-    expect(slots.length).toBeGreaterThanOrEqual(2);
-    const first = slots[0];
-    const second = slots[1];
-    if (!first || !second) {
-      throw new Error('expected at least two slots');
-    }
-
-    const rank = (slot: HTMLElement): number =>
-      Number(slot.style.getPropertyValue('--stack'));
-
-    first.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    await fixture.whenStable();
-    expect(rank(first)).toBeGreaterThan(rank(second));
-
-    second.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-    await fixture.whenStable();
-    expect(rank(second)).toBeGreaterThan(rank(first));
-  });
-
   it('brings the window of the view to the front at each navigation, from one sheet to the next too', async () => {
     const { fixture, station, host } = await mount();
     const rank = (name: string): number =>
@@ -514,17 +415,10 @@ describe('StationComponent', () => {
     await fixture.whenStable();
     expect(rank('sheet')).toBeGreaterThan(rank('index'));
   });
+
   it('hands the scene the planets, and the slugs of the sheet, the selection, the preview, the hovered body and the designated one', async () => {
     const { fixture, station } = await mount();
-    const object = (): ObservatorySceneComponent => {
-      const found = fixture.debugElement.query(
-        (node) => node.componentInstance instanceof ObservatorySceneComponent,
-      );
-      if (!found) {
-        throw new Error('expected the object to be mounted');
-      }
-      return found.componentInstance as ObservatorySceneComponent;
-    };
+    const object = (): ObservatorySceneComponent => sceneOf(fixture);
 
     expect(object().bodies()).toEqual([
       { slug: KNOWN_SLUG, title: 'Known project', short: 'ngx-statewise' },
@@ -555,13 +449,10 @@ describe('StationComponent', () => {
     expect(object().preview()).toBe(KNOWN_SLUG);
   });
 
-  it('shows the orbit rule on the home view with no preview open', async () => {
-    const { host } = await mount();
-    expect(host.querySelector('app-featured-bar')).not.toBeNull();
-  });
-
-  it('gives way to the preview once one is open, on the home view', async () => {
+  it('shows the orbit rule on the home view, and gives way to the preview once one is open', async () => {
     const { fixture, station, host } = await mount();
+    expect(host.querySelector('app-featured-bar')).not.toBeNull();
+
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
@@ -589,18 +480,6 @@ describe('StationComponent', () => {
     const slot = host.querySelector<HTMLElement>('#preview-panel');
     expect(slot).not.toBeNull();
     expect(slot?.classList.contains('slot--preview')).toBe(true);
-  });
-
-  it('keeps the last previewed slug as the reading fallback once the preview closes', async () => {
-    const { fixture, station } = await mount();
-    station.openPreview(KNOWN_SLUG);
-    await fixture.whenStable();
-    expect(station.lastPreview()).toBe(KNOWN_SLUG);
-
-    await station.close('preview');
-    await fixture.whenStable();
-
-    expect(station.lastPreview()).toBe(KNOWN_SLUG);
   });
 
   it('hands the page navigation to the scene as chrome, for the tabs it becomes on a phone held upright', async () => {

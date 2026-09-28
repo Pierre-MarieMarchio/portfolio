@@ -159,7 +159,8 @@ pause, l'état `animation` (D14).
   fallback » de la plupart des hébergeurs statiques.
 - Aucun code ne touche `window`, `localStorage`, `matchMedia` ou `canvas` en
   direct : tout passe par les services de `core/services/browser/` et `core/services/device/`, inertes au
-  prérendu. `src/testing/integration/prerender-safety.spec.ts` le vérifie.
+  prérendu. Chaque service a son spec « inerte côté serveur », et
+  `check:prerender` relit les pages prérendues.
 
 ## Conventions
 

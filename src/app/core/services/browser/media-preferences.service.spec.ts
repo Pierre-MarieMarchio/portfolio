@@ -1,11 +1,9 @@
-import { TestBed } from '@angular/core/testing';
 import { MediaPreferencesService } from './media-preferences.service';
 import { stubMedia } from '@testing/doubles/browser.double';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('MediaPreferencesService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.unstubAllGlobals();
   });
 

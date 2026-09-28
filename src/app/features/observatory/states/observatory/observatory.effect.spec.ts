@@ -10,13 +10,14 @@ import {
   observatorySteppedBack,
   observatoryWindowClosed,
 } from './observatory.action';
+import { ObservatoryView, ObservatoryWindow } from '../../models';
 import { ObservatoryEffect } from './observatory.effect';
 import { ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
 import { provideRecordingRouter } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
-describe('StationEffect', () => {
+describe('ObservatoryEffect', () => {
   let navigated: string[];
   let statewise: Statewise;
   let state: ObservatoryState;
@@ -38,71 +39,81 @@ describe('StationEffect', () => {
     state = TestBed.inject(ObservatoryState);
   });
 
-  describe('stationWindowClosed', () => {
-    it('sends the reader home when the index closes while shown', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+  it.each<{
+    case: string;
+    view: ObservatoryView;
+    slug?: string;
+    pinned?: ObservatoryWindow[];
+    preview?: string;
+    window: ObservatoryWindow;
+    navigated: string[];
+  }>([
+    {
+      case: 'sends the reader home when the index closes while shown',
+      view: 'index',
+      window: 'index',
+      navigated: ['/'],
+    },
+    {
+      case: 'does not navigate when the index is only pinned elsewhere',
+      view: 'sheet',
+      slug: 'a',
+      pinned: ['index'],
+      window: 'index',
+      navigated: [],
+    },
+    {
+      case: 'sends the reader home when about closes while shown',
+      view: 'about',
+      window: 'about',
+      navigated: ['/'],
+    },
+    {
+      case: 'does not navigate when about is only pinned elsewhere',
+      view: 'home',
+      pinned: ['about'],
+      window: 'about',
+      navigated: [],
+    },
+    {
+      case: 'sends the reader back to the list when a sheet closes',
+      view: 'sheet',
+      slug: 'a',
+      window: 'sheet',
+      navigated: ['/projets'],
+    },
+    {
+      case: 'sends the reader back to the list when a not-found sheet closes',
+      view: 'not-found',
+      window: 'sheet',
+      navigated: ['/projets'],
+    },
+    {
+      case: 'never navigates when the preview closes',
+      view: 'home',
+      preview: 'a',
+      pinned: ['preview'],
+      window: 'preview',
+      navigated: [],
+    },
+  ])(
+    'on observatoryWindowClosed, $case',
+    async ({ view, slug, pinned = [], preview, window, navigated: to }) => {
+      statewise.dispatch(observatoryRouteSynced({ view, slug: slug ?? null }));
+      if (preview) {
+        statewise.dispatch(observatoryPreviewOpened(preview));
+      }
+      for (const pin of pinned) {
+        statewise.dispatch(observatoryPinToggled(pin));
+      }
 
-      await statewise.dispatchAsync(observatoryWindowClosed('index'));
+      await statewise.dispatchAsync(observatoryWindowClosed(window));
 
-      expect(navigated).toEqual(['/']);
-    });
+      expect(navigated).toEqual(to);
+    },
+  );
 
-    it('does not navigate when the index is only pinned elsewhere', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
-      statewise.dispatch(observatoryPinToggled('index'));
-
-      await statewise.dispatchAsync(observatoryWindowClosed('index'));
-
-      expect(navigated).toEqual([]);
-    });
-
-    it('sends the reader home when about closes while shown', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
-
-      await statewise.dispatchAsync(observatoryWindowClosed('about'));
-
-      expect(navigated).toEqual(['/']);
-    });
-
-    it('does not navigate when about is only pinned elsewhere', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
-      statewise.dispatch(observatoryPinToggled('about'));
-
-      await statewise.dispatchAsync(observatoryWindowClosed('about'));
-
-      expect(navigated).toEqual([]);
-    });
-
-    it('sends the reader back to the list when a sheet closes', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
-
-      await statewise.dispatchAsync(observatoryWindowClosed('sheet'));
-
-      expect(navigated).toEqual(['/projets']);
-    });
-
-    it('sends the reader back to the list when a not-found sheet closes', async () => {
-      statewise.dispatch(
-        observatoryRouteSynced({ view: 'not-found', slug: null }),
-      );
-
-      await statewise.dispatchAsync(observatoryWindowClosed('sheet'));
-
-      expect(navigated).toEqual(['/projets']);
-    });
-
-    it('never navigates when the preview closes', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
-      statewise.dispatch(observatoryPreviewOpened('a'));
-      statewise.dispatch(observatoryPinToggled('preview'));
-
-      await statewise.dispatchAsync(observatoryWindowClosed('preview'));
-
-      expect(navigated).toEqual([]);
-    });
-  });
-
-  describe('stationEscaped', () => {
+  describe('observatoryEscaped', () => {
     it('clears the selection without navigating when the index has one', async () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
       statewise.dispatch(observatorySelected('a'));
@@ -161,33 +172,13 @@ describe('StationEffect', () => {
     });
   });
 
-  describe('stationSteppedBack', () => {
+  describe('observatorySteppedBack', () => {
     it('sends the reader back to the list from a sheet', async () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
 
       await statewise.dispatchAsync(observatorySteppedBack());
 
       expect(navigated).toEqual(['/projets']);
-    });
-
-    it('clears the selection without navigating when the index has one', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
-      statewise.dispatch(observatorySelected('a'));
-
-      await statewise.dispatchAsync(observatorySteppedBack());
-
-      expect(state.selected()).toBeNull();
-      expect(navigated).toEqual([]);
-    });
-
-    it('closes an open preview on home without navigating', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
-      statewise.dispatch(observatoryPreviewOpened('a'));
-
-      await statewise.dispatchAsync(observatorySteppedBack());
-
-      expect(state.preview()).toBeNull();
-      expect(navigated).toEqual([]);
     });
 
     it('does nothing on a view with nothing to step back from', async () => {

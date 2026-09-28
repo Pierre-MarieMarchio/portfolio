@@ -39,7 +39,6 @@ const setUp = (
 describe('HomeRevealService', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
-    TestBed.resetTestingModule();
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });

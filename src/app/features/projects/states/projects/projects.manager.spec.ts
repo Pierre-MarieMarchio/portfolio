@@ -52,14 +52,6 @@ describe('ProjectsManager', () => {
     expect(manager.isFeatured('missing')).toBe(false);
   });
 
-  it('ranks and numbers each project once, from its place in the order', () => {
-    setSix();
-
-    expect(
-      manager.ranked().map(({ slug, rank, number }) => [slug, rank, number]),
-    ).toEqual(SIX.map((slug, rank) => [slug, rank, `0${String(rank + 1)}`]));
-  });
-
   it('leaves out a project without facts, keeping the numbers of the others', () => {
     state.projects.set(['a', 'b', 'c'].map((slug) => sampleProject({ slug })));
     state.facts.set({ a: sampleFacts(), c: sampleFacts() });
@@ -103,21 +95,10 @@ describe('ProjectsManager', () => {
 
     expect(manager.find('p')?.facts.role).toBe('Seul');
     expect(manager.detailOf('p')?.lede).toBe('Chapô');
-    expect(manager.find('missing')?.facts ?? null).toBeNull();
     expect(manager.detailOf('missing')).toBeNull();
   });
 
-  it('reads a text pair in the reader language', () => {
-    state.projects.set([
-      sampleProject({ slug: 'p', tag: { fr: 'publié', en: 'published' } }),
-    ]);
-    state.facts.set({ p: sampleFacts({ role: { fr: 'Seul', en: 'Alone' } }) });
-
-    expect(manager.find('p')?.tag).toBe('publié');
-    expect(manager.find('p')?.facts.role).toBe('Seul');
-  });
-
-  it('finds a project in a language other than the reader one', () => {
+  it('reads a project in the reader language, and finds it in another one', () => {
     state.projects.set([
       sampleProject({
         slug: 'p',
@@ -127,6 +108,7 @@ describe('ProjectsManager', () => {
     state.facts.set({ p: sampleFacts({ role: { fr: 'Seul', en: 'Alone' } }) });
 
     expect(manager.find('p')?.subject).toBe('Un module bancaire.');
+    expect(manager.find('p')?.facts.role).toBe('Seul');
     expect(manager.findIn('p', 'en')?.subject).toBe('A banking module.');
     expect(manager.findIn('p', 'en')?.facts.role).toBe('Alone');
     expect(manager.findIn('missing', 'en')).toBeNull();

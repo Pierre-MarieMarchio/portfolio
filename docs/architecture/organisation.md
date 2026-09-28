@@ -185,11 +185,12 @@ Un `.helper` vit toujours dans le dossier `helpers/` de sa zone, en général
 **6. On l'instancie avec `new`**, dans la scène canvas seulement, sans
 injection Angular : les dépendances arrivent par le constructeur.
 
-| Suffixe     | Ce que c'est                                            | Comment on s'en sert              |
-| ----------- | ------------------------------------------------------- | --------------------------------- |
-| `.engine`   | la boucle : faire avancer, puis dessiner                | créée par `SpaceSceneComponent`   |
-| `.motion`   | ce qui évolue à chaque image : caméra, rotation, grains | créée par l'engine, `update(dt)`  |
-| `.renderer` | dessine une couche                                      | créée par l'engine, `draw(frame)` |
+| Suffixe     | Ce que c'est                                               | Comment on s'en sert                                |
+| ----------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| `.engine`   | la boucle : faire avancer, puis dessiner                   | créée par `SceneEngineService`                      |
+| `.motion`   | ce qui évolue à chaque image : caméra, rotation, grains    | créée par l'engine, `update(dt)`                    |
+| `.renderer` | dessine une couche                                         | créée par l'engine, `draw(frame)`                   |
+| `.worker`   | l'entrée d'un Web Worker : passe ses messages à son engine | chargé par `new Worker(new URL(…))`, jamais importé |
 
 Hors de la scène, un seul rôle s'instancie avec `new`, et c'est aussi le
 seul qu'on charge à part, aux seuls formats qui s'en servent (`phone`, D39 ;
@@ -216,27 +217,27 @@ qu'Angular ne connaît pas demande une entrée au journal.
 
 ### 3.3 Les dossiers de rôle
 
-| Dossier         | Suffixe                                                          | Organisation                                            |
-| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------- |
-| `components/`   | `.component` (+ `.html`, `.scss`)                                | un dossier par composant, qui ne contient que lui       |
-| `directives/`   | `.directive`                                                     | un fichier par directive                                |
-| `pipes/`        | `.pipe`                                                          | un fichier par pipe                                     |
-| `services/`     | `.service`                                                       | un fichier par service                                  |
-| `states/`       | `.state .action .updater .effect .manager`                       | un dossier par état                                     |
-| `ports/`        | `.port`                                                          | un fichier par contrat                                  |
-| `providers/`    | `.provider`                                                      | un fichier par fonction `provideXxx()`                  |
-| `guards/`       | `.guard`                                                         | un fichier par garde                                    |
-| `resolvers/`    | `.resolver`                                                      | un fichier par sujet                                    |
-| `interceptors/` | `.interceptor`                                                   | un fichier par intercepteur                             |
-| `validators/`   | `.validator`                                                     | un fichier par sujet                                    |
-| `strategies/`   | `.strategy`                                                      | un fichier par stratégie                                |
-| `rules/`        | `.rules`                                                         | un fichier par sujet                                    |
-| `helpers/`      | `.helper`                                                        | un fichier par sujet                                    |
-| `signals/`      | `.signal`                                                        | un fichier par fabrique                                 |
-| `models/`       | `.model`                                                         | un fichier par sujet                                    |
-| `data/`         | `.data`                                                          | un fichier par ensemble ; au-delà de 8, un sous-dossier |
-| `engine/`       | `.engine`, et `motions/` (`.motion`), `renderers/` (`.renderer`) | la scène canvas seulement                               |
-| `trackers/`     | `.tracker`                                                       | un fichier par geste                                    |
+| Dossier         | Suffixe                                                                    | Organisation                                            |
+| --------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `components/`   | `.component` (+ `.html`, `.scss`)                                          | un dossier par composant, qui ne contient que lui       |
+| `directives/`   | `.directive`                                                               | un fichier par directive                                |
+| `pipes/`        | `.pipe`                                                                    | un fichier par pipe                                     |
+| `services/`     | `.service`                                                                 | un fichier par service                                  |
+| `states/`       | `.state .action .updater .effect .manager`                                 | un dossier par état                                     |
+| `ports/`        | `.port`                                                                    | un fichier par contrat                                  |
+| `providers/`    | `.provider`                                                                | un fichier par fonction `provideXxx()`                  |
+| `guards/`       | `.guard`                                                                   | un fichier par garde                                    |
+| `resolvers/`    | `.resolver`                                                                | un fichier par sujet                                    |
+| `interceptors/` | `.interceptor`                                                             | un fichier par intercepteur                             |
+| `validators/`   | `.validator`                                                               | un fichier par sujet                                    |
+| `strategies/`   | `.strategy`                                                                | un fichier par stratégie                                |
+| `rules/`        | `.rules`                                                                   | un fichier par sujet                                    |
+| `helpers/`      | `.helper`                                                                  | un fichier par sujet                                    |
+| `signals/`      | `.signal`                                                                  | un fichier par fabrique                                 |
+| `models/`       | `.model`                                                                   | un fichier par sujet                                    |
+| `data/`         | `.data`                                                                    | un fichier par ensemble ; au-delà de 8, un sous-dossier |
+| `engine/`       | `.engine` `.worker`, et `motions/` (`.motion`), `renderers/` (`.renderer`) | la scène canvas seulement                               |
+| `trackers/`     | `.tracker`                                                                 | un fichier par geste                                    |
 
 Les specs restent à côté du fichier qu'elles testent (convention
 d'Angular). `src/testing/` a `fixtures/` (`.fixture`) et `doubles/`
@@ -603,6 +604,7 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
 | `trackers/zoom-gesture.tracker.ts` `ZoomGestureTracker`       | aux formats `phone` et `tablet`, rapprocher la caméra au pincement et au double toucher de l'accueil (D32, D43)                 |
 | `trackers/sky-look.tracker.ts` `SkyLookTracker`               | au format `desktop`, rapprocher la caméra à la molette et la déplacer au clic molette (D43)                                     |
 | `services/scene-look.service.ts` `SceneLookService`           | charger les gestes du ciel du format et les démarrer, fourni par `SpaceSceneComponent`                                          |
+| `services/scene-engine.service.ts` `SceneEngineService`       | créer l'engine : dans un worker quand le navigateur le permet, sinon dans la page, chargé à part (D47)                          |
 | `directives/scene-target.directive.ts` `SceneTargetDirective` | inscrire un élément comme cible d'un corps, dans l'ordre du document (le rang)                                                  |
 | `services/scene-targets.service.ts` `SceneTargetsService`     | le registre des cibles, fourni par `SpaceSceneComponent`                                                                        |
 | `ports/scene-surroundings.port.ts` `SCENE_SURROUNDINGS`       | les panneaux autour de la scène et leur rôle, les lignes qui montent avec leur corps                                            |
@@ -616,7 +618,7 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
   code est chargé à part (D39) : `SpaceSceneComponent` le demande à
   `FormatCodeService` pour le format `phone` et le donne à l'engine avec ses entrées
   (`SceneInputs.holeFocus`, de forme `HoleFocusRules`), qui le passe au
-  cadrage. Tant qu'il n'est pas là, la scène cadre sans lui ; à son
+  cadrage ; dans le worker, l'engine charge sa propre copie (D47). Tant qu'il n'est pas là, la scène cadre sans lui ; à son
   arrivée, la caméra y va par son amorti ordinaire. Les bancs de l'engine le
   donnent avant la première image.
 - Les gestes du ciel sont chargés à part, par format (D43) : au doigt
@@ -773,20 +775,20 @@ src/app/
   pages/workbench/                             workbench-page.component
   shared/space-scene/components/space-scene/   space-scene.component
   shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
-  shared/space-scene/engine/                   frame-loop.engine · space-scene.engine
+  shared/space-scene/engine/                   frame-loop.engine · node-recorder.engine · remote-scene.engine · scene-worker.engine · scene.worker · space-scene.engine
   shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · sky-pan.motion · star-flow.motion · turntable.motion · zoom.motion
   shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
   shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · figure-strokes.renderer · figure-targets.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
-  shared/space-scene/models/                   scene-constants.model · scene-layout.model · scene-look.model · scene.model
+  shared/space-scene/models/                   scene-constants.model · scene-engine.model · scene-layout.model · scene-look.model · scene-node.model · scene-worker.model · scene.model
   shared/space-scene/ports/                    scene-surroundings.port
-  shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
+  shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · layout-change.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
   shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
   shared/space-scene/rules/gestures/           sky-look.rules · sky-touch.rules
   shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
   shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
   shared/space-scene/rules/figures/            constellations.rules · figure-arrangement.rules · figure-label.rules · figure-room.rules · figure-target.rules · phone-figures.rules
   shared/space-scene/rules/sky/                comets.rules · star-field.rules · trail-steps.rules
-  shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-look.service · scene-targets.service
+  shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-engine.service · scene-look.service · scene-targets.service
   shared/space-scene/trackers/                 sky-look.tracker · zoom-gesture.tracker
   shared/ui/components/language-switch/        language-switch.component
   shared/ui/components/main-nav/               main-nav.component

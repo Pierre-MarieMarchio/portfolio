@@ -6,6 +6,7 @@ const HAND_STILL_MS = 60;
 const HAND_MAX_SPEED = 14;
 const HAND_MIN_RADIUS = 0.45;
 const ORBITS_FROM = 3.3;
+export const HAND_DRAG_PX = 6;
 const DRAG_RATIO = 0.4;
 const DRAG_LAG = 0.55;
 
@@ -127,7 +128,7 @@ export class TurntableMotion {
           )
         : 0;
     this.trail = [];
-    return grip.d > 6;
+    return grip.d > HAND_DRAG_PX;
   }
 
   public step(

@@ -1523,3 +1523,43 @@ son contenu et le défilement du rail ne se disent pas ainsi. Une vitre
 opaque sans flou au téléphone : elle change le verre au repos. Ne plus
 écrire `scrollTop` sur une fenêtre neuve déjà en haut : le layout forcé
 passe simplement au `focus()` qui suit, sans rien gagner.
+
+## 2026-09-28 — La scène se dessine dans un worker (D47, amende D11)
+
+**Décision.** Quand le navigateur sait dessiner hors de la page (`Worker`,
+`OffscreenCanvas` et son `transferToImageBitmap`, un canvas
+`bitmaprenderer`), `SceneEngineService` lance `scene.worker.ts`, qui fait
+tourner `SpaceSceneEngine` tel quel sur deux `OffscreenCanvas`. Le moteur
+ne touche plus le DOM qu'à travers `SceneNode`, la petite surface qu'il
+écrit (`style.transform`, `opacity`, `pointerEvents`, `cssText`,
+`setAttribute`, `tabIndex`) et qu'il lit (la taille des noms). Dans le
+worker, des nœuds enregistreurs (`NodeRecorderEngine`) notent ces
+écritures ; chaque image dessinée part avec elles, en `ImageBitmap`
+transférées, et `RemoteSceneEngine` pose l'image et les écritures dans la
+même image de la page. Les noms restent collés à leurs planètes. Les
+réponses immédiates dont les gestes ont besoin (la main prend-elle le
+disque, était-ce un glisser, le zoom tient-il sur le canvas, peut-on
+regarder de plus près) viennent des mêmes règles, appliquées dans la page.
+Le décalage du bureau (`SkyPanMotion`) vit dans le worker et revient avec
+chaque image. Sinon, l'engine tourne dans la page comme avant, chargé à
+part.
+
+**Raison.** Mesuré sur le build de production, Chrome sans interface à
+390 × 844, dpr 3, processeur ralenti × 4 : au repos, le thread principal
+passait 466 ms sur 500 en tâches, dont 369 ms de script ; il en passe 95,
+dont 17 de script. Le bundle initial passe de 529,39 à 476,63 kB : l'engine
+n'y est plus, le worker (59,4 kB) et l'engine de secours (50,9 kB) se
+chargent à part. Un spec fait dessiner la même scène par les deux chemins,
+au même tirage : les ordres de dessin sont les mêmes, un à un, et les
+noms, boutons et lignes reçoivent les mêmes styles. Sur les captures au
+téléphone et au bureau, rien ne change, et les gestes (tourner le disque,
+molette, clic molette, double toucher) donnent le même relevé du trou.
+
+La pire image d'une navigation ne baisse presque pas (64 à 144 ms à × 4) :
+c'est la vue que crée Angular, son style et son layout. Ce qui reste est la
+fenêtre recréée à chaque vue.
+
+**Écarté.** `transferControlToOffscreen` : le canvas s'afficherait sans la
+page, mais les noms, qui sont du DOM, décrocheraient de leurs planètes dès
+que la page est occupée. Un worker pour le ciel seul : les étoiles et les
+planètes glisseraient l'une contre l'autre pendant un vol.

@@ -1978,3 +1978,54 @@ toucher : le toucher presse le bouton. Choisir les mots en CSS : un nom
 accessible ne se pose pas en CSS ; les mots du téléphone changent donc après
 l'hydratation, comme D57 l'accepte. Une note à chaque changement de
 l'épingle : fermer une fenêtre la désépingle sans qu'on l'ait demandé.
+
+## 2026-09-28 — Au téléphone, la vitre est une feuille à crans de `shared/mobile-nav` (D64, amende D25, D37, D39 et D62)
+
+**Décision.** `shared/mobile-nav/` gagne `BottomSheetComponent`. Au
+téléphone, la page pose chaque fenêtre dans une feuille. La feuille a des
+crans : replié, mi-hauteur, plein. La liste, l'à-propos et la fiche ont les
+trois ; l'aperçu, replié et mi-hauteur. Couchée, la mi-hauteur se fond dans
+le plein. Le rail défile en natif, du cran replié au cran plein. Au lâcher,
+la règle pure `detentAfter` choisit le cran : 64 px vers le repli, 48 px
+ailleurs, ou plus de 0,6 px/ms, les seuils de D37. La feuille y va en
+douceur, tout de suite en mouvement réduit. Elle dit son cran à la fin du
+défilement seulement (`scrollend`, sinon 120 ms après le dernier `scroll`).
+Elle écrit `data-detent`, et la hauteur de sa bande pour la page. Un toucher
+de la barre repliée la remonte. Le flou du ciel suit le rail entre la
+mi-hauteur et le plein. Hors du téléphone, la feuille est `display:
+contents`. La librairie ne connaît pas les formats : `MOBILE_NAV_PLATFORM`
+gagne `isCompact`. Les deux librairies ne s'importent pas : `shared/windows`
+ouvre un port facultatif, `WINDOW_FOLD`, que `WindowSheetDirective`
+(`features/observatory`) fournit en passant par la feuille. Sans lui, la
+fenêtre se replie seule, comme avant. « Baisser la fenêtre » et « Remonter
+la fenêtre » changent donc le cran. Repliée par la feuille, la fenêtre garde
+son contenu, `inert` sous la barre. Une fenêtre gardée (D62) revient à son
+cran. `.slot:has(.glass--folded)` devient `[data-detent='folded']`.
+`GlassGesturesDirective`, son tracker, sa règle, son modèle,
+`ScrollStopsDirective` et la coque `.glass` de la fenêtre partent.
+
+**Raison.** Le repli se faisait par une translation écrite à la main sur la
+vitre, qui porte un `backdrop-filter`. Mis dans le rail, le repli devient un
+défilement comme les autres : élan, rebond, chaînage du corps en haut de son
+contenu, balayage horizontal du pager, sans une ligne de geste. Ce qui en
+reste tient en deux écoutes passives (`touchstart`, `touchend`) et une
+règle. Le tracker n'a plus de raison d'être : il n'est ni gardé ni chargé à
+part. Dire le cran à la fin seulement évite de recadrer la scène à chaque
+image ; `afterEveryRender` la fait lire la bande dès que le cran change. La
+mesure de la feuille attend l'image suivante : faite dans le rappel du
+`ResizeObserver`, elle forçait 15 ms de mise en page à la vitre qui
+revenait. Mesuré à × 4, trois passages, aucune image n'atteint 50 ms sur les
+cinq navigations (avant cette mise à l'image suivante : 55 à 67 ms). Garder
+son cran à la fenêtre qui revient respecte le choix du lecteur ; la scène lit
+la bande repliée de toute façon. Le bundle initial passe de 512,8 à
+518,0 kB : le tracker parti était déjà à part.
+
+**Écarté.** L'accroche CSS (`scroll-snap`) : elle choisit le cran le plus
+proche, pas celui du côté où l'on tire (D25). Une translation de la vitre :
+elle anime l'élément qui floute. Un repli hors du rail, rouvert par un
+geste écrit : il faut encore suivre le doigt. Garder le tracker, chargé à
+part : il n'a plus rien à suivre. Une feuille activée en CSS seul : la
+librairie ne lit pas les formats, et chaque propriété passerait par une
+variable. Redescendre la vitre à chaque retour (D62) : le lecteur l'avait
+laissée là. Charger à part la règle du lâcher : environ 1 kB, qui doit être
+là au premier toucher.

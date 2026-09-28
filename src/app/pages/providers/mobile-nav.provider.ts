@@ -3,6 +3,7 @@ import { NavigationStart, Router } from '@angular/router';
 import {
   BrowserWindowService,
   ClockService,
+  DisplayFormatService,
   ElementObserverService,
   MediaPreferencesService,
   SessionHistoryService,
@@ -17,6 +18,7 @@ export function provideMobileNav(): Provider[] {
     {
       provide: MOBILE_NAV_PLATFORM,
       useFactory: (): MobileNavPlatform => {
+        const display = inject(DisplayFormatService);
         const media = inject(MediaPreferencesService);
         const clock = inject(ClockService);
         const browserWindow = inject(BrowserWindowService);
@@ -24,6 +26,7 @@ export function provideMobileNav(): Provider[] {
         const sessionHistory = inject(SessionHistoryService);
         const router = inject(Router);
         return {
+          isCompact: () => display.format() === 'phone',
           reducedMotion: () => media.reducedMotion(),
           nextFrame: (fn) =>
             clock.nextFrame(() => {

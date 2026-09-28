@@ -107,10 +107,9 @@ describe('KeptWindowDirective', () => {
     expect(body.scrollTop).toBe(120);
   });
 
-  it('shows a window again unfolded, its glass back down, rising as it arrived', async () => {
+  it('shows a window again unfolded, rising as it arrived', async () => {
     const { host, show, fold } = await mount();
     const pane = host.querySelector<HTMLElement>('.window') as HTMLElement;
-    const rail = host.querySelector<HTMLElement>('.rail') as HTMLElement;
     const rise = { currentTime: 560 as number | null, play: vi.fn() };
     pane.getAnimations = () => [rise as unknown as Animation];
     await fold();
@@ -119,28 +118,10 @@ describe('KeptWindowDirective', () => {
     await show(false);
     expect(host.querySelector('.body')).toBeNull();
     expect(rise.play).not.toHaveBeenCalled();
-    rail.scrollTop = 300;
-    rail.dataset['rest'] = 'end';
     await show(true);
 
     expect(host.querySelector('.body')?.textContent).toContain('BODY-MARK');
-    expect(rail.scrollTop).toBe(0);
     expect(rise.currentTime).toBe(0);
     expect(rise.play).toHaveBeenCalledTimes(1);
-  });
-
-  it('leaves a lowered glass where it is when shown again', async () => {
-    const { host, show } = await mount();
-    const rail = host.querySelector<HTMLElement>('.rail') as HTMLElement;
-    const writes: number[] = [];
-    Object.defineProperty(rail, 'scrollTop', {
-      get: () => 0,
-      set: (top: number) => writes.push(top),
-    });
-
-    await show(false);
-    await show(true);
-
-    expect(writes).toEqual([]);
   });
 });

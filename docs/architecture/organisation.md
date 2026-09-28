@@ -408,33 +408,23 @@ contenait remonte dans une feature ou devient générique.
 | `fit-height.directive.ts` `FitHeightDirective`           | borner la hauteur à l'écran, moins une réserve                                                                     | `appFitHeight` (le plafond), `anchor` ; réserve lue en CSS (`--window-reserve`, 0 par défaut)                                           |
 | `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                   | `appRememberScroll` (clé), `resetOn`                                                                                                    |
 | `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après    | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                                            |
-| `scroll-stops.directive.ts` `ScrollStopsDirective`       | faire reposer une zone qui défile à son début ou à sa fin, du côté où on l'a poussée ; dire où elle repose         | `appScrollStops` ; écrit `data-rest` (`start`, `end`)                                                                                   |
+| `window-fold.port.ts` `WINDOW_FOLD`                      | facultatif : qui replie la fenêtre à sa place (D64) ; sans lui, elle se replie seule                               | `isActive`, `isFolded`, `toggle`, `hold(handle)`                                                                                        |
 | `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                         | `save(key, top)`, `read(key)`                                                                                                           |
-| `glass-gesture.directive.ts` `GlassGesturesDirective`    | au format `phone`, tirer la vitre pour la replier ou la rouvrir (D37) ; un glisser horizontal reste natif (D57)    | `appGlassGestures` (repliée ou non) ; `glassGesture`                                                                                    |
-| `glass-gesture.tracker.ts` `GlassGestureTracker`         | suivre le toucher sur la vitre, la faire suivre le doigt, avaler le clic qui suit un glisser                       | `take(event)`                                                                                                                           |
-| `glass-gesture.rules.ts`                                 | décider le geste : `glassIntentOf`, `glassGestureOf`                                                               | pures                                                                                                                                   |
 
 - `FitHeightDirective` calcule depuis la **position de mise en page**
   (`offsetTop`), que le glissement ne change pas, puisqu'il passe par un
   `transform`. Elle ne lit donc rien de `DraggableDirective`. Si un spec
   montre que les deux mesures divergent, elles se réunissent : deux
   directives qui partagent un état caché n'en font qu'une.
-- Au format `phone`, la fenêtre est une vitre (D25) : un conteneur de
-  défilement que `ScrollStopsDirective` fait reposer basse ou haute, et dont
-  le défilement floute la scène par une animation CSS. `FitHeightDirective`
-  n'y borne rien et `DraggableDirective` n'y glisse pas ; elles lisent
-  `DisplayFormatService`. Une fenêtre ancrée en bas (`anchor="bottom"`)
-  reste une petite vitre basse, qui ne monte pas. L'appelant pose la place
-  de la vitre en propriétés CSS (`--glass-inset`, `--glass-raised-top`,
-  `--glass-bottom-reserve`) ; la part basse est un jeton, `--glass-lowered`
-  (D27).
-- Le geste de la vitre est chargé à part (D39). La directive reste dans le
-  bundle initial ; elle demande son tracker à `FormatCodeService` pour le
-  format `phone`, et le bureau
-  le demande aussi à son démarrage, avant qu'une vitre s'ouvre. Tant qu'il
-  n'est pas là, elle retient au téléphone chaque événement du pointeur et les
-  lui rejoue, dans l'ordre, à son arrivée. Le tracker et la règle ne sont
-  importés que par l'`import()` de la directive.
+- Au format `phone`, la vitre est la feuille de `shared/mobile-nav/`
+  (D64) : la page pose chaque fenêtre dans un `app-bottom-sheet` porteur de
+  `appWindowSheet` (`features/observatory/directives/`), qui fournit
+  `WINDOW_FOLD`. La fenêtre lui donne sa barre comme poignée ; repliée par
+  la feuille, elle garde son contenu, rendu `inert` sous la barre.
+  `FitHeightDirective` n'y borne rien et `DraggableDirective` n'y glisse
+  pas ; elles lisent `DisplayFormatService`. Le corps suit deux propriétés
+  posées par l'appelant, `--window-body-overflow` et
+  `--window-body-overscroll`.
 - `resetOn` remplace les deux effets « remonter en haut » écrits dans la
   fiche et dans « à propos ».
 - Les marges passées en dur (76, 88) deviennent `--window-reserve`, posée par
@@ -442,7 +432,8 @@ contenait remonte dans une feature ou devient générique.
   directives, qu'un appelant ne peut pas poser sur le corps qui défile.
 
 - Le corps ne se tire que s'il est en haut de son contenu, et tout ce qui
-  défile en lui aussi : une page du pager descendue ne replie pas la vitre.
+  défile en lui aussi : c'est le chaînage natif du défilement, une page du
+  pager descendue défile d'abord.
 
 #### La navigation du téléphone : `shared/mobile-nav/` (D57)
 
@@ -450,19 +441,21 @@ Des gestes d'application native, laissés au navigateur autant que possible
 (`scroll-snap`, rebond). Aucun import du dépôt, pas même `core` : tout passe
 par deux ports, auxquels la composition répond.
 
-| Unité                                                | But                                                                                                | Contrat                                                                                                                                                                 |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pager.component.ts` `PagerComponent`                | faire défiler des pages à l'horizontale, une à la fois, et dire où le lecteur s'est arrêté         | `index` ; `indexChange`, à la fin du défilement seulement                                                                                                               |
-| `pager-page.component.ts` `PagerPageComponent`       | une page, qui défile seule à la verticale, hors d'atteinte quand elle n'est pas la page posée      | projetée dans `app-pager` ; écrit `inert`, `data-current`, son nom                                                                                                      |
-| `pager.rules.ts`                                     | la page d'une position, la position d'une page : `clampPage`, `pageAt`, `offsetOfPage`, `isAt`     | pures                                                                                                                                                                   |
-| `card-carousel.component.ts` `CardCarouselComponent` | faire défiler des cartes touchables, la suivante au bord, et dire où le lecteur s'est arrêté (D58) | `items`, `active`, `label`, `controls`, un `ng-template` par carte ; `activeChange`, à la fin du défilement seulement ; `chosen`, au toucher                            |
-| `carousel.rules.ts`                                  | la carte d'une position, la position qui centre une carte : `cardAt`, `centredOffset`              | pures                                                                                                                                                                   |
-| `action-menu.component.ts` `ActionMenuComponent`     | une feuille d'actions qui monte du bas, sur un `<dialog>` modal (D60)                              | `heading`, `open` (model), des rangées projetées ; `dismiss()`                                                                                                          |
-| `action-row.directive.ts` `ActionRowDirective`       | une rangée de la feuille, sur un `<a>` ou un `<button>` : icône (`svg`), libellé, 44 px            | `keepsOpen` ; sinon ferme la feuille au toucher                                                                                                                         |
-| `back-layers.service.ts` `BackLayersService`         | le bouton retour ferme d'abord ce qui est ouvert                                                   | `push(onBack)` rend la fonction qui relâche la couche                                                                                                                   |
-| `back-layers.rules.ts`                               | l'état d'une couche dans l'historique : `withLayer`, `layerOf`, `closedBy`, `stepsBack`            | pures                                                                                                                                                                   |
-| `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM`  | le navigateur de la librairie, inerte au serveur                                                   | `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`, `whenStill`, `closesOnBack`, `historyState`, `pushHistory`, `historyBack`, `onHistoryPop`, `onLeave` |
-| `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`        | ses mots                                                                                           | `pageOf(place, count)`, `close`                                                                                                                                         |
+| Unité                                                | But                                                                                                | Contrat                                                                                                                                                                              |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pager.component.ts` `PagerComponent`                | faire défiler des pages à l'horizontale, une à la fois, et dire où le lecteur s'est arrêté         | `index` ; `indexChange`, à la fin du défilement seulement                                                                                                                            |
+| `pager-page.component.ts` `PagerPageComponent`       | une page, qui défile seule à la verticale, hors d'atteinte quand elle n'est pas la page posée      | projetée dans `app-pager` ; écrit `inert`, `data-current`, son nom                                                                                                                   |
+| `pager.rules.ts`                                     | la page d'une position, la position d'une page : `clampPage`, `pageAt`, `offsetOfPage`, `isAt`     | pures                                                                                                                                                                                |
+| `card-carousel.component.ts` `CardCarouselComponent` | faire défiler des cartes touchables, la suivante au bord, et dire où le lecteur s'est arrêté (D58) | `items`, `active`, `label`, `controls`, un `ng-template` par carte ; `activeChange`, à la fin du défilement seulement ; `chosen`, au toucher                                         |
+| `carousel.rules.ts`                                  | la carte d'une position, la position qui centre une carte : `cardAt`, `centredOffset`              | pures                                                                                                                                                                                |
+| `bottom-sheet.component.ts` `BottomSheetComponent`   | une feuille à crans (replié, mi-hauteur, plein), déplacée par le défilement natif d'un rail (D64)  | `detents`, `detent` (model, dit à la fin du défilement) ; `toggle()`, `hold(handle)` ; écrit `data-active`, `data-detent`, `--mnav-sheet-band`                                       |
+| `bottom-sheet.rules.ts`                              | les crans d'un rail, le cran d'un lâcher : `stopsOf`, `stopOf`, `detentAfter`, `speedOf`           | pures                                                                                                                                                                                |
+| `action-menu.component.ts` `ActionMenuComponent`     | une feuille d'actions qui monte du bas, sur un `<dialog>` modal (D60)                              | `heading`, `open` (model), des rangées projetées ; `dismiss()`                                                                                                                       |
+| `action-row.directive.ts` `ActionRowDirective`       | une rangée de la feuille, sur un `<a>` ou un `<button>` : icône (`svg`), libellé, 44 px            | `keepsOpen` ; sinon ferme la feuille au toucher                                                                                                                                      |
+| `back-layers.service.ts` `BackLayersService`         | le bouton retour ferme d'abord ce qui est ouvert                                                   | `push(onBack)` rend la fonction qui relâche la couche                                                                                                                                |
+| `back-layers.rules.ts`                               | l'état d'une couche dans l'historique : `withLayer`, `layerOf`, `closedBy`, `stepsBack`            | pures                                                                                                                                                                                |
+| `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM`  | le navigateur de la librairie, inerte au serveur                                                   | `isCompact`, `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`, `whenStill`, `closesOnBack`, `historyState`, `pushHistory`, `historyBack`, `onHistoryPop`, `onLeave` |
+| `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`        | ses mots                                                                                           | `pageOf(place, count)`, `close`                                                                                                                                                      |
 
 - `provideMobileNav()` (`pages/providers/`) répond à `MOBILE_NAV_PLATFORM`
   avec les services de `core/services/browser/` et `core/services/history/`,
@@ -867,7 +860,7 @@ src/app/
   features/observatory/components/observatory-dock/ observatory-dock.component
   features/observatory/components/observatory-scene/ observatory-scene.component
   features/observatory/components/planet-buttons/ planet-buttons.component
-  features/observatory/directives/             view-slot.directive
+  features/observatory/directives/             view-slot.directive · window-sheet.directive
   features/observatory/models/                 observatory-ids.model · observatory.model
   features/observatory/ports/                  observatory-texts.port
   features/observatory/rules/                  scene-direction.rules · view.rules
@@ -903,12 +896,14 @@ src/app/
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component
   shared/mobile-nav/components/action-menu/    action-menu.component
+  shared/mobile-nav/components/bottom-sheet/   bottom-sheet.component
   shared/mobile-nav/components/card-carousel/  card-carousel.component
   shared/mobile-nav/components/pager/          pager.component
   shared/mobile-nav/components/pager-page/     pager-page.component
   shared/mobile-nav/directives/                action-row.directive
+  shared/mobile-nav/models/                    bottom-sheet.model
   shared/mobile-nav/ports/                     mobile-nav-platform.port · mobile-nav-texts.port
-  shared/mobile-nav/rules/                     back-layers.rules · carousel.rules · pager.rules
+  shared/mobile-nav/rules/                     back-layers.rules · bottom-sheet.rules · carousel.rules · pager.rules
   shared/mobile-nav/services/                  back-layers.service
   shared/space-scene/components/space-scene/   space-scene.component
   shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
@@ -939,12 +934,10 @@ src/app/
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
   shared/windows/components/window-controls/   window-controls.component
-  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · glass-gesture.directive · kept-window.directive · remember-scroll.directive · scroll-stops.directive · stacked-window.directive
-  shared/windows/models/                       glass-gesture.model · window.model
-  shared/windows/ports/                        window-texts.port
-  shared/windows/rules/                        glass-gesture.rules
+  shared/windows/directives/                   double-press.directive · draggable.directive · fit-height.directive · kept-window.directive · remember-scroll.directive · stacked-window.directive
+  shared/windows/models/                       window.model
+  shared/windows/ports/                        window-fold.port · window-texts.port
   shared/windows/services/                     scroll-memory.service · window-stack.service
-  shared/windows/trackers/                     glass-gesture.tracker
 ```
 
 ## 6. Comment on en est arrivé là

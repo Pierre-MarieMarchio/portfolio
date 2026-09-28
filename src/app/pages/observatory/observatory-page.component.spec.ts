@@ -1,4 +1,4 @@
-import { DebugElement, signal } from '@angular/core';
+import { DebugElement } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import {
@@ -13,8 +13,6 @@ import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
 import { LayoutAnchorsService } from '@shared/ui/services';
-import { FormatCodeService } from '@app/core/services';
-import { loadGlassGestures } from '@shared/windows/directives';
 import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
 import { FeaturedBarComponent } from '@app/features/projects/components';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
@@ -58,7 +56,6 @@ describe('ObservatoryPageComponent', () => {
   const mount = async (
     options: {
       reducedMotion?: boolean;
-      formatCode?: Pick<FormatCodeService, 'load'>;
       address?: string;
     } = {},
   ) => {
@@ -73,9 +70,6 @@ describe('ObservatoryPageComponent', () => {
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(ENTRIES, [ObservatoryEffect]),
         provideMobileNav(),
-        options.formatCode
-          ? [{ provide: FormatCodeService, useValue: options.formatCode }]
-          : [],
       ],
     });
     await loadProjects();
@@ -585,13 +579,5 @@ describe('ObservatoryPageComponent', () => {
 
     expect(nav).not.toBeNull();
     expect(TestBed.inject(LayoutAnchorsService).list('chrome')).toContain(nav);
-  });
-
-  it('asks for the code of the glass gestures as it starts, before any window opens', async () => {
-    const load = vi.fn(() => signal(null).asReadonly());
-    const { host } = await mount({ formatCode: { load } });
-
-    expect(host.querySelector('app-window')).toBeNull();
-    expect(load).toHaveBeenCalledWith(['phone'], loadGlassGestures);
   });
 });

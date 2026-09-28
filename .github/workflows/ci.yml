@@ -93,7 +93,7 @@ jobs:
           path: coverage
       # A fork's pull request gets no secret: it is analysed once merged.
       - if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v8
         with:
           args: -Dsonar.qualitygate.wait=true
 

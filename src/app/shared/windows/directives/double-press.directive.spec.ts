@@ -47,59 +47,43 @@ const setup = async () => {
 };
 
 describe('DoublePressDirective', () => {
-  it('answers two taps in a row', async () => {
+  it.each<
+    readonly [string, readonly (readonly [Press, Partial<Press>?])[], number]
+  >([
+    ['answers two taps in a row', [[{ at: 1000 }], [{ x: 108, at: 1250 }]], 1],
+    [
+      'answers a pen as it answers a finger',
+      [[{ at: 1000, kind: 'pen' }], [{ at: 1200, kind: 'pen' }]],
+      1,
+    ],
+    [
+      'starts over after answering',
+      [[{ at: 1000 }], [{ at: 1100 }], [{ at: 1200 }]],
+      1,
+    ],
+    [
+      'does not answer two taps too far apart in time',
+      [[{ at: 1000 }], [{ at: 1400 }]],
+      0,
+    ],
+    [
+      'does not answer two taps too far apart on the screen',
+      [[{ at: 1000 }], [{ x: 160, at: 1200 }]],
+      0,
+    ],
+    [
+      'does not count a drag as a tap',
+      [[{ at: 1000 }, { x: 180 }], [{ at: 1200 }]],
+      0,
+    ],
+  ])('%s', async (_, taps, answers) => {
     const { tap, count } = await setup();
 
-    tap({ at: 1000 });
-    tap({ x: 108, at: 1250 });
+    for (const [press, release] of taps) {
+      tap(press, release);
+    }
 
-    expect(count()).toBe(1);
-  });
-
-  it('answers a pen as it answers a finger', async () => {
-    const { tap, count } = await setup();
-
-    tap({ at: 1000, kind: 'pen' });
-    tap({ at: 1200, kind: 'pen' });
-
-    expect(count()).toBe(1);
-  });
-
-  it('starts over after answering', async () => {
-    const { tap, count } = await setup();
-
-    tap({ at: 1000 });
-    tap({ at: 1100 });
-    tap({ at: 1200 });
-
-    expect(count()).toBe(1);
-  });
-
-  it('does not answer two taps too far apart in time', async () => {
-    const { tap, count } = await setup();
-
-    tap({ at: 1000 });
-    tap({ at: 1400 });
-
-    expect(count()).toBe(0);
-  });
-
-  it('does not answer two taps too far apart on the screen', async () => {
-    const { tap, count } = await setup();
-
-    tap({ at: 1000 });
-    tap({ x: 160, at: 1200 });
-
-    expect(count()).toBe(0);
-  });
-
-  it('does not count a drag as a tap', async () => {
-    const { tap, count } = await setup();
-
-    tap({ at: 1000 }, { x: 180 });
-    tap({ at: 1200 });
-
-    expect(count()).toBe(0);
+    expect(count()).toBe(answers);
   });
 
   it('does not count a tap on a control', async () => {

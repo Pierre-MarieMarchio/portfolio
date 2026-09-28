@@ -1,4 +1,5 @@
 import { PLANET_GAP, repel, ScreenPoint } from './planet-spacing.rules';
+import { tupleOf } from '@testing/fixtures/testbed.fixture';
 
 const distance = (a: ScreenPoint, b: ScreenPoint): number =>
   Math.hypot(a.sx - b.sx, a.sy - b.sy);
@@ -10,10 +11,8 @@ describe('repel', () => {
       { sx: 100, sy: 100 },
     ];
     repel(points, 2, PLANET_GAP);
-    const [a, b] = points;
-    if (!a || !b) {
-      throw new Error('expected two points');
-    }
+    const [a, b] = tupleOf(points, 2);
+
     expect(distance(a, b)).toBeGreaterThanOrEqual(PLANET_GAP - 0.001);
   });
 
@@ -37,13 +36,9 @@ describe('repel', () => {
       sy: 200 + i * 3,
     }));
     repel(points, 4, PLANET_GAP);
-    for (let i = 0; i < points.length; i++) {
-      for (let j = i + 1; j < points.length; j++) {
-        const a = points[i];
-        const b = points[j];
-        if (a && b) {
-          expect(distance(a, b)).toBeGreaterThan(PLANET_GAP * 0.8);
-        }
+    for (const [i, a] of points.entries()) {
+      for (const b of points.slice(i + 1)) {
+        expect(distance(a, b)).toBeGreaterThan(PLANET_GAP * 0.8);
       }
     }
   });

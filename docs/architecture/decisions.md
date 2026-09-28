@@ -1733,3 +1733,30 @@ Supprimer `animation.manager.spec.ts` : son test « état en lecture seule »
 n'existe nulle part ailleurs. Couper le titre de chapitre par défaut de la
 fiche : c'est le seul test qui montre que la fiche passe ses titres à
 `chapterTitle`.
+
+## 2026-09-28 — Les libs de `shared/` testent ce qu'on voit d'elles (D55, étend D54)
+
+**Décision.** La règle de D54 vaut pour la scène, les fenêtres et `ui/`. Un
+test qui lisait l'état interne de la scène (le plateau, l'horloge de la
+traversée) part s'il redit `turntable.motion.spec` ou `traveling.rules.spec`,
+ou se réécrit sur ce qui est dessiné. Une règle pure se teste dans le spec de
+son fichier : `fitOrbits` et la traversée quittent les specs du moteur et de
+la caméra. Les contrôles d'une fenêtre se trouvent par leur nom accessible,
+plus par leur rang. `window.model.spec`, `window-texts.port.spec` et
+`scroll-memory.service.spec` disparaissent : ils figeaient une constante,
+testaient Angular, ou redisaient `remember-scroll`. Le golden ne bouge pas.
+
+**Raison.** La couverture monte de 20 lignes et 19 branches : les tests qui
+partent redisaient, et ceux qui arrivent tiennent un comportement sans test.
+La souris suit la scène et pas le doigt, un onglet caché ne lance pas la
+boucle, la caméra déplacée passe de la page au worker et en revient, un
+geste annulé relâche le zoom. `AnimatedCanvasService` retestait les services
+qu'il appelle ; son spec vérifie maintenant ce qu'il décide (dessiner hors du
+fil principal ou non, et se replier si le navigateur refuse). Un bouton
+d'agrandissement ajouté à la fenêtre (session 6) ne cassera pas les tests des
+autres.
+
+**Écarté.** Tester l'ordre entre le calage des orbites et la visée de la
+caméra : inverser les deux lignes ne change rien de visible, aucun test ne
+peut le tenir. Tester le garde `if (!container)` de `BottomEdgeVariable` :
+aucun rendu réel n'y mène.

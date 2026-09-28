@@ -1,6 +1,7 @@
 import { SpaceSceneEngine } from './space-scene.engine';
 import type { SceneEngine } from '../models/scene-engine.model';
-import { drivenHost } from '@testing/doubles/driven-host.double';
+import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
+import { SkyPanMotion } from './motions/sky-pan.motion';
 import { recordingContext } from '@testing/doubles/recording-canvas.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
 import {
@@ -157,5 +158,33 @@ describe('RemoteSceneEngine', { timeout: 30_000 }, () => {
     await paired.run(PAST_CROSSING_MS);
 
     expect(paired.travels.slice(before)).toEqual([true, false]);
+  });
+
+  it('sends the pan of the page to the worker, and takes back the pan it eases', async () => {
+    const pan = new SkyPanMotion();
+    const paired = pairedScene();
+    const nodes = sceneNodes();
+    drive(paired.engine, nodes);
+    const inputs = { ...SCENE_INPUTS, format: 'desktop' as const, pan };
+    paired.engine.setInputs(inputs);
+    await paired.run(PAST_CROSSING_MS);
+    const before = Number(nodes.hole.dataset['holeX']);
+
+    pan.by(-120, 0);
+    paired.engine.request();
+    await paired.run(FRAME_MS);
+    expect(Number(nodes.hole.dataset['holeX'])).toBeCloseTo(before - 120, 0);
+
+    paired.engine.setInputs({
+      ...inputs,
+      direction: {
+        ...SCENE_INPUTS.direction,
+        framing: { kind: 'overview' },
+        labels: 'tags',
+      },
+    });
+    await paired.run(FRAME_MS * 3);
+    expect(pan.x).toBeLessThan(0);
+    expect(pan.x).toBeGreaterThan(-120);
   });
 });

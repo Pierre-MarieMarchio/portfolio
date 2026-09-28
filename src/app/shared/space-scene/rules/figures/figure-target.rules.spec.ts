@@ -102,23 +102,26 @@ describe('figureTargetOf', () => {
 });
 
 describe('isDraggedClick', () => {
-  const press = { x: 100, y: 100 };
-
-  it('takes a click that barely moved as a choice of the figure', () => {
-    expect(
-      isDraggedClick(press, { clientX: 104, clientY: 103, detail: 1 }),
-    ).toBe(false);
-  });
-
-  it('takes a click that ends a drag of the sky as no choice at all', () => {
-    expect(
-      isDraggedClick(press, { clientX: 130, clientY: 100, detail: 1 }),
-    ).toBe(true);
-  });
-
-  it('keeps a keyboard click, which has no press, as a choice', () => {
-    expect(isDraggedClick(null, { clientX: 0, clientY: 0, detail: 0 })).toBe(
-      false,
-    );
+  it.each([
+    {
+      click: 'a click that barely moved',
+      press: { x: 100, y: 100 },
+      at: { clientX: 104, clientY: 103, detail: 1 },
+      isDragged: false,
+    },
+    {
+      click: 'a click that ends a drag of the sky',
+      press: { x: 100, y: 100 },
+      at: { clientX: 130, clientY: 100, detail: 1 },
+      isDragged: true,
+    },
+    {
+      click: 'a keyboard click, which has no press',
+      press: null,
+      at: { clientX: 0, clientY: 0, detail: 0 },
+      isDragged: false,
+    },
+  ])('takes $click as a drag: $isDragged', ({ press, at, isDragged }) => {
+    expect(isDraggedClick(press, at)).toBe(isDragged);
   });
 });

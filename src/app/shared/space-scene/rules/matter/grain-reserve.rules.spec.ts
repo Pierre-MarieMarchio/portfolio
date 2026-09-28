@@ -5,19 +5,19 @@ const litAt = (share: number): number[] =>
     (i) => litAmount(i, share) > 0,
   );
 
-describe('litAmount (deterministic draw)', () => {
-  it('fades a point in as the share rises past it, never switching it on', () => {
-    const index = 7;
-    const key = (index * 7919) % 1000;
-    const at = (share: number): number => litAmount(index, share);
-    expect(at(key / 1000)).toBe(0);
-    expect(at((key + 10) / 1000)).toBeCloseTo(0.5, 5);
-    expect(at((key + 20) / 1000)).toBe(1);
-    expect(at(1)).toBe(1);
-  });
+const litOfSeventh = (share: number): number => litAmount(7, share);
 
-  it('lights the same points every time', () => {
-    expect(litAt(0.4)).toEqual(litAt(0.4));
+describe('litAmount (deterministic draw)', () => {
+  it('fades a point in over 2 % of the share as the share rises past it, never switching it on', () => {
+    const shares = Array.from({ length: 1000 }, (_, k) => k / 1000);
+    const lastDark = Math.max(
+      ...shares.filter((share) => litOfSeventh(share) === 0),
+    );
+
+    expect(lastDark).toBeLessThan(0.98);
+    expect(litOfSeventh(lastDark + 0.01)).toBeCloseTo(0.5, 5);
+    expect(litOfSeventh(lastDark + 0.02)).toBe(1);
+    expect(litOfSeventh(1)).toBe(1);
   });
 
   it('keeps every lit point lit when the share rises', () => {

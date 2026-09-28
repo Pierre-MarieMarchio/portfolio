@@ -42,3 +42,19 @@ export const at = <T>(items: readonly T[], index: number): T => {
   }
   return item;
 };
+
+type Tuple<T, N extends number, R extends T[] = []> = R['length'] extends N
+  ? R
+  : Tuple<T, N, [...R, T]>;
+
+export const tupleOf = <T, N extends number>(
+  items: readonly T[],
+  length: N,
+): Tuple<T, N> => {
+  if (items.length < length) {
+    throw new Error(
+      `expected ${String(length)} items, found ${String(items.length)}`,
+    );
+  }
+  return items.slice(0, length) as Tuple<T, N>;
+};

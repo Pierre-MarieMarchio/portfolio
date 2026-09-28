@@ -15,6 +15,14 @@ class Measured {
   public readonly size = elementSize(() => this.box().nativeElement);
 }
 
+const noElement = (): Element | undefined =>
+  document.querySelector('#none') ?? undefined;
+
+@Component({ template: '' })
+class Unmeasured {
+  public readonly size = elementSize(noElement);
+}
+
 const sized = (width: number, height: number) =>
   vi
     .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -37,7 +45,6 @@ describe('elementSize', () => {
   });
 
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -81,5 +88,14 @@ describe('elementSize', () => {
     const fixture = TestBed.createComponent(Measured);
 
     expect(fixture.componentInstance.size()).toBeNull();
+  });
+
+  it('measures nothing and follows nothing when there is no element', async () => {
+    TestBed.configureTestingModule({ imports: [Unmeasured] });
+    const fixture = TestBed.createComponent(Unmeasured);
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.size()).toBeNull();
+    expect(observers.flatMap((observer) => observer.observed)).toEqual([]);
   });
 });

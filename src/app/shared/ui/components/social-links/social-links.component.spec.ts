@@ -47,11 +47,7 @@ class RailWithControl {
   protected readonly links = LINKS;
 }
 
-describe('ContactRailComponent', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
+describe('SocialLinksComponent', () => {
   it('draws one named link per address, in order, with its icon', async () => {
     const { links } = await mount();
 

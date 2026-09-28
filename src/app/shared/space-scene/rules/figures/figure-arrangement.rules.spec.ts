@@ -93,27 +93,7 @@ describe('arrangeFigures', () => {
     expect(faultsOf(shapes, placements, ROOM, taken)).toEqual([]);
   });
 
-  it('keeps their shapes: one scale for all of them, never above one', () => {
-    const shapes = [
-      box(10, 600, 64, 36),
-      box(20, 700, 62, 79),
-      box(140, 650, 113, 100),
-    ];
-
-    const placements = arrangeFigures(shapes, {
-      room: box(8, 64, 200, 200),
-      taken: box(8, 64, 80, 80),
-      hole: null,
-      disc: null,
-      gap: 10,
-    });
-    const scales = new Set(placements.map((placement) => placement.scale));
-
-    expect(scales.size).toBe(1);
-    expect([...scales][0]).toBeLessThanOrEqual(1);
-  });
-
-  it('shrinks them together when the room is too small for them whole', () => {
+  it('shrinks them together, by one scale that keeps their shapes, when the room is too small for them whole', () => {
     const room = box(8, 64, 160, 160);
     const taken = box(8, 64, 80, 80);
     const shapes = [
@@ -130,6 +110,8 @@ describe('arrangeFigures', () => {
       gap: 10,
     });
 
+    const scales = new Set(placements.map((placement) => placement.scale));
+    expect(scales.size).toBe(1);
     expect(placements[0]?.scale).toBeLessThan(1);
     expect(faultsOf(shapes, placements, room, taken)).toEqual([]);
   });
@@ -158,20 +140,5 @@ describe('arrangeFigures', () => {
         false,
       );
     }
-  });
-
-  it('gives the same arrangement for the same sky', () => {
-    const shapes = [box(10, 600, 64, 36), box(140, 650, 113, 100)];
-    const around = {
-      room: ROOM,
-      taken: box(60, 90, 120, 110),
-      hole: { cx: 195, cy: 281, radius: 84 },
-      disc: null,
-      gap: 10,
-    };
-
-    expect(arrangeFigures(shapes, around)).toEqual(
-      arrangeFigures(shapes, around),
-    );
   });
 });

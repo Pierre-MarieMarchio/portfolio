@@ -1,4 +1,9 @@
-import { GlassPress, GlassRelease } from '../models/glass-gesture.model';
+import {
+  GlassGesture,
+  GlassIntent,
+  GlassPress,
+  GlassRelease,
+} from '../models/glass-gesture.model';
 import {
   glassGestureOf,
   glassIntentOf,
@@ -29,136 +34,266 @@ const released = (overrides: Partial<GlassRelease>): GlassRelease => ({
 });
 
 describe('glassIntentOf', () => {
-  it('waits while the finger stays within 6 px', () => {
-    expect(glassIntentOf(OPEN_ON_BAR, 3, 5)).toBe('pending');
-  });
-
-  it('pulls an open glass down when its press can pull', () => {
-    expect(glassIntentOf(OPEN_ON_BAR, 1, 8)).toBe('pull');
-    expect(glassIntentOf(ON_BODY, 0, 10)).toBe('pull');
-  });
-
-  it('leaves a downward drag to the native scroll when the press cannot pull', () => {
-    expect(glassIntentOf(pressOn({ canPull: false }), 0, 10)).toBe('native');
-    expect(
-      glassIntentOf(pressOn({ zone: 'toolbar', canPull: false }), 0, 10),
-    ).toBe('native');
-  });
-
-  it('leaves an upward drag of an open glass to the native scroll', () => {
-    expect(glassIntentOf(OPEN_ON_BAR, 0, -10)).toBe('native');
-    expect(glassIntentOf(ON_BODY, 0, -10)).toBe('native');
-  });
-
-  it('lifts a folded glass up from its bar', () => {
-    expect(glassIntentOf(FOLDED, 2, -9)).toBe('lift');
-    expect(glassIntentOf(FOLDED, 0, 9)).toBe('native');
-  });
-
-  it('swipes sideways from the toolbar or the body of an open glass', () => {
-    expect(glassIntentOf(pressOn({ zone: 'toolbar' }), -9, 2)).toBe('swipe');
-    expect(
-      glassIntentOf(pressOn({ zone: 'body', canPull: false }), 9, -2),
-    ).toBe('swipe');
-  });
-
-  it('leaves a sideways drag to an element that scrolls sideways itself', () => {
-    const onScroller = pressOn({ zone: 'toolbar', isOnSideScroller: true });
-
-    expect(glassIntentOf(onScroller, -12, 0)).toBe('native');
-  });
-
-  it('does not swipe from the bar, nor a folded glass', () => {
-    expect(glassIntentOf(OPEN_ON_BAR, 12, 0)).toBe('native');
-    expect(
-      glassIntentOf(pressOn({ zone: 'body', isFolded: true }), 12, 0),
-    ).toBe('native');
+  it.each<{
+    readonly name: string;
+    readonly press: GlassPress;
+    readonly dx: number;
+    readonly dy: number;
+    readonly intent: GlassIntent;
+  }>([
+    {
+      name: 'waits while the finger stays within 6 px',
+      press: OPEN_ON_BAR,
+      dx: 3,
+      dy: 5,
+      intent: 'pending',
+    },
+    {
+      name: 'pulls an open glass down from its bar',
+      press: OPEN_ON_BAR,
+      dx: 1,
+      dy: 8,
+      intent: 'pull',
+    },
+    {
+      name: 'pulls an open glass down from its body',
+      press: ON_BODY,
+      dx: 0,
+      dy: 10,
+      intent: 'pull',
+    },
+    {
+      name: 'leaves a downward drag to the native scroll when the press cannot pull',
+      press: pressOn({ canPull: false }),
+      dx: 0,
+      dy: 10,
+      intent: 'native',
+    },
+    {
+      name: 'leaves a downward drag of the toolbar to the native scroll when it cannot pull',
+      press: pressOn({ zone: 'toolbar', canPull: false }),
+      dx: 0,
+      dy: 10,
+      intent: 'native',
+    },
+    {
+      name: 'leaves an upward drag of an open bar to the native scroll',
+      press: OPEN_ON_BAR,
+      dx: 0,
+      dy: -10,
+      intent: 'native',
+    },
+    {
+      name: 'leaves an upward drag of an open body to the native scroll',
+      press: ON_BODY,
+      dx: 0,
+      dy: -10,
+      intent: 'native',
+    },
+    {
+      name: 'lifts a folded glass up from its bar',
+      press: FOLDED,
+      dx: 2,
+      dy: -9,
+      intent: 'lift',
+    },
+    {
+      name: 'leaves a downward drag of a folded glass to the native scroll',
+      press: FOLDED,
+      dx: 0,
+      dy: 9,
+      intent: 'native',
+    },
+    {
+      name: 'swipes sideways from the toolbar of an open glass',
+      press: pressOn({ zone: 'toolbar' }),
+      dx: -9,
+      dy: 2,
+      intent: 'swipe',
+    },
+    {
+      name: 'swipes sideways from the body of an open glass',
+      press: pressOn({ zone: 'body', canPull: false }),
+      dx: 9,
+      dy: -2,
+      intent: 'swipe',
+    },
+    {
+      name: 'leaves a sideways drag to an element that scrolls sideways itself',
+      press: pressOn({ zone: 'toolbar', isOnSideScroller: true }),
+      dx: -12,
+      dy: 0,
+      intent: 'native',
+    },
+    {
+      name: 'does not swipe from the bar',
+      press: OPEN_ON_BAR,
+      dx: 12,
+      dy: 0,
+      intent: 'native',
+    },
+    {
+      name: 'does not swipe a folded glass',
+      press: pressOn({ zone: 'body', isFolded: true }),
+      dx: 12,
+      dy: 0,
+      intent: 'native',
+    },
+  ])('$name', ({ press, dx, dy, intent }) => {
+    expect(glassIntentOf(press, dx, dy)).toBe(intent);
   });
 });
 
 describe('glassGestureOf', () => {
-  it('folds a pull of 64 px or more', () => {
-    expect(glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 64 }))).toBe(
-      'fold',
-    );
-    expect(glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 63 }))).toBe(
-      'none',
-    );
-  });
-
-  it('folds a short pull let go faster than 0.6 px/ms downwards', () => {
-    expect(
-      glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 20, vy: 0.61 })),
-    ).toBe('fold');
-    expect(
-      glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 20, vy: 0.6 })),
-    ).toBe('none');
-    expect(
-      glassGestureOf('pull', OPEN_ON_BAR, released({ dy: 20, vy: -0.9 })),
-    ).toBe('none');
-  });
-
-  it('unfolds a lift of 48 px or more, or let go faster than 0.6 px/ms upwards', () => {
-    expect(glassGestureOf('lift', FOLDED, released({ dy: -48 }))).toBe(
-      'unfold',
-    );
-    expect(glassGestureOf('lift', FOLDED, released({ dy: -47 }))).toBe('none');
-    expect(
-      glassGestureOf('lift', FOLDED, released({ dy: -12, vy: -0.7 })),
-    ).toBe('unfold');
-  });
-
-  it('unfolds a folded glass on a tap of its bar, and nothing else', () => {
-    expect(glassGestureOf('pending', FOLDED, released({ dx: 2 }))).toBe(
-      'unfold',
-    );
-    expect(glassGestureOf('pending', OPEN_ON_BAR, released({}))).toBe('none');
-    expect(
-      glassGestureOf(
-        'pending',
-        pressOn({ zone: 'body', isFolded: true }),
-        released({}),
-      ),
-    ).toBe('none');
-  });
-
-  it('turns a swipe to the left into next, to the right into previous', () => {
-    expect(glassGestureOf('swipe', ON_BODY, released({ dx: -56 }))).toBe(
-      'next',
-    );
-    expect(glassGestureOf('swipe', ON_BODY, released({ dx: 56 }))).toBe(
-      'previous',
-    );
-    expect(glassGestureOf('swipe', ON_BODY, released({ dx: -55 }))).toBe(
-      'none',
-    );
-  });
-
-  it('asks a swipe to be more than 1.5 times as wide as it is tall', () => {
-    expect(
-      glassGestureOf('swipe', ON_BODY, released({ dx: -90, dy: 60 })),
-    ).toBe('none');
-    expect(
-      glassGestureOf('swipe', ON_BODY, released({ dx: -91, dy: 60 })),
-    ).toBe('next');
-  });
-
-  it('turns a short swipe let go faster than 0.5 px/ms into a step', () => {
-    expect(
-      glassGestureOf('swipe', ON_BODY, released({ dx: -20, vx: -0.51 })),
-    ).toBe('next');
-    expect(
-      glassGestureOf('swipe', ON_BODY, released({ dx: 20, vx: 0.51 })),
-    ).toBe('previous');
-    expect(
-      glassGestureOf('swipe', ON_BODY, released({ dx: -20, vx: 0.9 })),
-    ).toBe('none');
-  });
-
-  it('never acts on a native drag', () => {
-    expect(
-      glassGestureOf('native', OPEN_ON_BAR, released({ dy: 200, vy: 3 })),
-    ).toBe('none');
+  it.each<{
+    readonly name: string;
+    readonly intent: GlassIntent;
+    readonly press: GlassPress;
+    readonly release: Partial<GlassRelease>;
+    readonly gesture: GlassGesture;
+  }>([
+    {
+      name: 'folds a pull of 64 px',
+      intent: 'pull',
+      press: OPEN_ON_BAR,
+      release: { dy: 64 },
+      gesture: 'fold',
+    },
+    {
+      name: 'leaves a pull of 63 px',
+      intent: 'pull',
+      press: OPEN_ON_BAR,
+      release: { dy: 63 },
+      gesture: 'none',
+    },
+    {
+      name: 'folds a short pull let go faster than 0.6 px/ms downwards',
+      intent: 'pull',
+      press: OPEN_ON_BAR,
+      release: { dy: 20, vy: 0.61 },
+      gesture: 'fold',
+    },
+    {
+      name: 'leaves a short pull let go at 0.6 px/ms',
+      intent: 'pull',
+      press: OPEN_ON_BAR,
+      release: { dy: 20, vy: 0.6 },
+      gesture: 'none',
+    },
+    {
+      name: 'leaves a short pull let go fast upwards',
+      intent: 'pull',
+      press: OPEN_ON_BAR,
+      release: { dy: 20, vy: -0.9 },
+      gesture: 'none',
+    },
+    {
+      name: 'unfolds a lift of 48 px',
+      intent: 'lift',
+      press: FOLDED,
+      release: { dy: -48 },
+      gesture: 'unfold',
+    },
+    {
+      name: 'leaves a lift of 47 px',
+      intent: 'lift',
+      press: FOLDED,
+      release: { dy: -47 },
+      gesture: 'none',
+    },
+    {
+      name: 'unfolds a short lift let go faster than 0.6 px/ms upwards',
+      intent: 'lift',
+      press: FOLDED,
+      release: { dy: -12, vy: -0.7 },
+      gesture: 'unfold',
+    },
+    {
+      name: 'unfolds a folded glass on a tap of its bar',
+      intent: 'pending',
+      press: FOLDED,
+      release: { dx: 2 },
+      gesture: 'unfold',
+    },
+    {
+      name: 'does nothing on a tap of an open bar',
+      intent: 'pending',
+      press: OPEN_ON_BAR,
+      release: {},
+      gesture: 'none',
+    },
+    {
+      name: 'does nothing on a tap of a folded body',
+      intent: 'pending',
+      press: pressOn({ zone: 'body', isFolded: true }),
+      release: {},
+      gesture: 'none',
+    },
+    {
+      name: 'turns a swipe of 56 px to the left into next',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: -56 },
+      gesture: 'next',
+    },
+    {
+      name: 'turns a swipe of 56 px to the right into previous',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: 56 },
+      gesture: 'previous',
+    },
+    {
+      name: 'leaves a swipe of 55 px',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: -55 },
+      gesture: 'none',
+    },
+    {
+      name: 'leaves a swipe only 1.5 times as wide as it is tall',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: -90, dy: 60 },
+      gesture: 'none',
+    },
+    {
+      name: 'takes a swipe more than 1.5 times as wide as it is tall',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: -91, dy: 60 },
+      gesture: 'next',
+    },
+    {
+      name: 'turns a short swipe let go faster than 0.5 px/ms to the left into next',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: -20, vx: -0.51 },
+      gesture: 'next',
+    },
+    {
+      name: 'turns a short swipe let go faster than 0.5 px/ms to the right into previous',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: 20, vx: 0.51 },
+      gesture: 'previous',
+    },
+    {
+      name: 'leaves a short swipe let go fast the other way',
+      intent: 'swipe',
+      press: ON_BODY,
+      release: { dx: -20, vx: 0.9 },
+      gesture: 'none',
+    },
+    {
+      name: 'never acts on a native drag',
+      intent: 'native',
+      press: OPEN_ON_BAR,
+      release: { dy: 200, vy: 3 },
+      gesture: 'none',
+    },
+  ])('$name', ({ intent, press, release, gesture }) => {
+    expect(glassGestureOf(intent, press, released(release))).toBe(gesture);
   });
 });
 

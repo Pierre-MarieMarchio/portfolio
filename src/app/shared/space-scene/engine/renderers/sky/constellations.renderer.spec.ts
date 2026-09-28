@@ -197,25 +197,25 @@ const faultsOf = (phone: Phone, part: string, box: Box): string[] => {
   ];
 };
 
-const litFaultsOf = (phone: Phone, format: DisplayFormat): string[] => {
-  const faults: string[] = [];
-  for (let lit = 0; lit < FIGURE_COUNT; lit++) {
-    const { figures, disc } = drawnSky(phone, lit, format);
-    const drawn = figures[lit];
-    const where = `figure ${String(lit)}`;
-    if (!drawn || drawn.stars.length === 0 || !drawn.name) {
-      faults.push(`${where}: not drawn`);
-      continue;
-    }
-    faults.push(
-      ...faultsOf(phone, `${where} stars`, starsBoxOf(drawn.stars)),
-      ...faultsOf(phone, `${where} name`, drawn.name),
-      ...(isBoxOverDisc(disc, drawn.name, 0)
-        ? [`${where} name over the disc`]
-        : []),
-    );
+type DrawnSky = ReturnType<typeof drawnSky>;
+
+const litFaultsIn = (
+  phone: Phone,
+  lit: number,
+  { figures, disc }: DrawnSky,
+): string[] => {
+  const drawn = figures[lit];
+  const where = `figure ${String(lit)}`;
+  if (!drawn || drawn.stars.length === 0 || !drawn.name) {
+    return [`${where}: not drawn`];
   }
-  return faults;
+  return [
+    ...faultsOf(phone, `${where} stars`, starsBoxOf(drawn.stars)),
+    ...faultsOf(phone, `${where} name`, drawn.name),
+    ...(isBoxOverDisc(disc, drawn.name, 0)
+      ? [`${where} name over the disc`]
+      : []),
+  ];
 };
 
 const crossingsOf = (
@@ -233,44 +233,52 @@ const crossingsOf = (
       : []),
   ]);
 
-const skyFaultsOf = (phone: Phone): string[] => {
-  const faults: string[] = [];
-  for (let lit = 0; lit < FIGURE_COUNT; lit++) {
-    const { figures } = drawnSky(phone, lit, 'phone');
-    const when = `lit ${String(lit)}`;
-    if (figures.length !== FIGURE_COUNT) {
-      faults.push(`${when}: ${String(figures.length)} figures drawn`);
-      continue;
-    }
-    const boxes = figures.map((figure) => starsBoxOf(figure.stars));
-    faults.push(
-      ...boxes.flatMap((box, k) =>
-        faultsOf(phone, `${when}, figure ${String(k)} stars`, box),
-      ),
-      ...crossingsOf(boxes, figures[lit]?.name ?? null, lit).map(
-        (fault) => `${when}, ${fault}`,
-      ),
-    );
+const skyFaultsIn = (
+  phone: Phone,
+  lit: number,
+  { figures }: DrawnSky,
+): string[] => {
+  const when = `lit ${String(lit)}`;
+  if (figures.length !== FIGURE_COUNT) {
+    return [`${when}: ${String(figures.length)} figures drawn`];
   }
-  return faults;
+  const boxes = figures.map((figure) => starsBoxOf(figure.stars));
+  return [
+    ...boxes.flatMap((box, k) =>
+      faultsOf(phone, `${when}, figure ${String(k)} stars`, box),
+    ),
+    ...crossingsOf(boxes, figures[lit]?.name ?? null, lit).map(
+      (fault) => `${when}, ${fault}`,
+    ),
+  ];
 };
+
+const faultsOverLit = (
+  phone: Phone,
+  format: DisplayFormat,
+  faultsIn: (phone: Phone, lit: number, sky: DrawnSky) => string[],
+): string[] =>
+  Array.from({ length: FIGURE_COUNT }, (_, lit) =>
+    faultsIn(phone, lit, drawnSky(phone, lit, format)),
+  ).flat();
 
 describe('ConstellationsRenderer, the lit figure in a free sky', () => {
   for (const phone of PHONES) {
     it(`draws each lit figure and its name whole in the free sky, off the disc, at ${phone.name}`, () => {
-      expect(litFaultsOf(phone, 'desktop')).toEqual([]);
+      expect(faultsOverLit(phone, 'desktop', litFaultsIn)).toEqual([]);
     }, 60_000);
   }
 });
 
 describe('ConstellationsRenderer, the four figures on a phone', () => {
   for (const phone of PHONES) {
-    it(`keeps the lit figure and its name whole in the free sky, off the disc, at ${phone.name}`, () => {
-      expect(litFaultsOf(phone, 'phone')).toEqual([]);
-    }, 60_000);
-
-    it(`ranges all four figures whole in the free sky, apart from each other, at ${phone.name}`, () => {
-      expect(skyFaultsOf(phone)).toEqual([]);
+    it(`keeps the lit figure and its name whole in the free sky, off the disc, and ranges all four figures apart from each other, at ${phone.name}`, () => {
+      expect(
+        faultsOverLit(phone, 'phone', (at, lit, sky) => [
+          ...litFaultsIn(at, lit, sky),
+          ...skyFaultsIn(at, lit, sky),
+        ]),
+      ).toEqual([]);
     }, 60_000);
   }
 });

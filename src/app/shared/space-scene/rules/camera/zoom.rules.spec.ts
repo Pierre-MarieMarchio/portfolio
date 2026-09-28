@@ -53,28 +53,36 @@ describe('zoom rules', () => {
     expect(anchor).toBeLessThanOrEqual(WIDTH);
   });
 
-  it('tells a new view, chapter, section or preview from the same one', () => {
-    const rest = stateOf({ framing: 'rest' });
-    expect(isSameFraming(rest, stateOf({ emphasised: 2 }))).toBe(true);
-    expect(isSameFraming(rest, stateOf({ framing: 'overview' }))).toBe(false);
-    expect(
-      isSameFraming(
-        stateOf({ framing: 'approach', framed: 1, step: 0 }),
-        stateOf({ framing: 'approach', framed: 1, step: 1 }),
-      ),
-    ).toBe(false);
-    expect(
-      isSameFraming(
-        stateOf({ framing: 'aside', litFigure: 0 }),
-        stateOf({ framing: 'aside', litFigure: 1 }),
-      ),
-    ).toBe(false);
-    expect(
-      isSameFraming(
-        stateOf({ framing: 'close-up', framed: 0 }),
-        stateOf({ framing: 'close-up', framed: 2 }),
-      ),
-    ).toBe(false);
+  it.each<readonly [string, boolean, Partial<SceneState>, Partial<SceneState>]>(
+    [
+      [
+        'the same view with another planet emphasised',
+        true,
+        { framing: 'rest' },
+        { emphasised: 2 },
+      ],
+      ['a new view', false, { framing: 'rest' }, { framing: 'overview' }],
+      [
+        'a new chapter',
+        false,
+        { framing: 'approach', framed: 1, step: 0 },
+        { framing: 'approach', framed: 1, step: 1 },
+      ],
+      [
+        'a new section',
+        false,
+        { framing: 'aside', litFigure: 0 },
+        { framing: 'aside', litFigure: 1 },
+      ],
+      [
+        'a new preview',
+        false,
+        { framing: 'close-up', framed: 0 },
+        { framing: 'close-up', framed: 2 },
+      ],
+    ],
+  )('takes %s for the same framing: %s', (_, isSame, from, to) => {
+    expect(isSameFraming(stateOf(from), stateOf(to))).toBe(isSame);
   });
 
   it('looks closer on a double tap only at the rest of the home', () => {

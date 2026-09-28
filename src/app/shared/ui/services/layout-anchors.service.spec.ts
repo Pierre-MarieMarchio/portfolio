@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { LayoutAnchorsService } from './layout-anchors.service';
+import { tupleOf } from '@testing/fixtures/testbed.fixture';
 
 const elements = (count: number): HTMLElement[] => {
   const all = Array.from({ length: count }, (_, index) => {
@@ -16,16 +17,12 @@ const ids = (list: readonly HTMLElement[]): string[] =>
 
 describe('LayoutAnchorsService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     document.body.replaceChildren();
   });
 
   it('lists the elements of one kind in document order, whatever order they signed in', () => {
     const anchors = TestBed.inject(LayoutAnchorsService);
-    const [first, second, third] = elements(3);
-    if (!first || !second || !third) {
-      throw new Error('expected three elements');
-    }
+    const [first, second, third] = tupleOf(elements(3), 3);
 
     anchors.register(third, 'line');
     anchors.register(first, 'line');
@@ -36,10 +33,7 @@ describe('LayoutAnchorsService', () => {
 
   it('keeps each kind apart', () => {
     const anchors = TestBed.inject(LayoutAnchorsService);
-    const [head, line] = elements(2);
-    if (!head || !line) {
-      throw new Error('expected two elements');
-    }
+    const [head, line] = tupleOf(elements(2), 2);
 
     anchors.register(head, 'head');
     anchors.register(line, 'line');
@@ -51,10 +45,7 @@ describe('LayoutAnchorsService', () => {
 
   it('forgets an element once it signs out, and only that one', () => {
     const anchors = TestBed.inject(LayoutAnchorsService);
-    const [kept, left] = elements(2);
-    if (!kept || !left) {
-      throw new Error('expected two elements');
-    }
+    const [kept, left] = tupleOf(elements(2), 2);
 
     anchors.register(kept, 'line');
     const leave = anchors.register(left, 'line');

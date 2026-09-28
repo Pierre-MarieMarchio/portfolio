@@ -36,9 +36,8 @@ const mount = async () => {
   };
 };
 
-describe('LandingFocus', () => {
+describe('ViewFocusService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     document.body.replaceChildren();
     vi.useRealTimers();
   });
@@ -75,7 +74,7 @@ describe('LandingFocus', () => {
     expect(focused()).not.toBe('Second');
   });
 
-  it('drops a claim that was withdrawn or replaced', async () => {
+  it('drops a claim that was withdrawn', async () => {
     const { fixture, focus, section, focused } = await mount();
 
     const withdraw = focus.claimWithin(() => section('second'));
@@ -84,5 +83,28 @@ describe('LandingFocus', () => {
     await fixture.whenStable();
 
     expect(focused()).not.toBe('Second');
+  });
+
+  it('drops a claim that was replaced by another', async () => {
+    const { fixture, focus, section, focused } = await mount();
+
+    focus.claimWithin(() => section('second'));
+    focus.claimWithin(() => section('first'));
+    fixture.componentInstance.second.set(true);
+    await fixture.whenStable();
+
+    expect(focused()).toBe('First');
+  });
+
+  it('keeps the new claim when the one it replaced is withdrawn', async () => {
+    const { fixture, focus, section, focused } = await mount();
+
+    const withdrawReplaced = focus.claimWithin(() => section('second'));
+    focus.claimWithin(() => section('second'));
+    withdrawReplaced();
+    fixture.componentInstance.second.set(true);
+    await fixture.whenStable();
+
+    expect(focused()).toBe('Second');
   });
 });

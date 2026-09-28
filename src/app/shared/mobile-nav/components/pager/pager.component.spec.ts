@@ -93,6 +93,15 @@ const setup = async ({ index = 0 } = {}) => {
 };
 
 describe('PagerComponent', () => {
+  it('rests on its first page from birth without reading its layout', async () => {
+    const reads = vi.spyOn(Element.prototype, 'scrollLeft', 'get');
+
+    await setup();
+
+    expect(reads).not.toHaveBeenCalled();
+    reads.mockRestore();
+  });
+
   it('renders every page, and lets only the current one be reached', async () => {
     const { fixture, reachable } = await setup({ index: 1 });
     const pages = [
@@ -209,5 +218,26 @@ describe('PagerComponent', () => {
     platform.resize();
 
     expect(scrollTo).toHaveBeenCalledWith({ left: 800, behavior: 'instant' });
+  });
+
+  it('keeps its page when it is shown again after a width of 0', async () => {
+    const { platform, pager, scrollTo, changes, rest } = await setup();
+    await rest(2 * WIDTH);
+    platform.resize();
+    scrollTo.mockClear();
+
+    layOut(pager, 0);
+    platform.resize();
+    await rest(0);
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    layOut(pager, WIDTH);
+    platform.resize();
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      left: 2 * WIDTH,
+      behavior: 'instant',
+    });
+    expect(changes).toEqual([2]);
   });
 });

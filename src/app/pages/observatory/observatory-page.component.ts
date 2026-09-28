@@ -1,4 +1,12 @@
-import { afterNextRender, Component, computed, inject } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  inject,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import {
   DisplayFormatService,
   FormatCodeService,
@@ -53,10 +61,16 @@ import {
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
 import {
+  KeptWindowDirective,
   loadGlassGestures,
   StackedWindowDirective,
 } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
+
+interface SheetOnShow {
+  readonly slug: string | null;
+  readonly chapter: number;
+}
 
 @Component({
   selector: 'app-observatory-page',
@@ -68,6 +82,7 @@ import { WindowStackService } from '@shared/windows/services';
     FeaturedBarComponent,
     HomeTitleComponent,
     IntroCardComponent,
+    KeptWindowDirective,
     LanguageSwitchComponent,
     LayoutAnchorDirective,
     MainNavComponent,
@@ -132,6 +147,19 @@ export class ObservatoryPageComponent {
       (this.observatory.view() === 'sheet' && this.sheetSlug() === null),
   );
 
+  protected readonly sheet = linkedSignal<
+    SheetOnShow & { readonly isShown: boolean },
+    SheetOnShow
+  >({
+    source: () => ({
+      isShown: this.observatory.showsSheet(),
+      slug: this.isNotFound() ? null : this.sheetSlug(),
+      chapter: this.observatory.chapter(),
+    }),
+    computation: ({ isShown, slug, chapter }, previous) =>
+      isShown || !previous ? { slug, chapter } : previous.value,
+  });
+
   protected readonly sceneView = computed<ObservatoryView>(() =>
     this.isNotFound() ? 'not-found' : this.observatory.view(),
   );
@@ -165,7 +193,14 @@ export class ObservatoryPageComponent {
     this.observatory.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
     inject(FormatCodeService).load(['phone'], loadGlassGestures);
-    inject(ViewWindowsService);
+    const windows = inject(ViewWindowsService);
+    effect(() => {
+      if (this.arrival() === 'shown') {
+        untracked(() => {
+          windows.prepareWhenIdle();
+        });
+      }
+    });
     afterNextRender(() => {
       this.homeReveal.start(() => {
         this.featuredTour.play(() => this.featuredSlugs());

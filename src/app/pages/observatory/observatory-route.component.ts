@@ -1,7 +1,17 @@
-import { Component, effect, inject, input, untracked } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import {
+  Component,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  untracked,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ClockService } from '@app/core/services';
 import { ObservatoryView } from '@app/features/observatory/models';
 import { ObservatoryManager } from '@app/features/observatory/states';
+
+const ignore = (): void => {};
 
 export interface ObservatoryRouteData {
   readonly view: ObservatoryView;
@@ -16,18 +26,38 @@ export class ObservatoryRouteComponent {
 
   constructor() {
     const observatory = inject(ObservatoryManager);
+    const router = inject(Router);
+    const clock = inject(ClockService);
     const { snapshot } = inject(ActivatedRoute);
     const { view } = snapshot.data as ObservatoryRouteData;
+    let stop = ignore;
 
-    observatory.syncRoute(view, snapshot.paramMap.get('slug'));
+    const declare = (slug: string | null): void => {
+      if (observatory.view() !== view || observatory.slug() !== slug) {
+        observatory.syncRoute(view, slug);
+      }
+    };
+    const declareSoon = (slug: string | null): void => {
+      stop();
+      if (router.navigated) {
+        stop = clock.nextFrame(() => {
+          declare(slug);
+        });
+      } else {
+        declare(slug);
+      }
+    };
+
+    declareSoon(snapshot.paramMap.get('slug'));
 
     effect(() => {
       const slug = this.slug() ?? null;
       untracked(() => {
-        if (observatory.view() !== view || observatory.slug() !== slug) {
-          observatory.syncRoute(view, slug);
-        }
+        declareSoon(slug);
       });
+    });
+    inject(DestroyRef).onDestroy(() => {
+      stop();
     });
   }
 }

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { provideStatewise } from 'ngx-statewise';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import {
@@ -10,11 +10,13 @@ import {
 const mount = async (
   data: ObservatoryRouteData,
   slug: string | null = null,
+  { navigated = false } = {},
 ) => {
   TestBed.configureTestingModule({
     imports: [ObservatoryRouteComponent],
     providers: [
       provideStatewise(),
+      { provide: Router, useValue: { navigated } },
       {
         provide: ActivatedRoute,
         useValue: {
@@ -61,6 +63,26 @@ describe('ObservatoryRouteComponent', () => {
 
     expect(station.slug()).toBe('speakey');
     expect(station.visited()).toEqual(['ngx-statewise', 'speakey']);
+  });
+
+  it('declares the view of a later navigation on the next frame, apart from the router work', async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
+      frames.push(fn);
+      return frames.length;
+    });
+    const { station, declared } = await mount({ view: 'sheet' }, 'speakey', {
+      navigated: true,
+    });
+    expect(declared).toEqual({ view: 'home', slug: null });
+    expect(station.view()).toBe('home');
+
+    for (const frame of frames.splice(0)) {
+      frame(0);
+    }
+
+    expect([station.view(), station.slug()]).toEqual(['sheet', 'speakey']);
+    vi.restoreAllMocks();
   });
 
   it('draws nothing', async () => {

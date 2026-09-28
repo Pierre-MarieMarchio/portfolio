@@ -1,6 +1,8 @@
 import {
+  afterNextRender,
   afterRenderEffect,
   Component,
+  DestroyRef,
   computed,
   ElementRef,
   inject,
@@ -8,9 +10,14 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { MediaPreferencesService } from '@app/core/services';
+import {
+  ElementObserverService,
+  MediaPreferencesService,
+} from '@app/core/services';
 import { SHARED_TEXTS } from '../../ports';
 import { SegmentedItem } from '../../models/segmented.model';
+
+const ignore = (): void => {};
 
 @Component({
   selector: 'app-segmented',
@@ -33,9 +40,24 @@ export class SegmentedComponent<T> {
   );
 
   constructor() {
+    const observer = inject(ElementObserverService);
+    let isLaidOut = false;
+    let stop = ignore;
     afterRenderEffect(() => {
       this.items();
-      this.showActive(this.list().nativeElement);
+      if (isLaidOut) {
+        this.showActive(this.list().nativeElement);
+      }
+    });
+    afterNextRender(() => {
+      const list = this.list().nativeElement;
+      stop = observer.onResize(list, () => {
+        isLaidOut = true;
+        this.showActive(list);
+      });
+    });
+    inject(DestroyRef).onDestroy(() => {
+      stop();
     });
   }
 

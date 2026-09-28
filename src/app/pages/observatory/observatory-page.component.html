@@ -65,11 +65,14 @@
       appViewSlot="about"
       class="slot slot--about"
       appStackedWindow="about"
+      appKeptWindow
+      [shown]="observatory.showsAbout()"
       [attr.data-docked]="observatory.docked().includes('about')"
-      [appLayoutAnchor]="anchor.panel"
+      [appLayoutAnchor]="observatory.showsAbout() ? anchor.panel : null"
     >
-      @if (observatory.showsAbout()) {
+      @if (observatory.kept().includes('about')) {
         <app-about-window
+          [current]="observatory.view() === 'about'"
           [pinned]="observatory.pins().about"
           [part]="observatory.section()"
           (partChange)="observatory.chooseSection($event)"
@@ -83,11 +86,14 @@
       appViewSlot="index"
       class="slot slot--index"
       appStackedWindow="index"
+      appKeptWindow
+      [shown]="observatory.showsList()"
       [attr.data-docked]="observatory.docked().includes('index')"
-      [appLayoutAnchor]="anchor.panel"
+      [appLayoutAnchor]="observatory.showsList() ? anchor.panel : null"
     >
-      @if (observatory.showsList()) {
+      @if (observatory.kept().includes('index')) {
         <app-project-list
+          [current]="observatory.view() === 'index'"
           [pinned]="observatory.pins().index"
           [selected]="observatory.selected()"
           [visited]="observatory.visited()"
@@ -105,23 +111,30 @@
       appViewSlot="sheet"
       class="slot slot--sheet"
       appStackedWindow="sheet"
+      appKeptWindow
+      [shown]="observatory.showsSheet()"
       [attr.data-docked]="observatory.docked().includes('sheet')"
-      [appLayoutAnchor]="anchor.detail"
+      [appLayoutAnchor]="observatory.showsSheet() ? anchor.detail : null"
     >
-      @if (isNotFound()) {
-        <app-not-found-window
-          [total]="projects.ranked().length"
-          (closed)="observatory.close('sheet')"
-        />
-      } @else if (sheetSlug(); as slug) {
-        <app-project-detail
-          [slug]="slug"
-          [pinned]="observatory.pins().sheet"
-          [chapter]="observatory.chapter()"
-          (chapterChange)="observatory.chooseChapter($event)"
-          (pinToggled)="observatory.togglePin('sheet')"
-          (closed)="observatory.close('sheet')"
-        />
+      @if (observatory.kept().includes('sheet')) {
+        @let shown = sheet();
+        @if (shown.slug === null) {
+          <app-not-found-window
+            [current]="observatory.showsSheet()"
+            [total]="projects.ranked().length"
+            (closed)="observatory.close('sheet')"
+          />
+        } @else {
+          <app-project-detail
+            [current]="observatory.showsSheet()"
+            [slug]="shown.slug"
+            [pinned]="observatory.pins().sheet"
+            [chapter]="shown.chapter"
+            (chapterChange)="observatory.chooseChapter($event)"
+            (pinToggled)="observatory.togglePin('sheet')"
+            (closed)="observatory.close('sheet')"
+          />
+        }
       }
     </div>
 

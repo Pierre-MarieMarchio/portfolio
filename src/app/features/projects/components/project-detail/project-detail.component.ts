@@ -1,4 +1,14 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import {
+  afterRenderEffect,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import {
@@ -39,6 +49,7 @@ export class ProjectDetailComponent {
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
+  public readonly current = input(true);
   public readonly chapter = input(0);
 
   public readonly pinToggled = output();
@@ -46,6 +57,8 @@ export class ProjectDetailComponent {
   public readonly chapterChange = output<number>();
 
   protected readonly scrollKey = computed(() => `sheet:${this.slug()}`);
+
+  private readonly sheet = viewChild<ElementRef<HTMLElement>>('sheet');
 
   protected readonly detail = computed(() =>
     this.manager.detailOf(this.slug()),
@@ -67,7 +80,7 @@ export class ProjectDetailComponent {
     })),
   );
 
-  protected readonly current = computed(
+  protected readonly shownChapter = computed(
     () => this.pages()[this.chapter()] ?? null,
   );
 
@@ -101,6 +114,47 @@ export class ProjectDetailComponent {
       ? { slug: next.slug, label: this.texts().sheet.nextProject(next.short) }
       : null;
   });
+
+  private readonly scrolled = new Set<HTMLElement>();
+
+  constructor() {
+    effect((onCleanup) => {
+      const sheet = this.sheet()?.nativeElement;
+      if (!sheet) {
+        return;
+      }
+      sheet.addEventListener('scroll', this.noteScroll, {
+        capture: true,
+        passive: true,
+      });
+      onCleanup(() => {
+        sheet.removeEventListener('scroll', this.noteScroll, { capture: true });
+      });
+    });
+    let shown: string | null = null;
+    afterRenderEffect({
+      write: () => {
+        const slug = this.slug();
+        if (shown !== null && shown !== slug) {
+          this.backToTop();
+        }
+        shown = slug;
+      },
+    });
+  }
+
+  private readonly noteScroll = (event: Event): void => {
+    if (event.target instanceof HTMLElement) {
+      this.scrolled.add(event.target);
+    }
+  };
+
+  private backToTop(): void {
+    for (const page of this.scrolled) {
+      page.scrollTop = 0;
+    }
+    this.scrolled.clear();
+  }
 
   private titleOf(index: number): string {
     return chapterTitle(

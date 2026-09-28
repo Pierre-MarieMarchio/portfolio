@@ -10,9 +10,24 @@ import {
   observatorySectionChosen,
   observatorySelected,
   observatoryWindowClosed,
+  observatoryWindowPrepared,
 } from './observatory.action';
-import { ObservatoryView } from '../../models';
+import { ObservatoryView, ObservatoryWindow } from '../../models';
 import { ObservatoryState } from './observatory.state';
+import { windowOf } from '../../rules/view.rules';
+
+function see(state: ObservatoryState, window: ObservatoryWindow | null): void {
+  if (window && !state.seen().includes(window)) {
+    state.seen.update((seen) => [...seen, window]);
+  }
+}
+
+function read(state: ObservatoryState, slug: string): void {
+  state.lastSheet.set(slug);
+  if (!state.visited().includes(slug)) {
+    state.visited.update((visited) => [...visited, slug]);
+  }
+}
 
 function isWhereTheReaderIs(
   state: ObservatoryState,
@@ -34,18 +49,20 @@ export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
     state.slug.set(view === 'sheet' ? slug : null);
     state.chapter.set(0);
     state.hovered.set(null);
+    see(state, windowOf(view));
     if (!state.pins().preview) {
       state.preview.set(null);
     }
     if (view === 'sheet' && slug) {
-      state.lastSheet.set(slug);
-      if (!state.visited().includes(slug)) {
-        state.visited.update((visited) => [...visited, slug]);
-      }
+      read(state, slug);
     }
     if (view === 'index' && previous) {
       state.selected.set(previous);
     }
+  });
+
+  on(observatoryWindowPrepared, (state, window) => {
+    see(state, window);
   });
 
   on(observatoryPinToggled, (state, window) => {

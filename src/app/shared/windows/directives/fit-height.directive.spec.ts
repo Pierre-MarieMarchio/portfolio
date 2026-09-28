@@ -85,36 +85,42 @@ describe('FitHeightDirective', () => {
   });
 
   it('reads the reserve from --window-reserve, inherited from where it sits', async () => {
-    const { fixture, section } = await setup({ offsetTop: 100 }, 500);
+    const { fixture, section, refit } = await setup({ offsetTop: 100 }, 500);
 
     fixture.componentInstance.reserve.set('76px');
     await fixture.whenStable();
+    await refit();
 
     expect(section.style.maxHeight).toBe('324px');
   });
 
   it('reserves nothing when no --window-reserve is set', async () => {
-    const { fixture, section } = await setup({ offsetTop: 100 }, 500);
+    const { fixture, section, refit } = await setup({ offsetTop: 100 }, 500);
 
     fixture.componentInstance.reserve.set('');
     await fixture.whenStable();
+    await refit();
 
     expect(section.style.maxHeight).toBe('400px');
   });
 
   it('measures from the layout position, which a transform leaves alone', async () => {
-    const { fixture, section } = await setup({ offsetTop: 100 }, 500);
+    const { fixture, section, refit } = await setup({ offsetTop: 100 }, 500);
     section.style.transform = 'translate(0px,200px)';
     section.getBoundingClientRect = () => new DOMRect(0, 300, 400, 100);
 
     fixture.componentInstance.reserve.set('76px');
     await fixture.whenStable();
+    await refit();
 
     expect(section.style.maxHeight).toBe('324px');
   });
 
   it('counts from where its offset parent sits on the screen', async () => {
-    const { host, fixture, section } = await setup({ offsetTop: 100 }, 500);
+    const { host, fixture, section, refit } = await setup(
+      { offsetTop: 100 },
+      500,
+    );
     const place = host.querySelector('.place') as HTMLElement;
     place.getBoundingClientRect = () => new DOMRect(0, 50, 400, 400);
     restorers.push(
@@ -130,6 +136,7 @@ describe('FitHeightDirective', () => {
 
     fixture.componentInstance.reserve.set('76px');
     await fixture.whenStable();
+    await refit();
 
     expect(section.style.maxHeight).toBe('274px');
   });
@@ -140,8 +147,8 @@ describe('FitHeightDirective', () => {
       2000,
     );
 
-    fixture.componentInstance.anchor.set('bottom');
     fixture.componentInstance.reserve.set('88px');
+    fixture.componentInstance.anchor.set('bottom');
     await fixture.whenStable();
 
     expect(section.style.maxHeight).toBe('312px');
@@ -183,6 +190,40 @@ describe('FitHeightDirective', () => {
     section.dispatchEvent(new Event('animationend'));
 
     expect(section.style.maxHeight).toBe('374px');
+  });
+
+  it('fits again when its own size changes', async () => {
+    const observed: (() => void)[] = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        public constructor(private readonly fn: () => void) {}
+        public observe(): void {
+          observed.push(this.fn);
+        }
+        public disconnect(): void {
+          observed.length = 0;
+        }
+      },
+    );
+    const { section } = await setup({ offsetTop: 100 }, 800);
+    vi.stubGlobal('innerHeight', 500);
+
+    for (const fn of observed) {
+      fn();
+    }
+
+    expect(section.style.maxHeight).toBe('374px');
+  });
+
+  it('does not fit on a render that changes none of its inputs', async () => {
+    const { fixture, section } = await setup({ offsetTop: 100 }, 800);
+    vi.stubGlobal('innerHeight', 500);
+
+    fixture.componentInstance.reserve.set('10px');
+    await fixture.whenStable();
+
+    expect(section.style.maxHeight).toBe('470px');
   });
 
   it('stops listening to resize once destroyed', async () => {

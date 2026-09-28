@@ -1,5 +1,9 @@
 import { Service, signal } from '@angular/core';
-import { ObservatoryPins, ObservatoryView } from '../../models';
+import {
+  ObservatoryPins,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../../models';
 
 export const NO_PINS: ObservatoryPins = {
   index: false,
@@ -22,4 +26,5 @@ export class ObservatoryState {
   public readonly selected = signal<string | null>(null);
   public readonly hovered = signal<string | null>(null);
   public readonly family = signal('all');
+  public readonly seen = signal<readonly ObservatoryWindow[]>([]);
 }

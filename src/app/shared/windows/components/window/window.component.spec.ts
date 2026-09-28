@@ -383,6 +383,7 @@ describe('WindowComponent', () => {
       fixture.componentRef.setInput('scrollResetOn', 0);
       await fixture.whenStable();
       bodyOf(host).scrollTop = 80;
+      bodyOf(host).dispatchEvent(new Event('scroll'));
 
       fixture.componentRef.setInput('scrollResetOn', 1);
       await fixture.whenStable();

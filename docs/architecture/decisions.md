@@ -1918,3 +1918,37 @@ transition sur une vue qui ne se reconstruit plus.
 **Écarté.** Une copie de la barre dans la librairie pour qu'elle soit
 complète : deux barres pour un seul usage. Des transitions tout de suite,
 sans mesure : elles risquaient de défaire D46.
+
+## 2026-09-28 — Une fenêtre montée ne se détruit plus : elle se cache (D62, amende « Les fenêtres vivent à la station »)
+
+**Décision.** Une fenêtre se monte la première fois que sa vue s'affiche,
+puis ne fait plus que se cacher (`KeptWindowDirective` : `inert`,
+`content-visibility: hidden`, `data-shown`). Rien n'est monté d'avance au
+prérendu. La liste et l'à-propos se montent cachés quand le navigateur est
+libre, une fois l'accueil révélé. Une fenêtre demandée se montre une image
+plus tard, et la vue se déclare l'image après le travail du routeur. Seule
+la fenêtre de la vue porte le `h1` ; les autres ont un `h2`. Revenue, une
+fenêtre se déplie, redescend sa vitre et rejoue sa montée ; son défilement
+reste. Une autre fiche repart en haut.
+
+**Raison.** Recréer les fenêtres figeait chaque navigation : au téléphone à
+×4, la pire image allait de 54 à 139 ms selon la navigation. Sur les cinq
+navigations mesurées, trois passages chacune, aucune image n'atteint plus
+50 ms, sauf une fois 51 à 52 ms à la toute première navigation d'une page
+froide. `content-visibility` garde les positions de défilement, que
+`display: none` perd, et ne coûte ni style ni layout. Séparer création,
+style et layout en deux images les garde chacune sous 50 ms. Les lectures de
+layout sur une fenêtre neuve ou cachée (segmenté, pager, carrousel,
+`scrollTop`) forçaient 12 à 20 ms ; elles attendent que le contenu soit
+dessiné. Un seul `h1` par page, même avec une fenêtre épinglée, qui en
+ajoutait un second. Le montage au repos coûte une image d'environ 55 ms,
+quand personne ne touche à rien. Le bundle initial passe de 501,8 à
+507,7 kB.
+
+**Écarté.** Les quatre fenêtres toujours montées : du contenu caché
+prérendu. `display: none` : défilement perdu, page du pager remise à zéro.
+Préparer la fiche avec un projet deviné : passer d'une fiche à l'autre coûte
+autant qu'un montage. Chauffer le layout d'une fenêtre cachée sous
+`visibility: hidden` : aucun gain mesuré. Garder les feuilles de style des
+composants détruits (`REMOVE_STYLES_ON_COMPONENT_DESTROY`) : 5 ms gagnés,
+inutiles une fois le travail réparti sur deux images.

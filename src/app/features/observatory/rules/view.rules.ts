@@ -87,6 +87,25 @@ export function dockedOf({
   );
 }
 
+export interface KeptFrom {
+  readonly view: ObservatoryView;
+  readonly pins: ObservatoryPins;
+  readonly seen: readonly ObservatoryWindow[];
+}
+
+export function keptOf({
+  view,
+  pins,
+  seen,
+}: KeptFrom): readonly ObservatoryWindow[] {
+  const open = windowOf(view);
+  return OBSERVATORY_WINDOWS.filter(
+    (window) =>
+      window !== 'preview' &&
+      (window === open || pins[window] || seen.includes(window)),
+  );
+}
+
 export type AddressOf = (view: Exclude<ObservatoryView, 'not-found'>) => string;
 
 export function viewAtAddress(

@@ -38,6 +38,16 @@ const sceneOf = (fixture: {
 const isRevealed = (fixture: { debugElement: DebugElement }): boolean =>
   sceneOf(fixture).revealed();
 
+const shownAfterFrames = async (fixture: {
+  whenStable: () => Promise<unknown>;
+}): Promise<void> => {
+  await fixture.whenStable();
+  await new Promise((done) => {
+    requestAnimationFrame(() => requestAnimationFrame(done));
+  });
+  await fixture.whenStable();
+};
+
 describe('ObservatoryPageComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
@@ -256,6 +266,66 @@ describe('ObservatoryPageComponent', () => {
     expect(host.querySelector('app-project-list')).not.toBeNull();
   });
 
+  it('keeps a window once shown, hidden and inert away from its view, its h1 turned to an h2', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('about');
+    await shownAfterFrames(fixture);
+    const about = host.querySelector('app-about-window');
+    const slot = host.querySelector<HTMLElement>('.slot--about');
+    expect(slot?.dataset['shown']).toBe('true');
+    expect(host.querySelectorAll('h1')).toHaveLength(1);
+
+    station.syncRoute('home');
+    await fixture.whenStable();
+
+    expect(host.querySelector('app-about-window')).toBe(about);
+    expect(slot?.dataset['shown']).toBe('false');
+    expect(slot?.hasAttribute('inert')).toBe(true);
+    expect(slot?.querySelector('h1')).toBeNull();
+    expect(slot?.querySelector('h2.landing')).not.toBeNull();
+    expect([...host.querySelectorAll('h1')].map((h1) => h1.id)).toEqual([
+      'home-title',
+    ]);
+    expect(TestBed.inject(LayoutAnchorsService).list('panel')).not.toContain(
+      slot,
+    );
+
+    station.syncRoute('about');
+    await shownAfterFrames(fixture);
+    expect(host.querySelector('app-about-window')).toBe(about);
+    expect(slot?.dataset['shown']).toBe('true');
+    expect(slot?.querySelector('h1')).not.toBeNull();
+  });
+
+  it('keeps the h1 to the window of the view when another is pinned beside it', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('index');
+    station.togglePin('index');
+    station.syncRoute('about');
+    await fixture.whenStable();
+
+    expect(host.querySelectorAll('h1')).toHaveLength(1);
+    expect(host.querySelector('.slot--about h1')).not.toBeNull();
+    expect(host.querySelector('.slot--index h2.landing')).not.toBeNull();
+  });
+
+  it('keeps the sheet it last showed, on its chapter, once the reader leaves it', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('sheet', KNOWN_SLUG);
+    station.chooseChapter(1);
+    await fixture.whenStable();
+    const detail = host.querySelector('app-project-detail');
+
+    station.syncRoute('index');
+    await fixture.whenStable();
+
+    expect(host.querySelector('app-project-detail')).toBe(detail);
+    expect(host.querySelector('.slot--sheet h2')?.textContent).toContain(
+      'Known project',
+    );
+    expect(host.querySelector('app-not-found-window')).toBeNull();
+  });
+
   it('marks a pinned window the reader has left as docked, and brings it back', async () => {
     const { fixture, station, host } = await mount();
     const docked = () =>
@@ -374,6 +444,8 @@ describe('ObservatoryPageComponent', () => {
 
     station.syncRoute('about');
     await fixture.whenStable();
+    expect(document.activeElement?.closest('.slot')).toBeFalsy();
+    await shownAfterFrames(fixture);
     expect(document.activeElement?.closest('.slot')).toBe(
       host.querySelector('.slot--about'),
     );

@@ -1,5 +1,6 @@
 import {
-  afterEveryRender,
+  afterNextRender,
+  afterRenderEffect,
   DestroyRef,
   Directive,
   ElementRef,
@@ -10,6 +11,7 @@ import {
   BrowserWindowService,
   DisplayFormatService,
   DocumentStylesService,
+  ElementObserverService,
 } from '@app/core/services';
 import { WindowAnchor } from '../models/window.model';
 
@@ -39,11 +41,19 @@ export class FitHeightDirective {
   public readonly anchor = input<WindowAnchor>('top');
 
   constructor() {
-    afterEveryRender({ write: () => this.fit() });
-    const stopResize = this.browserWindow.on('resize', () => this.fit(), {
-      passive: true,
+    const observer = inject(ElementObserverService);
+    afterRenderEffect({ write: () => this.fit() });
+    const stops = [
+      this.browserWindow.on('resize', () => this.fit(), { passive: true }),
+    ];
+    afterNextRender(() => {
+      stops.push(observer.onResize(this.element, () => this.fit()));
     });
-    inject(DestroyRef).onDestroy(stopResize);
+    inject(DestroyRef).onDestroy(() => {
+      for (const stop of stops) {
+        stop();
+      }
+    });
   }
 
   protected fit(): void {

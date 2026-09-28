@@ -14,7 +14,11 @@
     (valueChange)="partChange.emit($event)"
   />
   <div body class="about">
-    <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
+    @if (current()) {
+      <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
+    } @else {
+      <h2 class="landing">{{ heading() }}</h2>
+    }
     <app-pager [index]="index()" (indexChange)="partChange.emit($event)">
       <app-pager-page>
         <p class="lead">{{ about().profile.lead }}</p>
@@ -84,7 +88,7 @@
     </app-pager>
   </div>
   <ng-container footer>
-    <p class="position">{{ current().title }}</p>
+    <p class="position">{{ section().title }}</p>
     @if (next(); as next) {
       <button type="button" class="next" (click)="advance()">
         {{ about().next(next.label) }}

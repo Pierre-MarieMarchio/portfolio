@@ -98,6 +98,29 @@ describe('ProjectDetailComponent', () => {
     };
   };
 
+  it('opens another project with its pages scrolled back to their top', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-a' });
+    const page = currentPage(host);
+    page.scrollTop = 300;
+    page.dispatchEvent(new Event('scroll'));
+
+    fixture.componentRef.setInput('slug', 'proj-b');
+    await fixture.whenStable();
+
+    expect(currentPage(host).scrollTop).toBe(0);
+    expect(host.querySelector('h1')?.textContent).toContain('Project B');
+  });
+
+  it('writes an h2 in place of its h1 while it is not the window of the view', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-a' });
+
+    fixture.componentRef.setInput('current', false);
+    await fixture.whenStable();
+
+    expect(host.querySelector('h1')).toBeNull();
+    expect(host.querySelector('header h2')?.textContent).toContain('Project A');
+  });
+
   it('renders nothing for a slug that names no project', async () => {
     const { host } = await mount({ slug: 'ghost' });
     expect(host.querySelector('.window')).toBeNull();

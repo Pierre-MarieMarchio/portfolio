@@ -83,6 +83,9 @@ export class PagerComponent {
   protected settle(): void {
     this.stopTimer();
     const { scrollLeft, clientWidth } = this.element;
+    if (clientWidth === 0) {
+      return;
+    }
     const place = pageAt(scrollLeft, clientWidth, this.pages().length);
     if (this.isHeading || !isAt(scrollLeft, this.offsetOf(place))) {
       return;
@@ -96,7 +99,7 @@ export class PagerComponent {
   private goTo(target: number): void {
     this.stopFrame();
     this.isHeading = false;
-    if (this.isShowing(target)) {
+    if (this.settled() === null ? target === 0 : this.isShowing(target)) {
       this.settled.set(target);
       return;
     }
@@ -129,7 +132,7 @@ export class PagerComponent {
     }
     this.width = width;
     const place = this.current();
-    if (!this.isHeading && !this.isShowing(place)) {
+    if (width > 0 && !this.isHeading && !this.isShowing(place)) {
       this.element.scrollTo({
         left: this.offsetOf(place),
         behavior: 'instant',

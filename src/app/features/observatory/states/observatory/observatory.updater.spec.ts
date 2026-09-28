@@ -12,6 +12,7 @@ import {
   observatorySectionChosen,
   observatorySelected,
   observatoryWindowClosed,
+  observatoryWindowPrepared,
 } from './observatory.action';
 import { NO_PINS, ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
@@ -43,6 +44,7 @@ describe('observatoryUpdater', () => {
     expect(state.section()).toBe(0);
     expect(state.hovered()).toBeNull();
     expect(state.lastSheet()).toBeNull();
+    expect(state.seen()).toEqual([]);
   });
 
   describe('observatoryRouteSynced', () => {
@@ -119,6 +121,18 @@ describe('observatoryUpdater', () => {
       expect(state.visited()).toEqual(['a', 'b']);
     });
 
+    it('notes each window the reader has seen once, in first-visit order', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
+      statewise.dispatch(
+        observatoryRouteSynced({ view: 'not-found', slug: null }),
+      );
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      expect(state.seen()).toEqual(['about', 'sheet']);
+    });
+
     it('selects the row of the sheet just left when arriving back on the index', () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
 
@@ -145,6 +159,15 @@ describe('observatoryUpdater', () => {
       expect(state.family()).toBe('personal');
       expect(state.section()).toBe(2);
     });
+  });
+
+  it('observatoryWindowPrepared notes a window as seen before the reader opens it, once', () => {
+    statewise.dispatch(observatoryWindowPrepared('index'));
+    statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+    statewise.dispatch(observatoryWindowPrepared('about'));
+
+    expect(state.seen()).toEqual(['index', 'about']);
+    expect(state.view()).toBe('index');
   });
 
   describe('observatoryPinToggled', () => {

@@ -42,12 +42,29 @@ describe('ViewFocusService', () => {
     vi.useRealTimers();
   });
 
-  it('focuses the heading inside the container it is asked for', async () => {
-    const { focus, section, focused } = await mount();
+  it('focuses the heading inside the container it is asked for, once the page has rendered', async () => {
+    const { fixture, focus, section, focused } = await mount();
 
     focus.claimWithin(() => section('first'));
+    expect(document.activeElement?.tagName).not.toBe('H1');
 
+    await fixture.whenStable();
     expect(focused()).toBe('First');
+  });
+
+  it('keeps its claim while the heading cannot take the focus yet', async () => {
+    const { fixture, focus, section } = await mount();
+    const heading = section('first').querySelector('h1') as HTMLElement;
+    heading.focus = () => {};
+
+    focus.claimWithin(() => section('first'));
+    await fixture.whenStable();
+    expect(document.activeElement).not.toBe(heading);
+
+    Reflect.deleteProperty(heading, 'focus');
+    fixture.componentInstance.second.set(true);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(heading);
   });
 
   it('waits for a heading that is not there yet', async () => {
@@ -90,6 +107,7 @@ describe('ViewFocusService', () => {
 
     focus.claimWithin(() => section('second'));
     focus.claimWithin(() => section('first'));
+    await fixture.whenStable();
     fixture.componentInstance.second.set(true);
     await fixture.whenStable();
 

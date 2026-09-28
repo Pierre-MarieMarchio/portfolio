@@ -6,13 +6,16 @@ import { LayoutAnchorsService } from '../services/layout-anchors.service';
   host: { '[attr.data-panel]': 'appLayoutAnchor()' },
 })
 export class LayoutAnchorDirective {
-  public readonly appLayoutAnchor = input.required<string>();
+  public readonly appLayoutAnchor = input.required<string | null>();
 
   constructor() {
     const el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const anchors = inject(LayoutAnchorsService);
     effect((onCleanup) => {
-      onCleanup(anchors.register(el, this.appLayoutAnchor()));
+      const kind = this.appLayoutAnchor();
+      if (kind !== null) {
+        onCleanup(anchors.register(el, kind));
+      }
     });
   }
 }

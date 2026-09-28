@@ -18,7 +18,7 @@ import { LayoutAnchorDirective } from './layout-anchor.directive';
 })
 class Page {
   public readonly withRule = signal(true);
-  public readonly kind = signal('rule');
+  public readonly kind = signal<string | null>('rule');
 }
 
 const mount = async () => {
@@ -60,6 +60,20 @@ describe('LayoutAnchorDirective', () => {
     expect(host.querySelector<HTMLElement>('#rule')?.dataset['panel']).toBe(
       'preview',
     );
+  });
+
+  it('signs out an element whose kind goes to null, until it has one again', async () => {
+    const { fixture, anchors, host } = await mount();
+
+    fixture.componentInstance.kind.set(null);
+    await fixture.whenStable();
+
+    expect(anchors.list('rule')).toEqual([]);
+    expect(host.querySelector('#rule')?.hasAttribute('data-panel')).toBe(false);
+
+    fixture.componentInstance.kind.set('rule');
+    await fixture.whenStable();
+    expect(anchors.list('rule')).toEqual([host.querySelector('#rule')]);
   });
 
   it('forgets an element and its children once they leave the page', async () => {

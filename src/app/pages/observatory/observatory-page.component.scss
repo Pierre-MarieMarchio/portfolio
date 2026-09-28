@@ -128,9 +128,9 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
     width: auto;
   }
 
-  .slot:empty,
   .slot[data-docked='true'] {
-    display: none;
+    content-visibility: hidden;
+    visibility: hidden;
   }
 }
 

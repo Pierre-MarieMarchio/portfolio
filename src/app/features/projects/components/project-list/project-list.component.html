@@ -14,7 +14,11 @@
     [items]="familyItems()"
     (valueChange)="familyChange.emit($event)"
   />
-  <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
+  @if (current()) {
+    <h1 tabindex="-1" class="landing" appViewHeading>{{ heading() }}</h1>
+  } @else {
+    <h2 class="landing">{{ heading() }}</h2>
+  }
   <div class="columns" aria-hidden="true">
     @for (column of texts().index.columns; track $index) {
       <span>{{ column }}</span>

@@ -3,7 +3,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { DEFAULT_LANG, Lang, LANGS } from '../../models';
 import { SITE_NAME } from '../../ports';
 
-const SITE_URL = 'https://pierre-mariemarchio.github.io/portfolio';
+declare const SITE_URL: string;
 
 const absoluteUrl = (path: string): string => `${SITE_URL}${path}`;
 

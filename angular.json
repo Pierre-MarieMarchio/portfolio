@@ -38,6 +38,9 @@
             "styles": ["src/styles.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["src/assets/styles"]
+            },
+            "define": {
+              "SITE_URL": "\"https://pierre-mariemarchio.github.io/portfolio\""
             }
           },
           "configurations": {
@@ -76,7 +79,14 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "runner": "vitest"
+            "runner": "vitest",
+            "coverageReporters": ["lcov", "text-summary"],
+            "coverageInclude": ["src/app/**/*.ts"],
+            "coverageExclude": [
+              "src/app/**/*.spec.ts",
+              "src/app/**/index.ts",
+              "src/app/**/*.data.ts"
+            ]
           }
         }
       }

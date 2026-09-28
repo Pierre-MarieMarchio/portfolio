@@ -21,6 +21,14 @@ export const EN: Catalog = {
     fold: draft('Fold the window'),
     unfold: draft('Unfold the window'),
     close: draft('Close the window'),
+    phone: {
+      pin: draft('Keep this window open when changing tab'),
+      unpin: draft('Let this window close when changing tab'),
+      fold: draft('Lower the window'),
+      unfold: draft('Raise the window'),
+    },
+    kept: draft('Window kept'),
+    released: draft('Window released'),
   },
 
   mobileNav: {
@@ -126,6 +134,10 @@ export const EN: Catalog = {
       trade: draft('.NET and Angular developer'),
       status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',
+    },
+    closeTo: {
+      home: draft('Close and go back home'),
+      index: draft('Close and go back to the projects'),
     },
     dock: {
       label: draft('Put-away windows'),

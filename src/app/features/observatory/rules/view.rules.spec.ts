@@ -1,6 +1,7 @@
 import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
 import {
   AddressOf,
+  closeTargetOf,
   viewAtAddress,
   DockFrom,
   dockedOf,
@@ -94,6 +95,21 @@ describe('windowOf', () => {
     ['not-found', 'sheet'],
   ])('shows %s in the window %s', (view, shown) => {
     expect(windowOf(view)).toBe(shown);
+  });
+});
+
+describe('closeTargetOf', () => {
+  it.each<[ObservatoryWindow, ObservatoryView, string | null]>([
+    ['sheet', 'sheet', 'index'],
+    ['sheet', 'not-found', 'index'],
+    ['index', 'index', 'home'],
+    ['about', 'about', 'home'],
+    ['index', 'sheet', null],
+    ['about', 'home', null],
+    ['preview', 'home', null],
+    ['preview', 'index', null],
+  ])('closing %s on %s leads to %s', (window, view, target) => {
+    expect(closeTargetOf(window, view)).toBe(target);
   });
 });
 

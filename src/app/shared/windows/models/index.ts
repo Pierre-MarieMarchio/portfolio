@@ -1,1 +1,1 @@
-export type { WindowAnchor, WindowSize } from './window.model';
+export type { WindowAnchor, WindowControl, WindowSize } from './window.model';

@@ -25,10 +25,11 @@ import { ViewSlotDirective } from '@app/features/observatory/directives';
 import {
   OBSERVATORY_IDS,
   ObservatoryView,
+  ObservatoryWindow,
   Planet,
 } from '@app/features/observatory/models';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
-import { viewAtAddress } from '@app/features/observatory/rules';
+import { closeTargetOf, viewAtAddress } from '@app/features/observatory/rules';
 import {
   FeaturedTourService,
   HomeRevealService,
@@ -180,6 +181,20 @@ export class ObservatoryPageComponent {
   protected readonly currentRoute = computed(() =>
     this.links.routeOf(this.observatory.view()),
   );
+
+  protected readonly closeLabels = computed(() => {
+    const view = this.observatory.view();
+    const { closeTo } = this.observatoryTexts();
+    const labelOf = (window: ObservatoryWindow): string => {
+      const target = closeTargetOf(window, view);
+      return target === null ? '' : closeTo[target];
+    };
+    return {
+      about: labelOf('about'),
+      index: labelOf('index'),
+      sheet: labelOf('sheet'),
+    };
+  });
 
   protected readonly showsRule = computed(
     () =>

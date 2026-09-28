@@ -11,11 +11,10 @@ import {
 } from './observatory.action';
 import { ObservatoryState } from './observatory.state';
 import {
+  closeTargetOf,
   ParentView,
-  parentOf,
   stepBack,
   StepBackGesture,
-  windowOf,
 } from '../../rules/view.rules';
 
 @Service()
@@ -27,11 +26,8 @@ export class ObservatoryEffect {
   public readonly closeEffect = createEffect(
     observatoryWindowClosed,
     (window) => {
-      const view = this.state.view();
-      const parent = parentOf(view);
-      return parent !== null && windowOf(view) === window
-        ? this.go(parent)
-        : undefined;
+      const target = closeTargetOf(window, this.state.view());
+      return target === null ? undefined : this.go(target);
     },
   );
 

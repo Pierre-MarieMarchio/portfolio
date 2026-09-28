@@ -33,6 +33,7 @@ export class ProjectListComponent {
 
   public readonly pinned = input(false);
   public readonly current = input(true);
+  public readonly closeLabel = input('');
   public readonly selected = input<string | null>(null);
   public readonly visited = input<readonly string[]>([]);
   public readonly family = input<FamilyFilter>('all');

@@ -32,6 +32,13 @@ export function parentOf(view: ObservatoryView): ParentView | null {
   }
 }
 
+export function closeTargetOf(
+  window: ObservatoryWindow,
+  view: ObservatoryView,
+): ParentView | null {
+  return windowOf(view) === window ? parentOf(view) : null;
+}
+
 export function windowOf(view: ObservatoryView): ObservatoryWindow | null {
   switch (view) {
     case 'index':

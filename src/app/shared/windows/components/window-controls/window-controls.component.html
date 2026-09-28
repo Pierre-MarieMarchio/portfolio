@@ -1,0 +1,17 @@
+@for (control of controls(); track control.name) {
+  <button
+    type="button"
+    class="control"
+    [class]="control.name"
+    [attr.aria-label]="control.label"
+    [attr.aria-pressed]="control.pressed"
+    [attr.aria-expanded]="control.expanded"
+    (click)="press(control.name)"
+  >
+    <svg aria-hidden="true" focusable="false" viewBox="2 2 20 20">
+      <path [attr.d]="control.icon" />
+    </svg>
+    <span class="tip" aria-hidden="true">{{ control.label }}</span>
+  </button>
+}
+<p class="visually-hidden" role="status">{{ note() }}</p>

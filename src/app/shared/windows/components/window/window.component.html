@@ -26,38 +26,15 @@
         <h2>{{ heading() }}</h2>
         <span class="spacer"></span>
         <p class="meta">{{ meta() }}</p>
-        <button
-          type="button"
-          class="control pin"
-          [attr.data-pinned]="pinned()"
-          [attr.aria-pressed]="pinned()"
-          [attr.aria-label]="pinLabel()"
-          [title]="pinLabel()"
-          (click)="pinToggled.emit()"
-        >
-          {{ pinned() ? '●' : '○' }}
-        </button>
-        <button
-          type="button"
-          class="control"
-          [attr.aria-expanded]="!collapsed()"
-          [attr.aria-label]="collapseLabel()"
-          [title]="collapseLabel()"
-          (click)="toggleCollapse()"
-        >
-          {{ collapsed() ? '+' : '–' }}
-        </button>
-        @if (closable()) {
-          <button
-            type="button"
-            class="control close"
-            [attr.aria-label]="texts().close"
-            [title]="texts().close"
-            (click)="closed.emit()"
-          >
-            ✕
-          </button>
-        }
+        <app-window-controls
+          [pinned]="pinned()"
+          [folded]="collapsed()"
+          [closable]="closable()"
+          [closeLabel]="closeLabel()"
+          (pinToggled)="pinToggled.emit()"
+          (foldToggled)="toggleCollapse()"
+          (closed)="closed.emit()"
+        />
       </div>
 
       @if (!collapsed()) {

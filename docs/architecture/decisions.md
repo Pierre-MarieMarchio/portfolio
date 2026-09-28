@@ -1952,3 +1952,29 @@ autant qu'un montage. Chauffer le layout d'une fenêtre cachée sous
 `visibility: hidden` : aucun gain mesuré. Garder les feuilles de style des
 composants détruits (`REMOVE_STYLES_ON_COMPONENT_DESTROY`) : 5 ms gagnés,
 inutiles une fois le travail réparti sur deux images.
+
+## 2026-09-28 — Les boutons de la fenêtre disent ce qu'ils font, au bureau comme au téléphone (D63)
+
+**Décision.** Les boutons de la barre passent dans `WindowControlsComponent`
+(`shared/windows/components/window-controls/`). Des icônes SVG remplacent
+○ ● – ✕. Chaque bouton montre son nom dans une bulle CSS, au survol et au
+focus clavier ; la bulle est cachée aux lecteurs d'écran, et le nom reste sur
+`aria-label`. Il n'y a plus de `title`. Au téléphone, épingler garde la
+fenêtre en changeant d'onglet, et replier la baisse. Fermer dit où l'on va :
+l'appelant donne le mot, tiré de `closeTargetOf`, la règle que suit aussi la
+fermeture. Une note brève dit « Fenêtre gardée » ou « Fenêtre libérée » quand
+on presse l'épingle.
+
+**Raison.** Personne ne comprenait ○, et « fermer » ne disait pas où il
+menait. Un `title` ne s'affiche jamais au doigt. Une seule règle pour le mot
+et le geste : ils ne peuvent pas se contredire. Le chevron montre où va la
+fenêtre ; le moins reste libre pour réduire. Les icônes sont dessinées pixel
+pour pixel, à 20 px. La feuille de la fenêtre passe de 3,8 à 3,2 kB. Les
+boutons à venir s'ajoutent à la liste du composant. Le bundle initial passe
+de 507,7 à 512,8 kB.
+
+**Écarté.** Une bulle en JS : du code pour ce que CSS fait. Des bulles au
+toucher : le toucher presse le bouton. Choisir les mots en CSS : un nom
+accessible ne se pose pas en CSS ; les mots du téléphone changent donc après
+l'hydratation, comme D57 l'accepte. Une note à chaque changement de
+l'épingle : fermer une fenêtre la désépingle sans qu'on l'ait demandé.

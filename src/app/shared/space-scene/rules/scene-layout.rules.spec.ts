@@ -217,6 +217,27 @@ describe('sceneLayout', () => {
     });
   });
 
+  it('lists the windows that show beside the sky, not the bars, the chrome nor a band', () => {
+    const PHONE = { width: 390, height: 844 };
+    const layout = sceneLayout(CANVAS, VIEWPORT, [
+      anchor('top-bar', { left: 0, top: 0, width: 640, height: 56 }),
+      anchor('chrome', { left: 30, top: 70, width: 350, height: 90 }),
+      anchor('', { left: 44, top: 104, width: 670, height: 720 }),
+      anchor('approach-edge', { left: 778, top: 0, width: 0, height: 0 }),
+      anchor('close-up-edge', { left: 906, top: 466, width: 490, height: 346 }),
+      anchor('bottom-bar', { left: 44, top: 687, width: 1352, height: 123 }),
+    ]);
+    const band = sceneLayout(CANVAS, PHONE, [
+      anchor('', { left: 0, top: 506, width: 390, height: 338 }),
+    ]);
+
+    expect(layout.windows).toEqual([
+      { left: 44, top: 104, right: 714, bottom: 824 },
+      { left: 906, top: 466, right: 1396, bottom: 812 },
+    ]);
+    expect(band.windows).toEqual([]);
+  });
+
   it('keeps the box of the top bar that shows', () => {
     const layout = sceneLayout(CANVAS, VIEWPORT, [
       anchor('top-bar', { left: 0, top: 0, width: 244, height: 56 }),

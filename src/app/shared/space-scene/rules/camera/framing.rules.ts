@@ -15,6 +15,7 @@ import { Orbit, positionOrbit } from '../scene-bodies.rules';
 import { flattening, rollFlatten } from './projection.rules';
 import {
   Box,
+  FreeSky,
   freeSkyOf,
   outermostReach,
   wholeInFreeSky,
@@ -26,6 +27,21 @@ import type {
   HoleFocus,
 } from '../hole-focus.rules';
 import type { phoneFigures } from '../figures/phone-figures.rules';
+import {
+  hasBand,
+  holeHeldLeftOf,
+  HoleView,
+  layoutInRoom,
+  isHoleInRoom,
+  mirroredFrame,
+  NO_ROOM,
+  planetTurnOf,
+  RoomMemo,
+  RoomSide,
+  roomAfter,
+  sideOf,
+  skyOfRoom,
+} from '../rooms/window-room.rules';
 
 export interface HoleFocusRules {
   readonly holeInFocus: (
@@ -48,6 +64,7 @@ export interface FramingScene {
   reach: number | null;
   holeFocus: HoleFocusRules | null;
   focusMemo: FocusMemo | null;
+  room: RoomMemo;
   readonly orbitTurn: (i: number) => number;
   readonly nameOf: (i: number) => FocusAim['name'];
 }
@@ -67,6 +84,7 @@ export const framingScene = (
   reach: null,
   holeFocus: null,
   focusMemo: null,
+  room: NO_ROOM,
   orbitTurn,
   nameOf,
 });
@@ -129,18 +147,55 @@ const aimOf = (state: SceneState, scene: FramingScene): FocusAim | null => {
 };
 
 const viewFraming = (state: SceneState, scene: FramingScene): Frame => {
+  scene.room = roomAfter(scene.room, scene.layout);
+  const { layout, dims } = scene;
+  const room = scene.room.room;
+  if (state.phone || !layout || !room || !dims || hasBand(layout)) {
+    return framingIn(state, scene, layout);
+  }
+  const side = sideOf(room, layout.viewport.width);
+  const view = { dims, framing: state.framing };
+  const seen = framingOnSide(state, scene, side, {
+    layout: layoutInRoom(layout, room),
+    view,
+  });
+  return side !== 'middle' && isHoleInRoom(seen, room, view)
+    ? seen
+    : wholeInSky(seen, scene, skyOfRoom(layout, room));
+};
+
+const framingOnSide = (
+  state: SceneState,
+  scene: FramingScene,
+  side: RoomSide,
+  { layout, view }: { readonly layout: SceneLayout; readonly view: HoleView },
+): Frame => {
+  if (state.framing === 'rest' || side === 'middle') {
+    return framingIn(state, scene, layout);
+  }
+  const seen = holeHeldLeftOf(framingIn(state, scene, layout), layout, view);
+  return side === 'right'
+    ? mirroredFrame(seen, planetTurnOf(state, scene))
+    : seen;
+};
+
+const framingIn = (
+  state: SceneState,
+  scene: FramingScene,
+  layout: SceneLayout | null,
+): Frame => {
   switch (state.framing) {
     case 'aside': {
-      return wholeObjectFraming(ASIDE_FRAME, scene);
+      return wholeObjectFraming(ASIDE_FRAME, scene, layout);
     }
     case 'overview': {
-      return wholeObjectFraming(OVERVIEW_FRAME, scene);
+      return wholeObjectFraming(OVERVIEW_FRAME, scene, layout);
     }
     case 'approach': {
-      return approachFraming(state, scene);
+      return approachFraming(state, scene, layout);
     }
     case 'close-up': {
-      return closeUpBeside(state, scene);
+      return closeUpBeside(state, scene, layout);
     }
     case 'rest': {
       return scene.rest;
@@ -148,29 +203,46 @@ const viewFraming = (state: SceneState, scene: FramingScene): Frame => {
   }
 };
 
-const wholeObjectFraming = (frame: Frame, scene: FramingScene): Frame => {
+const wholeObjectFraming = (
+  frame: Frame,
+  scene: FramingScene,
+  layout: SceneLayout | null,
+): Frame => {
+  const dims = scene.dims;
+  const sky = dims ? freeSkyOf(layout, dims.w / dims.dpr) : null;
+  return wholeInSky(frame, scene, sky);
+};
+
+const wholeInSky = (
+  frame: Frame,
+  scene: FramingScene,
+  sky: FreeSky | null,
+): Frame => {
   const dims = scene.dims;
   const outermost = outermostReach(scene.orbits);
   const reach = outermost > 0 ? (scene.reach ?? outermost) : 0;
-  const sky = dims ? freeSkyOf(scene.layout, dims.w / dims.dpr) : null;
   return dims && sky && reach > 0
     ? wholeInFreeSky(frame, { dims, sky, reach })
     : frame;
 };
 
-const approachFraming = (state: SceneState, scene: FramingScene): Frame => {
+const approachFraming = (
+  state: SceneState,
+  scene: FramingScene,
+  layout: SceneLayout | null,
+): Frame => {
   const framed = Math.max(0, state.framed);
-  const { band, isFolded } = approachBandOf(scene.layout);
+  const { band, isFolded } = approachBandOf(layout);
   return approachFrame({
     step: state.step,
     rest: scene.rest,
-    viewportWidth: scene.layout?.viewport.width ?? FALLBACK_VIEWPORT.width,
+    viewportWidth: layout?.viewport.width ?? FALLBACK_VIEWPORT.width,
     dims: scene.dims,
     orbit: scene.orbits[framed] ?? null,
-    panelLeft: scene.layout?.approachEdge ?? null,
+    panelLeft: layout?.approachEdge ?? null,
     band,
     isPairCentred: isFolded,
-    isDiscHeld: typeof scene.layout?.sidePanelLeft === 'number',
+    isDiscHeld: typeof layout?.sidePanelLeft === 'number',
     phase: scene.phase,
     azim: scene.azim + scene.orbitTurn(framed),
     offset: (az, tilt) => offsetSeen(scene, framed, az, tilt),
@@ -186,14 +258,18 @@ const approachBandOf = (
   return { band: skyBand(layout, isFolded ? cornerTop : bandTop), isFolded };
 };
 
-const closeUpBeside = (state: SceneState, scene: FramingScene): Frame => {
+const closeUpBeside = (
+  state: SceneState,
+  scene: FramingScene,
+  layout: SceneLayout | null,
+): Frame => {
   const framed = state.framed;
   return closeUpFrame({
     rest: scene.rest,
     dims: scene.dims,
     orbit: scene.orbits[framed] ?? null,
-    panelLeft: scene.layout?.closeUpEdge ?? null,
-    band: skyBand(scene.layout, scene.layout?.closeUpBandTop),
+    panelLeft: layout?.closeUpEdge ?? null,
+    band: skyBand(layout, layout?.closeUpBandTop),
     phase: scene.phase,
     azim: scene.azim + scene.orbitTurn(framed),
     offset: (az, tilt) => offsetSeen(scene, framed, az, tilt),

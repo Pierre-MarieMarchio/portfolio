@@ -1,6 +1,6 @@
 import { SpaceSceneEngine } from './space-scene.engine';
 import { SceneDirection, SceneInputs } from '../models/scene.model';
-import { SceneLayout } from '../models/scene-layout.model';
+import { SceneLayout, ScenePanelRole } from '../models/scene-layout.model';
 import { TurntableMotion } from './motions/turntable.motion';
 import { opening } from '../rules/camera/projection.rules';
 import { APPROACHES } from '../rules/camera/camera-frames.rules';
@@ -712,6 +712,224 @@ describe('SpaceSceneEngine, the whole object beside a window on an upright table
       }
     }
   }, 60_000);
+});
+
+const DESKTOP_SCREEN = { width: 1440, height: 900 } as const;
+
+type Span = readonly [number, number];
+
+const framedLayout = (
+  spans: readonly Span[],
+  role: ScenePanelRole = '',
+  screen: { readonly width: number; readonly height: number } = DESKTOP_SCREEN,
+): SceneLayout =>
+  sceneLayout({ left: 0, top: 0 }, screen, [
+    {
+      rect: rectOf(screen.width - 426, 36, 382, 42),
+      opacity: '1',
+      role: 'top-bar',
+    },
+    ...spans.map(([left, right], k) => ({
+      rect: rectOf(left, 104, right - left, screen.height - 180),
+      opacity: '1',
+      role: k === spans.length - 1 ? role : ('' as const),
+    })),
+  ]);
+
+type FramedView = readonly [
+  string,
+  Partial<SceneDirection>,
+  ScenePanelRole,
+  number,
+];
+
+const CLOSE_UP_VIEW: FramedView = [
+  'close-up',
+  { framing: { kind: 'close-up', body: bodyId(2) } },
+  'close-up-edge',
+  906,
+];
+
+const FRAMED_VIEWS: readonly FramedView[] = [
+  ['overview', OVERVIEW, '', 590],
+  ['aside', WHOLE_OBJECT_SCENES[1]?.[1] ?? {}, '', 778],
+  [
+    'approach',
+    {
+      framing: { kind: 'approach', body: bodyId(2), step: 0 },
+      turnable: false,
+    },
+    'approach-edge',
+    778,
+  ],
+  CLOSE_UP_VIEW,
+];
+
+const framedScene = (
+  layout: SceneLayout,
+  direction: Partial<SceneDirection>,
+  format: SceneInputs['format'] = 'desktop',
+) => {
+  const scene = markedScene(layout, 1, {
+    ...SCENE_INPUTS,
+    reduced: true,
+    format,
+    direction: { ...SHOWN, landed: true, ...direction },
+  });
+  scene.run(2000);
+  return scene;
+};
+
+const expectHoleWithin = (
+  hole: HoleSeen,
+  room: { readonly left: number; readonly right: number },
+  name: string,
+): void => {
+  expect(hole.radius, `${name}, drawn`).toBeGreaterThan(0);
+  expect(hole.x - hole.radius, `${name}, right of`).toBeGreaterThanOrEqual(
+    room.left,
+  );
+  expect(hole.x + hole.radius, `${name}, left of`).toBeLessThanOrEqual(
+    room.right,
+  );
+};
+
+describe('SpaceSceneEngine, beside the windows of a desktop, wherever they are', () => {
+  it.each(FRAMED_VIEWS)(
+    'frames the %s right of a window snapped left, as the mirror of a window snapped right',
+    (name, direction, role) => {
+      const left = framedScene(framedLayout([[44, 714]], role), direction);
+      const right = framedScene(framedLayout([[726, 1396]], role), direction);
+      const seen = left.hole();
+      const mirrored = right.hole();
+
+      expectHoleWithin(seen, { left: 714, right: 1440 }, name);
+      expect(seen.x).toBeCloseTo(DESKTOP_SCREEN.width - mirrored.x, 0);
+      expect(seen.y).toBeCloseTo(mirrored.y, 0);
+      expect(seen.radius).toBeCloseTo(mirrored.radius, 0);
+      if (role !== '') {
+        const planet = buttonAt(left.styles(), 2);
+        const across = buttonAt(right.styles(), 2);
+        expect(planet.x).toBeCloseTo(DESKTOP_SCREEN.width - across.x, 0);
+        expect(planet.y).toBeCloseTo(across.y, 0);
+      }
+    },
+    60_000,
+  );
+
+  it.each(FRAMED_VIEWS.slice(0, 3))(
+    'frames the %s beside its window on the right as it did before',
+    (_, direction, role, left) => {
+      const layout = framedLayout([[left, 1396]], role);
+      const framed = framedScene(layout, direction);
+      const before = framedScene({ ...layout, windows: undefined }, direction);
+
+      expect(framed.hole()).toEqual(before.hole());
+      expect(framed.styles()).toEqual(before.styles());
+    },
+    60_000,
+  );
+
+  it('holds the close-up hole left of the preview on the right, by what crossed it only', () => {
+    const [, direction, role, left] = CLOSE_UP_VIEW;
+    const layout = framedLayout([[left, 1396]], role);
+    const held = framedScene(layout, direction).hole();
+    const before = framedScene({ ...layout, windows: undefined }, direction);
+    const crossed = before.hole();
+
+    expect(crossed.x + crossed.radius).toBeGreaterThan(left);
+    expect(held.x + held.radius).toBeCloseTo(left, 0);
+    expect(held.y).toBe(crossed.y);
+    expect(held.radius).toBe(crossed.radius);
+  }, 60_000);
+
+  it.each([
+    ['right of a window left of the middle', [[300, 800]], 800, 1440],
+    ['left of a wide window in the middle', [[322, 1128]], 0, 322],
+    [
+      'between a pinned window and the one of the view',
+      [
+        [44, 400],
+        [1000, 1396],
+      ],
+      400,
+      1000,
+    ],
+    [
+      'left of a pinned window and the one of the view',
+      [
+        [778, 1396],
+        [590, 1396],
+      ],
+      0,
+      590,
+    ],
+  ] as const)(
+    'frames every view in the widest free room, %s',
+    (_, spans, left, right) => {
+      for (const [name, direction, role] of FRAMED_VIEWS) {
+        const scene = framedScene(framedLayout(spans, role), direction);
+        expectHoleWithin(scene.hole(), { left, right }, name);
+      }
+    },
+    60_000,
+  );
+
+  it('rests at home clear of a window pinned on the left', () => {
+    const scene = framedScene(framedLayout([[44, 714]]), {});
+
+    expectHoleWithin(scene.hole(), { left: 714, right: 1440 }, 'rest');
+  }, 60_000);
+
+  it('keeps its framing while a window covers the screen, and after', () => {
+    const scene = framedScene(framedLayout([[44, 714]]), OVERVIEW);
+    const beside = scene.hole();
+    scene.engine.setLayout(framedLayout([[44, 1396]]));
+    scene.run(2000);
+
+    expect(scene.hole()).toEqual(beside);
+
+    scene.engine.setLayout(framedLayout([[44, 714]]));
+    scene.run(2000);
+
+    expect(scene.hole()).toEqual(beside);
+  }, 60_000);
+
+  it('eases across to the other side, without a jump', () => {
+    const scene = markedScene(framedLayout([[778, 1396]]), 1);
+    scene.run(PAST_CROSSING_MS);
+    scene.set({ direction: OVERVIEW });
+    scene.run(4000);
+    const from = scene.hole().x;
+    scene.engine.setLayout(framedLayout([[44, 662]]));
+    scene.run(FRAME_MS);
+    const firstStep = scene.hole().x;
+    scene.run(8000);
+    const to = scene.hole().x;
+
+    expect(to - from).toBeGreaterThan(400);
+    expect(firstStep - from).toBeGreaterThan(0);
+    expect(firstStep - from).toBeLessThan(0.1 * (to - from));
+    expect(to).toBeCloseTo(DESKTOP_SCREEN.width - from, 0);
+  }, 60_000);
+
+  it.each(FRAMED_VIEWS)(
+    'frames the %s right of a window snapped left on an upright tablet',
+    (name, direction, role) => {
+      const scene = framedScene(
+        framedLayout([[16, 404]], role, TABLET_UPRIGHT),
+        direction,
+        'tablet',
+      );
+
+      expectHoleWithin(
+        scene.hole(),
+        { left: 404, right: TABLET_UPRIGHT.width },
+        name,
+      );
+    },
+    60_000,
+  );
 });
 
 const LYING_PHONE = { width: 844, height: 390 } as const;

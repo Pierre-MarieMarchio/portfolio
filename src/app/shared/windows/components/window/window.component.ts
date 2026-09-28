@@ -22,7 +22,7 @@ import {
   WindowSize,
 } from '../../models/window.model';
 import { GlassGesture } from '../../models/glass-gesture.model';
-import { WINDOW_TEXTS } from '../../ports/window-texts.port';
+import { WindowControlsComponent } from '../window-controls/window-controls.component';
 
 @Component({
   selector: 'app-window',
@@ -33,12 +33,12 @@ import { WINDOW_TEXTS } from '../../ports/window-texts.port';
     GlassGesturesDirective,
     RememberScrollDirective,
     ScrollStopsDirective,
+    WindowControlsComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.scss',
 })
 export class WindowComponent {
-  protected readonly texts = inject(WINDOW_TEXTS);
   private readonly kept = inject(KeptWindowDirective, { optional: true });
   private readonly rail = viewChild.required<ElementRef<HTMLElement>>('rail');
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
@@ -50,6 +50,7 @@ export class WindowComponent {
   public readonly anchor = input<WindowAnchor>('top');
   public readonly pinned = input(false);
   public readonly closable = input(true);
+  public readonly closeLabel = input('');
   public readonly label = input('');
   public readonly scrollKey = input('');
   public readonly scrollResetOn = input<unknown>();
@@ -64,12 +65,6 @@ export class WindowComponent {
   protected readonly name = computed(() => this.label() || this.heading());
   protected readonly ceiling = computed(() =>
     this.collapsed() ? null : WINDOW_CEILINGS[this.size()],
-  );
-  protected readonly pinLabel = computed(() =>
-    this.pinned() ? this.texts().unpin : this.texts().pin,
-  );
-  protected readonly collapseLabel = computed(() =>
-    this.collapsed() ? this.texts().unfold : this.texts().fold,
   );
 
   constructor() {

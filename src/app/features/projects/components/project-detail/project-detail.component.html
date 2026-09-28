@@ -8,6 +8,7 @@
     [scrollResetOn]="chapter()"
     [pinned]="pinned()"
     (pinToggled)="pinToggled.emit()"
+    [closeLabel]="closeLabel()"
     (closed)="closed.emit()"
   >
     <app-segmented

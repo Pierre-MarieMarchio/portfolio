@@ -19,8 +19,12 @@ const texts = (): WindowTexts => TestBed.inject(WINDOW_TEXTS)();
 type Control = 'pin' | 'collapse' | 'close';
 
 const namesOf = (name: Control): readonly string[] => {
-  const { pin, unpin, fold, unfold, close } = texts();
-  return { pin: [pin, unpin], collapse: [fold, unfold], close: [close] }[name];
+  const { pin, unpin, fold, unfold, close, phone } = texts();
+  return {
+    pin: [pin, unpin, phone.pin, phone.unpin],
+    collapse: [fold, unfold, phone.fold, phone.unfold],
+    close: [close],
+  }[name];
 };
 
 const CAPS: Record<WindowSize, number> = { s: 300, m: 470, l: 920 };
@@ -160,7 +164,7 @@ describe('WindowComponent', () => {
     const h2Index = children.findIndex((el) => el.tagName === 'H2');
     const metaIndex = children.findIndex((el) => el.classList.contains('meta'));
     const firstButtonIndex = children.findIndex(
-      (el) => el.tagName === 'BUTTON',
+      (el) => el.querySelector('button') !== null,
     );
 
     expect(at(children, 0).getAttribute('aria-hidden')).toBe('true');
@@ -175,28 +179,23 @@ describe('WindowComponent', () => {
   });
 
   describe('pin button', () => {
-    it('starts unpinned, and only the pinned input changes its glyph and label', async () => {
+    it('starts unpinned, and only the pinned input changes its state and label', async () => {
       const { fixture, host } = await mount();
       const pin = control(host, 'pin');
 
       expect(pin.getAttribute('aria-pressed')).toBe('false');
-      expect(pin.textContent?.trim()).toBe('○');
       expect(pin.getAttribute('aria-label')).toBe(texts().pin);
-      expect(pin.getAttribute('title')).toBe(texts().pin);
 
       pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await fixture.whenStable();
 
       expect(pin.getAttribute('aria-pressed')).toBe('false');
-      expect(pin.textContent?.trim()).toBe('○');
 
       fixture.componentRef.setInput('pinned', true);
       await fixture.whenStable();
 
       expect(pin.getAttribute('aria-pressed')).toBe('true');
-      expect(pin.textContent?.trim()).toBe('●');
       expect(pin.getAttribute('aria-label')).toBe(texts().unpin);
-      expect(pin.getAttribute('title')).toBe(texts().unpin);
     });
 
     it('emits pinToggled exactly once per click', async () => {
@@ -232,7 +231,6 @@ describe('WindowComponent', () => {
       ];
 
       expect(collapse.getAttribute('aria-expanded')).toBe('true');
-      expect(collapse.textContent?.trim()).toBe('–');
       expect(collapse.getAttribute('aria-label')).toBe(texts().fold);
       expect(text).toMatch(
         /Console.*TOOLBAR-MARK.*DEFAULT-MARK.*BODY-MARK.*FOOTER-MARK/s,
@@ -245,9 +243,7 @@ describe('WindowComponent', () => {
       await fixture.whenStable();
 
       expect(collapse.getAttribute('aria-expanded')).toBe('false');
-      expect(collapse.textContent?.trim()).toBe('+');
       expect(collapse.getAttribute('aria-label')).toBe(texts().unfold);
-      expect(collapse.getAttribute('title')).toBe(texts().unfold);
       for (const mark of marks) {
         expect(section.textContent).not.toContain(mark);
       }
@@ -258,7 +254,6 @@ describe('WindowComponent', () => {
       await fixture.whenStable();
 
       expect(collapse.getAttribute('aria-expanded')).toBe('true');
-      expect(collapse.textContent?.trim()).toBe('–');
       expect(section.textContent).toContain('BODY-MARK');
     });
 
@@ -295,8 +290,6 @@ describe('WindowComponent', () => {
       expect(titlebarButtons(host)).toHaveLength(3);
       const close = control(host, 'close');
       expect(close.getAttribute('aria-label')).toBe(texts().close);
-      expect(close.getAttribute('title')).toBe(texts().close);
-      expect(close.textContent?.trim()).toBe('✕');
 
       const calls = recordOutput(fixture.componentInstance.closed);
       close.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -313,6 +306,23 @@ describe('WindowComponent', () => {
           (button) => button.getAttribute('aria-label') === texts().close,
         ),
       ).toBe(false);
+    });
+    it('names the close button after where the caller says it leads', async () => {
+      const { fixture, host } = await mount();
+
+      fixture.componentRef.setInput(
+        'closeLabel',
+        'Fermer et revenir à l’accueil',
+      );
+      await fixture.whenStable();
+
+      expect(
+        titlebarButtons(host).some(
+          (button) =>
+            button.getAttribute('aria-label') ===
+            'Fermer et revenir à l’accueil',
+        ),
+      ).toBe(true);
     });
   });
 

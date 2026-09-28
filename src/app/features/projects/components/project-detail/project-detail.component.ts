@@ -50,6 +50,7 @@ export class ProjectDetailComponent {
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
   public readonly current = input(true);
+  public readonly closeLabel = input('');
   public readonly chapter = input(0);
 
   public readonly pinToggled = output();

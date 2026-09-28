@@ -347,6 +347,26 @@ describe('ObservatoryPageComponent', () => {
     expect(docked()).toEqual([]);
   });
 
+  it('names each close button after where it leads: the list from the sheet, home from the list, nowhere for a pinned window', async () => {
+    const { fixture, station, host } = await mount();
+    const { closeTo } = TestBed.inject(OBSERVATORY_TEXTS)();
+    const closeOf = (slot: string) =>
+      host
+        .querySelector(`.slot--${slot} button.close`)
+        ?.getAttribute('aria-label');
+    station.syncRoute('index');
+    station.togglePin('index');
+    await fixture.whenStable();
+    const onIndex = closeOf('index');
+
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+
+    expect(onIndex).toBe(closeTo.home);
+    expect(closeOf('sheet')).toBe(closeTo.index);
+    expect(closeOf('index')).toBe('Fermer la fenêtre');
+  });
+
   it('shows the sheet for a slug the catalog knows', async () => {
     const { fixture, station, host } = await mount();
     station.syncRoute('sheet', KNOWN_SLUG);

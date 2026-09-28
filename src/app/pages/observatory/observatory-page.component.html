@@ -77,6 +77,7 @@
           [part]="observatory.section()"
           (partChange)="observatory.chooseSection($event)"
           (pinToggled)="observatory.togglePin('about')"
+          [closeLabel]="closeLabels().about"
           (closed)="observatory.close('about')"
         />
       }
@@ -102,6 +103,7 @@
           (selectedChange)="observatory.select($event)"
           (hoveredChange)="observatory.hover($event)"
           (pinToggled)="observatory.togglePin('index')"
+          [closeLabel]="closeLabels().index"
           (closed)="observatory.close('index')"
         />
       }
@@ -122,6 +124,7 @@
           <app-not-found-window
             [current]="observatory.showsSheet()"
             [total]="projects.ranked().length"
+            [closeLabel]="closeLabels().sheet"
             (closed)="observatory.close('sheet')"
           />
         } @else {
@@ -132,6 +135,7 @@
             [chapter]="shown.chapter"
             (chapterChange)="observatory.chooseChapter($event)"
             (pinToggled)="observatory.togglePin('sheet')"
+            [closeLabel]="closeLabels().sheet"
             (closed)="observatory.close('sheet')"
           />
         }

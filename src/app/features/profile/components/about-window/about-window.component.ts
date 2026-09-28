@@ -31,6 +31,7 @@ const PARTS = ['profile', 'skills', 'path', 'method'] as const;
 export class AboutWindowComponent {
   public readonly pinned = input(false);
   public readonly current = input(true);
+  public readonly closeLabel = input('');
   public readonly part = input(0);
 
   public readonly pinToggled = output();

@@ -20,6 +20,14 @@ export const FR: Catalog = {
     fold: 'Replier la fenêtre',
     unfold: 'Déplier la fenêtre',
     close: 'Fermer la fenêtre',
+    phone: {
+      pin: 'Garder cette fenêtre ouverte en changeant d’onglet',
+      unpin: 'Laisser cette fenêtre se fermer en changeant d’onglet',
+      fold: 'Baisser la fenêtre',
+      unfold: 'Remonter la fenêtre',
+    },
+    kept: 'Fenêtre gardée',
+    released: 'Fenêtre libérée',
   },
 
   mobileNav: {
@@ -100,6 +108,10 @@ export const FR: Catalog = {
       trade: 'Développeur .NET et Angular',
       status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',
+    },
+    closeTo: {
+      home: 'Fermer et revenir à l’accueil',
+      index: 'Fermer et revenir aux projets',
     },
     dock: {
       label: 'Fenêtres rangées',

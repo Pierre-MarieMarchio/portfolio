@@ -18,6 +18,10 @@ export interface ObservatoryTexts {
     readonly status: string;
     readonly brand: string;
   };
+  readonly closeTo: {
+    readonly home: string;
+    readonly index: string;
+  };
   readonly dock: {
     readonly label: string;
     readonly windows: Readonly<Record<ObservatoryWindow, string>>;

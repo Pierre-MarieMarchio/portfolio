@@ -50,6 +50,10 @@ $bottom-reserve: var(--glass-bottom-reserve, 0px);
   animation: window-rise 560ms both;
 }
 
+.glass--folded .window {
+  overflow: visible;
+}
+
 .titlebar {
   flex: 0 0 auto;
   display: flex;
@@ -88,20 +92,6 @@ h2 {
 
   color: var(--sig);
   white-space: nowrap;
-}
-
-.control {
-  @include controls.icon-button(var(--target-compact), 32px, var(--t-duration));
-}
-
-.pin[data-pinned='true'] {
-  color: var(--sig);
-}
-
-@include formats.can-hover {
-  .close:hover {
-    color: var(--sig);
-  }
 }
 
 .toolbar {
@@ -243,9 +233,5 @@ h2 {
 
   .glass--rising .rail {
     scroll-behavior: auto;
-  }
-
-  .control {
-    transition: none;
   }
 }

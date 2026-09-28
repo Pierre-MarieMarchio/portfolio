@@ -7,3 +7,5 @@ export const WINDOW_CEILINGS: Readonly<Record<WindowSize, number>> = {
   m: 470,
   l: 920,
 };
+
+export type WindowControl = 'pin' | 'fold' | 'close';

@@ -1,1 +1,1 @@
-export { viewAtAddress } from './view.rules';
+export { closeTargetOf, viewAtAddress } from './view.rules';

@@ -8,6 +8,7 @@ import {
   ElementRef,
   inject,
   input,
+  output,
   signal,
   untracked,
   viewChild,
@@ -35,6 +36,7 @@ import {
 } from '../../models/scene-constants.model';
 
 const DENSITY = 3800;
+const FIGURE_DRAG_WITHIN_PX = 6;
 
 export const loadHoleFocus = () => import('../../rules/hole-focus.rules');
 
@@ -57,6 +59,8 @@ export class SpaceSceneComponent {
   public readonly figureNames = input<readonly string[]>([]);
   public readonly paused = input(false);
 
+  public readonly figureChosen = output<number>();
+
   protected readonly failed = signal(false);
   protected readonly running = signal(false);
   private readonly reduced = signal(true);
@@ -73,11 +77,15 @@ export class SpaceSceneComponent {
     viewChild.required<ElementRef<HTMLCanvasElement>>('matter');
   private readonly stage = viewChild.required<ElementRef<HTMLElement>>('stage');
   private readonly labelNodes = viewChildren<ElementRef<HTMLElement>>('label');
+  private readonly figureNodes =
+    viewChildren<ElementRef<HTMLElement>>('figure');
 
   protected readonly engine = signal<SpaceSceneEngine | null>(null);
   private readonly stops: (() => void)[] = [];
   private targetsGiven: readonly HTMLElement[] = [];
   private labelsGiven: readonly HTMLElement[] = [];
+  private figuresGiven: readonly HTMLElement[] = [];
+  private figurePress: { readonly x: number; readonly y: number } | null = null;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -121,6 +129,23 @@ export class SpaceSceneComponent {
     };
   }
 
+  protected onFigurePress(event: PointerEvent): void {
+    this.figurePress = { x: event.clientX, y: event.clientY };
+  }
+
+  protected onFigureClick(figure: number, event: MouseEvent): void {
+    const press = this.figurePress;
+    this.figurePress = null;
+    const isDragged =
+      event.detail > 0 &&
+      press !== null &&
+      Math.hypot(event.clientX - press.x, event.clientY - press.y) >
+        FIGURE_DRAG_WITHIN_PX;
+    if (!isDragged) {
+      this.figureChosen.emit(figure);
+    }
+  }
+
   private giveNodes(): void {
     const engine = this.engine();
     if (!engine) {
@@ -128,15 +153,18 @@ export class SpaceSceneComponent {
     }
     const targets = this.targets.list();
     const labels = this.labelNodes().map((ref) => ref.nativeElement);
+    const figures = this.figureNodes().map((ref) => ref.nativeElement);
     if (
       isSameList(targets, this.targetsGiven) &&
-      isSameList(labels, this.labelsGiven)
+      isSameList(labels, this.labelsGiven) &&
+      isSameList(figures, this.figuresGiven)
     ) {
       return;
     }
     this.targetsGiven = targets;
     this.labelsGiven = labels;
-    engine.setNodes(targets, labels);
+    this.figuresGiven = figures;
+    engine.setNodes(targets, labels, figures);
   }
 
   private boot(): void {

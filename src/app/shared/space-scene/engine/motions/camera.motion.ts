@@ -6,7 +6,7 @@ import {
   referenceRadius,
 } from '../../rules/camera/camera-frames.rules';
 import type { RestMeasure } from '../../rules/camera/rest-frame.rules';
-import { CONSTELLATIONS } from '../../rules/sky/constellations.rules';
+import { CONSTELLATIONS } from '../../rules/figures/constellations.rules';
 import {
   clamp,
   finiteOr,
@@ -164,8 +164,9 @@ export class CameraMotion {
     this.isArrived = this.distanceTo(aim) < ARRIVED_WITHIN;
     this.now.marks += (marks - this.now.marks) * kc;
     this.now.figures += (figures - this.now.figures) * kc;
-    this.light(lit, kc);
-    this.isMoving = hasRestMoved || this.poseTravel() > STILL_WITHIN;
+    const lightTravel = this.light(lit, kc);
+    this.isMoving =
+      hasRestMoved || this.poseTravel() + lightTravel > STILL_WITHIN;
   }
 
   public lay(frame: SceneFrame, trv: Traveling): void {
@@ -248,12 +249,15 @@ export class CameraMotion {
     now.azim += (aim.az - now.azim) * kc;
   }
 
-  private light(lit: number, kc: number): void {
+  private light(lit: number, kc: number): number {
     const lights = this.lights;
+    let travelled = 0;
     for (let k = 0; k < lights.length; k++) {
-      lights[k] =
-        (lights[k] ?? 0) + ((k === lit ? 1 : 0) - (lights[k] ?? 0)) * kc;
+      const step = ((k === lit ? 1 : 0) - (lights[k] ?? 0)) * kc;
+      lights[k] = (lights[k] ?? 0) + step;
+      travelled += Math.abs(step);
     }
+    return travelled;
   }
 
   private rememberPose(): void {

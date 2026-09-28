@@ -2,7 +2,7 @@ import { clamp, TAU } from '@app/core/helpers';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
 import { PlaneView, rollFlatten } from '../../../rules/camera/projection.rules';
 import { Comet, COMETS, positionComet } from '../../../rules/sky/comets.rules';
-import { figureLabelFont } from '../../../rules/sky/figure-label.rules';
+import { figureLabelFont } from '../../../rules/figures/figure-label.rules';
 
 interface CometsArgs {
   readonly phase: number;

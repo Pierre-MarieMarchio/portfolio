@@ -1,4 +1,4 @@
-const SCENE_TARGET = '[data-scene-target]';
+const SCENE_TARGET = '[data-scene-target], [data-scene-figure]';
 const OTHER_GESTURES = '[data-panel], a, input, textarea, select';
 
 const targetOf = (event: Event): Element | null =>

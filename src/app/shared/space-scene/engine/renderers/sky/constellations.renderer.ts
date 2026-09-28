@@ -1,26 +1,20 @@
 import type { SkyPan } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
-import { TAU } from '@app/core/helpers';
-import {
-  holeDistance,
-  ScreenHole,
-} from '../../../rules/camera/projection.rules';
+import type { ScreenHole } from '../../../rules/camera/projection.rules';
 import {
   CONSTELLATIONS,
   Figure,
-} from '../../../rules/sky/constellations.rules';
+} from '../../../rules/figures/constellations.rules';
 import {
-  FigureName,
   figureLabelFont,
-  figureLabelSpacing,
-  figureNameAt,
   figureNameSize,
-} from '../../../rules/sky/figure-label.rules';
+} from '../../../rules/figures/figure-label.rules';
 import {
   figureInRoom,
   nameInRoom,
   SkyRoom,
-} from '../../../rules/sky/figure-room.rules';
+  spanOf,
+} from '../../../rules/figures/figure-room.rules';
 import {
   diskOnScreen,
   drawnDisc,
@@ -28,8 +22,25 @@ import {
 } from '../../../rules/camera/pointer.rules';
 import type { Zone } from '../../../rules/panel-veil.rules';
 import { PAN_PARALLAX, SKY_DRIFT } from '../../../models/scene-constants.model';
+import type { PhoneFigures } from '../../../rules/figures/phone-figures.rules';
+import {
+  FigureTarget,
+  figureTargetOf,
+  isOverTarget,
+} from '../../../rules/figures/figure-target.rules';
+import { FigureTargetsRenderer } from './figure-targets.renderer';
+import {
+  drawFigureStars,
+  FigureLight,
+  FigurePoint,
+  nameFigure,
+  PlacedFigure,
+  strokeFigure,
+} from './figure-strokes.renderer';
 
 interface ConstellationsArgs {
+  readonly w: number;
+  readonly h: number;
   readonly dpr: number;
   readonly accent: string;
   readonly entry: number;
@@ -43,6 +54,10 @@ interface ConstellationsArgs {
   readonly topBar: Zone | null;
   readonly room: SkyRoom | null;
   readonly disc: DrawnDisc | null;
+  readonly hover: { readonly x: number; readonly y: number } | null;
+  readonly isAbout: boolean;
+  readonly zones: readonly Zone[];
+  readonly phone: PhoneFigures | null;
 }
 
 interface ConstellationsLayer {
@@ -51,32 +66,32 @@ interface ConstellationsLayer {
   readonly h: number;
   readonly args: ConstellationsArgs;
   readonly drift: number;
+  readonly targets: FigureTargetsRenderer;
 }
-
-interface FigureLight {
-  readonly on: number;
-  readonly alpha: number;
-}
-
-type FigurePoint = readonly [number, number];
 
 const FIGURE_DEPTH = 0.16;
+const UNLIT_LIGHT = 0.2;
+const UNLIT_LIGHT_IN_ABOUT = 0.45;
+const HOVERED_LIGHT = 0.7;
+const UNLIT_GROWTH = 0.25;
+const TARGETS_FROM = 0.5;
 
 const drawConstellations = (
   ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
+  targets: FigureTargetsRenderer,
   args: ConstellationsArgs,
 ): void => {
   if (args.shown < 0.02) {
+    targets.hideAll();
     return;
   }
   const layer = {
     ctx,
-    w,
-    h,
+    w: args.w,
+    h: args.h,
     args,
     drift: args.time * SKY_DRIFT * FIGURE_DEPTH * 6,
+    targets,
   };
   ctx.lineCap = 'round';
   for (const [k, figure] of CONSTELLATIONS.entries()) {
@@ -89,32 +104,39 @@ const drawFigure = (
   figure: Figure,
   k: number,
 ): void => {
-  const on = layer.args.lit[k] ?? 0;
-  const alpha = (0.2 + 0.8 * on) * layer.args.shown;
-  if (alpha < 0.02) {
+  const { args } = layer;
+  const on = args.lit[k] ?? 0;
+  const unlit = args.isAbout ? UNLIT_LIGHT_IN_ABOUT : UNLIT_LIGHT;
+  if ((unlit + (1 - unlit) * on) * args.shown < 0.02) {
+    layer.targets.hide(k);
     return;
   }
-  const light = { on, alpha };
-  const label = (layer.args.labels[k] ?? '').toUpperCase();
-  const placed = placeFigure(layer, figurePoints(layer, figure), on, label);
-  const points = placed.points;
-  strokeFigure(layer, figure, points, light);
-  for (const [i, point] of points.entries()) {
-    if (!isHidden(layer, point)) {
-      const brightness = figure.pts[i]?.[2] ?? 0.7;
-      drawFigureStar(layer, point, starRadius(layer, brightness, i), light);
-    }
+  const label = (args.labels[k] ?? '').toUpperCase();
+  const placed = args.phone
+    ? args.phone.at(k, args.lit, on)
+    : placeFigure(layer, figurePoints(layer, figure), on, label);
+  const target = aimTarget(layer, k, placed.points);
+  const light = lightOf(args, on, isOverTarget(target, args.hover, args.dpr));
+  strokeFigure(layer, figure, placed.points, light);
+  drawFigureStars(layer, figure, placed.points, light);
+  if (on >= 0.12) {
+    nameFigure(layer, placed, on, label);
   }
-  if (on < 0.12) {
-    return;
-  }
-  nameFigure(layer, placed, on, label);
 };
 
-interface PlacedFigure {
-  readonly points: readonly FigurePoint[];
-  readonly name: FigureName | null;
-}
+const lightOf = (
+  args: ConstellationsArgs,
+  on: number,
+  isHovered: boolean,
+): FigureLight => {
+  const unlit = args.isAbout ? UNLIT_LIGHT_IN_ABOUT : UNLIT_LIGHT;
+  const floor = isHovered ? HOVERED_LIGHT : unlit;
+  return {
+    on,
+    alpha: (floor + (1 - floor) * on) * args.shown,
+    growth: args.isAbout ? 1 + UNLIT_GROWTH * (1 - on) : 1,
+  };
+};
 
 const placeFigure = (
   layer: ConstellationsLayer,
@@ -149,6 +171,23 @@ const placeFigure = (
   };
 };
 
+const aimTarget = (
+  layer: ConstellationsLayer,
+  k: number,
+  points: readonly FigurePoint[],
+): FigureTarget => {
+  const { w, h, args } = layer;
+  const target = figureTargetOf(spanOf(points, args.dpr), {
+    w,
+    h,
+    dpr: args.dpr,
+    zones: args.zones,
+    isShown: args.isAbout && args.shown >= TARGETS_FROM,
+  });
+  layer.targets.write(k, target);
+  return target;
+};
+
 const figurePoints = (
   layer: ConstellationsLayer,
   figure: Figure,
@@ -163,93 +202,18 @@ const figurePoints = (
   );
 };
 
-const strokeFigure = (
-  layer: ConstellationsLayer,
-  figure: Figure,
-  points: readonly FigurePoint[],
-  light: FigureLight,
-): void => {
-  const { ctx, args } = layer;
-  ctx.globalAlpha = light.alpha * (0.16 + 0.26 * light.on) * args.entry;
-  ctx.strokeStyle = args.accent;
-  ctx.lineWidth = Math.max(0.7, 0.9 * args.dpr);
-  ctx.beginPath();
-  for (const [i, j] of figure.lines) {
-    const from = points[i];
-    const to = points[j];
-    if (from && to && !isHidden(layer, from) && !isHidden(layer, to)) {
-      ctx.moveTo(from[0], from[1]);
-      ctx.lineTo(to[0], to[1]);
-    }
-  }
-  ctx.stroke();
-};
-
-const starRadius = (
-  layer: ConstellationsLayer,
-  brightness: number,
-  i: number,
-): number => {
-  const pulse = 0.82 + 0.18 * Math.sin(layer.args.time * 0.6 + i * 1.7);
-  return (1.2 + 1.6 * brightness) * layer.args.dpr * pulse;
-};
-
-const drawFigureStar = (
-  layer: ConstellationsLayer,
-  [x, y]: FigurePoint,
-  rr: number,
-  light: FigureLight,
-): void => {
-  const { ctx, args } = layer;
-  const halo = ctx.createRadialGradient(x, y, 0, x, y, rr * 5);
-  halo.addColorStop(0, args.accent);
-  halo.addColorStop(1, 'transparent');
-  ctx.globalAlpha = light.alpha * 0.3 * light.on * args.entry;
-  ctx.fillStyle = halo;
-  ctx.beginPath();
-  ctx.arc(x, y, rr * 5, 0, TAU);
-  ctx.fill();
-  ctx.globalAlpha = light.alpha * 0.95 * args.entry;
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(x, y, rr, 0, TAU);
-  ctx.fill();
-};
-
-const nameFigure = (
-  layer: ConstellationsLayer,
-  { points, name: fitted }: PlacedFigure,
-  on: number,
-  text: string,
-): void => {
-  const { ctx, args } = layer;
-  ctx.globalAlpha = on * args.shown * 0.9 * args.entry;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = figureLabelFont(args.dpr);
-  const name =
-    fitted ??
-    figureNameAt(points, {
-      bar: args.topBar,
-      dpr: args.dpr,
-      text,
-      measure: (shown) => ctx.measureText(shown).width,
-    });
-  ctx.textBaseline = name.baseline;
-  ctx.letterSpacing = figureLabelSpacing;
-  ctx.fillText(text, name.x, name.y);
-  ctx.letterSpacing = '0px';
-};
-
-const isHidden = (layer: ConstellationsLayer, [x, y]: FigurePoint): boolean => {
-  const hole = layer.args.hole;
-  return hole !== null && holeDistance(x, y, hole) < hole.radius * 1.05;
-};
-
 export class ConstellationsRenderer {
-  constructor(private readonly ctx: CanvasRenderingContext2D) {}
+  private phone: PhoneFigures | null = null;
+
+  constructor(
+    private readonly ctx: CanvasRenderingContext2D,
+    private readonly targets: FigureTargetsRenderer,
+  ) {}
 
   public draw(frame: SceneFrame, pan: SkyPan): void {
-    drawConstellations(this.ctx, frame.w, frame.h, {
+    drawConstellations(this.ctx, this.targets, {
+      w: frame.w,
+      h: frame.h,
       dpr: frame.dpr,
       accent: frame.accent,
       entry: frame.entry,
@@ -263,6 +227,19 @@ export class ConstellationsRenderer {
       topBar: frame.topBar,
       room: frame.figureRoom,
       disc: frame.figureRoom ? drawnDisc(diskOnScreen(frame), 1) : null,
+      hover: frame.hoverPoint,
+      isAbout: frame.state.figuresShown,
+      zones: frame.zones,
+      phone: this.phoneFigures(frame),
     });
+  }
+
+  private phoneFigures(frame: SceneFrame): PhoneFigures | null {
+    const rules = frame.phoneRules;
+    if (!rules || !frame.state.phone || frame.figures < 0.02) {
+      return null;
+    }
+    this.phone = rules.phoneFigures(frame, this.phone, this.ctx);
+    return this.phone;
   }
 }

@@ -290,3 +290,5 @@ export const holeInFocus = (frame: Frame, focus: HoleFocus): Frame => {
     az: choice.az,
   };
 };
+
+export { phoneFigures } from './figures/phone-figures.rules';

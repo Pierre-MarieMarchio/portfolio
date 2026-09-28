@@ -25,6 +25,7 @@
       [revealed]="arrival() === 'shown'"
       (bodyClicked)="onBodyClicked($event)"
       (bodyHovered)="onReaderHovered($event)"
+      (figureChosen)="station.chooseSection($event)"
     />
 
     @if (station.canStepBack()) {

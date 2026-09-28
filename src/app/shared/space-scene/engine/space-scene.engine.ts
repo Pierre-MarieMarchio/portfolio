@@ -18,7 +18,7 @@ import {
 } from '../rules/camera/framing.rules';
 import { panelZones, topBarZone, Zone } from '../rules/panel-veil.rules';
 import { restInFreeSky } from '../rules/camera/free-sky.rules';
-import { figureRoomOf } from '../rules/sky/figure-room.rules';
+import { figureRoomOf } from '../rules/figures/figure-room.rules';
 import {
   clientOnCanvas,
   diskOnScreen,
@@ -109,8 +109,10 @@ export class SpaceSceneEngine {
   public setNodes(
     buttons: readonly HTMLElement[],
     labels: readonly HTMLElement[],
+    figures: readonly HTMLElement[] = [],
   ): void {
     this.renderer.labels.setNodes(buttons, labels);
+    this.renderer.figureTargets.setNodes(figures);
     this.request();
   }
 
@@ -173,7 +175,7 @@ export class SpaceSceneEngine {
   public setPointer(clientX: number | null, clientY = 0): void {
     const canvas = this.layout?.canvas;
     this.pointer =
-      clientX === null || !canvas || this.state.reduced
+      clientX === null || !canvas
         ? null
         : pointerOnCanvas(clientX - canvas.left, clientY - canvas.top, {
             w: this.w,
@@ -315,10 +317,12 @@ export class SpaceSceneEngine {
     frame.w = this.w;
     frame.h = this.h;
     frame.dpr = this.dpr;
-    frame.pointer = this.pointer;
+    frame.pointer = this.state.reduced ? null : this.pointer;
+    frame.hoverPoint = this.pointer;
     frame.zones = this.zones;
     frame.topBar = this.topBar;
     frame.figureRoom = figureRoomOf(this.layout, this.w, this.dpr);
+    frame.phoneRules = this.framing.holeFocus;
     frame.fade = 22 * this.dpr;
     frame.orbits = this.orbits;
     this.motion.lay(frame);

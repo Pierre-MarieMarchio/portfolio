@@ -5,7 +5,8 @@ import { ScreenHole } from './camera/projection.rules';
 import { ARRIVED, Traveling } from './camera/traveling.rules';
 import { noFocus, PlanetFocus } from './planets/planet-focus.rules';
 import { veilAt, Zone } from './panel-veil.rules';
-import type { SkyRoom } from './sky/figure-room.rules';
+import type { SkyRoom } from './figures/figure-room.rules';
+import type { HoleFocusRules } from './camera/framing.rules';
 
 export interface SceneFrame {
   state: SceneState;
@@ -31,13 +32,16 @@ export interface SceneFrame {
   marks: number;
   figures: number;
   lit: readonly number[];
+  hoverPoint: { readonly x: number; readonly y: number } | null;
   pointer: { readonly x: number; readonly y: number } | null;
   hole: ScreenHole;
+  unzoomedHole: ScreenHole;
   readonly aim: { x: number; y: number; isShown: boolean };
   arrived: boolean;
   zones: readonly Zone[];
   topBar: Zone | null;
   figureRoom: SkyRoom | null;
+  phoneRules: HoleFocusRules | null;
   fade: number;
   orbits: readonly Orbit[];
   readonly focus: PlanetFocus;
@@ -72,13 +76,16 @@ export const sceneFrame = (
     marks: 0,
     figures: 0,
     lit: [],
+    hoverPoint: null,
     pointer: null,
     hole: { cx: 0, cy: 0, radius: 0 },
+    unzoomedHole: { cx: 0, cy: 0, radius: 0 },
     aim: { x: 0, y: 0, isShown: false },
     arrived: true,
     zones: [],
     topBar: null,
     figureRoom: null,
+    phoneRules: null,
     fade: 0,
     orbits: [],
     focus: noFocus(),

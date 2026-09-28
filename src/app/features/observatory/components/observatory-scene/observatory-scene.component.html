@@ -3,6 +3,7 @@
   [direction]="direction()"
   [figureNames]="texts().object.parts"
   [paused]="paused()"
+  (figureChosen)="figureChosen.emit($event)"
 >
   @if (targets()) {
     <app-planet-buttons

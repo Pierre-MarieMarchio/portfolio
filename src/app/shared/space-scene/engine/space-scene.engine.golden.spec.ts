@@ -107,7 +107,7 @@ const GOLDEN: Record<string, string> = {
   'close-up': '4cf6cc87',
   overview: 'd94c01c2',
   approach: '63517c75',
-  aside: '0b74a1ca',
+  aside: '711ccfa5',
   'empty overview': '06f1ed31',
   'rest, pointer': '83e4817d',
   'turned by hand': '5defcccf',
@@ -330,7 +330,7 @@ const SCENES_GOLDEN = {
     overview: 'e0aa0510',
     approach: '98fa43b4',
     'close-up': '965b34d2',
-    aside: '57a53168',
+    aside: '95250095',
   },
   measuredLabels: {
     arrival: '29a2446b',
@@ -340,7 +340,7 @@ const SCENES_GOLDEN = {
   reducedFromStart: {
     rest: 'c2f3041b',
     approach: 'ec7a18b2',
-    aside: 'b1584e42',
+    aside: '8933f53b',
     'motion back': 'e1b6a9ec',
   },
   noSky: {

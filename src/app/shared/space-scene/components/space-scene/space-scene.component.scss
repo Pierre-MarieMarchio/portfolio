@@ -35,6 +35,10 @@
     pointer-events: auto;
     touch-action: none;
   }
+
+  .figure {
+    touch-action: none;
+  }
 }
 
 @include formats.phone {
@@ -63,6 +67,22 @@
     #000 58%,
     transparent 72%
   );
+}
+
+.figure {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  pointer-events: none;
+}
+
+@include formats.can-hover {
+  .figure {
+    cursor: pointer;
+  }
 }
 
 .label {

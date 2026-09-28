@@ -10,11 +10,13 @@ import { OrbitsRenderer } from './orbits.renderer';
 import { PlanetLabelsRenderer } from './planet-labels.renderer';
 import { PlanetsRenderer } from './planets.renderer';
 import { SkyRenderer } from './sky/sky.renderer';
+import { FigureTargetsRenderer } from './sky/figure-targets.renderer';
 
 const skyOf = (
   canvases: EngineCanvases,
   options: EngineOptions,
   motion: SceneMotion,
+  targets: FigureTargetsRenderer,
 ): SkyRenderer | null => {
   const ctx = canvases.sky;
   if (!ctx) {
@@ -22,7 +24,7 @@ const skyOf = (
   }
   const constellations =
     options.figures === 'constellations'
-      ? new ConstellationsRenderer(ctx)
+      ? new ConstellationsRenderer(ctx, targets)
       : null;
   return new SkyRenderer(ctx, options.rnd, motion.camera, constellations);
 };
@@ -30,6 +32,7 @@ const skyOf = (
 export class SceneRenderer {
   public readonly labels: PlanetLabelsRenderer;
   public readonly holeMark = new HoleMarkRenderer();
+  public readonly figureTargets = new FigureTargetsRenderer();
   private readonly grains: GrainsRenderer;
   private readonly orbits: OrbitsRenderer;
   private readonly planets: PlanetsRenderer;
@@ -48,7 +51,7 @@ export class SceneRenderer {
     this.orbits = new OrbitsRenderer(ctx, motion.turntable);
     this.planets = new PlanetsRenderer(ctx, this.labels, motion.turntable);
     this.comets = options.figures === 'comets' ? new CometsRenderer(ctx) : null;
-    this.sky = skyOf(canvases, options, motion);
+    this.sky = skyOf(canvases, options, motion, this.figureTargets);
   }
 
   public draw(frame: SceneFrame): void {

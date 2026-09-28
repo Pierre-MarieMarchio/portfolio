@@ -71,6 +71,11 @@ describe('sceneState', () => {
     ).toBe(false);
   });
 
+  it('lands the scene only when the direction says so', () => {
+    expect(sceneState(inputs()).landed).toBe(false);
+    expect(sceneState(inputs({ landed: true })).landed).toBe(true);
+  });
+
   it('tags the bodies only when asked to', () => {
     expect(sceneState(inputs({ labels: 'tags' })).isTagged).toBe(true);
     expect(sceneState(inputs({ labels: 'names' })).isTagged).toBe(false);

@@ -36,7 +36,10 @@ import {
   AnimationManager,
   ObservatoryManager,
 } from '@app/features/observatory/states';
-import { windowOf } from '../../features/observatory/rules/view.rules';
+import {
+  viewAtAddress,
+  windowOf,
+} from '../../features/observatory/rules/view.rules';
 import { restingPickOf } from '../../features/projects/rules/featured-pick.rules';
 import { SceneAnchorKind } from '@app/features/common';
 import { SocialLink } from '@shared/ui/models';
@@ -151,6 +154,7 @@ export class ObservatoryPageComponent {
     })),
   );
   protected readonly arrival = this.arrivalController.arrival;
+  protected readonly isOpening = this.arrivalController.isOpening;
 
   protected readonly planets = computed<readonly Planet[]>(() =>
     this.projects
@@ -227,16 +231,16 @@ export class ObservatoryPageComponent {
   private landed = false;
 
   constructor() {
+    const lang = this.locale.lang();
+    const loaded = viewAtAddress(this.locale.path(), (at) => pathOf(at, lang));
+    this.station.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
     inject(PhoneCodeService).load(loadGlassGestures);
     afterNextRender(() => {
       this.landed = true;
-      this.arrivalController.start(
-        untracked(() => this.station.view()) === 'home',
-        () => {
-          this.curtain.play(() => this.featuredSlugs());
-        },
-      );
+      this.arrivalController.start(() => {
+        this.curtain.play(() => this.featuredSlugs());
+      });
     });
 
     this.revealOnLeavingHome();

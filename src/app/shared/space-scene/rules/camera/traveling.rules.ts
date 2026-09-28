@@ -71,3 +71,6 @@ export const traveling = (time: number, isReduced: boolean): Traveling => {
     coast: approachSpeed(pA),
   };
 };
+
+export const crossingPace = (time: number, within: number): number =>
+  Math.max(1, (TRAVELING_END - time) / within);

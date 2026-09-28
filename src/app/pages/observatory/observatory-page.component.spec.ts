@@ -1,6 +1,6 @@
 import { DebugElement, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import {
   loadProjects,
   provideProjects,
@@ -39,6 +39,7 @@ describe('StationComponent', () => {
     options: {
       reducedMotion?: boolean;
       phoneCode?: Pick<PhoneCodeService, 'load'>;
+      address?: string;
     } = {},
   ) => {
     vi.stubGlobal('matchMedia', (query: string) => ({
@@ -63,8 +64,11 @@ describe('StationComponent', () => {
     });
     await loadProjects();
 
-    const fixture = TestBed.createComponent(ObservatoryPageComponent);
     const station = TestBed.inject(ObservatoryManager);
+    if (options.address) {
+      await TestBed.inject(Router).navigateByUrl(options.address);
+    }
+    const fixture = TestBed.createComponent(ObservatoryPageComponent);
     await fixture.whenStable();
 
     return { fixture, station, host: fixture.nativeElement as HTMLElement };
@@ -131,6 +135,57 @@ describe('StationComponent', () => {
       vi.advanceTimersByTime(4200);
       await fixture.whenStable();
       expect(station.hovered()).toBe(KNOWN_SLUG);
+    });
+
+    it('plays the opening card on the home page until the rest is in', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host } = await mount({ reducedMotion: false });
+      expect(host.querySelector('app-intro-card')).not.toBeNull();
+
+      window.dispatchEvent(new Event('pointerdown'));
+      await fixture.whenStable();
+
+      expect(host.querySelector('app-intro-card')).toBeNull();
+    });
+
+    it.each([
+      ['/projets', 'index'],
+      [`/projet/${KNOWN_SLUG}`, 'sheet'],
+      ['/a-propos', 'about'],
+      ['/en/projects', 'index'],
+      ['/en/about', 'about'],
+      ['/nowhere', 'not-found'],
+    ])(
+      'opens %s with everything in and no card, from the first render',
+      async (address, view) => {
+        vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+        const { fixture, host, station } = await mount({
+          reducedMotion: false,
+          address,
+        });
+
+        expect(station.view()).toBe(view);
+
+        expect(host.querySelector('app-intro-card')).toBeNull();
+        expect(
+          host.querySelector<HTMLElement>('#home')?.dataset['arrival'],
+        ).toBe('shown');
+        expect(isRevealed(fixture)).toBe(true);
+      },
+    );
+
+    it('plays no card on the home page reached from another view', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, station, host } = await mount({
+        reducedMotion: false,
+        address: '/a-propos',
+      });
+
+      station.syncRoute('home');
+      await fixture.whenStable();
+
+      expect(host.querySelector('app-intro-card')).toBeNull();
+      expect(arrivals(host)).toEqual(['shown', 'shown', 'shown', 'shown']);
     });
 
     it('shows everything at once with reduced motion', async () => {

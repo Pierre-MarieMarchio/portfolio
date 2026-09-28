@@ -1,9 +1,16 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideStatewise } from 'ngx-statewise';
+import { ObservatoryView } from '@app/features/observatory/models';
+import { ObservatoryManager } from '@app/features/observatory/states';
 import { HomeRevealService } from './home-reveal.service';
 
 const setUp = (
-  options: { reducedMotion?: boolean; crossing?: string } = {},
+  options: {
+    reducedMotion?: boolean;
+    crossing?: string;
+    view?: ObservatoryView;
+  } = {},
 ) => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   vi.stubGlobal('matchMedia', (query: string) => ({
@@ -19,10 +26,13 @@ const setUp = (
   TestBed.configureTestingModule({
     providers: [
       { provide: PLATFORM_ID, useValue: 'browser' },
+      provideStatewise(),
       HomeRevealService,
     ],
   });
-  return TestBed.inject(HomeRevealService);
+  const station = TestBed.inject(ObservatoryManager);
+  station.syncRoute(options.view ?? 'home');
+  return { reveal: TestBed.inject(HomeRevealService), station };
 };
 
 describe('HomeRevealService', () => {
@@ -34,10 +44,10 @@ describe('HomeRevealService', () => {
   });
 
   it('holds the rest on the home page until the first gesture, then lets it in', () => {
-    const reveal = setUp({ crossing: '8700ms' });
+    const { reveal } = setUp({ crossing: '8700ms' });
     const onArrived = vi.fn();
 
-    reveal.start(true, onArrived);
+    reveal.start(onArrived);
     expect(reveal.arrival()).toBe('held');
     window.dispatchEvent(new Event('keydown'));
 
@@ -46,10 +56,10 @@ describe('HomeRevealService', () => {
   });
 
   it('lets the rest in at the end of the crossing at the latest', () => {
-    const reveal = setUp({ crossing: '8700ms' });
+    const { reveal } = setUp({ crossing: '8700ms' });
     const onArrived = vi.fn();
 
-    reveal.start(true, onArrived);
+    reveal.start(onArrived);
     vi.advanceTimersByTime(8699);
     expect(reveal.arrival()).toBe('held');
     vi.advanceTimersByTime(1);
@@ -59,22 +69,51 @@ describe('HomeRevealService', () => {
   });
 
   it.each([
-    ['off the home page', false, { crossing: '8700ms' }],
-    ['with less motion', true, { crossing: '8700ms', reducedMotion: true }],
-    ['without a crossing token', true, {}],
-  ])(
-    'shows all at once %s, and never runs the arrival',
-    (_case, isOnHome, options) => {
-      const reveal = setUp(options);
-      const onArrived = vi.fn();
+    ['off the home page', { crossing: '8700ms', view: 'index' as const }],
+    ['with less motion', { crossing: '8700ms', reducedMotion: true }],
+    ['without a crossing token', {}],
+  ])('shows all at once %s, and never runs the arrival', (_case, options) => {
+    const { reveal } = setUp(options);
+    const onArrived = vi.fn();
 
-      reveal.start(isOnHome, onArrived);
-      reveal.arrive();
-      window.dispatchEvent(new Event('keydown'));
-      vi.advanceTimersByTime(10_000);
+    reveal.start(onArrived);
+    reveal.arrive();
+    window.dispatchEvent(new Event('keydown'));
+    vi.advanceTimersByTime(10_000);
+
+    expect(reveal.arrival()).toBe('shown');
+    expect(onArrived).not.toHaveBeenCalled();
+  });
+
+  it.each<ObservatoryView>(['index', 'sheet', 'about', 'not-found'])(
+    'shows the rest on "%s" before anything starts, and opens nothing there',
+    (view) => {
+      const { reveal } = setUp({ crossing: '8700ms', view });
 
       expect(reveal.arrival()).toBe('shown');
-      expect(onArrived).not.toHaveBeenCalled();
+      expect(reveal.isOpening()).toBe(false);
     },
   );
+
+  it('opens on the home page until the rest arrives, the time before it starts included', () => {
+    const { reveal } = setUp({ crossing: '8700ms' });
+
+    expect(reveal.arrival()).toBe('timed');
+    expect(reveal.isOpening()).toBe(true);
+    reveal.start(() => {});
+    expect(reveal.isOpening()).toBe(true);
+
+    window.dispatchEvent(new Event('pointerdown'));
+    expect(reveal.isOpening()).toBe(false);
+  });
+
+  it('never opens the home page reached from another view', () => {
+    const { reveal, station } = setUp({ crossing: '8700ms', view: 'about' });
+    reveal.start(() => {});
+
+    station.syncRoute('home');
+
+    expect(reveal.arrival()).toBe('shown');
+    expect(reveal.isOpening()).toBe(false);
+  });
 });

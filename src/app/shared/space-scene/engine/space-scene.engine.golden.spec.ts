@@ -271,6 +271,26 @@ describe('SpaceSceneEngine, the scenes the first golden left out', () => {
     expect(drawn).toEqual(SCENES_GOLDEN.secondLayout);
   }, 60_000);
 
+  it('opens landed without a crossing, and hurries a crossing once landed', () => {
+    const landed: SceneChange = { direction: { landed: true } };
+    const opened = mount({
+      inputs: {
+        ...SCENE_INPUTS,
+        direction: { ...SCENE_INPUTS.direction, landed: true },
+      },
+    });
+    const crossed = mount();
+    const drawn: Record<string, string> = {};
+    drawn['landed, first frame'] = opened.print(1000 / 60);
+    drawn['landed, matter in'] = opened.print(600);
+    crossed.run(3000);
+    crossed.set(landed);
+    drawn['hurried, midway'] = crossed.print(450);
+    drawn['hurried, through'] = crossed.print(450);
+
+    expect(drawn).toEqual(SCENES_GOLDEN.landed);
+  }, 60_000);
+
   it('draws nine bodies, close-ups and approach steps past the first', () => {
     const scene = mount({
       inputs: { ...SCENE_INPUTS, bodies: sceneBodies(9) },
@@ -336,6 +356,12 @@ const SCENES_GOLDEN = {
   secondLayout: {
     rest: '216fd9b9',
     'close-up': 'e4698a7d',
+  },
+  landed: {
+    'landed, first frame': 'b512a3fd',
+    'landed, matter in': '93b071e2',
+    'hurried, midway': '729632ec',
+    'hurried, through': '2eb5aca0',
   },
   nineBodies: {
     arrival: '89a4f92f',

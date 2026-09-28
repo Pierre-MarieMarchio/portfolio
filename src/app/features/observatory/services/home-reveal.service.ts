@@ -1,16 +1,29 @@
-import { DestroyRef, inject, Service, signal } from '@angular/core';
+import {
+  computed,
+  DestroyRef,
+  inject,
+  Service,
+  signal,
+  untracked,
+} from '@angular/core';
 import { DocumentStylesService, UserPresenceService } from '@app/core/services';
+import { ObservatoryManager } from '@app/features/observatory/states';
 import { Entrance } from '@shared/ui/models';
 
 @Service({ autoProvided: false })
 export class HomeRevealService {
   private readonly styles = inject(DocumentStylesService);
   private readonly presence = inject(UserPresenceService);
+  private readonly station = inject(ObservatoryManager);
   private readonly state = signal<Entrance>('timed');
   private cancel: () => void = () => {};
   private onArrived: () => void = () => {};
 
-  public readonly arrival = this.state.asReadonly();
+  public readonly arrival = computed<Entrance>(() =>
+    this.station.view() === 'home' ? this.state() : 'shown',
+  );
+
+  public readonly isOpening = computed(() => this.arrival() !== 'shown');
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -18,8 +31,8 @@ export class HomeRevealService {
     });
   }
 
-  public start(isOnHome: boolean, onArrived: () => void): void {
-    if (!isOnHome) {
+  public start(onArrived: () => void): void {
+    if (untracked(() => this.station.view()) !== 'home') {
       this.state.set('shown');
       return;
     }

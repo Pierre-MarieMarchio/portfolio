@@ -275,6 +275,27 @@ et de `src/testing/`, rangées par unité (D10).
   rejoint sa valeur en 0,55 s de demi-vie : les points s'allument ou
   s'éteignent un à un, par le tirage déterministe, sans être retirés. Au
   bureau, la part vaut 1 et le dessin est celui d'avant.
+- L'entrée de la matière dure 6,2 s ; pressée (D41), sa durée est fixée une
+  fois, au moment où elle l'est, pour finir ce qui reste dans le temps donné
+  (`hastenedEntrySpan`). Recalculée à chaque image, elle ralentirait avec ce
+  qui reste et ne finirait jamais.
+
+## `src/app/shared/space-scene/engine/motions/clock.motion.ts`
+
+- Une traversée pressée (D41) garde ses courbes : seule son horloge accélère,
+  d'un facteur fixé au moment où la scène se pose (`crossingPace`), puis
+  revient à 1 à la fin de la traversée. Le ciel lit la même horloge : son
+  écartement reste monotone et sa remise à plat a lieu comme à la fin
+  normale. La rotation, les marques et le reste de la scène gardent le temps
+  réel.
+
+## `src/app/shared/space-scene/engine/space-scene.engine.ts`
+
+- Un redimensionnement dessine tout de suite, sauf pour une scène posée dès
+  l'ouverture dont la caméra n'a pas encore d'image : sans traversée pour
+  réduire l'objet à un point, ce dessin le montrerait à une taille qui n'est
+  pas celle de la vue. Pendant une traversée, il reste : les goldens en
+  dépendent.
 
 ## `src/app/shared/space-scene/engine/motions/turntable.motion.ts`
 

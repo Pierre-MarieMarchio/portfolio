@@ -1,0 +1,100 @@
+:host {
+  display: block;
+}
+
+.scroller {
+  position: relative;
+  display: flex;
+  gap: var(--mnav-gap, 8px);
+  margin: 0;
+  padding: 4px var(--mnav-peek, 12%);
+  list-style: none;
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+li {
+  display: flex;
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  min-height: var(--mnav-target, 44px);
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--mnav-line, currentcolor);
+  border-radius: var(--mnav-radius, 8px);
+  background: var(--mnav-surface, canvas);
+  color: var(--mnav-ink, canvastext);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  opacity: 0.55;
+  transform: scale(0.96);
+  transition:
+    opacity var(--mnav-duration, 180ms) var(--mnav-ease, ease),
+    transform var(--mnav-duration, 180ms) var(--mnav-ease, ease);
+
+  &:focus-visible {
+    outline: 2px solid var(--mnav-accent, highlight);
+    outline-offset: -2px;
+  }
+}
+
+li[data-current] .card {
+  border-color: var(--mnav-accent, highlight);
+  opacity: 1;
+  transform: none;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+}
+
+.dot {
+  display: grid;
+  place-items: center;
+  width: var(--mnav-target, 44px);
+  height: var(--mnav-target, 44px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mnav-ink, canvastext);
+    opacity: 0.35;
+    transition:
+      opacity var(--mnav-duration, 180ms) var(--mnav-ease, ease),
+      transform var(--mnav-duration, 180ms) var(--mnav-ease, ease);
+  }
+
+  &[aria-current]::before {
+    background: var(--mnav-accent, highlight);
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .dot::before {
+    transition: none;
+  }
+}

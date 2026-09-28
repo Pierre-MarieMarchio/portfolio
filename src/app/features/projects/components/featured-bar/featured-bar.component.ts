@@ -12,17 +12,13 @@ import { LINKS, SceneAnchorKind } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
 import { RankedProject } from '../../models';
 import { rowLabel } from '../../rules/project-labels.rules';
-import {
-  neighbourOf,
-  PickStep,
-  swipeStepOf,
-} from '../../rules/featured-pick.rules';
 import { Entrance } from '@shared/ui/models';
 import {
   HoverFocusDirective,
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
 import { elementSize } from '@shared/ui/signals';
+import { CardCarouselComponent } from '@shared/mobile-nav/components';
 
 const BELT_START_PERCENT = 2;
 const BELT_MIN_SPAN = 56;
@@ -33,7 +29,12 @@ const LABEL_WIDTH_PX = 130;
 
 @Component({
   selector: 'app-featured-bar',
-  imports: [HoverFocusDirective, LayoutAnchorDirective, RouterLink],
+  imports: [
+    CardCarouselComponent,
+    HoverFocusDirective,
+    LayoutAnchorDirective,
+    RouterLink,
+  ],
   templateUrl: './featured-bar.component.html',
   styleUrl: './featured-bar.component.scss',
   host: {
@@ -92,64 +93,32 @@ export class FeaturedBarComponent {
     return markers.find((marker) => marker.slug === slug) ?? markers[0] ?? null;
   });
 
-  protected readonly named = computed(() => {
-    const title = this.line()?.title;
-    return title ? [title] : [];
-  });
-  protected readonly previous = computed(() => this.neighbour(-1));
-  protected readonly next = computed(() => this.neighbour(1));
+  protected readonly shown = computed(() =>
+    Math.max(
+      0,
+      this.markers().findIndex((marker) => marker.slug === this.line()?.slug),
+    ),
+  );
 
-  private swipeStart: { readonly x: number; readonly y: number } | null = null;
-  private swallowsTap = false;
-
-  protected onPickStart(event: PointerEvent): void {
-    this.swipeStart = { x: event.clientX, y: event.clientY };
-    this.swallowsTap = false;
+  protected onGrabbed(): void {
+    this.designate(this.line()?.slug);
   }
 
-  protected onPickEnd(event: PointerEvent): void {
-    const start = this.swipeStart;
-    this.swipeStart = null;
-    if (!start) {
-      return;
-    }
-    const step = swipeStepOf(event.clientX - start.x, event.clientY - start.y);
-    if (step !== 0) {
-      this.swallowsTap = true;
-      this.designate(this.neighbour(step));
-    }
+  protected onShown(index: number): void {
+    this.designate(this.markers()[index]?.slug);
   }
 
-  protected onStep(slug: string | null): void {
-    if (this.tapped()) {
+  protected onPicked(index: number): void {
+    const slug = this.markers()[index]?.slug;
+    if (slug !== undefined) {
       this.designate(slug);
-    }
-  }
-
-  protected onNamed(): void {
-    const slug = this.line()?.slug;
-    if (this.tapped() && slug) {
       this.chosen.emit(slug);
     }
   }
 
-  private tapped(): boolean {
-    const isTap = !this.swallowsTap;
-    this.swallowsTap = false;
-    return isTap;
-  }
-
-  private designate(slug: string | null): void {
-    if (slug !== null) {
+  private designate(slug: string | undefined): void {
+    if (slug !== undefined) {
       this.hoveredChange.emit(slug);
     }
-  }
-
-  private neighbour(step: PickStep): string | null {
-    return neighbourOf(
-      this.bodies().map((body) => body.slug),
-      this.line()?.slug ?? null,
-      step,
-    );
   }
 }

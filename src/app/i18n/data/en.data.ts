@@ -99,8 +99,6 @@ export const EN: Catalog = {
     rule: {
       heading: draft('Projects in orbit'),
       all: draft('All the projects →'),
-      previous: draft('Previous project'),
-      next: draft('Next project'),
     },
   },
 

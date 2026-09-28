@@ -437,13 +437,15 @@ Des gestes d'application native, laissés au navigateur autant que possible
 (`scroll-snap`, rebond). Aucun import du dépôt, pas même `core` : tout passe
 par deux ports, auxquels la composition répond.
 
-| Unité                                               | But                                                                                            | Contrat                                                            |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `pager.component.ts` `PagerComponent`               | faire défiler des pages à l'horizontale, une à la fois, et dire où le lecteur s'est arrêté     | `index` ; `indexChange`, à la fin du défilement seulement          |
-| `pager-page.component.ts` `PagerPageComponent`      | une page, qui défile seule à la verticale, hors d'atteinte quand elle n'est pas la page posée  | projetée dans `app-pager` ; écrit `inert`, `data-current`, son nom |
-| `pager.rules.ts`                                    | la page d'une position, la position d'une page : `clampPage`, `pageAt`, `offsetOfPage`, `isAt` | pures                                                              |
-| `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM` | le navigateur de la librairie, inerte au serveur                                               | `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`  |
-| `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`       | ses mots                                                                                       | `pageOf(place, count)`                                             |
+| Unité                                                | But                                                                                                | Contrat                                                                                                                                      |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pager.component.ts` `PagerComponent`                | faire défiler des pages à l'horizontale, une à la fois, et dire où le lecteur s'est arrêté         | `index` ; `indexChange`, à la fin du défilement seulement                                                                                    |
+| `pager-page.component.ts` `PagerPageComponent`       | une page, qui défile seule à la verticale, hors d'atteinte quand elle n'est pas la page posée      | projetée dans `app-pager` ; écrit `inert`, `data-current`, son nom                                                                           |
+| `pager.rules.ts`                                     | la page d'une position, la position d'une page : `clampPage`, `pageAt`, `offsetOfPage`, `isAt`     | pures                                                                                                                                        |
+| `card-carousel.component.ts` `CardCarouselComponent` | faire défiler des cartes touchables, la suivante au bord, et dire où le lecteur s'est arrêté (D58) | `items`, `active`, `label`, `controls`, un `ng-template` par carte ; `activeChange`, à la fin du défilement seulement ; `chosen`, au toucher |
+| `carousel.rules.ts`                                  | la carte d'une position, la position qui centre une carte : `cardAt`, `centredOffset`              | pures                                                                                                                                        |
+| `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM`  | le navigateur de la librairie, inerte au serveur                                                   | `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`                                                                            |
+| `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`        | ses mots                                                                                           | `pageOf(place, count)`                                                                                                                       |
 
 - `provideMobileNav()` (`pages/providers/`) répond à `MOBILE_NAV_PLATFORM`
   avec les services de `core/services/browser/` ; `provideI18n` répond à
@@ -457,6 +459,14 @@ par deux ports, auxquels la composition répond.
   remplit le corps et ses pages suivent le défilement du corps
   (`overflow-y: inherit`) ; au-delà (`formats.beyond-phone`), seule la page
   posée s'affiche, dans le flux, comme avant.
+- Le carrousel suit le même contrat que le pager (fin du défilement, image
+  suivante, mouvement réduit, largeur). Chaque carte est un bouton, la
+  suivante dépasse du bord (`--mnav-peek`, 12 %). Les points disent la carte
+  posée (`aria-current`), hors de l'ordre de tabulation, et y mènent au
+  toucher. Il dessine ses cartes avec les variables `--mnav-*` (`surface`,
+  `ink`, `line`, `accent`, `radius`, `target`, `duration`, `ease`), que
+  `_tokens.scss` relie aux jetons du site ; seuls `opacity` et `transform`
+  s'animent, sans `backdrop-filter`.
 
 #### L'ordre des fenêtres : `shared/windows/`
 
@@ -539,7 +549,7 @@ par deux ports, auxquels la composition répond.
 | `rules/project-labels.rules.ts`               | les libellés tirés d'un projet : ligne, position, niveau de preuve, titre de chapitre | reçoit `proofLevelLabel` et `chapterTitle` du manager               |
 | `services/projects-repository.service.ts`     | lire le catalogue                                                                     | inchangé                                                            |
 | `states/projects/*`                           | le catalogue dans la langue courante                                                  | sans la chaîne `reset`                                              |
-| `components/featured-bar/`                    | la barre des projets vedettes sous l'accueil                                          | ex-`orbit-rule`                                                     |
+| `components/featured-bar/`                    | la barre des projets vedettes sous l'accueil ; au téléphone, un carrousel de cartes   | ex-`orbit-rule` ; sans la rangée ‹ › (D58)                          |
 | `components/project-list/`                    | la liste de tous les projets, filtrable par famille                                   | ex-`project-index`                                                  |
 | `components/project-preview/`                 | l'aperçu d'un projet vedette                                                          | inchangé                                                            |
 | `components/project-detail/`                  | la fiche d'un projet, un chapitre par page du pager                                   | ex-`project-sheet`                                                  |
@@ -849,10 +859,11 @@ src/app/
   pages/providers/                             mobile-nav.provider
   pages/resolvers/                             page-head.resolver
   pages/workbench/                             workbench-page.component
+  shared/mobile-nav/components/card-carousel/  card-carousel.component
   shared/mobile-nav/components/pager/          pager.component
   shared/mobile-nav/components/pager-page/     pager-page.component
   shared/mobile-nav/ports/                     mobile-nav-platform.port · mobile-nav-texts.port
-  shared/mobile-nav/rules/                     pager.rules
+  shared/mobile-nav/rules/                     carousel.rules · pager.rules
   shared/space-scene/components/space-scene/   space-scene.component
   shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
   shared/space-scene/engine/                   frame-loop.engine · node-recorder.engine · remote-scene.engine · scene-worker.engine · scene.worker · space-scene.engine

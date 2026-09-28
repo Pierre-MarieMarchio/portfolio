@@ -70,8 +70,9 @@ src/app/
   shared/                quatre librairies, qui n'importent que core (D20)
     ui/                  les composants d'interface sans métier
     windows/             la fenêtre, son glissement, sa pile
-    mobile-nav/          la navigation du téléphone (le pager) ; elle
-                         n'importe pas même core, tout passe par ses ports
+    mobile-nav/          la navigation du téléphone (pager, carrousel) ;
+                         elle n'importe pas même core, tout passe par ses
+                         ports
     space-scene/         la scène canvas : moteur (dans un worker quand le
                          navigateur le permet), règles, composant, réglages
                          (models/scene-config.model.ts)

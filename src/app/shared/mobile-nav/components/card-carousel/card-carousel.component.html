@@ -1,0 +1,36 @@
+<ul
+  #track
+  class="scroller"
+  role="list"
+  (scroll)="awaitSettle()"
+  (scrollend)="settle()"
+>
+  @for (item of items(); track $index) {
+    <li #place [attr.data-current]="$index === current() || null">
+      <button
+        type="button"
+        class="card"
+        [attr.aria-controls]="controls()"
+        [attr.aria-current]="$index === current() || null"
+        (click)="chosen.emit($index)"
+      >
+        <ng-container
+          [ngTemplateOutlet]="card()"
+          [ngTemplateOutletContext]="{ $implicit: item, index: $index }"
+        />
+      </button>
+    </li>
+  }
+</ul>
+<div class="dots">
+  @for (dot of items(); track $index) {
+    <button
+      type="button"
+      class="dot"
+      tabindex="-1"
+      [attr.aria-label]="texts().pageOf($index + 1, items().length)"
+      [attr.aria-current]="$index === current() || null"
+      (click)="show($index)"
+    ></button>
+  }
+</div>

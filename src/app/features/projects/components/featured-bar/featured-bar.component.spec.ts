@@ -7,36 +7,17 @@ import { PROJECTS_TEXTS } from '../../ports';
 import { rowLabel } from '../../rules/project-labels.rules';
 import { FeaturedBarComponent } from './featured-bar.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
-import { recordOutput } from '@testing/fixtures/testbed.fixture';
+import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+import { CardCarouselComponent } from '@shared/mobile-nav/components';
 
 const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
-  ...host.querySelectorAll<HTMLButtonElement>('.track button'),
+  ...host.querySelectorAll<HTMLButtonElement>('.row .track button'),
 ];
 
-const pickPart = (host: HTMLElement, selector: string): HTMLElement => {
-  const part = host.querySelector<HTMLElement>(`.pick ${selector}`);
-  if (!part) {
-    throw new Error(`expected ${selector} in the pick row`);
-  }
-  return part;
-};
-
-const swipe = (row: HTMLElement, dx: number, dy = 0): void => {
-  row.dispatchEvent(
-    new PointerEvent('pointerdown', {
-      bubbles: true,
-      clientX: 200,
-      clientY: 300,
-    }),
-  );
-  row.dispatchEvent(
-    new PointerEvent('pointerup', {
-      bubbles: true,
-      clientX: 200 + dx,
-      clientY: 300 + dy,
-    }),
-  );
-};
+const cardButtons = (host: HTMLElement): HTMLButtonElement[] => [
+  ...host.querySelectorAll<HTMLButtonElement>('app-card-carousel .card'),
+];
 
 const stubTrackWidth = (width: number) =>
   vi
@@ -76,7 +57,11 @@ describe('FeaturedBarComponent', () => {
   }) => {
     TestBed.configureTestingModule({
       imports: [FeaturedBarComponent],
-      providers: [provideTexts(), provideRouter([])],
+      providers: [
+        provideTexts(),
+        provideRouter([]),
+        provideMobileNavPlatform(),
+      ],
     });
 
     const fixture = TestBed.createComponent(FeaturedBarComponent);
@@ -286,107 +271,68 @@ describe('FeaturedBarComponent', () => {
     expect(panel?.textContent).toContain(`Role ${title}`);
   });
 
-  describe('the pick row, one name at a time', () => {
-    it('names the first featured project at rest', async () => {
-      const { host } = await mount({ bodies });
-
-      expect(pickPart(host, '.named').textContent?.trim()).toBe('Alpha');
-    });
-
-    it('names the designated project', async () => {
-      const { host } = await mount({ bodies, hovered: 'gamma' });
-
-      expect(pickPart(host, '.named').textContent?.trim()).toBe('Gamma');
-    });
-
-    it('names its steps in the reader language', async () => {
+  describe('the cards, one project at a time', () => {
+    it('draws one card button per body, with its name, its proof and its stack, controlling the preview slot', async () => {
       const { host, texts } = await mount({ bodies });
+      const cards = cardButtons(host);
 
-      expect(pickPart(host, '[data-step="previous"]').ariaLabel).toBe(
-        texts.previous,
-      );
-      expect(pickPart(host, '[data-step="next"]').ariaLabel).toBe(texts.next);
-    });
-
-    it('designates the next and the previous project', async () => {
-      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
-      const { hovered } = emittedBy(fixture);
-
-      pickPart(host, '[data-step="next"]').click();
-      pickPart(host, '[data-step="previous"]').click();
-
-      expect(hovered).toEqual(['gamma', 'alpha']);
-    });
-
-    it('holds at the first project, its previous step disabled', async () => {
-      const { fixture, host } = await mount({ bodies });
-      const { hovered } = emittedBy(fixture);
-      const previous = pickPart(host, '[data-step="previous"]');
-
-      previous.click();
-
-      expect(previous.getAttribute('aria-disabled')).toBe('true');
       expect(
-        pickPart(host, '[data-step="next"]').getAttribute('aria-disabled'),
-      ).toBe('false');
-      expect(hovered).toEqual([]);
+        host.querySelector('app-card-carousel')?.getAttribute('aria-label'),
+      ).toBe(texts.heading);
+      expect(cards).toHaveLength(4);
+      expect(cards[1]?.textContent).toContain('02');
+      expect(cards[1]?.textContent).toContain('Beta');
+      expect(cards[1]?.textContent).toContain('Proof Beta');
+      expect(cards[1]?.textContent).toContain(bodies[1]?.facts.stack);
+      expect(
+        cards.every(
+          (card) => card.getAttribute('aria-controls') === 'preview-panel',
+        ),
+      ).toBe(true);
     });
 
-    it('holds at the last project, its next step disabled', async () => {
-      const { fixture, host } = await mount({ bodies, hovered: 'delta' });
+    it.each([
+      ['the first card at rest', null, null, 0],
+      ['the card of the last project read', null, 'delta', 3],
+      ['the card of the designated project', 'gamma', 'delta', 2],
+    ])('shows %s', async (_case, hovered, reading, card) => {
+      const { host } = await mount({ bodies, hovered, reading });
+
+      expect(
+        cardButtons(host).findIndex((button) =>
+          button.hasAttribute('aria-current'),
+        ),
+      ).toBe(card);
+    });
+
+    it('designates the project of the card the reader swiped to', async () => {
+      const { fixture } = await mount({ bodies });
       const { hovered } = emittedBy(fixture);
-      const next = pickPart(host, '[data-step="next"]');
 
-      next.click();
+      componentOf(fixture, CardCarouselComponent).activeChange.emit(2);
 
-      expect(next.getAttribute('aria-disabled')).toBe('true');
-      expect(hovered).toEqual([]);
+      expect(hovered).toEqual(['gamma']);
     });
 
-    it('opens the preview of the named project, controlling the preview slot', async () => {
-      const { fixture, host } = await mount({ bodies, hovered: 'gamma' });
-      const { chosen } = emittedBy(fixture);
-      const named = pickPart(host, '.named');
+    it('opens the preview of a tapped card, designating it first', async () => {
+      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
+      const { hovered, chosen } = emittedBy(fixture);
 
-      named.click();
+      cardButtons(host)[2]?.click();
 
+      expect(hovered).toEqual(['gamma']);
       expect(chosen).toEqual(['gamma']);
-      expect(named.getAttribute('aria-controls')).toBe('preview-panel');
     });
 
-    it('designates the next project on a swipe to the left, the previous one to the right', async () => {
+    it('takes the shown project from the tour as soon as the reader touches the cards', async () => {
       const { fixture, host } = await mount({ bodies, hovered: 'beta' });
       const { hovered } = emittedBy(fixture);
-      const row = pickPart(host, '.named').parentElement ?? host;
 
-      swipe(row, -60);
-      swipe(row, 60);
+      host
+        .querySelector('app-card-carousel')
+        ?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
 
-      expect(hovered).toEqual(['gamma', 'alpha']);
-    });
-
-    it('ignores a short or a slanted swipe', async () => {
-      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
-      const { hovered } = emittedBy(fixture);
-      const row = pickPart(host, '.named').parentElement ?? host;
-
-      swipe(row, -40);
-      swipe(row, -60, 50);
-
-      expect(hovered).toEqual([]);
-    });
-
-    it('does not open the preview on the tap that ends a swipe', async () => {
-      const { fixture, host } = await mount({ bodies, hovered: 'beta' });
-      const { chosen } = emittedBy(fixture);
-      const named = pickPart(host, '.named');
-
-      swipe(named, -60);
-      named.click();
-      named.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
-      named.click();
-
-      expect(chosen).toEqual(['beta']);
+      expect(hovered).toEqual(['beta']);
     });
   });
 });

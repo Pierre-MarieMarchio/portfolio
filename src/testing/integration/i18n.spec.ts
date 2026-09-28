@@ -17,7 +17,8 @@ import {
 } from '@app/features/observatory/states';
 import { CatalogLoaderService, provideI18n, translatePath } from '@app/i18n';
 import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
-import { routes } from '../app/app.routes';
+import { routes } from '@app/app.routes';
+import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 
 @Component({
   imports: [RouterOutlet, ObservatoryPageComponent],
@@ -26,13 +27,7 @@ import { routes } from '../app/app.routes';
 class Shell {}
 
 const mount = async () => {
-  vi.stubGlobal('matchMedia', () => ({
-    matches: true,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-  document.documentElement.style.setProperty('--arrival-at', '8700ms');
+  stillObservatory();
   TestBed.configureTestingModule({
     imports: [Shell],
     providers: [

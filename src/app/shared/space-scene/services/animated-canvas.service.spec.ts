@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AnimatedCanvasService } from './animated-canvas.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(AnimatedCanvasService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('AnimatedCanvasService', () => {
   afterEach(() => {
@@ -23,7 +16,7 @@ describe('AnimatedCanvasService', () => {
     const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext');
     const listen = vi.spyOn(window, 'addEventListener');
     const frame = vi.spyOn(window, 'requestAnimationFrame');
-    const canvas = inject('server');
+    const canvas = injectOn(AnimatedCanvasService, 'server');
     const element = document.createElement('canvas');
     const called = vi.fn();
 
@@ -51,7 +44,7 @@ describe('AnimatedCanvasService', () => {
 
   it('answers from the browser in the browser', () => {
     document.documentElement.style.setProperty('--probe', ' #3b62c4 ');
-    const canvas = inject('browser');
+    const canvas = injectOn(AnimatedCanvasService, 'browser');
     const heard: string[] = [];
 
     expect(canvas.token('--probe')).toBe('#3b62c4');

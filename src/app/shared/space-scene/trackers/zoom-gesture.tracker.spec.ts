@@ -1,91 +1,34 @@
 import { TestBed } from '@angular/core/testing';
-import type { LookableScene, WindowEvents } from '../models/scene-look.model';
 import { ClickAbsorberService } from '../services/click-absorber.service';
 import { ZoomGestureTracker } from './zoom-gesture.tracker';
-
-class SceneDouble implements LookableScene {
-  public canLook = true;
-  public readonly holds: [number, number][] = [];
-  public readonly stretches: [number, number, number][] = [];
-  public releases = 0;
-  public looks = 0;
-
-  public holdZoom(clientX: number, clientY: number): boolean {
-    this.holds.push([clientX, clientY]);
-    return true;
-  }
-
-  public stretchZoom(clientX: number, clientY: number, ratio: number): void {
-    this.stretches.push([clientX, clientY, ratio]);
-  }
-
-  public releaseZoom(): void {
-    this.releases += 1;
-  }
-
-  public lookCloser(): boolean {
-    this.looks += 1;
-    return this.canLook;
-  }
-
-  public request(): void {}
-}
-
-const windowEvents: WindowEvents = {
-  onWindow: (type, handler, options) => {
-    window.addEventListener(type, handler, options);
-    return () => {
-      window.removeEventListener(type, handler, options);
-    };
-  },
-};
+import {
+  LookableSceneDouble,
+  windowEvents,
+} from '@testing/doubles/scene-look.double';
+import {
+  firePointer,
+  HeardClicks,
+  heardClicks,
+  PointerAt,
+  tap as tapOn,
+} from '@testing/fixtures/pointer.fixture';
 
 const trackers: ZoomGestureTracker[] = [];
 
-interface Finger {
-  readonly id?: number;
-  readonly x?: number;
-  readonly y?: number;
-  readonly time?: number;
-  readonly type?: string;
-}
+let clicks: HeardClicks;
 
-let clicksHeard = 0;
-
-const hearClick = (): void => {
-  clicksHeard += 1;
+const tap = (target: EventTarget, finger: PointerAt = {}): void => {
+  tapOn(target, finger, { at: (finger.at ?? 0) + 60 });
 };
 
-const touch = (
-  target: EventTarget,
-  type: string,
-  finger: Finger = {},
-): void => {
-  const event = new PointerEvent(type, {
-    bubbles: true,
-    clientX: finger.x ?? 0,
-    clientY: finger.y ?? 0,
-    pointerId: finger.id ?? 1,
-    isPrimary: (finger.id ?? 1) === 1,
-    pointerType: finger.type ?? 'touch',
-  });
-  Object.defineProperty(event, 'timeStamp', { value: finger.time ?? 0 });
-  target.dispatchEvent(event);
-};
-
-const tap = (target: EventTarget, finger: Finger = {}): void => {
-  touch(target, 'pointerdown', finger);
-  touch(target, 'pointerup', { ...finger, time: (finger.time ?? 0) + 60 });
-};
-
-const mount = async (scene: SceneDouble) => {
+const mount = async (scene: LookableSceneDouble) => {
   const absorber = TestBed.inject(ClickAbsorberService);
   const tracker = new ZoomGestureTracker(scene, windowEvents, absorber);
   trackers.push(tracker);
   const host = document.createElement('div');
   document.body.append(host);
   await Promise.resolve();
-  return { tracker, host, clicks: () => clicksHeard };
+  return { tracker, host, clicks: clicks.count };
 };
 
 const planetButton = (): HTMLElement => {
@@ -96,22 +39,21 @@ const planetButton = (): HTMLElement => {
 };
 
 const pinch = (host: HTMLElement): void => {
-  touch(host, 'pointerdown', { id: 1, x: 100, y: 200 });
-  touch(host, 'pointerdown', { id: 2, x: 140, y: 200 });
-  touch(host, 'pointermove', { id: 1, x: 80, y: 200 });
-  touch(host, 'pointermove', { id: 2, x: 160, y: 200 });
-  touch(host, 'pointerup', { id: 1, x: 80, y: 200 });
-  touch(host, 'pointerup', { id: 2, x: 160, y: 200 });
+  firePointer(host, 'pointerdown', { id: 1, x: 100, y: 200 });
+  firePointer(host, 'pointerdown', { id: 2, x: 140, y: 200 });
+  firePointer(host, 'pointermove', { id: 1, x: 80, y: 200 });
+  firePointer(host, 'pointermove', { id: 2, x: 160, y: 200 });
+  firePointer(host, 'pointerup', { id: 1, x: 80, y: 200 });
+  firePointer(host, 'pointerup', { id: 2, x: 160, y: 200 });
 };
 
 describe('ZoomGestureTracker', () => {
   beforeEach(() => {
-    clicksHeard = 0;
-    document.addEventListener('click', hearClick);
+    clicks = heardClicks();
   });
 
   afterEach(() => {
-    document.removeEventListener('click', hearClick);
+    clicks.stop();
     for (const tracker of trackers.splice(0)) {
       tracker.stop();
     }
@@ -120,14 +62,14 @@ describe('ZoomGestureTracker', () => {
   });
 
   it('holds the zoom between two fingers and stretches it as they spread', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    touch(host, 'pointerdown', { id: 1, x: 100, y: 200 });
+    firePointer(host, 'pointerdown', { id: 1, x: 100, y: 200 });
     expect(scene.holds).toEqual([]);
-    touch(host, 'pointerdown', { id: 2, x: 140, y: 200 });
-    touch(host, 'pointermove', { id: 1, x: 80, y: 200 });
-    touch(host, 'pointermove', { id: 2, x: 160, y: 200 });
+    firePointer(host, 'pointerdown', { id: 2, x: 140, y: 200 });
+    firePointer(host, 'pointermove', { id: 1, x: 80, y: 200 });
+    firePointer(host, 'pointermove', { id: 2, x: 160, y: 200 });
 
     expect(scene.holds).toEqual([[120, 200]]);
     expect(scene.stretches).toEqual([
@@ -136,91 +78,91 @@ describe('ZoomGestureTracker', () => {
     ]);
     expect(scene.releases).toBe(0);
 
-    touch(host, 'pointerup', { id: 2, x: 160, y: 200 });
+    firePointer(host, 'pointerup', { id: 2, x: 160, y: 200 });
     expect(scene.releases).toBe(1);
   });
 
   it('stretches no more once one finger lifted', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    touch(host, 'pointerdown', { id: 1, x: 100, y: 200 });
-    touch(host, 'pointerdown', { id: 2, x: 140, y: 200 });
-    touch(host, 'pointerup', { id: 2, x: 140, y: 200 });
-    touch(host, 'pointermove', { id: 1, x: 60, y: 200 });
+    firePointer(host, 'pointerdown', { id: 1, x: 100, y: 200 });
+    firePointer(host, 'pointerdown', { id: 2, x: 140, y: 200 });
+    firePointer(host, 'pointerup', { id: 2, x: 140, y: 200 });
+    firePointer(host, 'pointermove', { id: 1, x: 60, y: 200 });
 
     expect(scene.stretches).toEqual([]);
     expect(scene.releases).toBe(1);
   });
 
   it('absorbs the click that follows a pinch, and not the next one', async () => {
-    const { host, clicks } = await mount(new SceneDouble());
+    const { host, clicks } = await mount(new LookableSceneDouble());
 
     pinch(host);
-    touch(host, 'click');
+    firePointer(host, 'click');
     expect(clicks()).toBe(0);
 
-    touch(host, 'click');
+    firePointer(host, 'click');
     expect(clicks()).toBe(1);
   });
 
   it('absorbs nothing after a tap', async () => {
-    const { host, clicks } = await mount(new SceneDouble());
+    const { host, clicks } = await mount(new LookableSceneDouble());
 
     tap(host);
-    touch(host, 'click');
+    firePointer(host, 'click');
 
     expect(clicks()).toBe(1);
   });
 
   it('looks closer on a double tap, once', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    tap(host, { x: 50, y: 50, time: 0 });
+    tap(host, { x: 50, y: 50, at: 0 });
     expect(scene.looks).toBe(0);
-    tap(host, { x: 54, y: 52, time: 200 });
+    tap(host, { x: 54, y: 52, at: 200 });
     expect(scene.looks).toBe(1);
-    tap(host, { x: 54, y: 52, time: 400 });
+    tap(host, { x: 54, y: 52, at: 400 });
     expect(scene.looks).toBe(1);
-    tap(host, { x: 54, y: 52, time: 600 });
+    tap(host, { x: 54, y: 52, at: 600 });
     expect(scene.looks).toBe(2);
   });
 
   it.each([
-    ['too slow', { x: 50, y: 50, time: 700 }],
-    ['too far', { x: 150, y: 50, time: 200 }],
+    ['too slow', { x: 50, y: 50, at: 700 }],
+    ['too far', { x: 150, y: 50, at: 200 }],
   ])('does not take two taps %s for a double tap', async (_name, second) => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    tap(host, { x: 50, y: 50, time: 0 });
+    tap(host, { x: 50, y: 50, at: 0 });
     tap(host, second);
 
     expect(scene.looks).toBe(0);
   });
 
   it('does not take a slide for a tap', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    tap(host, { x: 50, y: 50, time: 0 });
-    touch(host, 'pointerdown', { x: 50, y: 50, time: 200 });
-    touch(host, 'pointermove', { x: 70, y: 50, time: 220 });
-    touch(host, 'pointerup', { x: 70, y: 50, time: 240 });
+    tap(host, { x: 50, y: 50, at: 0 });
+    firePointer(host, 'pointerdown', { x: 50, y: 50, at: 200 });
+    firePointer(host, 'pointermove', { x: 70, y: 50, at: 220 });
+    firePointer(host, 'pointerup', { x: 70, y: 50, at: 240 });
 
     expect(scene.looks).toBe(0);
   });
 
   it('takes no tap from a pinch', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    touch(host, 'pointerdown', { id: 1, x: 100, y: 200, time: 0 });
-    touch(host, 'pointerdown', { id: 2, x: 104, y: 200, time: 10 });
-    touch(host, 'pointerup', { id: 2, x: 104, y: 200, time: 40 });
-    touch(host, 'pointerup', { id: 1, x: 100, y: 200, time: 50 });
-    tap(host, { x: 100, y: 200, time: 150 });
+    firePointer(host, 'pointerdown', { id: 1, x: 100, y: 200, at: 0 });
+    firePointer(host, 'pointerdown', { id: 2, x: 104, y: 200, at: 10 });
+    firePointer(host, 'pointerup', { id: 2, x: 104, y: 200, at: 40 });
+    firePointer(host, 'pointerup', { id: 1, x: 100, y: 200, at: 50 });
+    tap(host, { x: 100, y: 200, at: 150 });
 
     expect(scene.looks).toBe(0);
   });
@@ -232,7 +174,7 @@ describe('ZoomGestureTracker', () => {
   ])(
     'leaves what already has a gesture to it: %s',
     async (_name, tag, attributes: Record<string, string>) => {
-      const scene = new SceneDouble();
+      const scene = new LookableSceneDouble();
       await mount(scene);
       const element = document.createElement(tag);
       for (const [name, value] of Object.entries(attributes)) {
@@ -241,8 +183,8 @@ describe('ZoomGestureTracker', () => {
       document.body.append(element);
 
       pinch(element);
-      tap(element, { time: 0 });
-      tap(element, { time: 100 });
+      tap(element, { at: 0 });
+      tap(element, { at: 100 });
 
       expect(scene.holds).toEqual([]);
       expect(scene.looks).toBe(0);
@@ -250,17 +192,17 @@ describe('ZoomGestureTracker', () => {
   );
 
   it('pinches with a finger on a planet and one on the sky, and swallows the planet’s click', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host, clicks } = await mount(scene);
     const planet = planetButton();
 
-    touch(planet, 'pointerdown', { id: 1, x: 100, y: 200 });
-    touch(host, 'pointerdown', { id: 2, x: 140, y: 200 });
-    touch(planet, 'pointermove', { id: 1, x: 80, y: 200 });
-    touch(host, 'pointermove', { id: 2, x: 160, y: 200 });
-    touch(planet, 'pointerup', { id: 1, x: 80, y: 200 });
-    touch(host, 'pointerup', { id: 2, x: 160, y: 200 });
-    touch(planet, 'click');
+    firePointer(planet, 'pointerdown', { id: 1, x: 100, y: 200 });
+    firePointer(host, 'pointerdown', { id: 2, x: 140, y: 200 });
+    firePointer(planet, 'pointermove', { id: 1, x: 80, y: 200 });
+    firePointer(host, 'pointermove', { id: 2, x: 160, y: 200 });
+    firePointer(planet, 'pointerup', { id: 1, x: 80, y: 200 });
+    firePointer(host, 'pointerup', { id: 2, x: 160, y: 200 });
+    firePointer(planet, 'click');
 
     expect(scene.holds).toEqual([[120, 200]]);
     expect(scene.stretches.at(-1)).toEqual([120, 200, 2]);
@@ -268,7 +210,7 @@ describe('ZoomGestureTracker', () => {
   });
 
   it('pinches with both fingers on planets', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     await mount(scene);
 
     pinch(planetButton());
@@ -277,14 +219,14 @@ describe('ZoomGestureTracker', () => {
   });
 
   it('leaves a tap on a planet to the planet, and never takes it for a double tap', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { clicks } = await mount(scene);
     const planet = planetButton();
 
-    tap(planet, { time: 0 });
-    touch(planet, 'click');
-    tap(planet, { time: 100 });
-    touch(planet, 'click');
+    tap(planet, { at: 0 });
+    firePointer(planet, 'click');
+    tap(planet, { at: 100 });
+    firePointer(planet, 'click');
 
     expect(clicks()).toBe(2);
     expect(scene.looks).toBe(0);
@@ -292,23 +234,23 @@ describe('ZoomGestureTracker', () => {
   });
 
   it('pinches with a finger on a figure of the about view, and leaves its taps to the figure', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host, clicks } = await mount(scene);
     const figure = document.createElement('button');
     figure.dataset['sceneFigure'] = '';
     document.body.append(figure);
 
-    tap(figure, { time: 0 });
-    touch(figure, 'click');
-    tap(figure, { time: 100 });
-    touch(figure, 'click');
-    touch(figure, 'pointerdown', { id: 1, x: 100, y: 200, time: 1000 });
-    touch(host, 'pointerdown', { id: 2, x: 140, y: 200, time: 1000 });
-    touch(figure, 'pointermove', { id: 1, x: 80, y: 200, time: 1050 });
-    touch(host, 'pointermove', { id: 2, x: 160, y: 200, time: 1050 });
-    touch(figure, 'pointerup', { id: 1, x: 80, y: 200, time: 1100 });
-    touch(host, 'pointerup', { id: 2, x: 160, y: 200, time: 1100 });
-    touch(figure, 'click');
+    tap(figure, { at: 0 });
+    firePointer(figure, 'click');
+    tap(figure, { at: 100 });
+    firePointer(figure, 'click');
+    firePointer(figure, 'pointerdown', { id: 1, x: 100, y: 200, at: 1000 });
+    firePointer(host, 'pointerdown', { id: 2, x: 140, y: 200, at: 1000 });
+    firePointer(figure, 'pointermove', { id: 1, x: 80, y: 200, at: 1050 });
+    firePointer(host, 'pointermove', { id: 2, x: 160, y: 200, at: 1050 });
+    firePointer(figure, 'pointerup', { id: 1, x: 80, y: 200, at: 1100 });
+    firePointer(host, 'pointerup', { id: 2, x: 160, y: 200, at: 1100 });
+    firePointer(figure, 'click');
 
     expect(scene.holds).toEqual([[120, 200]]);
     expect(scene.looks).toBe(0);
@@ -316,23 +258,23 @@ describe('ZoomGestureTracker', () => {
   });
 
   it('answers the fingers only', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host } = await mount(scene);
 
-    touch(host, 'pointerdown', { id: 1, type: 'mouse' });
-    touch(host, 'pointerdown', { id: 2, type: 'pen' });
+    firePointer(host, 'pointerdown', { id: 1, kind: 'mouse' });
+    firePointer(host, 'pointerdown', { id: 2, kind: 'pen' });
 
     expect(scene.holds).toEqual([]);
   });
 
   it('stops listening when stopped', async () => {
-    const scene = new SceneDouble();
+    const scene = new LookableSceneDouble();
     const { host, tracker } = await mount(scene);
 
-    touch(host, 'pointerdown', { id: 1, x: 100, y: 200 });
+    firePointer(host, 'pointerdown', { id: 1, x: 100, y: 200 });
     tracker.stop();
-    touch(document.body, 'pointerdown', { id: 2, x: 140, y: 200 });
-    touch(document.body, 'pointermove', { id: 2, x: 180, y: 200 });
+    firePointer(document.body, 'pointerdown', { id: 2, x: 140, y: 200 });
+    firePointer(document.body, 'pointermove', { id: 2, x: 180, y: 200 });
 
     expect(scene.holds).toEqual([]);
     expect(scene.stretches).toEqual([]);

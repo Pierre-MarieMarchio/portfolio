@@ -1,4 +1,3 @@
-import { DebugElement } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import {
@@ -6,6 +5,8 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
+import { stillObservatory } from '@testing/fixtures/observatory.fixture';
+import { componentOf } from '@testing/fixtures/testbed.fixture';
 import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED } from '@app/features/projects/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
@@ -27,13 +28,7 @@ const entries = (count: number): ProjectEntry[] =>
   );
 
 const mount = async (featured: number, total: number) => {
-  vi.stubGlobal('matchMedia', () => ({
-    matches: true,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-  document.documentElement.style.setProperty('--arrival-at', '8700ms');
+  stillObservatory();
   TestBed.configureTestingModule({
     imports: [ObservatoryPageComponent],
     providers: [
@@ -46,14 +41,8 @@ const mount = async (featured: number, total: number) => {
   const fixture = TestBed.createComponent(ObservatoryPageComponent);
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
-  const object = fixture.debugElement.query(
-    (node: DebugElement) =>
-      node.componentInstance instanceof ObservatorySceneComponent,
-  ).componentInstance as ObservatorySceneComponent;
-  const scene = fixture.debugElement.query(
-    (node: DebugElement) =>
-      node.componentInstance instanceof SpaceSceneComponent,
-  ).componentInstance as SpaceSceneComponent;
+  const object = componentOf(fixture, ObservatorySceneComponent);
+  const scene = componentOf(fixture, SpaceSceneComponent);
   return {
     fixture,
     host,

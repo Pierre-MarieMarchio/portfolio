@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ClockService } from './clock.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(ClockService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('ClockService', () => {
   afterEach(() => {
@@ -20,7 +13,7 @@ describe('ClockService', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const now = vi.spyOn(performance, 'now');
     const frame = vi.spyOn(window, 'requestAnimationFrame');
-    const clock = inject('server');
+    const clock = injectOn(ClockService, 'server');
     const called = vi.fn();
 
     expect(clock.now()).toBe(0);
@@ -34,7 +27,7 @@ describe('ClockService', () => {
   });
 
   it('reads a monotonic time in the browser', () => {
-    const clock = inject('browser');
+    const clock = injectOn(ClockService, 'browser');
     const first = clock.now();
 
     expect(first).toBeGreaterThan(0);
@@ -48,7 +41,7 @@ describe('ClockService', () => {
       .mockImplementation(() => {});
     const called = vi.fn();
 
-    inject('browser').nextFrame(called)();
+    injectOn(ClockService, 'browser').nextFrame(called)();
 
     expect(frame).toHaveBeenCalledWith(called);
     expect(cancel).toHaveBeenCalledWith(7);
@@ -56,7 +49,7 @@ describe('ClockService', () => {
 
   it('calls back after the delay, unless cancelled, in the browser', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-    const clock = inject('browser');
+    const clock = injectOn(ClockService, 'browser');
     const kept = vi.fn();
     const cancelled = vi.fn();
 

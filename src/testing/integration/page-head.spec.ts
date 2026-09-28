@@ -9,7 +9,7 @@ import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
 import { CatalogLoaderService, provideI18n } from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
-import { routes } from '../app/app.routes';
+import { routes } from '@app/app.routes';
 
 const harness = async () => {
   TestBed.configureTestingModule({

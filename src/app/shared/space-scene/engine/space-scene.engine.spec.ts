@@ -24,22 +24,15 @@ import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
 import {
   bodyId,
-  mountEngineScene as mountBareScene,
+  mountEngineScene,
   SCENE_INPUTS,
   SceneChange,
   sceneBodies,
-  SceneSetup,
   WIDE_LAYOUT,
 } from '@testing/fixtures/engine-scene.fixture';
 import { sceneLayout } from '../rules/scene-layout.rules';
 import * as holeFocus from '../rules/hole-focus.rules';
 import { SkyPanMotion } from './motions/sky-pan.motion';
-
-const mountEngineScene = (setup: Partial<SceneSetup> = {}) =>
-  mountBareScene({
-    ...setup,
-    inputs: { ...(setup.inputs ?? SCENE_INPUTS), holeFocus },
-  });
 
 const callable = (): undefined => undefined;
 
@@ -548,6 +541,7 @@ describe('SpaceSceneEngine, above a panel along the bottom', () => {
       const scene = mountEngineScene({
         layout: bottomPanelLayout(screen.width, screen.height),
         dpr: screen.dpr,
+        holeFocus: true,
       });
       scene.run(PAST_CROSSING_MS);
       for (const rank of FRAMED_RANKS) {
@@ -573,6 +567,7 @@ describe('SpaceSceneEngine, above a panel along the bottom', () => {
       const scene = mountEngineScene({
         layout: bottomPanelLayout(screen.width, screen.height),
         dpr: screen.dpr,
+        holeFocus: true,
       });
       scene.run(PAST_CROSSING_MS);
       for (const rank of FRAMED_RANKS) {
@@ -732,9 +727,14 @@ const markedScene = (
   layout: SceneLayout,
   dpr: number,
   inputs: SceneInputs = SCENE_INPUTS,
-  mount: typeof mountBareScene = mountEngineScene,
+  hasHoleFocus = true,
 ) => {
-  const scene = mount({ layout, dpr, inputs });
+  const scene = mountEngineScene({
+    layout,
+    dpr,
+    inputs,
+    holeFocus: hasHoleFocus,
+  });
   const mark = document.createElement('div');
   scene.engine.setHoleMark(mark);
   const hole = (): HoleSeen => ({
@@ -1077,6 +1077,7 @@ describe('SpaceSceneEngine, beside a glass lying on the right', () => {
       const scene = mountEngineScene({
         layout: lyingGlassLayout('', false),
         dpr,
+        holeFocus: true,
       });
       scene.run(PAST_CROSSING_MS);
       scene.set({
@@ -1525,7 +1526,7 @@ const phoneAtRest = (hasHoleFocus: boolean) => {
     glassLayout(width, height),
     dpr,
     { ...SCENE_INPUTS, format: 'phone' },
-    hasHoleFocus ? mountEngineScene : mountBareScene,
+    hasHoleFocus,
   );
   scene.run(PAST_CROSSING_MS + EASED_MS);
   return scene;
@@ -1662,7 +1663,7 @@ describe('SpaceSceneEngine, under an interface already in', () => {
 
 describe('SpaceSceneEngine, telling its travels', () => {
   it('tells once when the camera sets off for a planet, and once when it lands', () => {
-    const scene = mountEngineScene();
+    const scene = mountEngineScene({ holeFocus: true });
     scene.run(PAST_CROSSING_MS);
     const before = scene.travels.length;
 
@@ -1675,7 +1676,7 @@ describe('SpaceSceneEngine, telling its travels', () => {
   }, 60_000);
 
   it('tells nothing while the camera rests', () => {
-    const scene = mountEngineScene();
+    const scene = mountEngineScene({ holeFocus: true });
     scene.run(PAST_CROSSING_MS);
     const before = scene.travels.length;
 

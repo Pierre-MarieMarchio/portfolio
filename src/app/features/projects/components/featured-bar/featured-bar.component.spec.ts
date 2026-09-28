@@ -5,6 +5,7 @@ import { sampleEntry, sampleRanked } from '@testing/fixtures/project.fixture';
 import { RankedProject } from '../../models';
 import { FeaturedBarComponent } from './featured-bar.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('.track button'),
@@ -40,17 +41,10 @@ const stubTrackWidth = (width: number) =>
     .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
     .mockReturnValue({ width } as DOMRect);
 
-const emittedBy = (fixture: { componentInstance: FeaturedBarComponent }) => {
-  const hovered: (string | null)[] = [];
-  const chosen: string[] = [];
-  fixture.componentInstance.hoveredChange.subscribe((slug) => {
-    hovered.push(slug);
-  });
-  fixture.componentInstance.chosen.subscribe((slug) => {
-    chosen.push(slug);
-  });
-  return { hovered, chosen };
-};
+const emittedBy = (fixture: { componentInstance: FeaturedBarComponent }) => ({
+  hovered: recordOutput(fixture.componentInstance.hoveredChange),
+  chosen: recordOutput(fixture.componentInstance.chosen),
+});
 
 describe('OrbitRuleComponent', () => {
   const entries = [
@@ -224,10 +218,7 @@ describe('OrbitRuleComponent', () => {
 
   it("emits chosen with the clicked body's slug, one per click, in order", async () => {
     const { fixture, host } = await mount({ bodies });
-    const emitted: string[] = [];
-    fixture.componentInstance.chosen.subscribe((slug: string) =>
-      emitted.push(slug),
-    );
+    const emitted = recordOutput(fixture.componentInstance.chosen);
 
     const buttons = markerButtons(host);
     buttons[2]?.click();
@@ -239,10 +230,7 @@ describe('OrbitRuleComponent', () => {
 
   it('emits hoveredChange with the slug on a mouse hover and a keyboard focus, null on leaving them', async () => {
     const { fixture, host } = await mount({ bodies });
-    const emitted: (string | null)[] = [];
-    fixture.componentInstance.hoveredChange.subscribe((slug: string | null) => {
-      emitted.push(slug);
-    });
+    const emitted = recordOutput(fixture.componentInstance.hoveredChange);
 
     const [first] = markerButtons(host);
     if (!first) {

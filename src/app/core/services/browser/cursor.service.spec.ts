@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CursorService } from './cursor.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(CursorService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('CursorService', () => {
   afterEach(() => {
@@ -16,13 +9,13 @@ describe('CursorService', () => {
   });
 
   it('is inert on the server: leaves the cursor alone', () => {
-    inject('server').set('grabbing');
+    injectOn(CursorService, 'server').set('grabbing');
 
     expect(document.body.style.cursor).toBe('');
   });
 
   it('sets the page cursor, and gives it back, in the browser', () => {
-    const cursor = inject('browser');
+    const cursor = injectOn(CursorService, 'browser');
 
     cursor.set('grabbing');
     expect(document.body.style.cursor).toBe('grabbing');

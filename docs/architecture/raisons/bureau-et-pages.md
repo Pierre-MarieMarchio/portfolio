@@ -1,7 +1,7 @@
 # Raisons : le bureau, le profil, les pages et la racine
 
 Le pourquoi des choix de `features/observatory/`, `features/profile/`, `pages/`,
-de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
+de la racine `src/app/app.*` et de `src/testing/integration/`, sorti du code (D10).
 
 ## `features/observatory/models/observatory-ids.model.ts`
 
@@ -309,7 +309,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   dans un gabarit se déclenche). C'est le défaut d'Angular ; c'est écrit
   quand même, pour qu'un `zone.js` ajouté par accident ne puisse pas
   rebasculer l'application sans que cette ligne le dise.
-  `src/integration/zoneless.spec.ts` le tient.
+  `src/testing/integration/zoneless.spec.ts` le tient.
 - `ErrorHandler` est le seul canal que toute erreur atteint, celles de la
   bibliothèque comprises.
 - Les paramètres de route arrivent en entrées de composant, au lieu d'être lus
@@ -341,20 +341,20 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   un projet ajouté aux données est prérendu dans les deux langues sans
   toucher ce fichier.
 
-## `src/integration/drafts.spec.ts`
+## `src/testing/integration/drafts.spec.ts`
 
 - Le compte attendu est celui des textes anglais encore à relire, mis à jour
   à chaque relecture : un compte qui bouge sans qu'on l'ait changé trahit un
   texte marqué ou relu par erreur.
 
-## `src/integration/featured-count.spec.ts`
+## `src/testing/integration/featured-count.spec.ts`
 
 - Le mécanisme testé : le nombre de projets mis en avant est une seule valeur
   (`FEATURED`), et l'accueil la suit partout, quelle que soit la taille du
   catalogue. Le spec la fournit par le jeton que lit le manager, à trois et à
   cinq, sur trois et douze projets en tout.
 
-## `src/integration/i18n.spec.ts`
+## `src/testing/integration/i18n.spec.ts`
 
 - Le mécanisme testé : l'adresse dit la langue (D3, D4), et changer de langue
   est une navigation vers la même vue à son autre adresse. Les vraies routes,
@@ -365,7 +365,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
   accessible d'une page anglaise est anglais. Le français s'y reconnaît à ses
   accents, qu'aucun texte anglais du site ne porte.
 
-## `src/integration/prerender-safety.spec.ts`
+## `src/testing/integration/prerender-safety.spec.ts`
 
 - Le mécanisme testé : les services qui touchent le navigateur sont inertes
   au prérendu. La plateforme serveur est simulée par `PLATFORM_ID`, tandis
@@ -375,7 +375,7 @@ de la racine `src/app/app.*` et de `src/integration/`, sorti du code (D10).
 - L'objet change le curseur : jamais au prérendu.
 - Le minutage de la chorégraphie se lit dans le CSS, jamais au serveur.
 
-## `src/integration/zoneless.spec.ts`
+## `src/testing/integration/zoneless.spec.ts`
 
 - Le mécanisme testé : l'application tourne sans zone.js, donc une vue se met
   à jour parce qu'un signal qu'elle lit a changé, et pour aucune autre raison.

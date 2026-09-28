@@ -1,13 +1,6 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DocumentStylesService } from './document-styles.service';
-
-const inject = (platform: 'browser' | 'server') => {
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(DocumentStylesService);
-};
+import { injectOn } from '@testing/fixtures/testbed.fixture';
 
 describe('DocumentStylesService', () => {
   afterEach(() => {
@@ -20,7 +13,7 @@ describe('DocumentStylesService', () => {
   it('is inert on the server: no token, no duration, no fonts', () => {
     document.documentElement.style.setProperty('--probe', '8700ms');
     const computed = vi.spyOn(window, 'getComputedStyle');
-    const styles = inject('server');
+    const styles = injectOn(DocumentStylesService, 'server');
     const onFonts = vi.fn();
 
     expect(styles.token('--probe')).toBe('');
@@ -37,7 +30,7 @@ describe('DocumentStylesService', () => {
     const element = document.createElement('div');
     element.style.opacity = '0.5';
     document.body.append(element);
-    const styles = inject('browser');
+    const styles = injectOn(DocumentStylesService, 'browser');
 
     expect(styles.token('--probe')).toBe('#2b2f3a');
     expect(styles.token('opacity', element)).toBe('0.5');
@@ -45,7 +38,7 @@ describe('DocumentStylesService', () => {
   });
 
   it('reads a duration token in ms or s, and nothing else, in the browser', () => {
-    const styles = inject('browser');
+    const styles = injectOn(DocumentStylesService, 'browser');
     const read = (value: string): number | null => {
       document.documentElement.style.setProperty('--probe', value);
       return styles.duration('--probe');
@@ -66,7 +59,7 @@ describe('DocumentStylesService', () => {
     });
     const onFonts = vi.fn();
 
-    inject('browser').fontsReady(onFonts);
+    injectOn(DocumentStylesService, 'browser').fontsReady(onFonts);
     await ready;
 
     expect(onFonts).toHaveBeenCalledTimes(1);
@@ -74,11 +67,11 @@ describe('DocumentStylesService', () => {
 
   it('raises and lowers a flag on the root in the browser, and leaves it alone on the server', () => {
     const root = document.documentElement;
-    inject('server').flagRoot('probe', true);
+    injectOn(DocumentStylesService, 'server').flagRoot('probe', true);
     expect('probe' in root.dataset).toBe(false);
     TestBed.resetTestingModule();
 
-    const styles = inject('browser');
+    const styles = injectOn(DocumentStylesService, 'browser');
     styles.flagRoot('probe', true);
     expect('probe' in root.dataset).toBe(true);
     styles.flagRoot('probe', false);

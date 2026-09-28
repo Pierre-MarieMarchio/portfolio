@@ -2,9 +2,9 @@ import {
   mountEngineScene,
   SCENE_INPUTS,
 } from '@testing/fixtures/engine-scene.fixture';
+import { isOverlapping } from '@testing/fixtures/scene-layout.fixture';
 import { sceneLayout } from '../../../rules/scene-layout.rules';
 import { DrawnDisc, isBoxOverDisc } from '../../../rules/camera/pointer.rules';
-import * as holeFocus from '../../../rules/hole-focus.rules';
 import type { DisplayFormat } from '@app/core/models';
 
 interface Box {
@@ -164,12 +164,13 @@ const starsBoxOf = (stars: readonly [number, number][]): Box => ({
 const drawnSky = (phone: Phone, litFigure: number, format: DisplayFormat) => {
   const scene = mountEngineScene({
     layout: layoutOf(phone),
-    inputs: { ...SCENE_INPUTS, reduced: true, format, holeFocus },
+    inputs: { ...SCENE_INPUTS, reduced: true, format },
+    holeFocus: true,
   });
   const stage = document.createElement('div');
   scene.engine.setHoleMark(stage);
   scene.run(SETTLE_MS);
-  scene.set({ reduced: true, format, holeFocus, ...asideAt(litFigure) });
+  scene.set({ reduced: true, format, ...asideAt(litFigure) });
   scene.run(2000);
   scene.engine.request();
   const figures = lastFiguresOf(scene.run(20));
@@ -183,9 +184,6 @@ const drawnSky = (phone: Phone, litFigure: number, format: DisplayFormat) => {
   };
   return { figures, disc };
 };
-
-const isOverlapping = (a: Box, b: Box): boolean =>
-  a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
 
 const faultsOf = (phone: Phone, part: string, box: Box): string[] => {
   const isUpright = phone.height > phone.width;
@@ -290,7 +288,8 @@ describe('ConstellationsRenderer, a phone changing sections', () => {
     }
     const scene = mountEngineScene({
       layout: layoutOf(phone),
-      inputs: { ...SCENE_INPUTS, format: 'phone', holeFocus },
+      inputs: { ...SCENE_INPUTS, format: 'phone' },
+      holeFocus: true,
     });
     const centresAfter = (ms: number) =>
       lastFiguresOf(scene.run(ms)).map((figure) => centreOf(figure));
@@ -332,7 +331,8 @@ const brightestOf = (figure: LoggedFigure | undefined): number =>
 const mountSky = (phone: Phone, format: DisplayFormat = 'desktop') => {
   const scene = mountEngineScene({
     layout: layoutOf(phone),
-    inputs: { ...SCENE_INPUTS, reduced: true, format, holeFocus },
+    inputs: { ...SCENE_INPUTS, reduced: true, format },
+    holeFocus: true,
   });
   const targets = Array.from({ length: FIGURE_COUNT }, () => {
     const target = document.createElement('button');
@@ -346,7 +346,6 @@ const mountSky = (phone: Phone, format: DisplayFormat = 'desktop') => {
     scene.set({
       reduced: true,
       format,
-      holeFocus,
       ...asideAt(litFigure, isShown),
     });
     scene.run(2000);
@@ -494,7 +493,7 @@ describe('ConstellationsRenderer, paused', () => {
   it('finishes lighting the chosen figure while the animation is paused', () => {
     const scene = mountEngineScene({
       layout: layoutOf(WIDE),
-      inputs: { ...SCENE_INPUTS, holeFocus },
+      holeFocus: true,
     });
     scene.run(SETTLE_MS);
     scene.set({ paused: true, ...asideAt(0) });

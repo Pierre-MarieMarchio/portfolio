@@ -3,22 +3,15 @@ import {
   figureInRoom,
   nameBoxOf,
   nameInRoom,
-  SkyRoom,
   spanOf,
   unionOf,
 } from './figure-room.rules';
 import { phoneFigureLayout } from './phone-figures.rules';
-
-const ROOM: SkyRoom = { l: 8, t: 64, r: 382, b: 498 };
-
-const isInside = (inner: SkyRoom, outer: SkyRoom): boolean =>
-  inner.l >= outer.l - 1e-6 &&
-  inner.t >= outer.t - 1e-6 &&
-  inner.r <= outer.r + 1e-6 &&
-  inner.b <= outer.b + 1e-6;
-
-const isOverlapping = (a: SkyRoom, b: SkyRoom): boolean =>
-  a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
+import {
+  isInside,
+  isOverlapping,
+  ROOM,
+} from '@testing/fixtures/scene-layout.fixture';
 
 const shapeAt = (
   x: number,

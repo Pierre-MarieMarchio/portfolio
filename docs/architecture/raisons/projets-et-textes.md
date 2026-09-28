@@ -228,4 +228,4 @@ qu'aucun autre fichier ne le sache.
 Le texte vient de `docs/wording/fr.md`, et chaque fait de
 `docs/wording/sources.md`. La tranche de la page À propos vit à part (D22).
 L'anglais, rédigé sans relecture, est marqué `draft(…)` texte par texte ;
-`src/integration/drafts.spec.ts` compte ceux qui restent.
+`src/testing/integration/drafts.spec.ts` compte ceux qui restent.

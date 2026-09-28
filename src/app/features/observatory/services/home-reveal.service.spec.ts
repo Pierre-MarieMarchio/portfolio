@@ -4,6 +4,7 @@ import { provideStatewise } from 'ngx-statewise';
 import { ObservatoryView } from '@app/features/observatory/models';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { HomeRevealService } from './home-reveal.service';
+import { stubMedia } from '@testing/doubles/browser.double';
 
 const setUp = (
   options: {
@@ -13,10 +14,10 @@ const setUp = (
   } = {},
 ) => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches:
+  stubMedia(
+    (query) =>
       query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
-  }));
+  );
   if (options.crossing !== undefined) {
     document.documentElement.style.setProperty(
       '--arrival-at',

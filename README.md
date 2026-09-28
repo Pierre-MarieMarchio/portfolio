@@ -93,8 +93,9 @@ src/app/
     observatory/         l'écran de l'observatoire et sa feuille de route
     workbench/           l'atelier des composants, en développement
     resolvers/           les têtes de page, dans la langue visée
-src/testing/             fixtures/ et doubles/ des specs
-src/integration/         suites qui testent un mécanisme, pas un composant
+src/testing/             ce qui ne part pas en production
+  fixtures/ doubles/     les outils partagés des specs
+  integration/           suites qui testent un mécanisme, pas un composant
 ```
 
 Une feature ne crée un sous-dossier (`guards/`, `ports/`, `interceptors/`…)
@@ -158,7 +159,7 @@ pause, l'état `animation` (D14).
   fallback » de la plupart des hébergeurs statiques.
 - Aucun code ne touche `window`, `localStorage`, `matchMedia` ou `canvas` en
   direct : tout passe par les services de `core/services/browser/` et `core/services/device/`, inertes au
-  prérendu. `src/integration/prerender-safety.spec.ts` le vérifie.
+  prérendu. `src/testing/integration/prerender-safety.spec.ts` le vérifie.
 
 ## Conventions
 

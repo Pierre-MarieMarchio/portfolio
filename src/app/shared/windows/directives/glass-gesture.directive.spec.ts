@@ -6,46 +6,8 @@ import {
   GlassGesturesDirective,
   loadGlassGestures,
 } from './glass-gesture.directive';
-
-const stubViewport = (width: number, height: number): (() => void) => {
-  const descriptors = (['innerWidth', 'innerHeight'] as const).map(
-    (key) => [key, Object.getOwnPropertyDescriptor(window, key)] as const,
-  );
-  Object.defineProperty(window, 'innerWidth', {
-    value: width,
-    configurable: true,
-  });
-  Object.defineProperty(window, 'innerHeight', {
-    value: height,
-    configurable: true,
-  });
-  return () => {
-    for (const [key, descriptor] of descriptors) {
-      if (descriptor) {
-        Object.defineProperty(window, key, descriptor);
-      }
-    }
-  };
-};
-
-const stubMotion = (isReduced: boolean): (() => void) => {
-  const descriptor = Object.getOwnPropertyDescriptor(window, 'matchMedia');
-  Object.defineProperty(window, 'matchMedia', {
-    configurable: true,
-    value: (query: string) => ({
-      matches: query.includes('reduce') ? isReduced : false,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    }),
-  });
-  return () => {
-    if (descriptor) {
-      Object.defineProperty(window, 'matchMedia', descriptor);
-    } else {
-      Reflect.deleteProperty(window, 'matchMedia');
-    }
-  };
-};
+import { stubMedia, stubViewport } from '@testing/doubles/browser.double';
+import { drag, pointer, PointerAt } from '@testing/fixtures/pointer.fixture';
 
 const stubNumber = (
   element: Element,
@@ -55,40 +17,7 @@ const stubNumber = (
   Object.defineProperty(element, key, { value, configurable: true });
 };
 
-interface Touch {
-  readonly x: number;
-  readonly y: number;
-  readonly at: number;
-  readonly id?: number;
-}
-
-const pointer = (type: string, { x, y, at, id = 1 }: Touch): Event => {
-  const event = new PointerEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    clientX: x,
-    clientY: y,
-    pointerId: id,
-    pointerType: 'touch',
-    isPrimary: id === 1,
-  });
-  Object.defineProperty(event, 'timeStamp', { value: at });
-  return event;
-};
-
-const drag = (on: Element, path: readonly Touch[]): void => {
-  const [first, ...rest] = path;
-  if (!first) {
-    return;
-  }
-  on.dispatchEvent(pointer('pointerdown', first));
-  for (const step of rest) {
-    on.dispatchEvent(pointer('pointermove', step));
-  }
-  on.dispatchEvent(pointer('pointerup', rest.at(-1) ?? first));
-};
-
-const slow = (dx: number, dy: number): Touch[] => [
+const slow = (dx: number, dy: number): PointerAt[] => [
   { x: 200, y: 100, at: 0 },
   { x: 200 + dx / 2, y: 100 + dy / 2, at: 200 },
   { x: 200 + dx, y: 100 + dy, at: 400 },
@@ -137,48 +66,45 @@ class GlassHost {
   public clicks = 0;
 }
 
-describe('GlassGesturesDirective', () => {
-  const restorers: (() => void)[] = [];
-
-  afterEach(() => {
-    while (restorers.length > 0) {
-      restorers.pop()?.();
-    }
+const setup = async ({
+  width = 390,
+  isReduced = false,
+  isFolded = false,
+  isLoaded = true,
+} = {}) => {
+  stubViewport(width, 844);
+  stubMedia((query) => query.includes('reduce') && isReduced);
+  const code = signal<typeof glassGestures | null>(
+    isLoaded ? glassGestures : null,
+  );
+  const load = vi.fn(() => code.asReadonly());
+  TestBed.configureTestingModule({
+    imports: [GlassHost],
+    providers: [{ provide: FormatCodeService, useValue: { load } }],
   });
-
-  const setup = async ({
-    width = 390,
-    isReduced = false,
-    isFolded = false,
-    isLoaded = true,
-  } = {}) => {
-    restorers.push(stubViewport(width, 844), stubMotion(isReduced));
-    const code = signal<typeof glassGestures | null>(
-      isLoaded ? glassGestures : null,
-    );
-    const load = vi.fn(() => code.asReadonly());
-    TestBed.configureTestingModule({
-      imports: [GlassHost],
-      providers: [{ provide: FormatCodeService, useValue: { load } }],
-    });
-    const fixture = TestBed.createComponent(GlassHost);
-    fixture.componentInstance.folded.set(isFolded);
-    await fixture.whenStable();
-    const host = fixture.nativeElement as HTMLElement;
-    const find = (selector: string): HTMLElement =>
-      host.querySelector(selector) as HTMLElement;
-    return {
-      fixture,
-      find,
-      drag,
-      load,
-      arrive: async () => {
-        code.set(glassGestures);
-        await fixture.whenStable();
-      },
-      gestures: fixture.componentInstance.gestures,
-    };
+  const fixture = TestBed.createComponent(GlassHost);
+  fixture.componentInstance.folded.set(isFolded);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  const find = (selector: string): HTMLElement =>
+    host.querySelector(selector) as HTMLElement;
+  return {
+    fixture,
+    find,
+    drag,
+    load,
+    arrive: async () => {
+      code.set(glassGestures);
+      await fixture.whenStable();
+    },
+    gestures: fixture.componentInstance.gestures,
   };
+};
+
+describe('GlassGesturesDirective', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it('folds on a pull of 64 px down the bar', async () => {
     const { find, drag, gestures } = await setup();

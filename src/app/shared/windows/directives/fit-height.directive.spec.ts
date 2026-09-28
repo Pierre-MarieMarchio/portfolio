@@ -3,32 +3,6 @@ import { TestBed } from '@angular/core/testing';
 import { WindowAnchor } from '../models/window.model';
 import { FitHeightDirective } from './fit-height.directive';
 
-const stubViewportHeight = (height: number): (() => void) => {
-  const descriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
-  Object.defineProperty(window, 'innerHeight', {
-    value: height,
-    configurable: true,
-  });
-  return () => {
-    if (descriptor) {
-      Object.defineProperty(window, 'innerHeight', descriptor);
-    }
-  };
-};
-
-const stubViewportWidth = (width: number): (() => void) => {
-  const descriptor = Object.getOwnPropertyDescriptor(window, 'innerWidth');
-  Object.defineProperty(window, 'innerWidth', {
-    value: width,
-    configurable: true,
-  });
-  return () => {
-    if (descriptor) {
-      Object.defineProperty(window, 'innerWidth', descriptor);
-    }
-  };
-};
-
 const stubLayout = (
   element: HTMLElement,
   layout: { offsetTop: number; offsetHeight?: number },
@@ -64,6 +38,7 @@ describe('FitHeightDirective', () => {
     while (restorers.length > 0) {
       restorers.pop()?.();
     }
+    vi.unstubAllGlobals();
   });
 
   const setup = async (
@@ -74,10 +49,8 @@ describe('FitHeightDirective', () => {
     const fixture = TestBed.createComponent(Host);
     const host = fixture.nativeElement as HTMLElement;
     const section = host.querySelector('section') as HTMLElement;
-    restorers.push(
-      stubLayout(section, layout),
-      stubViewportHeight(viewportHeight),
-    );
+    restorers.push(stubLayout(section, layout));
+    vi.stubGlobal('innerHeight', viewportHeight);
     await fixture.whenStable();
     const refit = async (): Promise<void> => {
       window.dispatchEvent(new Event('resize'));
@@ -180,7 +153,7 @@ describe('FitHeightDirective', () => {
     const { section, refit } = await setup({ offsetTop: 500 }, 844);
     expect(section.style.maxHeight).toBe('318px');
 
-    restorers.push(stubViewportWidth(390));
+    vi.stubGlobal('innerWidth', 390);
     await refit();
 
     expect(section.style.maxHeight).toBe('');
@@ -190,7 +163,7 @@ describe('FitHeightDirective', () => {
     const { section, refit } = await setup({ offsetTop: 100 }, 800);
     expect(section.style.maxHeight).toBe('470px');
 
-    restorers.push(stubViewportHeight(500));
+    vi.stubGlobal('innerHeight', 500);
     await refit();
 
     expect(section.style.maxHeight).toBe('374px');
@@ -198,7 +171,7 @@ describe('FitHeightDirective', () => {
 
   it('fits again once an animation of its own ends', async () => {
     const { section } = await setup({ offsetTop: 100 }, 800);
-    restorers.push(stubViewportHeight(500));
+    vi.stubGlobal('innerHeight', 500);
 
     section.dispatchEvent(new Event('animationend'));
 
@@ -209,7 +182,7 @@ describe('FitHeightDirective', () => {
     const { fixture, section } = await setup({ offsetTop: 100 }, 800);
 
     fixture.destroy();
-    restorers.push(stubViewportHeight(500));
+    vi.stubGlobal('innerHeight', 500);
     window.dispatchEvent(new Event('resize'));
 
     expect(section.style.maxHeight).toBe('470px');

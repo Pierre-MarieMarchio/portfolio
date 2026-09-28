@@ -4,6 +4,9 @@ import { SpaceSceneComponent } from '@shared/space-scene/components';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { ObservatorySceneComponent } from './observatory-scene.component';
 import { ObservatoryView, Planet } from '../../models';
+import { stubMedia, stubViewport } from '@testing/doubles/browser.double';
+import { heardClicks } from '@testing/fixtures/pointer.fixture';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { OBSERVATORY_TEXTS } from '../../ports';
 
@@ -30,13 +33,6 @@ const fakeContext = (): unknown => {
   return proxy;
 };
 
-const quietMedia =
-  (isMatching: (query: string) => boolean) => (query: string) => ({
-    matches: isMatching(query),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  });
-
 const mount = async (
   options: {
     view?: ObservatoryView;
@@ -54,10 +50,7 @@ const mount = async (
         ? null
         : fakeContext()) as CanvasRenderingContext2D | null,
   );
-  vi.stubGlobal(
-    'matchMedia',
-    quietMedia((query) => query === '(hover: none)' && !!options.touch),
-  );
+  stubMedia((query) => query === '(hover: none)' && !!options.touch);
   TestBed.configureTestingModule({
     imports: [ObservatorySceneComponent],
     providers: [provideTexts()],
@@ -76,22 +69,11 @@ const mount = async (
   fixture.componentRef.setInput('preview', options.preview ?? null);
   fixture.componentRef.setInput('hovered', options.hovered ?? null);
   fixture.componentRef.setInput('designated', options.designated ?? null);
-  const clicked: string[] = [];
-  const hovered: (string | null)[] = [];
-  let clicksHeard = 0;
-  const hearClick = (): void => {
-    clicksHeard += 1;
-  };
-  document.addEventListener('click', hearClick);
-  unhear.push(() => {
-    document.removeEventListener('click', hearClick);
-  });
-  fixture.componentInstance.bodyClicked.subscribe((slug) => clicked.push(slug));
-  fixture.componentInstance.bodyHovered.subscribe((slug) => hovered.push(slug));
-  const chosen: number[] = [];
-  fixture.componentInstance.figureChosen.subscribe((figure) =>
-    chosen.push(figure),
-  );
+  const heard = heardClicks();
+  unhear.push(heard.stop);
+  const clicked = recordOutput(fixture.componentInstance.bodyClicked);
+  const hovered = recordOutput(fixture.componentInstance.bodyHovered);
+  const chosen = recordOutput(fixture.componentInstance.figureChosen);
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   return {
@@ -101,7 +83,7 @@ const mount = async (
     hovered,
     chosen,
     lines,
-    clicks: () => clicksHeard,
+    clicks: heard.count,
     buttons: () => [
       ...host.querySelectorAll<HTMLButtonElement>('button[data-scene-target]'),
     ],
@@ -111,30 +93,8 @@ const mount = async (
   };
 };
 
-const holdViewport = (width: number, height: number): void => {
-  const kept = {
-    innerWidth: Object.getOwnPropertyDescriptor(window, 'innerWidth'),
-    innerHeight: Object.getOwnPropertyDescriptor(window, 'innerHeight'),
-  };
-  Object.defineProperty(window, 'innerWidth', {
-    value: width,
-    configurable: true,
-  });
-  Object.defineProperty(window, 'innerHeight', {
-    value: height,
-    configurable: true,
-  });
-  unhear.push(() => {
-    for (const [size, descriptor] of Object.entries(kept)) {
-      if (descriptor) {
-        Object.defineProperty(window, size, descriptor);
-      }
-    }
-  });
-};
-
 const directionAt = async (width: number, height: number) => {
-  holdViewport(width, height);
+  stubViewport(width, height);
   const { fixture } = await mount({ designated: 'voice' });
   const scene = fixture.debugElement.query(By.directive(SpaceSceneComponent))
     .componentInstance as SpaceSceneComponent;
@@ -363,10 +323,7 @@ describe('ObservatorySceneComponent', () => {
     expect(moving.fixture.componentInstance.animated()).toBe(true);
     TestBed.resetTestingModule();
 
-    vi.stubGlobal(
-      'matchMedia',
-      quietMedia((query) => query === '(prefers-reduced-motion: reduce)'),
-    );
+    stubMedia((query) => query === '(prefers-reduced-motion: reduce)');
     TestBed.configureTestingModule({
       imports: [ObservatorySceneComponent],
       providers: [provideTexts()],

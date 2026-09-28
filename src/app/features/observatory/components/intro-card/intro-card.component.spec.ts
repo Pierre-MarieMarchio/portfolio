@@ -1,24 +1,15 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { IntroCardComponent } from './intro-card.component';
+import { stubMedia } from '@testing/doubles/browser.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
-
-const quietMedia =
-  (isMatching: (query: string) => boolean) => (query: string) => ({
-    matches: isMatching(query),
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  });
 
 const mount = async (
   options: { platform?: string; reducedMotion?: boolean } = {},
 ) => {
-  vi.stubGlobal(
-    'matchMedia',
-    quietMedia(
-      (query) =>
-        query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
-    ),
+  stubMedia(
+    (query) =>
+      query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
   );
   document.documentElement.style.setProperty('--intro-duration', '5600ms');
   TestBed.configureTestingModule({

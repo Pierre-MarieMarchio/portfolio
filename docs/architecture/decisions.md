@@ -160,7 +160,7 @@ racine du document, et `PageHead` écrit le `canonical`, les `hreflang` et
 `og:locale`. Changer de langue, c'est suivre un lien vers la même vue à son
 autre adresse : la station reste montée, et `syncRoute` ne remet rien à zéro
 quand la vue et la fiche ne changent pas. L'anglais rédigé sans relecture est
-marqué `draft(…)`, et `src/integration/drafts.spec.ts` compte ce qu'il reste.
+marqué `draft(…)`, et `src/testing/integration/drafts.spec.ts` compte ce qu'il reste.
 
 **Raison.** C'est la seule approche qui tienne à la fois « un fichier par
 langue, aucun texte dans les gabarits » et « changer de langue sans rien
@@ -1658,3 +1658,32 @@ fois de plus dans les catalogues ; il ne l'est plus qu'une.
 **Écarté.** Lire le nom dans le catalogue courant : la stratégie de titre
 est créée avec le routeur, et le catalogue dépend de la langue, qui dépend
 du routeur. Le nom ne change pas d'une langue à l'autre.
+
+## 2026-09-28 — Les outils des specs sont écrits une fois, et tout ce qui teste vit sous `src/testing/` (D52)
+
+**Décision.** Un outil de spec recopié d'un fichier à l'autre vient dans
+`src/testing/`, une seule fois : le navigateur d'un spec (taille de l'écran,
+`matchMedia`, observateurs) dans `doubles/browser.double.ts`, les gestes
+dans `fixtures/pointer.fixture.ts`, le `TestBed` (plateforme, sorties,
+composant enfant) dans `fixtures/testbed.fixture.ts`, la géométrie des
+règles de la scène, la scène qu'on regarde et l'observatoire d'un spec dans
+leur fichier. La scène de la page et celle du worker partagent
+`ENGINE_OPTIONS`. Les suites d'intégration passent de `src/integration/` à
+`src/testing/integration/`, qui ne tient que des `.spec`. Les specs
+unitaires restent à côté de ce qu'elles testent.
+
+**Raison.** Le même `stubViewport` était écrit cinq fois, le même
+`inject(platform)` onze fois, le même bouchon de `matchMedia` sous six noms ;
+les specs perdent environ 400 lignes sans qu'un test change. Le test de
+parité entre la page et le worker ne comparait les mêmes réglages que parce
+que trois copies se ressemblaient ; il les compare maintenant par
+construction. Sous `src/testing/`, tout ce qui ne part pas en production est
+à un seul endroit, et `tsconfig.app.json` n'exclut plus qu'un dossier.
+
+**Écarté.** Un dossier `src/test/` qui reprendrait l'arbre de `src/app/` pour
+y ranger chaque spec : on ne verrait plus qu'un fichier a son test, et c'est
+contraire à la convention d'Angular. Renommer `src/testing/` : l'alias
+`@testing/*` changerait dans des dizaines de specs pour un nom à peine plus
+clair. Les compteurs locaux (`closed += 1`) et les événements qui ne
+bouillonnent pas restent dans leur spec : les partager aurait changé ce que
+leurs tests vérifient.

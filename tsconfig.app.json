@@ -7,5 +7,5 @@
     "types": []
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.spec.ts", "src/testing/**", "src/integration/**"]
+  "exclude": ["src/**/*.spec.ts", "src/testing/**"]
 }

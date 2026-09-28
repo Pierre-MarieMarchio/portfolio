@@ -1,39 +1,16 @@
-import { EngineHost, FrameLoopEngine } from './frame-loop.engine';
+import { FrameLoopEngine } from './frame-loop.engine';
+import { drivenHost } from '@testing/doubles/driven-host.double';
 
 interface Step {
   readonly at: number;
   readonly dt: number;
 }
 
-const screen = (hz: number) => {
-  let clock = 0;
-  let pending: ((time: number) => void) | null = null;
-  const host: EngineHost = {
-    frame: (callback) => {
-      pending = callback;
-      return () => {
-        pending = null;
-      };
-    },
-    now: () => clock,
-    hidden: () => false,
-  };
-  const refresh = (frames: number): void => {
-    for (let i = 0; i < frames; i++) {
-      clock += 1000 / hz;
-      const callback = pending;
-      pending = null;
-      callback?.(clock);
-    }
-  };
-  return { host, refresh, now: () => clock };
-};
-
 const loopOn = (hz: number, isTouch: boolean) => {
-  const display = screen(hz);
+  const display = drivenHost(hz);
   const steps: Step[] = [];
   const loop = new FrameLoopEngine(display.host, (dt) => {
-    steps.push({ at: display.now(), dt });
+    steps.push({ at: display.host.now(), dt });
     return true;
   });
   loop.setTouch(isTouch);
@@ -82,11 +59,11 @@ describe('FrameLoopEngine', () => {
   });
 
   it('keeps the pace when woken right after a step', () => {
-    const display = screen(120);
+    const display = drivenHost(120);
     const steps: number[] = [];
     let isMoving = false;
     const loop = new FrameLoopEngine(display.host, () => {
-      steps.push(display.now());
+      steps.push(display.host.now());
       return isMoving;
     });
     loop.setTouch(true);

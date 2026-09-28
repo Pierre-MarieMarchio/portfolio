@@ -9,11 +9,19 @@ import {
   SceneInputs,
 } from '@shared/space-scene/models/scene.model';
 import { SceneLayout } from '@shared/space-scene/models/scene-layout.model';
+import * as holeFocusRules from '@shared/space-scene/rules/hole-focus.rules';
 import { drivenHost } from '../doubles/driven-host.double';
 import { recordingContext } from '../doubles/recording-canvas.double';
 import { seededRandom } from '../doubles/seeded-random.double';
 
 const BRIGHT_BODIES = 4;
+
+export const ENGINE_OPTIONS = {
+  seed: 7,
+  density: 600,
+  ink: '#e8ecf2',
+  accent: '#7cc4f0',
+} as const;
 
 export const bodyId = (rank: number): string => `body-${String(rank)}`;
 
@@ -55,6 +63,7 @@ export interface SceneSetup {
   readonly dpr: number;
   readonly figures: EngineOptions['figures'];
   readonly withSky: boolean;
+  readonly holeFocus: boolean;
   readonly labelSize: {
     readonly width: number;
     readonly height: number;
@@ -67,12 +76,13 @@ const DEFAULT_SETUP: SceneSetup = {
   dpr: 1,
   figures: 'constellations',
   withSky: true,
+  holeFocus: false,
   labelSize: null,
 };
 
 const RULE_LINES = 4;
 
-const elements = (count: number): HTMLElement[] =>
+export const elements = (count: number): HTMLElement[] =>
   Array.from({ length: count }, () => document.createElement('span'));
 
 const sized = (
@@ -87,7 +97,11 @@ const decimalsRounded = (text: string): string =>
   text.replaceAll(/(?:-|(?<![\d-]))\d+\.\d+/g, (n) => Number(n).toFixed(3));
 
 export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
-  const setup = { ...DEFAULT_SETUP, ...overrides };
+  const given = { ...DEFAULT_SETUP, ...overrides };
+  const setup = given.holeFocus
+    ? { ...given, inputs: { ...given.inputs, holeFocus: holeFocusRules } }
+    : given;
+  const { seed, ...look } = ENGINE_OPTIONS;
   const { width, height } = setup.layout.viewport;
   const log: string[] = [];
   const { host, step, isScheduled, travels } = drivenHost();
@@ -97,13 +111,7 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
       matter: recordingContext('matter', log),
       sky: setup.withSky ? recordingContext('sky', log) : null,
     },
-    {
-      rnd: seededRandom(7),
-      density: 600,
-      figures: setup.figures,
-      ink: '#e8ecf2',
-      accent: '#7cc4f0',
-    },
+    { ...look, rnd: seededRandom(seed), figures: setup.figures },
     width * height,
   );
   const buttons = elements(setup.inputs.bodies.length);

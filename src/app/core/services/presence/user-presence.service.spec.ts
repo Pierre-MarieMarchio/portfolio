@@ -1,19 +1,17 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { UserPresenceService } from './user-presence.service';
+import { stubMedia } from '@testing/doubles/browser.double';
+import { injectOn, Platform } from '@testing/fixtures/testbed.fixture';
 
 const inject = (
-  platform: 'browser' | 'server',
+  platform: Platform,
   options: { reducedMotion?: boolean } = {},
 ) => {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches:
+  stubMedia(
+    (query) =>
       query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
-  }));
-  TestBed.configureTestingModule({
-    providers: [{ provide: PLATFORM_ID, useValue: platform }],
-  });
-  return TestBed.inject(UserPresenceService);
+  );
+  return injectOn(UserPresenceService, platform);
 };
 
 describe('UserPresenceService', () => {

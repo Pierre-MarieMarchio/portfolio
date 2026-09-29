@@ -2,6 +2,7 @@ export interface SceneNodeStyle {
   transform: string;
   opacity: string;
   pointerEvents: string;
+  zIndex: string;
   cssText: string;
 }
 

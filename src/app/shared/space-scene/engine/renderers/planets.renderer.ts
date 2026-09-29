@@ -7,6 +7,7 @@ import {
 import { Rolled, rollFlatten } from '../../rules/camera/projection.rules';
 import { positionOrbit, Projected } from '../../rules/scene-bodies.rules';
 import { TurntableMotion } from '../motions/turntable.motion';
+import { PlanetHoverMotion } from '../motions/planet-hover/planet-hover.motion';
 import { isUnderPanel } from '../../rules/panel-veil.rules';
 import {
   bodyLight,
@@ -52,6 +53,7 @@ export class PlanetsRenderer {
     private readonly ctx: CanvasRenderingContext2D,
     private readonly labels: PlanetLabelsRenderer,
     private readonly turntable: TurntableMotion,
+    private readonly hoverSlow: PlanetHoverMotion,
   ) {}
 
   public draw(frame: SceneFrame): void {
@@ -90,7 +92,11 @@ export class PlanetsRenderer {
     return frame.orbits.map((orbit, i) => {
       const pos = positionOrbit(
         orbit,
-        { phase, elev, azim: azim + this.turntable.orbitTurn(i) },
+        {
+          phase: this.hoverSlow.phaseOf(i, phase),
+          elev,
+          azim: azim + this.turntable.orbitTurn(i),
+        },
         this.out,
       );
       const { nx, ny } = rollFlatten(pos, frame, this.rolled);
@@ -127,10 +133,12 @@ export class PlanetsRenderer {
       labels.hide(i);
       return;
     }
+    const isEmphasised = !frame.state.phone && frame.focus.emphasised === i;
     labels.writeButton(
       i,
       `translate(${String(sx / dpr)}px,${String(sy / dpr)}px)`,
       isCovered,
+      isEmphasised,
     );
     if (isCovered) {
       labels.writeLabel(i, null, '0');

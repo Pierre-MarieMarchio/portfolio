@@ -7,6 +7,7 @@ export type NodeKey =
   | 'transform'
   | 'opacity'
   | 'pointerEvents'
+  | 'zIndex'
   | 'cssText'
   | 'tabIndex'
   | `@${string}`;

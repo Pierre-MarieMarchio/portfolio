@@ -6,7 +6,7 @@ import { ARRIVED, Traveling } from './camera/traveling.rules';
 import { noFocus, PlanetFocus } from './planets/planet-focus.rules';
 import { veilAt, Zone } from './panel-veil.rules';
 import type { SkyRoom } from './figures/figure-room.rules';
-import type { HoleFocusRules } from './camera/framing.rules';
+import type { HoleFocusRules } from './camera/framing/framing.rules';
 
 export interface SceneFrame {
   state: SceneState;

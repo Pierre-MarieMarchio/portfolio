@@ -5,6 +5,7 @@ import {
   Frame,
   isFiniteFrame,
   REST_FRAME,
+  settledStep,
 } from './camera-frames.rules';
 
 const noOffset = (): { nx: number; ny: number } => ({ nx: 0, ny: 0 });
@@ -73,6 +74,22 @@ describe('scene camera', () => {
         expect(frame.y).toBeGreaterThanOrEqual(-1.2);
       }
     });
+  });
+});
+
+describe('settledStep', () => {
+  it('snaps once the remaining gap is under half a pixel', () => {
+    expect(settledStep(0.4999, 0.5, 1)).toBe(0.5);
+    expect(settledStep(0.5001, 0.5, 1)).toBe(0.5);
+  });
+
+  it('keeps creeping while the gap is still worth a pixel', () => {
+    expect(settledStep(0.4, 1.4, 1)).toBe(0.4);
+  });
+
+  it('scales the gap by the pixels a unit is worth', () => {
+    expect(settledStep(0.49, 0.5, 100)).toBe(0.49);
+    expect(settledStep(0.49, 0.5, 1)).toBe(0.5);
   });
 });
 

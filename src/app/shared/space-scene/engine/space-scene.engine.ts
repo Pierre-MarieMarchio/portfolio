@@ -16,7 +16,7 @@ import {
   framingFor,
   framingScene,
   FramingScene,
-} from '../rules/camera/framing.rules';
+} from '../rules/camera/framing/framing.rules';
 import { panelZones, topBarZone, Zone } from '../rules/panel-veil.rules';
 import { restInFreeSky } from '../rules/camera/free-sky.rules';
 import { figureRoomOf } from '../rules/figures/figure-room.rules';
@@ -291,19 +291,20 @@ export class SpaceSceneEngine {
 
   private advance(dt: number, isVisible: boolean): void {
     this.fitOrbits();
-    this.motion.advance(dt, this.state, this.target(), isVisible);
+    this.motion.advance(dt, this.state, this.target(dt), isVisible);
     this.isTurning = this.turntable.step(dt, this.state.reduced, this.orbits);
   }
 
-  private target(): Frame {
+  private target(dt: number): Frame {
     const scene = this.framing;
     scene.dims =
       this.w && this.h ? { w: this.w, h: this.h, dpr: this.dpr } : null;
+    this.motion.camera.setDims(scene.dims);
     scene.layout = this.layout;
     scene.orbits = this.orbits;
     scene.phase = this.motion.phase;
     scene.azim = finiteOr(this.motion.camera.pose.azim, 0);
-    return framingFor(this.state, scene);
+    return framingFor(this.state, scene, dt);
   }
 
   private draw(): void {

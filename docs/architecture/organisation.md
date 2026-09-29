@@ -917,9 +917,10 @@ src/app/
   shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
   shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · figure-strokes.renderer · figure-targets.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
   shared/space-scene/models/                   scene-config.model · scene-constants.model · scene-engine.model · scene-layout.model · scene-look.model · scene-node.model · scene-worker.model · scene.model
-  shared/space-scene/ports/                    scene-surroundings.port
+  shared/space-scene/ports/                    scene-surroundings.port · scene-window-drag.port
   shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · layout-change.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
-  shared/space-scene/rules/camera/             camera-frames.rules · framing.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
+  shared/space-scene/rules/camera/             camera-frames.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
+  shared/space-scene/rules/camera/framing/     body-framing.rules · framing.rules
   shared/space-scene/rules/gestures/           sky-look.rules · sky-touch.rules
   shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
   shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules

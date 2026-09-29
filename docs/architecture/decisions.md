@@ -2370,3 +2370,24 @@ la barre des pages dit qu'elle est ouverte (D73). Le bundle initial passe de
 **Écarté.** Des colonnes automatiques : écartées par l'opérateur. Réarranger
 les fenêtres déjà ouvertes : elles bougeraient sans qu'on les touche. Une
 cascade pour l'aperçu : il vit en bas de l'accueil, seul.
+
+## 2026-09-29 — Le bundle initial peut aller jusqu'à 540 kB, le temps de finir le chantier (D77, amende D36)
+
+**Décision.** L'avertissement de budget du bundle initial passe de 530 à
+540 kB (`angular.json`, configuration `production`). L'erreur reste à 1 MB,
+le budget de feuille de style par composant à 4 kB. C'est une décision de
+l'opérateur, prise sans mesure préalable, pour finir les lots du chantier des
+fenêtres ; un chantier suivant doit ramener le bundle initial à 520 kB.
+
+**Raison.** Le bundle initial est à 526,5 kB en haut du lot B, et les tâches
+qui restent (contact en mots, intro, feuille de l'accueil au téléphone,
+feuilles natives) ajoutent chacune 1 à 2 kB pour une fonction réelle : le
+plafond aurait été atteint au milieu du lot du téléphone. Transféré, le
+bundle fait environ 136 kB, sous les quelque 170 kB compressés qu'on vise
+pour un téléphone moyen. Le code propre à un format continue de se charger à
+part (D39).
+
+**Écarté.** Mesurer d'abord le coût de 10 kB sur un téléphone ralenti :
+proposé, l'opérateur a préféré avancer et reporter la mesure au chantier de
+retour à 520 kB. Garder 530 et faire de la place dans le lot du téléphone :
+il aurait commencé par déplacer du code au lieu de livrer.

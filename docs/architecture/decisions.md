@@ -2480,3 +2480,30 @@ en capture sur toute la fenêtre, qui annule les clics sur une commande à
 opacité nulle : il interceptait le site entier, à toute heure, et reposait
 sur une règle qui lisait le DOM. Revenir à `visibility: hidden` : il rouvrait
 le saut de la caméra.
+
+## 2026-09-29 — Au bureau, une fenêtre gardée se voit, le menu se lit comme un menu, et une fenêtre neuve se pose là où elle couvre le moins (D81, amende D74 et D76)
+
+**Décision.** Une fenêtre gardée ouverte porte une épingle à côté de son
+titre, et son nom accessible le dit (« Liste des projets, gardée ouverte »).
+Le bouton du menu de la fenêtre porte un chevron. Quand une fenêtre de page
+s'affiche près d'autres, sans place choisie par le lecteur, elle compare sa
+place par défaut (à droite), la même ancrée à gauche et la cascade, et prend
+celle qui recouvre le moins les fenêtres affichées (`leastOverlapPlaceOf`) ; à
+égalité, la place par défaut, puis la cascade, qui reste le repli. La place à
+gauche arrondit sa cible avant de la comparer, comme la cascade (D78). Le
+double-clic agrandit depuis toute la barre, hors commandes (vérifié et tenu
+par des tests). `WindowStackService.frontShownOf` part : il faut désormais
+toutes les fenêtres affichées.
+
+**Raison.** Rejoués par les personas : « Garder ouverte » était caché
+derrière un carré sans état visible sur la fenêtre, et la seconde fenêtre,
+décalée de 32 px sur des fenêtres de 640 et 800 px, semblait posée sur la
+première. C'est un écart assumé au choix « cascade » de l'opérateur : un
+bureau classique, macOS en tête, pose une fenêtre neuve là où elle chevauche
+le moins, et ne cascade que sinon. Mesuré à 1440 px : le recouvrement de la
+liste et de l'à-propos tombe de 444 048 à 67 068 px². Le bundle initial passe
+de 531,70 à 532,20 kB ; `window-frame-tracker` à 9,72 kB, chargé à part.
+
+**Écarté.** Agrandir le pas de la cascade : les fenêtres se recouvriraient
+toujours. Des colonnes automatiques : écartées par l'opérateur. Lire un jeton
+CSS pour la place à gauche : le miroir se calcule de la place par défaut.

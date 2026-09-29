@@ -162,7 +162,11 @@ export class WindowFrameDirective {
 
   public cascade(): void {
     if (this.tracker && this.framedMode() === null) {
-      this.tracker.cascadeFrom(this.stack?.frontShownOf(this.element) ?? null);
+      const shown =
+        this.stack
+          ?.shownFrontToBack()
+          .filter((element) => element !== this.element) ?? [];
+      this.tracker.cascadeFrom(shown);
     }
   }
 

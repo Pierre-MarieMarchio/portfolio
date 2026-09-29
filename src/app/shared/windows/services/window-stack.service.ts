@@ -44,12 +44,6 @@ export class WindowStackService {
     return depth === -1 ? null : depth;
   }
 
-  public frontShownOf(excluding: HTMLElement): HTMLElement | null {
-    return (
-      this.shownFrontToBack().find((element) => element !== excluding) ?? null
-    );
-  }
-
   public shownFrontToBack(): readonly HTMLElement[] {
     const order = this.order() ?? this.registered();
     const shown: HTMLElement[] = [];

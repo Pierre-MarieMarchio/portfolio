@@ -15,12 +15,12 @@ import {
 } from '../models/window-frame.model';
 import {
   areaOf,
-  cascadePlaceOf,
   clampMove,
   clearanceOf,
   fitBelowFloor,
   frameOfZone,
   isZone,
+  leastOverlapPlaceOf,
   unsnapAt,
 } from '../rules/window-frame.rules';
 import { WindowDragTracker } from './window-drag.tracker';
@@ -84,8 +84,8 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     this.snap(zone);
   }
 
-  public cascadeFrom(top: HTMLElement | null): void {
-    if (!top) {
+  public cascadeFrom(shown: readonly HTMLElement[]): void {
+    if (shown.length === 0) {
       this.painted = NOWHERE;
       this.framed.paint(null);
       this.framed.commit(null, null);
@@ -97,7 +97,8 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     }
     const rect = this.rect();
     const bounds = { ...this.clearance(), floor: this.area(rect).bottom };
-    const place = cascadePlaceOf(rectOf(top), rect, viewport, bounds);
+    const others = shown.map((element) => rectOf(element));
+    const place = leastOverlapPlaceOf(rect, others, viewport, bounds);
     if (!place) {
       return;
     }

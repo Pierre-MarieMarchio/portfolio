@@ -173,6 +173,72 @@ export const cascadePlaceOf = (
     : null;
 };
 
+const overlapArea = (a: FrameRect, b: FrameRect): number => {
+  const width = Math.max(
+    0,
+    Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x),
+  );
+  const height = Math.max(
+    0,
+    Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y),
+  );
+  return width * height;
+};
+
+const overlapWith = (rect: FrameRect, others: readonly FrameRect[]): number =>
+  others.reduce((total, other) => total + overlapArea(rect, other), 0);
+
+const placedRect = (own: FrameRect, place: FramePlace): FrameRect => ({
+  x: own.x + place.dx,
+  y: own.y + place.dy,
+  width: place.width ?? own.width,
+  height: place.height ?? own.height,
+});
+
+const mirroredPlaceOf = (
+  own: FrameRect,
+  viewport: FrameViewport,
+  bounds: CascadeBounds,
+): FramePlace | null => {
+  const target: FrameRect = {
+    ...own,
+    x: Math.round(viewport.width - own.x - own.width),
+    y: Math.round(own.y),
+  };
+  const clamped = clampMove(target, viewport, bounds);
+  return clamped.x === target.x && clamped.y === target.y
+    ? { dx: target.x - own.x, dy: target.y - own.y, width: null, height: null }
+    : null;
+};
+
+export const leastOverlapPlaceOf = (
+  own: FrameRect,
+  others: readonly FrameRect[],
+  viewport: FrameViewport,
+  bounds: CascadeBounds,
+): FramePlace | null => {
+  const front = others[0];
+  if (!front) {
+    return null;
+  }
+  let best: FramePlace | null = null;
+  let bestOverlap = overlapWith(own, others);
+  for (const place of [
+    mirroredPlaceOf(own, viewport, bounds),
+    cascadePlaceOf(front, own, viewport, bounds),
+  ]) {
+    if (!place) {
+      continue;
+    }
+    const overlap = overlapWith(placedRect(own, place), others);
+    if (overlap < bestOverlap) {
+      best = place;
+      bestOverlap = overlap;
+    }
+  }
+  return best;
+};
+
 export const fittedHeight = (
   layout: { readonly top: number; readonly height: number },
   anchor: WindowAnchor,

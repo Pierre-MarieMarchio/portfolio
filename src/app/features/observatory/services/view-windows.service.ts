@@ -8,7 +8,7 @@ import {
   Signal,
   untracked,
 } from '@angular/core';
-import { ClockService } from '@app/core/services';
+import { ClockService, DisplayFormatService } from '@app/core/services';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ViewFocusService } from '@shared/ui/services';
 import { WindowStackService } from '@shared/windows/services';
@@ -28,6 +28,7 @@ export class ViewWindowsService {
   private readonly stack = inject(WindowStackService);
   private readonly viewFocus = inject(ViewFocusService);
   private readonly clock = inject(ClockService);
+  private readonly display = inject(DisplayFormatService);
   private readonly slots = new Map<ViewSlot, ShownSlot>();
   private isLanded = false;
   private stopPreparing: (() => void) | null = null;
@@ -96,12 +97,13 @@ export class ViewWindowsService {
     let withdraw: (() => void) | undefined;
     effect(() => {
       const view = this.observatory.view();
+      const hasPreviewWindow = this.display.format() !== 'phone';
       const preview =
-        view === 'home'
+        view === 'home' && hasPreviewWindow
           ? this.observatory.preview()
           : untracked(() => this.observatory.preview());
       const shown: ViewSlot =
-        view === 'home' && preview !== null
+        view === 'home' && hasPreviewWindow && preview !== null
           ? 'preview'
           : (windowOf(view) ?? 'home');
       this.observatory.slug();

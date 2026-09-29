@@ -59,6 +59,9 @@ export class ObservatoryManager {
       this.preview() !== null &&
       (this.view() === 'home' || this.pins().preview),
   );
+  public readonly shownPreview = computed(() =>
+    this.showsPreview() ? this.preview() : null,
+  );
   public readonly docked = computed(() =>
     dockedOf({
       view: this.view(),
@@ -126,6 +129,10 @@ export class ObservatoryManager {
 
   public openPreview(slug: string): void {
     this.statewise.dispatch(observatoryPreviewOpened(slug));
+  }
+
+  public closePreview(): void {
+    this.statewise.dispatch(observatoryPreviewClosed());
   }
 
   public hover(slug: string | null): void {

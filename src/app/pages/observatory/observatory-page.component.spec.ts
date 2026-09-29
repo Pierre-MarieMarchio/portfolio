@@ -1,4 +1,5 @@
 import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import {
@@ -6,12 +7,17 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
+import { resizeTo } from '@testing/doubles/browser.double';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 import { componentOf } from '@testing/fixtures/testbed.fixture';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
+import {
+  BottomSheetComponent,
+  PagerComponent,
+} from '@shared/mobile-nav/components';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
 import { FeaturedBarComponent } from '@app/features/projects/components';
@@ -23,6 +29,8 @@ import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
+
+const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
 const arrivals = (host: HTMLElement) =>
   ['#home', 'app-main-nav', 'app-featured-bar', 'app-social-links'].map(
@@ -76,18 +84,23 @@ describe('ObservatoryPageComponent', () => {
     options: {
       reducedMotion?: boolean;
       address?: string;
+      phone?: boolean;
+      entries?: typeof ENTRIES;
     } = {},
   ) => {
     stillObservatory((query) =>
       query === '(prefers-reduced-motion: reduce)'
         ? (options.reducedMotion ?? true)
-        : false,
+        : (options.phone ?? false) && TOUCH.has(query),
     );
+    if (options.phone) {
+      resizeTo(412, 915);
+    }
     TestBed.configureTestingModule({
       imports: [ObservatoryPageComponent],
       providers: [
         provideRouter([{ path: '**', children: [] }]),
-        provideProjects(ENTRIES, [ObservatoryEffect]),
+        provideProjects(options.entries ?? ENTRIES, [ObservatoryEffect]),
       ],
     });
     await loadProjects();
@@ -723,7 +736,7 @@ describe('ObservatoryPageComponent', () => {
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
-    expect(host.querySelector('app-project-preview')).not.toBeNull();
+    expect(host.querySelector('.slot--preview app-window')).not.toBeNull();
     expect(host.querySelector('app-featured-bar')).toBeNull();
   });
 
@@ -732,11 +745,11 @@ describe('ObservatoryPageComponent', () => {
     station.syncRoute('index');
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
-    expect(host.querySelector('app-project-preview')).toBeNull();
+    expect(host.querySelector('.slot--preview app-window')).toBeNull();
 
     station.togglePin('preview');
     await fixture.whenStable();
-    expect(host.querySelector('app-project-preview')).not.toBeNull();
+    expect(host.querySelector('.slot--preview app-window')).not.toBeNull();
   });
 
   it('names the preview slot with the id the orbit rule points its markers to', async () => {
@@ -826,6 +839,233 @@ describe('ObservatoryPageComponent', () => {
       for (const before of [bar, about, index, sheet, featured]) {
         expect(follows(before, scene)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
       }
+    });
+  });
+
+  describe('on the phone, the home is one sheet', () => {
+    const SLUGS = ['alpha', 'beta', 'gamma'];
+    const PHONE_ENTRIES = SLUGS.map((slug) =>
+      sampleEntry({ project: { slug, title: `Title ${slug}` } }),
+    );
+
+    const mountOnPhone = async (
+      options: { reducedMotion?: boolean; address?: string } = {},
+    ) => {
+      const mounted = await mount({
+        ...options,
+        phone: true,
+        entries: PHONE_ENTRIES,
+      });
+      const sheet = (): BottomSheetComponent =>
+        mounted.fixture.debugElement.query(
+          By.css('.slot--home app-bottom-sheet'),
+        ).componentInstance as BottomSheetComponent;
+      const cards = (): HTMLButtonElement[] => [
+        ...mounted.host.querySelectorAll<HTMLButtonElement>(
+          '.slot--home app-card-carousel .card',
+        ),
+      ];
+      return { ...mounted, sheet, cards };
+    };
+
+    it('holds the line and the cards in a sheet of the same component as the other pages, with the three detents', async () => {
+      const { host, sheet } = await mountOnPhone();
+
+      expect(sheet().detents()).toEqual(['folded', 'half', 'full']);
+      expect(sheet().detent()).toBe('half');
+      const home = host.querySelector('.slot--home');
+      expect(
+        home?.querySelector('app-home-title h1')?.textContent?.trim(),
+      ).toBe('Pierre-Marie Marchio · Développeur .NET et Angular');
+      expect(home?.querySelectorAll('app-card-carousel .card')).toHaveLength(3);
+    });
+
+    it('draws no separate preview: no slot, no pin, no numbered segments, no position counter', async () => {
+      const { fixture, station, host } = await mountOnPhone();
+      station.openPreview('beta');
+      await fixture.whenStable();
+
+      expect(host.querySelector('.slot--preview')).toBeNull();
+      expect(host.querySelector('app-segmented')).toBeNull();
+      expect(host.querySelector('app-window .meta')).toBeNull();
+      expect(host.querySelector('.slot--home app-window')).toBeNull();
+      expect(host.querySelector('.slot--home button[aria-pressed]')).toBeNull();
+    });
+
+    it('keeps a single h1, the home line, and no two-line title', async () => {
+      const { host } = await mountOnPhone();
+
+      expect([...host.querySelectorAll('h1')].map((h1) => h1.id)).toEqual([
+        'home-title',
+      ]);
+      expect(host.querySelector('app-home-title .name')).toBeNull();
+      expect(host.querySelector('.status')).toBeNull();
+    });
+
+    it('leaves the home slot on the sheet, for the focus to land in', async () => {
+      const { host } = await mountOnPhone();
+
+      expect(host.querySelector('.slot--home')?.querySelector('h1')).toBe(
+        host.querySelector('#home-title'),
+      );
+    });
+
+    it('draws the sheet on the home view only', async () => {
+      const { fixture, station, host } = await mountOnPhone();
+
+      station.syncRoute('about');
+      await fixture.whenStable();
+
+      expect(host.querySelector('.slot--home')).toBeNull();
+      expect(host.querySelectorAll('h1')).toHaveLength(1);
+    });
+
+    it('raises the sheet to full on the project of a touched card, and the scene closes in on it', async () => {
+      const { fixture, station, host, sheet, cards } = await mountOnPhone();
+
+      cards()[2]?.click();
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('gamma');
+      expect(sheet().detent()).toBe('full');
+      expect(sceneOf(fixture).preview()).toBe('gamma');
+      expect(
+        host.querySelector('.slot--home app-pager-page[data-current] h2')
+          ?.textContent,
+      ).toContain('Title gamma');
+    });
+
+    it('raises the sheet to full on the planet touched in the sky', async () => {
+      const { fixture, station, sheet } = await mountOnPhone();
+
+      sceneOf(fixture).bodyClicked.emit('beta');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('beta');
+      expect(sheet().detent()).toBe('full');
+    });
+
+    it('poses the project the reader stopped on when they pull the sheet up to full', async () => {
+      const { fixture, station, sheet } = await mountOnPhone();
+      station.hover('beta');
+
+      sheet().detent.set('full');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('beta');
+    });
+
+    it('turns to the neighbour project on a lateral swipe, the card and the scene following', async () => {
+      const { fixture, station, host, cards } = await mountOnPhone();
+      cards()[0]?.click();
+      await fixture.whenStable();
+      expect(station.preview()).toBe('alpha');
+
+      componentOf(fixture, PagerComponent).indexChange.emit(1);
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('beta');
+      expect(sceneOf(fixture).preview()).toBe('beta');
+      expect(
+        cards().findIndex((card) => card.hasAttribute('aria-current')),
+      ).toBe(1);
+      expect(
+        host.querySelector('.slot--home app-pager-page[data-current] h2')
+          ?.textContent,
+      ).toContain('Title beta');
+    });
+
+    it('lifts the project when the sheet comes down from full, whatever detent it lands on', async () => {
+      const { fixture, station, sheet, cards } = await mountOnPhone();
+      cards()[1]?.click();
+      await fixture.whenStable();
+
+      sheet().detent.set('half');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBeNull();
+      expect(sceneOf(fixture).preview()).toBeNull();
+
+      cards()[1]?.click();
+      await fixture.whenStable();
+      sheet().detent.set('folded');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBeNull();
+      expect(sheet().detent()).toBe('folded');
+    });
+
+    it('lowers the sheet to half when the sky is touched or escape is pressed', async () => {
+      const { fixture, station, sheet, cards } = await mountOnPhone();
+      cards()[1]?.click();
+      await fixture.whenStable();
+
+      await station.stepBack();
+      await fixture.whenStable();
+
+      expect(sheet().detent()).toBe('half');
+      expect(station.preview()).toBeNull();
+    });
+
+    it('shows the cards at half and the project at full, hiding the other from the tree', async () => {
+      const { fixture, host, cards } = await mountOnPhone();
+      const layers = (): boolean[] =>
+        [...host.querySelectorAll<HTMLElement>('.slot--home .layer')].map(
+          (layer) => layer.inert,
+        );
+      expect(layers()).toEqual([false, true]);
+
+      cards()[0]?.click();
+      await fixture.whenStable();
+
+      expect(layers()).toEqual([true, false]);
+    });
+
+    it('points the cards to the layer that holds the project', async () => {
+      const { host, cards } = await mountOnPhone();
+
+      const layer = host.querySelector('.slot--home .layer:last-child');
+      expect(layer?.id).toBe('preview-panel');
+      expect(cards().map((card) => card.getAttribute('aria-controls'))).toEqual(
+        ['preview-panel', 'preview-panel', 'preview-panel'],
+      );
+    });
+
+    it('anchors the scene on the cards at half and on the project at full', async () => {
+      const { fixture, host, cards } = await mountOnPhone();
+      const home = host.querySelector<HTMLElement>('.slot--home');
+      expect(home?.dataset['panel']).toBe('rule');
+
+      cards()[0]?.click();
+      await fixture.whenStable();
+
+      expect(home?.dataset['panel']).toBe('preview');
+    });
+
+    it('keeps the sheet held and inert while the intro plays, and lets it in with the rest', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host } = await mountOnPhone({ reducedMotion: false });
+      const surface = host.querySelector<HTMLElement>('.slot--home .home');
+      expect(surface?.dataset['arrival']).toBe('held');
+      expect(surface?.inert).toBe(true);
+
+      vi.advanceTimersByTime(8700);
+      await fixture.whenStable();
+
+      expect(surface?.dataset['arrival']).toBe('shown');
+      expect(surface?.inert).toBe(false);
+    });
+
+    it('draws the desktop home unchanged: the title, the rule, and the preview slot', async () => {
+      const { fixture, station, host } = await mount({
+        entries: PHONE_ENTRIES,
+      });
+
+      expect(host.querySelector('.slot--home')).toBeNull();
+      expect(host.querySelector('app-home-title .name')).not.toBeNull();
+      station.openPreview('beta');
+      await fixture.whenStable();
+      expect(host.querySelector('.slot--preview app-window')).not.toBeNull();
     });
   });
 });

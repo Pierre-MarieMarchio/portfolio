@@ -20,13 +20,9 @@ $arrival-delay: 700ms;
 
 @include formats.phone {
   :host {
-    max-width: calc(100% - 2 * var(--gutter));
-  }
-}
-
-@include formats.phone-landscape {
-  :host {
-    max-width: calc(100% - var(--glass-width) - 2 * var(--gutter));
+    position: static;
+    animation: none;
+    pointer-events: auto;
   }
 }
 
@@ -62,10 +58,36 @@ h1 {
   color: var(--ink);
   outline: none;
   white-space: nowrap;
+}
 
-  @include formats.phone {
-    white-space: normal;
-    text-wrap: balance;
+.bar {
+  display: flex;
+  align-items: center;
+  padding: var(--window-bar-padding);
+  border-bottom: 1px solid var(--line);
+  background: var(--glass-handle);
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.line {
+  @include type.mono(var(--m1), -0.01em);
+
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.3;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.fold {
+  @include controls.icon-button(var(--target-compact), 32px, var(--t-duration));
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
   }
 }
 

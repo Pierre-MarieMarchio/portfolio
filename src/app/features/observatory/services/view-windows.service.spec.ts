@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
+import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 import { WindowStackService } from '@shared/windows/services';
 import { ObservatoryManager } from '../states';
@@ -20,7 +21,13 @@ import { ViewWindowsService } from './view-windows.service';
 })
 class Views {}
 
-const mount = async () => {
+const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
+
+const mount = async (isPhone = false) => {
+  if (isPhone) {
+    stubMedia(TOUCH);
+    resizeTo(412, 915);
+  }
   TestBed.configureTestingModule({
     imports: [Views],
     providers: [provideStatewise(), WindowStackService, ViewWindowsService],
@@ -51,6 +58,7 @@ const mount = async () => {
 describe('ViewWindowsService', () => {
   afterEach(() => {
     document.body.replaceChildren();
+    vi.unstubAllGlobals();
   });
 
   it('focuses the preview title once it is opened from home, like a page window', async () => {
@@ -84,5 +92,42 @@ describe('ViewWindowsService', () => {
     await settle();
 
     expect(focused()).not.toBe('Preview');
+  });
+
+  describe('on the phone, where the preview has no window of its own', () => {
+    it('keeps the focus on the home title when a project is posed, the home sheet having no other heading to give', async () => {
+      const { observatory, settle, focused } = await mount(true);
+      expect(focused()).toBe('Home');
+      const before = document.activeElement;
+
+      observatory.openPreview('skyted');
+      await settle();
+
+      expect(focused()).toBe('Home');
+      expect(document.activeElement).toBe(before);
+    });
+
+    it('does not take the focus again for each project posed after it', async () => {
+      const { observatory, settle } = await mount(true);
+      observatory.openPreview('skyted');
+      await settle();
+      (document.activeElement as HTMLElement).blur();
+
+      observatory.openPreview('other');
+      await settle();
+
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('lands on the home title after coming back to home', async () => {
+      const { observatory, settle, focused } = await mount(true);
+      observatory.syncRoute('index');
+      await settle();
+
+      observatory.syncRoute('home');
+      await settle();
+
+      expect(focused()).toBe('Home');
+    });
   });
 });

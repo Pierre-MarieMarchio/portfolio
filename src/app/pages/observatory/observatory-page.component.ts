@@ -34,6 +34,7 @@ import { closeTargetOf, viewAtAddress } from '@app/features/observatory/rules';
 import {
   FeaturedTourService,
   HomeRevealService,
+  HomeSheetService,
   MobileNavPlatformService,
   ViewWindowsService,
 } from '@app/features/observatory/services';
@@ -55,8 +56,11 @@ import { FAMILIES, FamilyFilter } from '@app/features/projects/models';
 import { restingPickOf } from '@app/features/projects/rules';
 import { ProjectsManager } from '@app/features/projects/states';
 import { pathOf, ViewLinksService } from '@app/i18n';
-import { BottomSheetComponent } from '@shared/mobile-nav/components';
-import type { SheetDetent } from '@shared/mobile-nav/models';
+import {
+  BottomSheetComponent,
+  PagerComponent,
+  PagerPageComponent,
+} from '@shared/mobile-nav/components';
 import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import type { LayoutBox } from '@shared/space-scene/models';
@@ -78,8 +82,6 @@ import {
   WindowFrameDirective,
 } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
-
-const PREVIEW_DETENTS: readonly SheetDetent[] = ['folded', 'half'];
 
 const boxOf = (rect: FrameRect): LayoutBox => ({
   left: rect.x,
@@ -113,6 +115,8 @@ interface SheetOnShow {
     NotFoundWindowComponent,
     ObservatoryDockComponent,
     ObservatorySceneComponent,
+    PagerComponent,
+    PagerPageComponent,
     ProjectDetailComponent,
     ProjectListComponent,
     ProjectPreviewComponent,
@@ -124,6 +128,7 @@ interface SheetOnShow {
   ],
   providers: [
     HomeRevealService,
+    HomeSheetService,
     FeaturedTourService,
     WindowStackService,
     ViewWindowsService,
@@ -147,7 +152,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
   protected readonly links = inject(ViewLinksService);
   protected readonly observatoryTexts = inject(OBSERVATORY_TEXTS);
   protected readonly ids = OBSERVATORY_IDS;
-  protected readonly previewDetents = PREVIEW_DETENTS;
+  protected readonly homeSheet = inject(HomeSheetService);
   protected readonly anchor: {
     readonly [K in Exclude<SceneAnchorKind, 'line'>]: K;
   } = {
@@ -240,7 +245,9 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
 
   protected readonly showsRule = computed(
     () =>
-      this.observatory.view() === 'home' && this.observatory.preview() === null,
+      this.observatory.view() === 'home' &&
+      this.observatory.preview() === null &&
+      !this.homeSheet.isPhone(),
   );
 
   protected readonly canDeselect = computed(
@@ -260,6 +267,10 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     const loaded = viewAtAddress(locale.path(), (at) => pathOf(at, lang));
     this.observatory.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
+    this.homeSheet.follow({
+      slugs: () => this.featuredSlugs(),
+      resting: () => this.designated(),
+    });
     const windows = inject(ViewWindowsService);
     effect(() => {
       if (this.arrival() === 'shown') {

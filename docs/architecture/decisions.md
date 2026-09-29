@@ -2345,3 +2345,28 @@ empreintes sans survol ne bougent pas. Le bundle initial ne change pas
 cause. Arrêter toutes les planètes au survol : la scène se figerait dès que la
 souris passe. Geler au téléphone : la planète mise en avant sans pointeur s'y
 arrêterait sans raison.
+
+## 2026-09-29 — Au bureau, une fenêtre qui s'ouvre près d'une autre s'ouvre en cascade (D76, amende D65 et D68)
+
+**Décision.** Au bureau et à la tablette, une fenêtre de page qui s'affiche
+alors qu'une autre est déjà à l'écran, et à laquelle le lecteur n'a pas donné
+de place, s'ouvre 32 px à gauche et 32 px plus bas que le coin haut-droit de
+la fenêtre du dessus (`cascadePlaceOf`) ; elle passe devant. Si ce décalage
+la rendait inatteignable (D68) ou la sortait de l'écran, elle garde sa place
+par défaut. Une fenêtre placée par le lecteur garde sa place ; une fenêtre
+seule à l'écran reprend la sienne ; rien ne réarrange les fenêtres déjà
+ouvertes. Quand l'écran change, une fenêtre en cascade est ramenée à portée,
+comme une fenêtre déplacée. `WindowStackService` sait quelle fenêtre affichée
+est devant (`frontShownOf`). L'aperçu n'a pas de cascade.
+
+**Raison.** Toutes les fenêtres s'ancrent au bord droit : une fenêtre gardée
+disparaissait presque entière sous la suivante, et épingler ne donnait pas
+plusieurs fenêtres. L'opérateur a choisi le comportement d'un bureau
+classique, des fenêtres libres en cascade, plutôt qu'un rangement en
+colonnes : la barre de la fenêtre du dessous reste visible et cliquable, et
+la barre des pages dit qu'elle est ouverte (D73). Le bundle initial passe de
+526,05 à 526,54 kB ; `window-frame-tracker` de 7,90 à 8,43 kB.
+
+**Écarté.** Des colonnes automatiques : écartées par l'opérateur. Réarranger
+les fenêtres déjà ouvertes : elles bougeraient sans qu'on les touche. Une
+cascade pour l'aperçu : il vit en bas de l'accueil, seul.

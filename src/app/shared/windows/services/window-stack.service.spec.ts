@@ -3,6 +3,12 @@ import { WindowStackService } from './window-stack.service';
 
 const IDS = ['a', 'b', 'c', 'd'] as const;
 
+const elementShown = (isShown: boolean): HTMLElement => {
+  const element = document.createElement('div');
+  element.dataset['shown'] = String(isShown);
+  return element;
+};
+
 const setup = () => {
   TestBed.configureTestingModule({ providers: [WindowStackService] });
   const stack = TestBed.inject(WindowStackService);
@@ -72,5 +78,40 @@ describe('WindowStackService', () => {
     stack.bringToFront('b');
 
     expect(IDS.map((id) => stack.depthOf(id))).toEqual([0, 3, 1, 2]);
+  });
+
+  describe('frontShownOf', () => {
+    it('gives the shown window closest to the front, excluding the one asking', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      const b = elementShown(true);
+      stack.register('a', a);
+      stack.register('b', b);
+      stack.bringToFront('b');
+
+      expect(stack.frontShownOf(a)).toBe(b);
+    });
+
+    it('skips a registered window that is not shown', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      const b = elementShown(false);
+      stack.register('a', a);
+      stack.register('b', b);
+      stack.bringToFront('b');
+
+      expect(stack.frontShownOf(document.createElement('div'))).toBe(a);
+    });
+
+    it('finds nothing when only the asking window is shown', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      stack.register('a', a);
+
+      expect(stack.frontShownOf(a)).toBeNull();
+    });
   });
 });

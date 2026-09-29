@@ -2117,3 +2117,32 @@ depuis dans un worker (D47). Le bundle initial passe de 516,44 à
 possible aux autres crans. Garder le drapeau pour un usage futur : du code
 que rien ne lit. Une vitre sans flou au téléphone : elle change le verre au
 repos (déjà écarté par D46).
+
+## 2026-09-29 — Au bureau, une fenêtre gardée reste là, sa barre reste à portée, et sa hauteur ne saute plus (D68, amende D62 et D65)
+
+**Décision.** Quatre correctifs des fenêtres du bureau. Une fiche épinglée
+reste affichée quand on change de page, comme la liste et l'à-propos.
+L'aperçu ouvert reçoit le focus sur un titre qui nomme le projet ; c'est un
+`h2`, et la page ne garde qu'un `h1`. Au lâcher d'un glisser, à la souris
+comme au clavier, et quand l'écran change, la barre de titre reste sous la
+barre des pages et au-dessus du rail du bas, avec au moins 120 px dans
+l'écran ; les marges se lisent de `--head-bottom`, de `--window-reserve` et
+de la hauteur de la barre (`clearanceOf`). L'à-propos et la fiche ont une
+hauteur fixe (`stableHeight`) : le corps défile dedans, et une taille
+choisie par le lecteur reste. `WindowHeightTracker` tient la hauteur bornée
+pour `WindowFrameTracker`.
+
+**Raison.** Épingler la fiche annonçait « Fenêtre gardée » et la cachait.
+L'aperçu ouvert au clavier laissait le focus au corps de la page, et Tab
+passait par-dessus la fenêtre. Les marges fixes (12 et 60 px) ignoraient la
+barre des pages et la réserve du rail (76 à 88 px) : une fenêtre pouvait
+glisser sous le rail, barre de titre comprise, et ne plus se reprendre. Seule
+la page posée du pager compte dans la hauteur, d'où 720 → 597 px d'une
+section à l'autre ; un plafond (`max-height`) suivait ce contenu, une hauteur
+fixe ne le suit plus. Le bundle initial reste à 516,44 kB ;
+`window-frame-tracker` passe de 8,19 à 8,88 kB, toujours chargé à part.
+
+**Écarté.** Un `h1` dans l'aperçu : deux `h1` à l'accueil. Une hauteur fixe
+pour toutes les fenêtres : la liste et l'aperçu suivent leur contenu. Toucher
+le mixin du pager pour qu'il garde les pages cachées dans la mise en page :
+elles pèseraient dans chaque layout de la fenêtre.

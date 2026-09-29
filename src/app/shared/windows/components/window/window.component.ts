@@ -53,6 +53,7 @@ export class WindowComponent {
   public readonly label = input('');
   public readonly scrollKey = input('');
   public readonly scrollResetOn = input<unknown>();
+  public readonly stableHeight = input(false);
 
   public readonly pinToggled = output();
   public readonly closed = output();
@@ -84,6 +85,7 @@ export class WindowComponent {
           bar,
           anchor: this.anchor,
           ceiling: () => WINDOW_CEILINGS[this.size()],
+          stable: this.stableHeight,
         }) ?? NOTHING,
       );
     });

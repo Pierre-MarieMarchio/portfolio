@@ -91,6 +91,7 @@ export class WindowDragTracker {
       clampMove(
         { ...start, x: start.x + delta.dx, y: start.y + delta.dy },
         viewport,
+        this.frame.clearance(),
       ),
     );
     this.show(snapZoneOf(event.clientX, event.clientY, viewport));

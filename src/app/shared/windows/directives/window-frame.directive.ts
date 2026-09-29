@@ -112,6 +112,7 @@ export class WindowFrameDirective {
         const parts = this.parts();
         parts?.ceiling();
         parts?.anchor();
+        parts?.stable();
         this.place();
         untracked(() => this.tracker?.fitHeight());
       },

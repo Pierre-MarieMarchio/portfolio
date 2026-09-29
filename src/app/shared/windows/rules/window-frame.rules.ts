@@ -1,6 +1,7 @@
 import { clamp } from '@app/core/helpers';
 import type {
   FrameArea,
+  FrameClearance,
   FrameDelta,
   FrameEdge,
   FrameMode,
@@ -17,8 +18,7 @@ const KEY_STEP = 8;
 const FAST_KEY_STEP = 64;
 const VISIBLE_SIDEWAYS = 150;
 const EDGE_LEFT = 16;
-const EDGE_TOP = 12;
-const EDGE_BOTTOM = 60;
+const HEAD_GAP = 12;
 const SNAP_REACH = 12;
 const HALF_GAP = 12;
 
@@ -41,6 +41,7 @@ const heightOf = (area: FrameArea): number =>
 export const clampMove = (
   frame: FrameRect,
   viewport: FrameViewport,
+  clearance: FrameClearance,
 ): FrameRect => ({
   ...frame,
   x: wholeWithin(
@@ -48,7 +49,7 @@ export const clampMove = (
     EDGE_LEFT + VISIBLE_SIDEWAYS - frame.width,
     viewport.width - VISIBLE_SIDEWAYS,
   ),
-  y: wholeWithin(frame.y, EDGE_TOP, viewport.height - EDGE_BOTTOM),
+  y: wholeWithin(frame.y, clearance.top, viewport.height - clearance.bottom),
 });
 
 export const clampResize = (
@@ -151,6 +152,15 @@ export const unsnapAt = (
   pointerX: number,
 ): number =>
   Math.round(pointerX - ((pointerX - zoned.x) * width) / zoned.width);
+
+export const clearanceOf = (
+  headBottom: number,
+  reserve: number,
+  barHeight: number,
+): FrameClearance => ({
+  top: headBottom + HEAD_GAP,
+  bottom: reserve + barHeight,
+});
 
 export const fittedHeight = (
   layout: { readonly top: number; readonly height: number },

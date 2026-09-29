@@ -30,6 +30,11 @@ export interface FramePlace extends FrameDelta {
   readonly height: number | null;
 }
 
+export interface FrameClearance {
+  readonly top: number;
+  readonly bottom: number;
+}
+
 export type FrameZone = 'left' | 'right' | 'full';
 
 export type FrameMode = 'free' | FrameZone;
@@ -47,6 +52,7 @@ export interface WindowParts {
   readonly bar: HTMLElement;
   readonly anchor: () => WindowAnchor;
   readonly ceiling: () => number;
+  readonly stable: () => boolean;
 }
 
 export interface WindowControlView {
@@ -91,6 +97,7 @@ export interface FrameTracking {
 export interface DraggedFrame {
   rect(): FrameRect;
   area(rect: FrameRect): FrameArea;
+  clearance(): FrameClearance;
   moveTo(rect: FrameRect): FramePlace;
   placeAt(rect: FrameRect): FramePlace;
   unsnap(grabX: number): FrameRect | null;

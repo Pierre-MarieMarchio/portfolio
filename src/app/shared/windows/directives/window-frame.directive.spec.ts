@@ -35,7 +35,12 @@ const layOutFromTheRight = (slot: HTMLElement): void => {
   imports: [WindowFrameDirective, WindowComponent],
   template: `
     <div class="slot" appWindowFrame style="--window-reserve: 76px">
-      <app-window heading="Console" [size]="size()" [anchor]="anchor()">
+      <app-window
+        heading="Console"
+        [size]="size()"
+        [anchor]="anchor()"
+        [stableHeight]="stableHeight()"
+      >
         <div body>BODY-MARK</div>
       </app-window>
     </div>
@@ -44,6 +49,7 @@ const layOutFromTheRight = (slot: HTMLElement): void => {
 class Host {
   public readonly size = signal<WindowSize>('m');
   public readonly anchor = signal<WindowAnchor>('top');
+  public readonly stableHeight = signal(false);
 }
 
 const mouse = (at: PointerAt): PointerAt => ({ kind: 'mouse', ...at });
@@ -180,6 +186,31 @@ describe('WindowFrameDirective', () => {
         width: '',
         height: '',
       });
+    });
+
+    it('keeps its bar below the real top bar, not a fixed margin', async () => {
+      const { slot, bar, drag, frame } = await mount();
+      slot.style.setProperty('--head-bottom', '400px');
+
+      await drag(bar(), [
+        { x: 800, y: 110 },
+        { x: 800, y: 50 },
+      ]);
+
+      expect(frame().transform).toBe('translate(0px,312px)');
+    });
+
+    it('keeps its bar above the dock reserve, not a fixed margin', async () => {
+      const { host, bar, drag, frame } = await mount();
+      const titlebar = host.querySelector('.titlebar') as HTMLElement;
+      titlebar.getBoundingClientRect = () => new DOMRect(0, 0, 400, 48);
+
+      await drag(bar(), [
+        { x: 800, y: 110 },
+        { x: 800, y: 2000 },
+      ]);
+
+      expect(frame().transform).toBe('translate(0px,576px)');
     });
 
     it('does not move for a press without a drag, nor from a button', async () => {
@@ -387,6 +418,17 @@ describe('WindowFrameDirective', () => {
       ).not.toContain('Escape');
     });
 
+    it('keeps its bar below the real top bar when moved by an arrow', async () => {
+      const { slot, control, press, frame } = await mount();
+      slot.style.setProperty('--head-bottom', '600px');
+      const move = control(texts().move);
+
+      await press(move, 'ArrowUp', true);
+      await press(move, 'ArrowUp', true);
+
+      expect(frame().transform).toBe('translate(0px,512px)');
+    });
+
     it('lets Escape through when it is not moving', async () => {
       const { control, press } = await mount();
 
@@ -453,6 +495,35 @@ describe('WindowFrameDirective', () => {
         expect(section.style.maxHeight).toBe(maxHeight);
       },
     );
+
+    it('paints a fixed height instead of a cap when asked for a stable height', async () => {
+      const { fixture, host, settle } = await mount();
+      const section = host.querySelector<HTMLElement>('.window') as HTMLElement;
+      layOutSection(section, { offsetTop: 100 });
+
+      fixture.componentInstance.stableHeight.set(true);
+      resizeTo(1200, 2000);
+      await settle();
+
+      expect(section.style.height).toBe('470px');
+      expect(section.style.maxHeight).toBe('');
+    });
+
+    it('clears the stable height once the reader resizes the window', async () => {
+      const { fixture, host, edge, drag, settle } = await mount();
+      const section = host.querySelector<HTMLElement>('.window') as HTMLElement;
+      layOutSection(section, { offsetTop: 100 });
+      fixture.componentInstance.stableHeight.set(true);
+      await settle();
+
+      await drag(edge('s'), [
+        { x: 756, y: 400 },
+        { x: 756, y: 500 },
+      ]);
+
+      expect(section.style.height).toBe('');
+      expect(section.style.maxHeight).toBe('');
+    });
 
     it('takes its room above its bottom edge when anchored at the bottom', async () => {
       const { fixture, host, settle } = await mount();

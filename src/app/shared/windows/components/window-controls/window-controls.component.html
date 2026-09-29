@@ -6,20 +6,12 @@
     [attr.aria-label]="control.label"
     [attr.aria-pressed]="control.pressed"
     [attr.aria-expanded]="control.expanded"
-    [attr.aria-describedby]="control.keys ? keysId + '-' + control.name : null"
-    (click)="press(control.name, $event)"
-    (keydown)="control.keys && press(control.name, $event)"
-    (blur)="control.keys && press(control.name, $event)"
+    (click)="press(control.name)"
   >
     <svg aria-hidden="true" focusable="false" viewBox="2 2 20 20">
       <path [attr.d]="control.icon" />
     </svg>
     <span class="tip" aria-hidden="true">{{ control.label }}</span>
   </button>
-  @if (control.keys) {
-    <span class="visually-hidden" [id]="keysId + '-' + control.name">{{
-      control.keys
-    }}</span>
-  }
 }
 <p class="visually-hidden" role="status">{{ note() }}</p>

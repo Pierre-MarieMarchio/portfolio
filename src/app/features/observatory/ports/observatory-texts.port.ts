@@ -12,11 +12,18 @@ export interface ObservatoryTexts {
     readonly parts: readonly string[];
   };
   readonly home: {
-    readonly void: string;
     readonly name: string;
     readonly trade: string;
     readonly status: string;
     readonly brand: string;
+  };
+  readonly intro: {
+    readonly skip: string;
+  };
+  readonly stepBack: {
+    readonly deselect: string;
+    readonly closePreview: string;
+    readonly overview: string;
   };
   readonly closeTo: {
     readonly home: string;

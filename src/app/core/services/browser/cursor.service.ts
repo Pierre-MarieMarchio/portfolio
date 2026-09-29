@@ -11,4 +11,14 @@ export class CursorService {
       this.document.body.style.cursor = cursor;
     }
   }
+
+  public blockSelection(isBlocked: boolean): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    this.document.body.style.userSelect = isBlocked ? 'none' : '';
+    if (isBlocked) {
+      this.document.getSelection()?.removeAllRanges();
+    }
+  }
 }

@@ -31,6 +31,7 @@ import {
   SceneInputs,
 } from '../../models/scene.model';
 import { SCENE_SURROUNDINGS } from '../../ports/scene-surroundings.port';
+import { SCENE_WINDOW_DRAG } from '../../ports/scene-window-drag.port';
 import { canvasResolution } from '../../rules/canvas-resolution.rules';
 import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
 import { isSameList } from '../../rules/planets/same-nodes.rules';
@@ -54,6 +55,7 @@ export const loadHoleFocus = () => import('../../rules/hole-focus.rules');
 export class SpaceSceneComponent {
   private readonly canvas = inject(AnimatedCanvasService);
   private readonly surroundings = inject(SCENE_SURROUNDINGS);
+  private readonly windowDrag = inject(SCENE_WINDOW_DRAG, { optional: true });
   private readonly targets = inject(SceneTargetsService);
   private readonly display = inject(DisplayFormatService);
   private readonly holeFocus = inject(FormatCodeService).load(
@@ -245,6 +247,9 @@ export class SpaceSceneComponent {
           passive: true,
         }),
       ),
+      ...(this.windowDrag
+        ? [this.windowDrag.onDragging(() => this.measureSoon())]
+        : []),
       this.canvas.onWindow(
         'pointermove',
         (event) => {
@@ -273,8 +278,8 @@ export class SpaceSceneComponent {
     engine.setViewportArea(this.viewportArea());
   }
 
-  private measureSoon(event: Event): void {
-    if (!canMoveLayout(event)) {
+  private measureSoon(event?: Event): void {
+    if (event && !canMoveLayout(event)) {
       return;
     }
     this.cancelMeasure ??= this.canvas.nextFrame(() => {

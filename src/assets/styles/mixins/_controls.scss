@@ -61,6 +61,90 @@
   }
 }
 
+$rail-labeled-from: 1280px;
+
+@mixin rail-labeled {
+  @media (width >= $rail-labeled-from) {
+    @content;
+  }
+}
+
+@mixin rail-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target);
+  height: var(--target);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--ink-2);
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    color var(--t),
+    border-color var(--t);
+
+  @include formats.can-hover {
+    &:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+  }
+
+  @include rail-labeled {
+    gap: var(--s1);
+    width: auto;
+    padding: 0 var(--s2);
+  }
+}
+
+@mixin rail-control-label {
+  @include type.caps(var(--m1));
+
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+
+  @include rail-labeled {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+@mixin tip {
+  @include type.mono(var(--m1));
+
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1;
+  width: max-content;
+  max-width: 15rem;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--t-duration),
+    visibility var(--t-duration);
+}
+
 @mixin tab {
   @include type.caps(var(--m2));
 

@@ -3,18 +3,45 @@
     [label]="texts().preview.label"
     size="m"
     anchor="bottom"
+    [preview]="true"
     [heading]="project.title"
     [meta]="meta()"
     [pinned]="pinned()"
     (pinToggled)="pinToggled.emit()"
     (closed)="closed.emit()"
   >
-    <app-segmented
-      toolbar
-      [label]="texts().preview.bodies"
-      [items]="choices()"
-      (valueChange)="chosen.emit($event)"
-    />
+    @if (display.format() === 'phone') {
+      <app-segmented
+        toolbar
+        [label]="texts().preview.bodies"
+        [items]="choices()"
+        (valueChange)="chosen.emit($event)"
+      />
+    } @else if (neighbours(); as neighbours) {
+      <nav toolbar class="neighbours">
+        <button
+          type="button"
+          class="previous"
+          [attr.aria-label]="
+            texts().preview.previous(neighbours.previous.title)
+          "
+          (click)="chosen.emit(neighbours.previous.slug)"
+        >
+          <span aria-hidden="true">‹</span>
+          {{ neighbours.previous.short }}
+        </button>
+        <span aria-hidden="true" class="separator">·</span>
+        <button
+          type="button"
+          class="next"
+          [attr.aria-label]="texts().preview.next(neighbours.next.title)"
+          (click)="chosen.emit(neighbours.next.slug)"
+        >
+          {{ neighbours.next.short }}
+          <span aria-hidden="true">›</span>
+        </button>
+      </nav>
+    }
     <div body>
       <h2 tabindex="-1" class="landing" appViewHeading>{{ project.title }}</h2>
       <p class="summary">{{ project.summary }}</p>
@@ -25,7 +52,7 @@
         </div>
         <div>
           <dt>{{ texts().preview.terms.role }}</dt>
-          <dd class="text">{{ project.facts.role }}</dd>
+          <dd class="data">{{ project.facts.role }}</dd>
         </div>
         <div>
           <dt>{{ texts().preview.terms.stack }}</dt>
@@ -34,7 +61,9 @@
       </dl>
     </div>
     <ng-container footer>
-      <p class="tag">{{ project.tag }}</p>
+      @if (project.tag; as tag) {
+        <p class="tag">{{ tag }}</p>
+      }
       <a class="to-sheet" [routerLink]="links.sheet(project.slug)">{{
         texts().preview.openSheet
       }}</a>

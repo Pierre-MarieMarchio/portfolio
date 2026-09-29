@@ -1,47 +1,33 @@
 import {
-  approachFrame,
   ASIDE_FRAME,
+  approachFrame,
   orbitAngle,
   closeUpFrame,
   Dims,
   Frame,
   OVERVIEW_FRAME,
   SkyBand,
-} from './camera-frames.rules';
-import type { SceneLayout } from '../../models/scene-layout.model';
-import { FALLBACK_VIEWPORT } from '../../models/scene-constants.model';
-import type { SceneState } from '../scene-state.rules';
-import { Orbit, positionOrbit } from '../scene-bodies.rules';
-import { flattening, rollFlatten } from './projection.rules';
+} from '../camera-frames.rules';
+import type { SceneLayout } from '../../../models/scene-layout.model';
+import { FALLBACK_VIEWPORT } from '../../../models/scene-constants.model';
+import type { SceneState } from '../../scene-state.rules';
+import { Orbit, positionOrbit } from '../../scene-bodies.rules';
+import { flattening, rollFlatten } from '../projection.rules';
 import {
   Box,
   FreeSky,
   freeSkyOf,
   outermostReach,
   wholeInFreeSky,
-} from './free-sky.rules';
+} from '../free-sky.rules';
 import type {
   FocusAim,
   FocusedFrame,
   FocusMemo,
   HoleFocus,
-} from '../hole-focus.rules';
-import type { phoneFigures } from '../figures/phone-figures.rules';
-import {
-  hasBand,
-  holeHeldLeftOf,
-  HoleView,
-  layoutInRoom,
-  isHoleInRoom,
-  mirroredFrame,
-  NO_ROOM,
-  planetTurnOf,
-  RoomMemo,
-  RoomSide,
-  roomAfter,
-  sideOf,
-  skyOfRoom,
-} from '../rooms/window-room.rules';
+} from '../../hole-focus.rules';
+import type { phoneFigures } from '../../figures/phone-figures.rules';
+import { MirrorTurn, NO_ROOM, RoomMemo } from '../../rooms/window-room.rules';
 
 export interface HoleFocusRules {
   readonly holeInFocus: (
@@ -65,6 +51,7 @@ export interface FramingScene {
   holeFocus: HoleFocusRules | null;
   focusMemo: FocusMemo | null;
   room: RoomMemo;
+  turn: MirrorTurn | null;
   readonly orbitTurn: (i: number) => number;
   readonly nameOf: (i: number) => FocusAim['name'];
 }
@@ -85,32 +72,12 @@ export const framingScene = (
   holeFocus: null,
   focusMemo: null,
   room: NO_ROOM,
+  turn: null,
   orbitTurn,
   nameOf,
 });
 
-export const framingFor = (state: SceneState, scene: FramingScene): Frame => {
-  const frame = viewFraming(state, scene);
-  const dims = scene.dims;
-  const rules = scene.holeFocus;
-  if (!state.phone || !dims || !rules) {
-    return frame;
-  }
-  const focused = rules.holeInFocus(
-    frame,
-    {
-      dims,
-      rooms: skyRoomsOf(scene, rules),
-      isCloseUp: state.framing === 'close-up',
-      aim: aimOf(state, scene),
-    },
-    scene.focusMemo,
-  );
-  scene.focusMemo = focused.memo;
-  return focused.frame;
-};
-
-const skyRoomsOf = (
+export const skyRoomsOf = (
   scene: FramingScene,
   rules: HoleFocusRules,
 ): readonly Box[] => {
@@ -134,7 +101,10 @@ const aimedRank = (state: SceneState): number => {
   }
 };
 
-const aimOf = (state: SceneState, scene: FramingScene): FocusAim | null => {
+export const aimOf = (
+  state: SceneState,
+  scene: FramingScene,
+): FocusAim | null => {
   const rank = aimedRank(state);
   const orbit = scene.orbits[rank];
   return orbit && state.framing !== 'aside'
@@ -146,40 +116,7 @@ const aimOf = (state: SceneState, scene: FramingScene): FocusAim | null => {
     : null;
 };
 
-const viewFraming = (state: SceneState, scene: FramingScene): Frame => {
-  scene.room = roomAfter(scene.room, scene.layout);
-  const { layout, dims } = scene;
-  const room = scene.room.room;
-  if (state.phone || !layout || !room || !dims || hasBand(layout)) {
-    return framingIn(state, scene, layout);
-  }
-  const side = sideOf(room, layout.viewport.width);
-  const view = { dims, framing: state.framing };
-  const seen = framingOnSide(state, scene, side, {
-    layout: layoutInRoom(layout, room),
-    view,
-  });
-  return side !== 'middle' && isHoleInRoom(seen, room, view)
-    ? seen
-    : wholeInSky(seen, scene, skyOfRoom(layout, room));
-};
-
-const framingOnSide = (
-  state: SceneState,
-  scene: FramingScene,
-  side: RoomSide,
-  { layout, view }: { readonly layout: SceneLayout; readonly view: HoleView },
-): Frame => {
-  if (state.framing === 'rest' || side === 'middle') {
-    return framingIn(state, scene, layout);
-  }
-  const seen = holeHeldLeftOf(framingIn(state, scene, layout), layout, view);
-  return side === 'right'
-    ? mirroredFrame(seen, planetTurnOf(state, scene))
-    : seen;
-};
-
-const framingIn = (
+export const framingIn = (
   state: SceneState,
   scene: FramingScene,
   layout: SceneLayout | null,
@@ -213,7 +150,7 @@ const wholeObjectFraming = (
   return wholeInSky(frame, scene, sky);
 };
 
-const wholeInSky = (
+export const wholeInSky = (
   frame: Frame,
   scene: FramingScene,
   sky: FreeSky | null,

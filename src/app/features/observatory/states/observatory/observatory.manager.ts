@@ -69,7 +69,7 @@ export class ObservatoryManager {
   );
   public readonly canStepBack = computed(
     () =>
-      stepBack('void', {
+      stepBack({
         view: this.view(),
         selection: this.selected(),
         preview: this.preview(),

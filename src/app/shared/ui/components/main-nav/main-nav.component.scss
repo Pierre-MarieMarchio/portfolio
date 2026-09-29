@@ -14,6 +14,7 @@ ul {
 nav a {
   @include controls.tab;
 
+  position: relative;
   display: inline-flex;
   padding: 5px var(--s2);
   text-decoration: none;
@@ -26,6 +27,22 @@ nav a {
     @include controls.lit;
 
     border-color: var(--line);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity var(--t);
+
+    @include controls.marker(4px);
+  }
+
+  &[data-open]::after {
+    opacity: 1;
   }
 }
 
@@ -62,6 +79,10 @@ nav {
 
     &[data-active='true'] {
       border-color: transparent;
+    }
+
+    &::after {
+      display: none;
     }
   }
 }
@@ -108,5 +129,9 @@ nav {
 
   nav a {
     transition: none;
+
+    &::after {
+      transition: none;
+    }
   }
 }

@@ -8,6 +8,7 @@ export const FR: Catalog = {
     pageBar: {
       languages: 'Langue du site',
       navigation: 'Navigation principale',
+      openWindow: 'fenêtre ouverte',
     },
     contactRail: {
       label: 'Me contacter',
@@ -15,14 +16,11 @@ export const FR: Catalog = {
   },
 
   windows: {
-    pin: 'Garder cette fenêtre ouverte en changeant de page',
-    unpin: 'Laisser cette fenêtre se fermer en changeant de page',
-    move: 'Déplacer la fenêtre',
-    moveKeys:
-      'Déplacez-la avec les flèches, à grands pas avec Maj. Entrée ou Échap pour finir.',
-    resize: 'Redimensionner la fenêtre',
-    resizeKeys:
-      'Changez sa taille avec les flèches, à grands pas avec Maj. Entrée ou Échap pour finir.',
+    menu: 'Menu de la fenêtre',
+    keepOpen: 'Garder ouverte en changeant de page',
+    keptOpen: 'gardée ouverte',
+    snapLeft: 'Moitié gauche',
+    snapRight: 'Moitié droite',
     maximize: 'Agrandir la fenêtre',
     restore: 'Remettre la fenêtre à sa taille',
     close: 'Fermer la fenêtre',
@@ -69,17 +67,20 @@ export const FR: Catalog = {
         `${professional} en entreprise · ${personal} personnels`,
       columns: ['N°', 'Projet', 'Statut', 'Mon rôle'],
       read: 'consulté',
-      openSheet: 'Voir le projet →',
     },
     preview: {
       label: 'Aperçu du projet',
       bodies: 'Projets mis en avant',
       body: (number, title) => `Projet ${number} : ${title}`,
+      previous: (title) => `Projet précédent : ${title}`,
+      next: (title) => `Projet suivant : ${title}`,
       terms: { proof: 'Statut', role: 'Rôle', stack: 'Stack' },
       openSheet: 'Voir le projet →',
     },
     sheet: {
       label: 'Détail du projet',
+      toIndex: '‹ Projets',
+      toIndexLabel: 'Revenir aux projets',
       approaches: 'Parties',
       approach: (number, title) => `Partie ${number} : ${title}`,
       terms: {
@@ -109,11 +110,18 @@ export const FR: Catalog = {
       parts: ['Profil', 'Compétences', 'Parcours', 'Et après'],
     },
     home: {
-      void: 'Fermer les fenêtres',
       name: OWNER_NAME,
       trade: 'Développeur .NET et Angular',
       status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',
+    },
+    intro: {
+      skip: 'Passer l’intro',
+    },
+    stepBack: {
+      deselect: 'Désélectionner le projet',
+      closePreview: 'Fermer l’aperçu',
+      overview: '‹ Vue d’ensemble',
     },
     closeTo: {
       home: 'Fermer et revenir à l’accueil',

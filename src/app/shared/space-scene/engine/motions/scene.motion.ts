@@ -2,6 +2,7 @@ import { Frame } from '../../rules/camera/camera-frames.rules';
 import { easeOut } from '@app/core/helpers';
 import { isCloseUp, NO_STATE, SceneState } from '../../rules/scene-state.rules';
 import { TurntableMotion } from './turntable.motion';
+import { PlanetHoverMotion } from './planet-hover/planet-hover.motion';
 import { focusOn } from '../../rules/planets/planet-focus.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
 import { CameraMotion } from './camera.motion';
@@ -16,6 +17,7 @@ const HURRIED_WITHIN = 0.9;
 export class SceneMotion {
   public readonly camera = new CameraMotion();
   public readonly zoom = new ZoomMotion();
+  public readonly hoverSlow = new PlanetHoverMotion();
   public readonly grains: GrainsMotion;
   private readonly clock: ClockMotion;
   private opensLanded = false;

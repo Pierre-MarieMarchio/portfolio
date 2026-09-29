@@ -46,6 +46,23 @@ const shownAfterFrames = async (fixture: {
   await fixture.whenStable();
 };
 
+const rankOf =
+  (host: HTMLElement) =>
+  (name: string): number =>
+    Number(
+      host
+        .querySelector<HTMLElement>(`.slot--${name}`)
+        ?.style.getPropertyValue('--stack'),
+    );
+
+const openOf = (host: HTMLElement): boolean[] =>
+  [...host.querySelectorAll<HTMLElement>('app-main-nav a')].map(
+    (a) => a.dataset['open'] !== undefined,
+  );
+
+const follows = (first: Element, second: Element): number =>
+  first.compareDocumentPosition(second);
+
 describe('ObservatoryPageComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
@@ -147,6 +164,58 @@ describe('ObservatoryPageComponent', () => {
       expect(host.querySelector('app-intro-card')).toBeNull();
     });
 
+    it('shows a button to skip the intro only while it is held, reachable before anything else', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host } = await mount({ reducedMotion: false });
+      const focusables = () =>
+        [...host.querySelectorAll<HTMLElement>('button, a[href]')].filter(
+          (el) => el.tabIndex >= 0,
+        );
+
+      expect(host.querySelector('.skip')?.textContent?.trim()).toBe(
+        TestBed.inject(OBSERVATORY_TEXTS)().intro.skip,
+      );
+      expect(focusables()[0]).toBe(host.querySelector('.skip'));
+
+      window.dispatchEvent(new Event('pointerdown'));
+      await fixture.whenStable();
+
+      expect(host.querySelector('.skip')).toBeNull();
+    });
+
+    it('skips the intro at once when the button is pressed', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host, station } = await mount({
+        reducedMotion: false,
+      });
+
+      host.querySelector<HTMLButtonElement>('.skip')?.click();
+      await fixture.whenStable();
+
+      expect(host.querySelector('.skip')).toBeNull();
+      expect(isRevealed(fixture)).toBe(true);
+      vi.advanceTimersByTime(4200);
+      await fixture.whenStable();
+      expect(station.hovered()).toBe(KNOWN_SLUG);
+    });
+
+    it('never shows the skip button with reduced motion', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { host } = await mount({ reducedMotion: true });
+
+      expect(host.querySelector('.skip')).toBeNull();
+    });
+
+    it('never shows the skip button from a deep link', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { host } = await mount({
+        reducedMotion: false,
+        address: '/a-propos',
+      });
+
+      expect(host.querySelector('.skip')).toBeNull();
+    });
+
     it.each([
       ['/projets', 'index'],
       [`/projet/${KNOWN_SLUG}`, 'sheet'],
@@ -194,8 +263,11 @@ describe('ObservatoryPageComponent', () => {
     const rail = host.querySelector(
       `ul[aria-label="${TestBed.inject(SHARED_TEXTS)().contactRail.label}"]`,
     );
+    const descriptions = [
+      ...(rail?.querySelectorAll('.visually-hidden') ?? []),
+    ].map((el) => el.textContent);
     for (const label of [contact.email, contact.linkedin, contact.github]) {
-      expect(rail?.querySelector(`[aria-label="${label}"]`)).not.toBeNull();
+      expect(descriptions).toContain(label);
     }
     expect(
       host.querySelector('app-social-links app-contact-menu dialog'),
@@ -408,29 +480,83 @@ describe('ObservatoryPageComponent', () => {
     expect(host.querySelector('app-project-detail')).toBeNull();
   });
 
-  it('has no void button on the plain home view', async () => {
-    const { host } = await mount();
+  it('has no void button on the plain home, index, about or sheet view', async () => {
+    const { fixture, station, host } = await mount();
+    for (const view of ['home', 'index', 'about'] as const) {
+      station.syncRoute(view);
+      await fixture.whenStable();
+      expect(host.querySelector('button.void')).toBeNull();
+    }
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
     expect(host.querySelector('button.void')).toBeNull();
   });
 
-  it('shows the void button on the sheet view', async () => {
+  it('shows the void button, named after what it closes, once there is something to step back from', async () => {
     const { fixture, station, host } = await mount();
-    station.syncRoute('sheet', KNOWN_SLUG);
-    await fixture.whenStable();
+    const { stepBack } = TestBed.inject(OBSERVATORY_TEXTS)();
 
-    const button = host.querySelector('button.void');
-    expect(button?.getAttribute('aria-label')).toBe(
-      TestBed.inject(OBSERVATORY_TEXTS)().home.void,
-    );
+    station.syncRoute('index');
+    station.select(KNOWN_SLUG);
+    await fixture.whenStable();
+    let button = host.querySelector('button.void');
+    expect(button?.getAttribute('aria-label')).toBe(stepBack.deselect);
     expect(button?.getAttribute('tabindex')).toBe('-1');
+
+    station.syncRoute('home');
+    station.openPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+    button = host.querySelector('button.void');
+    expect(button?.getAttribute('aria-label')).toBe(stepBack.closePreview);
   });
 
-  it('steps back from the sheet to the list on a click in the void', async () => {
+  it('deselects the index row on a click in the void, never navigating away', async () => {
     const { fixture, station, host } = await mount();
-    station.syncRoute('sheet', KNOWN_SLUG);
+    const before = TestBed.inject(Router).url;
+    station.syncRoute('index');
+    station.select(KNOWN_SLUG);
     await fixture.whenStable();
 
     host.querySelector<HTMLButtonElement>('button.void')?.click();
+    await fixture.whenStable();
+
+    expect(station.selected()).toBeNull();
+    expect(TestBed.inject(Router).url).toBe(before);
+  });
+
+  it('shows an overview chip only when the index has a selection, and it deselects', async () => {
+    const { fixture, station, host } = await mount();
+    const { stepBack } = TestBed.inject(OBSERVATORY_TEXTS)();
+    station.syncRoute('index');
+    await fixture.whenStable();
+    expect(host.querySelector('button.overview')).toBeNull();
+
+    station.select(KNOWN_SLUG);
+    await fixture.whenStable();
+    const chip = host.querySelector<HTMLButtonElement>('button.overview');
+    expect(chip?.textContent?.trim()).toBe(stepBack.overview);
+
+    chip?.click();
+    await fixture.whenStable();
+    expect(station.selected()).toBeNull();
+    expect(host.querySelector('button.overview')).toBeNull();
+  });
+
+  it('never shows the overview chip outside the index', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('home');
+    station.openPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+
+    expect(host.querySelector('button.overview')).toBeNull();
+  });
+
+  it('leaves the sheet for the list on its title-bar link', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+
+    host.querySelector<HTMLAnchorElement>('.slot--sheet a.to-index')?.click();
     await fixture.whenStable();
 
     expect(TestBed.inject(Router).url).toBe('/projets');
@@ -461,6 +587,28 @@ describe('ObservatoryPageComponent', () => {
     await fixture.whenStable();
 
     expect(station.selected()).toBeNull();
+  });
+
+  it('does nothing on F6 without a window shown, and focuses its title once one is', async () => {
+    const { fixture, station, host } = await mount();
+    document.body.append(host);
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'F6', bubbles: true }),
+    );
+    expect(document.activeElement).toBe(document.body);
+
+    station.syncRoute('about');
+    await shownAfterFrames(fixture);
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'F6', bubbles: true }),
+    );
+
+    expect(document.activeElement).toBe(
+      host.querySelector('.slot--about [data-window-title]'),
+    );
+    host.remove();
   });
 
   it('leaves the focus alone on the first load', async () => {
@@ -505,12 +653,7 @@ describe('ObservatoryPageComponent', () => {
 
   it('brings the window of the view to the front at each navigation, from one sheet to the next too', async () => {
     const { fixture, station, host } = await mount();
-    const rank = (name: string): number =>
-      Number(
-        host
-          .querySelector<HTMLElement>(`.slot--${name}`)
-          ?.style.getPropertyValue('--stack'),
-      );
+    const rank = rankOf(host);
     station.togglePin('index');
     station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
@@ -599,5 +742,77 @@ describe('ObservatoryPageComponent', () => {
 
     expect(nav).not.toBeNull();
     expect(TestBed.inject(LayoutAnchorsService).list('chrome')).toContain(nav);
+  });
+
+  describe('the page bar marks the windows shown on screen', () => {
+    it('marks Home never, and marks Projets and À propos when their window shows', async () => {
+      const { fixture, station, host } = await mount();
+      expect(openOf(host)).toEqual([false, false, false]);
+
+      station.syncRoute('index');
+      await fixture.whenStable();
+      expect(openOf(host)).toEqual([false, true, false]);
+
+      station.togglePin('about');
+      station.syncRoute('home');
+      await fixture.whenStable();
+      expect(openOf(host)).toEqual([false, false, true]);
+    });
+
+    it('counts the sheet for Projets, even when the list itself is not kept', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('sheet', KNOWN_SLUG);
+      await fixture.whenStable();
+
+      expect(openOf(host)).toEqual([false, true, false]);
+    });
+
+    it('names an open entry as such, without touching its visible label', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('index');
+      await fixture.whenStable();
+      const [home, projects, about] = [
+        ...host.querySelectorAll('app-main-nav a'),
+      ];
+
+      expect(home?.getAttribute('aria-label')).toBeNull();
+      expect(projects?.getAttribute('aria-label')).toBe(
+        'Projets, fenêtre ouverte',
+      );
+      expect(projects?.textContent?.trim()).toBe('Projets');
+      expect(about?.getAttribute('aria-label')).toBeNull();
+    });
+
+    it('brings the window a marked entry points to the front, once its page is reached', async () => {
+      const { fixture, station, host } = await mount();
+      const rank = rankOf(host);
+      station.syncRoute('about');
+      station.togglePin('about');
+      station.syncRoute('index');
+      await fixture.whenStable();
+      expect(openOf(host)).toEqual([false, true, true]);
+      expect(rank('index')).toBeGreaterThan(rank('about'));
+
+      station.syncRoute('about');
+      await fixture.whenStable();
+
+      expect(rank('about')).toBeGreaterThan(rank('index'));
+    });
+  });
+
+  describe('the order of the page', () => {
+    it('reaches the page bar, the windows and the rest of the page before the moving planets', async () => {
+      const { host } = await mount();
+      const bar = host.querySelector('.bar') as Element;
+      const about = host.querySelector('.slot--about') as Element;
+      const index = host.querySelector('.slot--index') as Element;
+      const sheet = host.querySelector('.slot--sheet') as Element;
+      const featured = host.querySelector('app-featured-bar') as Element;
+      const scene = host.querySelector('app-observatory-scene') as Element;
+
+      for (const before of [bar, about, index, sheet, featured]) {
+        expect(follows(before, scene)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      }
+    });
   });
 });

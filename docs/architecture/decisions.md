@@ -2183,3 +2183,327 @@ changeraient au milieu du geste, et le doigt peut encore revenir. Suivre à la
 fois l'annonce et le plus proche : ils se contredisent sur un flick (2 → 1 →
 2). Un indicateur qui suit le doigt au pixel : une variable par image ; il
 viendra avec les feuilles du lot C si le besoin demeure.
+
+## 2026-09-29 — Le fond et Échap remontent d'un cran dans la scène, et le retour se voit (D70, amende D41 et D63)
+
+**Décision.** Le clic sur le fond et Échap font la même chose, et seulement
+dans la scène : désélectionner le projet de la liste, ou fermer l'aperçu de
+l'accueil. Ils ne changent jamais de page et ne ferment jamais une fenêtre de
+page ; sans rien à remonter, ils ne font rien. `stepBack` ne rend plus que
+`deselect`, `close-preview` ou rien. Le fond n'existe que s'il y a un cran à
+remonter, et son nom dit ce qu'il fait : « Désélectionner le projet » ou
+« Fermer l'aperçu ». La fiche porte « ‹ Projets » au début de sa barre de
+titre, à tous les formats (une projection `[before]` de la fenêtre). Au
+bureau et à la tablette, un projet sélectionné montre « ‹ Vue d'ensemble »
+dans le ciel libre, hors des fenêtres ; elle reprend la barre des pages
+(verre, capitales mono, survol). Fermer, la croix, ne change pas.
+
+**Raison.** Le fond et Échap fermaient la page qu'on lisait : cliquer le
+ciel pour le regarder ramenait de la fiche à la liste, Échap pendant l'intro
+renvoyait à l'accueil. Sur un bureau, cliquer le fond ne ferme rien, et
+Échap quitte un état passager, pas une fenêtre. Le seul retour d'un gros
+plan était un bouton invisible nommé « Fermer les fenêtres », qui ne fermait
+rien. Un lien dans la barre et une puce dans le ciel le montrent, et le lien
+marche sans JS au prérendu. Le bundle initial passe de 520,02 à 521,58 kB.
+
+**Écarté.** Garder la navigation d'Échap : c'est elle qui faisait perdre la
+page. Une puce au téléphone : la feuille et le retour du système y suffisent
+(lot C). Un bouton « Retour » générique : il ne dirait pas où il mène.
+
+## 2026-09-29 — Les fenêtres de projet disent les choses par leur nom (D71, amende D34, D40, D57 et D59)
+
+**Décision.** Les onglets de la fiche portent le titre de leur chapitre à tous
+les formats ; la rangée défile à l'horizontale plutôt que de couper un mot
+(`phoneLabel` part). La barre de titre de la fiche ne porte plus « 02 / 08 ».
+Au bureau et à la tablette, l'aperçu passe d'un projet vedette à l'autre par
+« ‹ précédent · suivant › », deux boutons qui nomment le projet et bouclent ;
+son pied ne répète plus le statut (le mot « publiée » quitte les trois projets
+dont la preuve dit déjà « Sur Google Play »), et ses propriétés n'emploient
+qu'une police. Dans la liste, à tous les formats, une ligne est un lien vers
+sa fiche, comme la carte du téléphone (D59) : l'accordéon, la sélection par
+clic de ligne et « Voir le projet » partent ; le survol allume toujours la
+planète, et le clic sur une planète garde son effet.
+
+**Raison.** « 01 02 03 04 » voulait dire des chapitres ici et des projets là,
+et « 02 / 08 » un rang : trois sens pour les mêmes chiffres. Un nom dit où
+mène un onglet. Ouvrir une ligne demandait deux clics, le premier n'ouvrant
+qu'une phrase ; un lien ouvre, se lit comme un lien, marche au prérendu et
+revient par le bouton retour. Un aperçu agrandi ou une étiquette qui répète
+le statut ne disent rien de plus. Boucler garde deux boutons toujours nommés.
+Le bundle initial passe de 521,58 à 520,38 kB : l'accordéon pesait plus que
+la navigation.
+
+**Écarté.** Garder les numéros au bureau : ils ne disent pas où l'on va.
+Garder l'accordéon au bureau : deux commandes pour une ligne. Cacher
+l'étiquette en CSS : elle resterait dans les données sans rien dire. Ne pas
+boucler : le premier et le dernier projet perdraient un bouton.
+
+## 2026-09-29 — Au bureau, le trou noir suit la fenêtre qu'on déplace, et ne se retourne plus d'un bloc (D72, amende D66)
+
+**Décision.** Pendant qu'on glisse ou redimensionne une fenêtre, la scène
+cadre la bande libre du moment, relue au plus une fois par image : la
+fenêtre publie son rectangle en mouvement (`FramedWindow.live`), et la page,
+seule à connaître les deux librairies, le passe à la scène par le port
+facultatif `SCENE_WINDOW_DRAG`. Quand la bande libre change de côté, l'objet
+glisse vers son nouveau cadrage ; son inclinaison et son azimut tournent
+vers leur reflet à 0,6 rad/s au plus (`mirrorTurnStep`) au lieu d'y sauter.
+L'amorti garde sa demi-vie de 0,55 s ; chaque clé de la caméra se pose sur
+sa cible quand il ne reste plus un demi-pixel (`settledStep`).
+`framing.rules.ts` se range en `rules/camera/framing/`.
+
+**Raison.** La scène ne remesurait qu'au lâcher : le trou restait sous la
+fenêtre qui passait sur lui, puis partait d'un bloc, x, roulis et planètes
+ensemble, et rampait encore après trois secondes. Mesuré sur la liste glissée
+de droite à gauche : le trou bouge dès le sixième pas du glisser, s'écarte de
+la fenêtre qui arrive puis passe de l'autre côté ; le roulis va de −0,1 à
++0,1 sans saut ; il se pose exactement vers 2,2 s. Le rythme calme de la
+scène reste celui du site, par choix de l'opérateur. Poser la caméra sous le
+demi-pixel change l'empreinte de presque toutes les scènes de référence, sans
+rien changer à l'œil ; elles sont régénérées. Le bundle initial passe de
+520,38 à 520,95 kB ; le worker de 61,79 à 62,45 kB.
+
+**Écarté.** Accélérer l'amorti : il est commun au zoom, au panoramique et aux
+grains. Garder le miroir d'un bloc au lâcher : c'est lui qui retournait le
+disque. Suivre la fenêtre par un signal : une écriture par image lue par un
+gabarit, en zoneless.
+
+## 2026-09-29 — Au bureau, la barre des pages marque les fenêtres ouvertes (D73, étend D62)
+
+**Décision.** Au bureau et à la tablette, chaque entrée de la barre des pages
+dont la fenêtre est à l'écran porte un point sous son libellé, comme une
+application ouverte dans un dock : « Projets » pour la liste ou la fiche,
+« À propos » pour l'à-propos ; « Accueil » jamais. Son nom accessible le dit
+(« Projets, fenêtre ouverte ») ; `aria-current` reste à la page courante. La
+barre reçoit la liste des entrées ouvertes (`openRoutes`) ; la page la tire
+des managers (`showsList`, `showsSheet`, `showsAbout`). Cliquer une entrée
+ouverte navigue, et la vue ramène sa fenêtre devant sans la bouger
+(`ViewWindowsService`, déjà là). Une fenêtre passe aussi devant quand le focus
+clavier y entre (`focusin`), plus seulement au `pointerdown`. Le point
+n'anime que son opacité ; il n'existe pas au téléphone.
+
+**Raison.** Une fenêtre gardée peut en cacher une autre, et le bureau n'a pas
+de dock : rien ne disait qu'une fenêtre restait ouverte derrière. Le point
+reprend un geste connu de tout bureau. Au clavier, Tab entrait dans une
+fenêtre cachée sans la montrer. Le bundle initial passe de 520,95 à
+521,89 kB.
+
+**Écarté.** Une sortie de la barre pour remonter la fenêtre : la navigation
+le fait déjà. Un dock au bureau : une seconde barre pour ce que la première
+peut dire. Un compteur de fenêtres : il ne dit pas lesquelles.
+
+## 2026-09-29 — Au bureau, la barre d'une fenêtre ne garde qu'Agrandir et Fermer ; le reste passe dans le menu de la fenêtre (D74, amende D63 et D65)
+
+**Décision.** Au bureau et à la tablette, la barre de titre ne porte plus, à
+droite, qu'« Agrandir » (ou « Remettre à sa taille ») et « Fermer » ;
+l'aperçu, seulement « Fermer », sans double-clic qui agrandit. Le carré à
+gauche du titre devient « Menu de la fenêtre » : « Garder ouverte en
+changeant de page » (case cochable), « Moitié gauche », « Moitié droite »,
+« Agrandir » (sauf l'aperçu). Le menu suit le clavier d'un menu ARIA (↑ ↓,
+Début, Fin, Entrée, Échap et Tab rendent le focus au bouton ; Échap ne fait
+rien d'autre) et reste dans l'écran ; il passe au-dessus du cadre par
+`popover`. « Déplacer » et « Redimensionner » partent avec leur clavier par
+flèches : le menu est l'alternative au glisser (WCAG 2.5.7). Agrandir et
+restaurer s'animent en 280 ms, sans animation en mouvement réduit. Seul le
+bouton du menu est dans le bundle initial ; le panneau, sa logique et ses
+actions arrivent par `FormatCodeService` (`window-menu-tracker`, 3,2 kB) et
+s'ouvrent au premier geste, même si le morceau n'était pas encore là. Le
+téléphone ne change pas.
+
+**Raison.** Cinq boutons par barre, dont deux qu'aucun système n'a :
+recruteurs et clients n'osaient pas y toucher, et le CTO y voyait un tableau
+de bord. Sur un bureau, on déplace à la souris ; l'accès sans glisser se
+trouve dans un menu de fenêtre, comme Alt+Espace sous Windows. Les
+raccourcis Alt+flèches sont écartés : Alt+← est déjà « Page précédente »
+dans les navigateurs. Le bundle initial passe de 521,89 à 526,04 kB, dont
+0,9 kB pour le style du panneau, gardé en SCSS avec les jetons du site.
+
+**Écarté.** Garder Déplacer et Redimensionner pour le clavier : le menu le
+fait sans bouton visible. Charger le menu par `@defer` : son runtime
+reprenait le gain. Injecter le style du panneau depuis le code : il
+échapperait au lint et aux jetons.
+
+## 2026-09-29 — Au bureau, la planète visée s'arrête sous la souris (D75)
+
+**Décision.** Au bureau et à la tablette, la planète survolée ou dont le bouton
+a le focus ralentit jusqu'à l'arrêt en 0,3 s (`smoothstep`), reste arrêtée
+tant qu'on la vise, puis repart en 0,3 s ; les autres planètes continuent.
+Chaque orbite tient sa propre phase (`PlanetHoverMotion`, dans le worker) :
+une planète repartie ne rattrape pas le chemin perdu. Le bouton de la planète
+visée passe devant les autres (`zIndex`, nouvelle clé de la petite surface
+DOM du moteur). Sa cible fait déjà 48 × 48 px. Le téléphone ne change pas.
+
+**Raison.** Une recruteuse a cliqué une planète de l'accueil : la planète
+avait avancé entre le survol et le clic, et le clic est tombé à côté. Mesuré
+sur 1,5 s de survol : la planète dérivait de 1,9 px et ne se posait qu'après
+1,2 s ; elle se fige maintenant en 64 ms, et un clic 600 ms après le survol
+ouvre son aperçu. Rattraper le retard demanderait une vitesse sans borne après
+un long survol. Une orbite jamais visée garde exactement sa phase : les
+empreintes sans survol ne bougent pas. Le bundle initial ne change pas
+(526,05 kB) ; le worker passe de 62,45 à 63,15 kB.
+
+**Écarté.** Agrandir la cible : elle faisait déjà 48 px, ce n'était pas la
+cause. Arrêter toutes les planètes au survol : la scène se figerait dès que la
+souris passe. Geler au téléphone : la planète mise en avant sans pointeur s'y
+arrêterait sans raison.
+
+## 2026-09-29 — Au bureau, une fenêtre qui s'ouvre près d'une autre s'ouvre en cascade (D76, amende D65 et D68)
+
+**Décision.** Au bureau et à la tablette, une fenêtre de page qui s'affiche
+alors qu'une autre est déjà à l'écran, et à laquelle le lecteur n'a pas donné
+de place, s'ouvre 32 px à gauche et 32 px plus bas que le coin haut-droit de
+la fenêtre du dessus (`cascadePlaceOf`) ; elle passe devant. Si ce décalage
+la rendait inatteignable (D68) ou la sortait de l'écran, elle garde sa place
+par défaut. Une fenêtre placée par le lecteur garde sa place ; une fenêtre
+seule à l'écran reprend la sienne ; rien ne réarrange les fenêtres déjà
+ouvertes. Quand l'écran change, une fenêtre en cascade est ramenée à portée,
+comme une fenêtre déplacée. `WindowStackService` sait quelle fenêtre affichée
+est devant (`frontShownOf`). L'aperçu n'a pas de cascade.
+
+**Raison.** Toutes les fenêtres s'ancrent au bord droit : une fenêtre gardée
+disparaissait presque entière sous la suivante, et épingler ne donnait pas
+plusieurs fenêtres. L'opérateur a choisi le comportement d'un bureau
+classique, des fenêtres libres en cascade, plutôt qu'un rangement en
+colonnes : la barre de la fenêtre du dessous reste visible et cliquable, et
+la barre des pages dit qu'elle est ouverte (D73). Le bundle initial passe de
+526,05 à 526,54 kB ; `window-frame-tracker` de 7,90 à 8,43 kB.
+
+**Écarté.** Des colonnes automatiques : écartées par l'opérateur. Réarranger
+les fenêtres déjà ouvertes : elles bougeraient sans qu'on les touche. Une
+cascade pour l'aperçu : il vit en bas de l'accueil, seul.
+
+## 2026-09-29 — Le bundle initial peut aller jusqu'à 540 kB, le temps de finir le chantier (D77, amende D36)
+
+**Décision.** L'avertissement de budget du bundle initial passe de 530 à
+540 kB (`angular.json`, configuration `production`). L'erreur reste à 1 MB,
+le budget de feuille de style par composant à 4 kB. C'est une décision de
+l'opérateur, prise sans mesure préalable, pour finir les lots du chantier des
+fenêtres ; un chantier suivant doit ramener le bundle initial à 520 kB.
+
+**Raison.** Le bundle initial est à 526,5 kB en haut du lot B, et les tâches
+qui restent (contact en mots, intro, feuille de l'accueil au téléphone,
+feuilles natives) ajoutent chacune 1 à 2 kB pour une fonction réelle : le
+plafond aurait été atteint au milieu du lot du téléphone. Transféré, le
+bundle fait environ 136 kB, sous les quelque 170 kB compressés qu'on vise
+pour un téléphone moyen. Le code propre à un format continue de se charger à
+part (D39).
+
+**Écarté.** Mesurer d'abord le coût de 10 kB sur un téléphone ralenti :
+proposé, l'opérateur a préféré avancer et reporter la mesure au chantier de
+retour à 520 kB. Garder 530 et faire de la place dans le lot du téléphone :
+il aurait commencé par déplacer du code au lieu de livrer.
+
+## 2026-09-29 — Au bureau, les fenêtres ne sélectionnent rien au glisser, restent au-dessus du rail, et F6 passe de l'une à l'autre (D78, amende D68 et D76)
+
+**Décision.** Pendant un glisser ou un redimensionnement, la page ne
+sélectionne aucun texte (`CursorService.blockSelection`), et la sélection
+revient à la fin du geste. Une fenêtre en cascade reste entière entre la
+barre des pages et le rail du bas : sa hauteur se réduit pour tenir, et si
+elle ne tient plus à sa hauteur minimale, elle garde sa place par défaut ; la
+même règle vaut quand l'écran change (`fitBelowFloor`). La cascade arrondit
+sa cible avant de la comparer au pixel. Dans le DOM, la barre des pages et
+la navigation viennent d'abord, puis les fenêtres, puis le reste, et la
+scène en dernier : Tab n'atteint plus les planètes avant les pages. F6 et
+Maj+F6 passent le focus au titre de la fenêtre affichée suivante ou
+précédente, dans l'ordre de la pile, en bouclant ; Ctrl+F6 fait comme F6 ;
+rien dans un champ de saisie (`WindowCycleDirective`, règles pures
+`window-cycle.rules`).
+
+**Raison.** Les personas l'ont trouvé en rejouant les parcours du bureau :
+un glisser surlignait le texte de la fenêtre voisine ; une fenêtre en
+cascade descendait sous les icônes de contact ; Tab passait par quatre
+planètes qui bougent avant la navigation ; et le clavier n'avait aucun moyen
+de passer d'une fenêtre à l'autre, que Windows donne par F6. La cascade ne
+s'appliquait pas quand une position tombait sur une fraction de pixel : la
+comparaison stricte la croyait hors d'atteinte. Le bundle initial passe de
+526,54 à 527,51 kB ; `window-frame-tracker` de 8,43 à 9,07 kB.
+
+**Écarté.** L'écoute de F6 dans `WindowStackService` : essayée pour tenir
+l'ancien budget, elle mêlait une pile et un clavier ; le budget à 540 kB
+(D77) rend sa place à une directive. Un `tabindex` positif pour l'ordre :
+l'ordre du DOM suffit et reste celui des lecteurs d'écran.
+
+## 2026-09-29 — Au bureau, le contact se lit en mots, et l'adresse se copie (D79, amende D60)
+
+**Décision.** À partir de 1280 px, chaque entrée du rail de contact montre
+son mot court à côté de son icône (« E-mail », « LinkedIn », « GitHub »,
+« CV »), en vrai texte ; en dessous, le mot reste dans l'arbre
+d'accessibilité, caché à l'œil. Le nom accessible de chaque lien commence par
+ce mot, suivi de la phrase qu'il portait déjà (WCAG 2.5.3) ; le `title` qui
+doublait une bulle part. Après l'e-mail, « Copier l'adresse » copie l'adresse
+et dit « Adresse copiée », comme la feuille du téléphone ; la copie et son
+annonce passent par un seul `CopyFeedbackService`, que la feuille du
+téléphone utilise aussi. `SocialLinksComponent` (`shared/ui`) gagne une
+action facultative générique ; il ne dit rien du portfolio. La pause reste à
+part. Le téléphone ne change pas.
+
+**Raison.** Des icônes seules : la recruteuse cherchait le CV sans savoir
+quelle icône c'était, le gérant n'a vu « aucun Contact », et l'enveloppe
+n'ouvrait que le logiciel de messagerie ; au téléphone, la feuille qui dit
+tout en mots est ce que les trois visiteurs ont trouvé le plus clair. Un mot
+généré en CSS (`content: attr(title)`) a été essayé et écarté : ce n'est pas
+un texte de la page. Aucune fenêtre ne passe sous le rail élargi, en cascade
+comprise. Le bundle initial passe de 527,51 à 529,37 kB.
+
+**Écarté.** Un bouton « Contact » qui ouvre une feuille, comme au
+téléphone : au bureau la place ne manque pas, et un geste de plus éloigne le
+CV. Deux logiques de copie : elles auraient pu diverger.
+
+## 2026-09-29 — L'intro se passe d'un geste, aucun geste ne se perd, et la scène se pose à la fin (D80, amende D41)
+
+**Décision.** L'intro garde sa durée (choix de l'opérateur). Tant qu'elle
+joue, « Passer l'intro » est visible, nommé, et c'est le premier arrêt de Tab
+après le lien d'évitement ; il n'existe ni au prérendu, ni en mouvement
+réduit, ni sur une adresse profonde. N'importe quel clic, toucher ou touche,
+sauf Tab et les touches de modification, achève l'intro. Une commande qu'on
+voit prend aussi le geste : toucher une carte qui apparaît ouvre son aperçu
+dans le même geste. Une commande qu'on ne voit pas encore ne prend rien :
+retenue, elle est `inert` (`HeldInertDirective`, `shared/ui`, posée sur
+chaque panneau qui porte `data-arrival`) ; pendant son délai propre
+d'apparition, elle est `pointer-events: none`, et l'animation `reach` du
+mixin `_arrival.scss` la rend active à la première image de son apparition,
+même en mouvement réduit. Retenus, les panneaux ne sont plus en
+`visibility: hidden` mais à opacité nulle : la scène les compte dans son
+repos dès le début, et ne saute plus à l'arrivée.
+
+**Raison.** Dix à douze secondes au bureau sans rien qui dise qu'on peut
+passer ; un toucher sur une carte ignoré vers 8 s ; un clic sur un lien sans
+effet. `visibility: hidden` retirait les panneaux du pointeur et de la mesure
+du repos : la caméra dérivait encore de 130 px trois secondes et demie après
+l'arrivée. Mesuré : après « Passer », il reste 2,6 px à 1,2 s (15,9 px avant)
+et la scène est posée à 2,4 s (4,5 s avant). Une commande invisible qui
+prendrait le geste ouvrirait un aperçu par surprise sous un toucher « pour
+passer » ; au clavier, Tab l'atteignait encore, `inert` l'en retire. Le
+bundle initial passe de 529,37 à 531,70 kB.
+
+**Écarté.** Raccourcir l'intro : écarté par l'opérateur. Un écouteur de clic
+en capture sur toute la fenêtre, qui annule les clics sur une commande à
+opacité nulle : il interceptait le site entier, à toute heure, et reposait
+sur une règle qui lisait le DOM. Revenir à `visibility: hidden` : il rouvrait
+le saut de la caméra.
+
+## 2026-09-29 — Au bureau, une fenêtre gardée se voit, le menu se lit comme un menu, et une fenêtre neuve se pose là où elle couvre le moins (D81, amende D74 et D76)
+
+**Décision.** Une fenêtre gardée ouverte porte une épingle à côté de son
+titre, et son nom accessible le dit (« Liste des projets, gardée ouverte »).
+Le bouton du menu de la fenêtre porte un chevron. Quand une fenêtre de page
+s'affiche près d'autres, sans place choisie par le lecteur, elle compare sa
+place par défaut (à droite), la même ancrée à gauche et la cascade, et prend
+celle qui recouvre le moins les fenêtres affichées (`leastOverlapPlaceOf`) ; à
+égalité, la place par défaut, puis la cascade, qui reste le repli. La place à
+gauche arrondit sa cible avant de la comparer, comme la cascade (D78). Le
+double-clic agrandit depuis toute la barre, hors commandes (vérifié et tenu
+par des tests). `WindowStackService.frontShownOf` part : il faut désormais
+toutes les fenêtres affichées.
+
+**Raison.** Rejoués par les personas : « Garder ouverte » était caché
+derrière un carré sans état visible sur la fenêtre, et la seconde fenêtre,
+décalée de 32 px sur des fenêtres de 640 et 800 px, semblait posée sur la
+première. C'est un écart assumé au choix « cascade » de l'opérateur : un
+bureau classique, macOS en tête, pose une fenêtre neuve là où elle chevauche
+le moins, et ne cascade que sinon. Mesuré à 1440 px : le recouvrement de la
+liste et de l'à-propos tombe de 444 048 à 67 068 px². Le bundle initial passe
+de 531,70 à 532,20 kB ; `window-frame-tracker` à 9,72 kB, chargé à part.
+
+**Écarté.** Agrandir le pas de la cascade : les fenêtres se recouvriraient
+toujours. Des colonnes automatiques : écartées par l'opérateur. Lire un jeton
+CSS pour la place à gauche : le miroir se calcule de la place par défaut.

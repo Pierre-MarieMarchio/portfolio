@@ -1,7 +1,7 @@
 import { SkyPanMotion } from './motions/sky-pan.motion';
 import { NodeRecorderEngine } from './node-recorder.engine';
 import { SpaceSceneEngine } from './space-scene.engine';
-import type { HoleFocusRules } from '../rules/camera/framing.rules';
+import type { HoleFocusRules } from '../rules/camera/framing/framing.rules';
 import {
   FromSceneWorker,
   PASSED_COMMANDS,

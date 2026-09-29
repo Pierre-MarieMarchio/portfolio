@@ -28,61 +28,35 @@ describe('stepBack', () => {
     expect(parentOf(view)).toBe(parent);
   });
 
-  describe('with Escape', () => {
-    it('lets the index row go before leaving the index', () => {
-      expect(stepBack('escape', from('index', { selection: 'a' }))).toEqual({
-        kind: 'deselect',
-      });
-    });
-
-    it.each<[ObservatoryView, string]>([
-      ['index', 'home'],
-      ['about', 'home'],
-      ['sheet', 'index'],
-      ['not-found', 'index'],
-    ])('leaves %s for %s', (view, to) => {
-      expect(stepBack('escape', from(view))).toEqual({ kind: 'navigate', to });
-    });
-
-    it('closes the home preview, and does nothing on a bare home page', () => {
-      expect(stepBack('escape', from('home', { preview: 'a' }))).toEqual({
-        kind: 'close-preview',
-      });
-      expect(stepBack('escape', from('home'))).toBeNull();
-    });
+  it('lets the index selection go before leaving the index', () => {
+    expect(stepBack(from('index', { selection: 'a' }))).toBe('deselect');
   });
 
-  describe('with a click in the void', () => {
-    it.each<[string, StepBackFrom, ReturnType<typeof stepBack>]>([
-      [
-        'leaves a sheet for the list',
-        from('sheet'),
-        { kind: 'navigate', to: 'index' },
-      ],
-      [
-        'lets the index row go',
-        from('index', { selection: 'a' }),
-        { kind: 'deselect' },
-      ],
-      [
-        'closes the home preview',
-        from('home', { preview: 'a' }),
-        { kind: 'close-preview' },
-      ],
-    ])('%s', (_case, state, step) => {
-      expect(stepBack('void', state)).toEqual(step);
-    });
+  it('closes an open preview on the home page', () => {
+    expect(stepBack(from('home', { preview: 'a' }))).toBe('close-preview');
+  });
 
-    it.each<ObservatoryView>(['home', 'index', 'about', 'not-found'])(
-      'has nothing to close on a bare %s view',
-      (view) => {
-        expect(stepBack('void', from(view))).toBeNull();
-      },
-    );
+  it.each<ObservatoryView>(['home', 'index', 'about', 'sheet', 'not-found'])(
+    'has nothing to step back from a bare %s view',
+    (view) => {
+      expect(stepBack(from(view))).toBeNull();
+    },
+  );
 
-    it('leaves a pinned preview alone away from the home page', () => {
-      expect(stepBack('void', from('about', { preview: 'a' }))).toBeNull();
-    });
+  it('never leaves the scene for another page, even from a sheet or the about window', () => {
+    expect(
+      stepBack(from('sheet', { selection: 'a', preview: 'a' })),
+    ).toBeNull();
+    expect(
+      stepBack(from('about', { selection: 'a', preview: 'a' })),
+    ).toBeNull();
+    expect(
+      stepBack(from('not-found', { selection: 'a', preview: 'a' })),
+    ).toBeNull();
+  });
+
+  it('leaves a preview alone away from the home page', () => {
+    expect(stepBack(from('index', { preview: 'a' }))).toBeNull();
   });
 });
 

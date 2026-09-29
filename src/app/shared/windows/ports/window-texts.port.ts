@@ -10,11 +10,12 @@ export interface WindowPhoneTexts extends WindowPinTexts {
   readonly unfold: string;
 }
 
-export interface WindowTexts extends WindowPinTexts {
-  readonly move: string;
-  readonly moveKeys: string;
-  readonly resize: string;
-  readonly resizeKeys: string;
+export interface WindowTexts {
+  readonly menu: string;
+  readonly keepOpen: string;
+  readonly keptOpen: string;
+  readonly snapLeft: string;
+  readonly snapRight: string;
   readonly maximize: string;
   readonly restore: string;
   readonly close: string;

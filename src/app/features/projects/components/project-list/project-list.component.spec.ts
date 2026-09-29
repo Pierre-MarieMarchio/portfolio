@@ -5,21 +5,14 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
-import {
-  DetailSource,
-  FamilyFilter,
-  ProjectEntry,
-} from '@app/features/projects/models';
+import { FamilyFilter, ProjectEntry } from '@app/features/projects/models';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectListComponent } from './project-list.component';
+import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const rows = (host: HTMLElement) => [
-  ...host.querySelectorAll<HTMLButtonElement>('button.row'),
-];
-
-const cards = (host: HTMLElement) => [
-  ...host.querySelectorAll<HTMLAnchorElement>('a.card'),
+  ...host.querySelectorAll<HTMLAnchorElement>('a.row'),
 ];
 
 const squeezed = (text = ''): string => text.replaceAll(/\s+/g, '');
@@ -33,10 +26,7 @@ describe('ProjectListComponent', () => {
     'personal',
   ] as const;
 
-  const entryAt = (
-    index: number,
-    detail: Partial<DetailSource> = {},
-  ): ProjectEntry => {
+  const entryAt = (index: number): ProjectEntry => {
     const slug = `proj-${'abcde'.charAt(index)}`;
     return sampleEntry({
       project: {
@@ -49,7 +39,6 @@ describe('ProjectListComponent', () => {
         role: `Role ${slug}`,
         stack: `Stack ${slug}`,
       },
-      detail,
     });
   };
 
@@ -193,7 +182,7 @@ describe('ProjectListComponent', () => {
     ).toBe(true);
   });
 
-  it('keeps every fact of a card inside its row: stack, proof alone and role, the number before the title and the title before the proof', async () => {
+  it('keeps every fact of a row: stack, proof alone and role, the number before the title and the title before the proof', async () => {
     const { host } = await mount();
     const row = at(rows(host), 0);
     const part = (selector: string): Element =>
@@ -218,68 +207,26 @@ describe('ProjectListComponent', () => {
     expect(titles[0]?.querySelector('.read')).toBeNull();
   });
 
-  it('toggles the selection on a click of a table row, and reports the row as pressed', async () => {
+  it('makes every row a real link to its sheet, named like its facts', async () => {
+    const { host } = await mount({ family: 'personal' });
+
+    expect(rows(host).map((row) => row.getAttribute('href'))).toEqual([
+      '/projet/proj-b',
+      '/projet/proj-d',
+      '/projet/proj-e',
+    ]);
+  });
+
+  it('opens the sheet in one tap on a row', async () => {
     const { fixture, host } = await mount({ selected: null });
-    const emitted = recordOutput(fixture.componentInstance.selectedChange);
 
-    rows(host)[0]?.click();
+    rows(host)[2]?.click();
     await fixture.whenStable();
-    expect(emitted).toEqual(['proj-a']);
 
-    fixture.componentRef.setInput('selected', 'proj-a');
-    await fixture.whenStable();
-    expect(rows(host)[0]?.getAttribute('aria-pressed')).toBe('true');
-
-    rows(host)[0]?.click();
-    await fixture.whenStable();
-    expect(emitted).toEqual(['proj-a', null]);
+    expect(TestBed.inject(Router).url).toBe('/projet/proj-c');
   });
 
-  it('opens a detail block with the selected row, with the subject and a link to the sheet', async () => {
-    const { host, texts } = await mount({ selected: 'proj-b' });
-    const row = rows(host)[1];
-    const opened = row?.closest('li')?.querySelector('.opened');
-
-    expect(opened).not.toBeNull();
-    expect(opened?.textContent).toContain('Sample subject.');
-    const link = opened?.querySelector('a:not([target="_blank"])');
-    expect(link?.getAttribute('href')).toBe('/projet/proj-b');
-    expect(link?.textContent?.trim()).toBe(texts.openSheet);
-  });
-
-  it('has no opened block when nothing is selected', async () => {
-    const { host } = await mount({ selected: null });
-    expect(host.querySelector('.opened')).toBeNull();
-  });
-
-  it('adds an outbound link from the sheet, when the sheet has one', async () => {
-    const { host } = await mount(
-      { selected: 'proj-b' },
-      ENTRIES.map((entry, index) =>
-        index === 1
-          ? entryAt(1, {
-              links: [{ label: 'Dépôt', href: 'https://example.test/repo' }],
-            })
-          : entry,
-      ),
-    );
-    const row = rows(host)[1];
-    const opened = row?.closest('li')?.querySelector('.opened');
-    const outbound = opened?.querySelector('a[target="_blank"]');
-
-    expect(outbound?.textContent?.trim()).toBe('Dépôt ↗');
-    expect(outbound?.getAttribute('href')).toBe('https://example.test/repo');
-  });
-
-  it('has no outbound link when the sheet has none', async () => {
-    const { host } = await mount({ selected: 'proj-b' });
-    const row = rows(host)[1];
-    const opened = row?.closest('li')?.querySelector('.opened');
-
-    expect(opened?.querySelector('a[target="_blank"]')).toBeNull();
-  });
-
-  it('emits hoveredChange on a mouse hover or a keyboard focus, and null on leaving them', async () => {
+  it('lights the planet of a row on a mouse hover or a keyboard focus, and lets it go on leaving', async () => {
     const { fixture, host } = await mount();
     const emitted = recordOutput(fixture.componentInstance.hoveredChange);
 
@@ -297,44 +244,11 @@ describe('ProjectListComponent', () => {
     expect(emitted).toEqual(['proj-a', 'proj-a', null, null]);
   });
 
-  it('makes every card a link to its sheet, named like its row, for the card layout', async () => {
-    const { host } = await mount({ family: 'personal' });
+  it('highlights the row of a project selected from outside the list, without offering to select one itself', async () => {
+    const { host } = await mount({ selected: 'proj-b' });
 
-    expect(cards(host).map((card) => card.getAttribute('href'))).toEqual([
-      '/projet/proj-b',
-      '/projet/proj-d',
-      '/projet/proj-e',
-    ]);
-    expect(cards(host).map((card) => card.getAttribute('aria-label'))).toEqual(
-      rows(host).map((row) => row.getAttribute('aria-label')),
-    );
-    expect(
-      cards(host).map((card) => card.querySelector('.title')?.textContent),
-    ).toEqual(
-      rows(host).map((row) => row.querySelector('.title')?.textContent),
-    );
-  });
-
-  it('opens the sheet in one tap on a card, without selecting the row', async () => {
-    const { fixture, host } = await mount({ selected: null });
-    const emitted = recordOutput(fixture.componentInstance.selectedChange);
-
-    cards(host)[2]?.click();
-    await fixture.whenStable();
-
-    expect(TestBed.inject(Router).url).toBe('/projet/proj-c');
-    expect(emitted).toEqual([]);
-  });
-
-  it('lights the planet of a card on a keyboard focus, and lets it go on leaving', async () => {
-    const { fixture, host } = await mount();
-    const emitted = recordOutput(fixture.componentInstance.hoveredChange);
-
-    cards(host)[1]?.focus();
-    cards(host)[1]?.blur();
-    await fixture.whenStable();
-
-    expect(emitted).toEqual(['proj-b', null]);
+    expect(rows(host)[1]?.dataset['selected']).toBe('true');
+    expect(rows(host)[0]?.dataset['selected']).toBe('false');
   });
 
   it('counts the two families in the footer', async () => {
@@ -347,7 +261,12 @@ describe('ProjectListComponent', () => {
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    host.querySelector<HTMLButtonElement>('button.pin')?.click();
+    await loadWindowMenu();
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
     expect(pinToggled).toHaveLength(1);

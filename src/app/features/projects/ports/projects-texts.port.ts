@@ -17,12 +17,13 @@ export interface ProjectsTexts {
     readonly summary: (professional: string, personal: string) => string;
     readonly columns: readonly [string, string, string, string];
     readonly read: string;
-    readonly openSheet: string;
   };
   readonly preview: {
     readonly label: string;
     readonly bodies: string;
     readonly body: (number: string, title: string) => string;
+    readonly previous: (title: string) => string;
+    readonly next: (title: string) => string;
     readonly terms: {
       readonly proof: string;
       readonly role: string;
@@ -32,6 +33,8 @@ export interface ProjectsTexts {
   };
   readonly sheet: {
     readonly label: string;
+    readonly toIndex: string;
+    readonly toIndexLabel: string;
     readonly approaches: string;
     readonly approach: (number: string, title: string) => string;
     readonly terms: {

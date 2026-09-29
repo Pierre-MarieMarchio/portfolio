@@ -101,15 +101,15 @@ describe('SpaceSceneEngine, drawn frame for frame', () => {
 const GOLDEN: Record<string, string> = {
   crossing: '0561053f',
   arrival: '7d6b7a10',
-  'rest, emphasised': 'e98e2e8e',
-  'close-up': '4cf6cc87',
-  overview: 'd94c01c2',
-  approach: '63517c75',
-  aside: '711ccfa5',
-  'empty overview': '06f1ed31',
-  'rest, pointer': '83e4817d',
-  'turned by hand': '5defcccf',
-  'reduced motion': 'c73d7c01',
+  'rest, emphasised': '3f932d2d',
+  'close-up': '216dcedf',
+  overview: '2bb0f172',
+  approach: 'b59399f1',
+  aside: '51724907',
+  'empty overview': '7d9fe8a2',
+  'rest, pointer': '82bb3fba',
+  'turned by hand': 'fdb8dd05',
+  'reduced motion': 'f115cf39',
 };
 
 const PHONE_LAYOUT: SceneLayout = {
@@ -310,40 +310,40 @@ describe('SpaceSceneEngine, the scenes the first golden left out', () => {
 
 const SCENES_GOLDEN = {
   comets: {
-    'comet 0': '2c0ee364',
-    'comet 1': 'c8b7b944',
-    'comet 2': 'd07d3dbd',
-    'comet 3': 'ffc43497',
-    'back at rest': '7fb9909b',
+    'comet 0': '2a235f63',
+    'comet 1': '022f847c',
+    'comet 2': '291e8e8b',
+    'comet 3': '71f42349',
+    'back at rest': '240b6f8e',
   },
   dpr2: {
     crossing: 'badb3cef',
     arrival: '6b67e339',
     pointer: '1307711b',
     'turned by hand': '4a447fba',
-    approach: '318c3ecc',
+    approach: 'b4d24e42',
   },
   phone: {
     arrival: 'f7e3d1e4',
-    overview: 'e0aa0510',
-    approach: '98fa43b4',
-    'close-up': '965b34d2',
-    aside: '95250095',
+    overview: '3d44831a',
+    approach: '98566f33',
+    'close-up': 'e8be76ee',
+    aside: '902a4eb6',
   },
   measuredLabels: {
     arrival: '29a2446b',
-    emphasised: 'c40c9eed',
-    overview: 'c5538b56',
+    emphasised: 'e0b1d7cd',
+    overview: '2fba48b5',
   },
   reducedFromStart: {
     rest: 'c2f3041b',
     approach: 'ec7a18b2',
     aside: '8933f53b',
-    'motion back': 'e1b6a9ec',
+    'motion back': '5e3f7dd8',
   },
   noSky: {
     arrival: 'f5ddcadb',
-    aside: '8b470e0a',
+    aside: '01a987bd',
   },
   pausedAndHidden: {
     paused: '72759d6f',
@@ -352,8 +352,8 @@ const SCENES_GOLDEN = {
     resumed: 'f5472e76',
   },
   secondLayout: {
-    rest: '216fd9b9',
-    'close-up': 'e4698a7d',
+    rest: '7298c305',
+    'close-up': '79d280d5',
   },
   landed: {
     'landed, first frame': 'b512a3fd',
@@ -364,8 +364,8 @@ const SCENES_GOLDEN = {
   nineBodies: {
     arrival: '89a4f92f',
     'close-up first': 'a3a250b2',
-    'close-up last bright': 'c4b128e7',
-    overview: '27fd97e8',
-    approach: '0495899e',
+    'close-up last bright': '0a9ea370',
+    overview: '80461910',
+    approach: '7b617064',
   },
 } satisfies Record<string, Record<string, string>>;

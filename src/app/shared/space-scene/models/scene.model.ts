@@ -1,6 +1,6 @@
 import type { DisplayFormat } from '@app/core/models';
 import type { SkyPan } from '../engine/motions/zoom.motion';
-import type { HoleFocusRules } from '../rules/camera/framing.rules';
+import type { HoleFocusRules } from '../rules/camera/framing/framing.rules';
 
 export type CameraFraming =
   | { readonly kind: 'rest' }

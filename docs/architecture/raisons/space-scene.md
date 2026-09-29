@@ -575,3 +575,113 @@ et de `src/testing/`, rangées par unité (D10).
 - Quand ses deux flancs sont pris, un nom du téléphone se pose sous sa
   planète, puis au-dessus, centré ou décalé vers l'extérieur, sans trait de
   rappel.
+
+## `src/app/shared/space-scene/rules/rooms/window-room.rules.ts`, le miroir progressif
+
+- `mirroredFrame` reste un calcul pur du cadrage totalement retourné : c'est
+  la valeur visée, pas celle rendue. `mirrorTurnStep` en approche
+  l'inclinaison et l'azimut à un rythme borné (0,6 rad/s), image par image,
+  au lieu de les poser d'un bloc dès que le côté change. La position `x` du
+  trou, elle, bascule tout de suite : elle glisse ensuite avec l'amorti
+  ordinaire de la caméra, ce qui donne le glissé voulu (D66 amendé). Sans ce
+  découplage, un bord de fenêtre franchi pendant un glisser retournait
+  l'inclinaison et l'angle des planètes d'un coup, et l'amorti de la caméra
+  ne faisait alors que ralentir un aller-retour déjà écrit, pas l'empêcher.
+  `mirrorTurnStep(null, cible, dt)` rend la cible telle quelle : au tout
+  premier calcul d'une scène, rien ne justifie de faire tourner le disque
+  depuis zéro.
+
+## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`, l'arrêt sous le pixel
+
+- `settledStep` compare l'écart restant, converti en pixels CSS par la
+  valeur qu'un pixel vaut pour cette clé (largeur, hauteur ou rayon de
+  référence), et rend la cible telle quelle sous 0,5 px au lieu du résultat
+  amorti. `CameraMotion.ease` l'applique à chaque clé de la caméra
+  (position, échelle, inclinaison, élévation, azimut) ; sans dimensions
+  connues (avant le premier `resize`), la clé continue de ramper sans arrêt
+  net. La demi-vie de 0,55 s ne change pas : seule la traîne, qui rampait
+  plusieurs secondes sans jamais atteindre la cible, est coupée.
+
+## `src/app/shared/space-scene/rules/camera/framing/`
+
+- `framing.rules.ts` et `body-framing.rules.ts` sont un seul module scindé
+  en deux fichiers pour rester sous la limite de `check:structure` :
+  `body-framing.rules.ts` porte `FramingScene`, sa fabrique et les cadrages
+  par état (aside, overview, approche, gros plan, repos) ; `framing.rules.ts`
+  garde l'orchestration par bande de fenêtres (côté, miroir progressif,
+  ciel libre). Les deux ne se lisent que comme un tout.
+
+## `src/app/shared/space-scene/ports/scene-window-drag.port.ts`
+
+- `space-scene` ne connaît rien de `windows` (les deux librairies de
+  `shared/` ne s'importent pas) : ce port est le seul trou dans la cloison,
+  et seule une page peut le refermer en fournissant les deux côtés. Sans
+  lui, la scène ne remesurait la page qu'aux événements `resize`,
+  `pointerup`, `animationend` et `transitionend` : rien ne se déclenchait
+  pendant qu'une fenêtre est tenue et glissée à la souris.
+
+## `src/app/pages/observatory/observatory-page.component.ts`, le lien aux fenêtres
+
+- La page fournit `SCENE_WINDOW_DRAG` à elle-même (`useExisting`) : elle est
+  la seule à importer à la fois `shared/windows` (les quatre
+  `WindowFrameDirective` de ses fenêtres) et `shared/space-scene` (le port).
+  `onDragging` s'abonne au rectangle publié par chaque fenêtre
+  (`WindowFrameDirective.onLive`, lui-même nourri par `WindowFrameTracker`
+  à chaque `moveTo`/`placeAt`, donc à chaque image d'un glisser ou d'un
+  redimensionnement) et le retransmet à la scène, qui s'en sert pour se
+  remesurer aussitôt (`measureSoon`, sans attendre le lâcher).
+
+## `src/app/shared/space-scene/engine/motions/planet-hover/planet-hover.motion.ts`
+
+- Le survol (ou le focus clavier) d'une planète la ralentit jusqu'à l'arrêt
+  sur son orbite en 0,3 s (`SCENE_CONFIG.planets.slowSpan`), par un
+  `smoothstep` d'une rampe bornée dans le temps : la vitesse touche zéro et y
+  reste sans à-coup, tant que l'index survolé ne change pas. `phaseOf` ne
+  soustrait un retard (`lag`) qu'à l'orbite touchée ; une orbite jamais
+  survolée rend exactement la phase commune, au bit près, ce qui garde
+  intactes les empreintes qui ne survolent rien.
+- Le retard n'est jamais remboursé au relâchement : la planète reprend sa
+  vitesse en 0,3 s, mais reste décalée de l'angle qu'elle n'a pas tourné
+  pendant l'arrêt, comme une pause de lecture. Le rembourser exigerait une
+  vitesse illimitée après un survol long ; une planète qui accélère au
+  relâchement serait plus surprenante que ce léger décalage permanent,
+  invisible à l'œil.
+- Une fois qu'une planète a été survolée, son décalage traverse la session :
+  l'empreinte du golden qui la suit dans le même test change aussi, même sans
+  nouveau survol. `space-scene.engine.golden.spec.ts` place donc chaque
+  scénario de survol en dernier dans sa suite, pour que les scènes qui n'en
+  ont pas gardent leur empreinte d'avant.
+- Rangé dans son propre dossier (`motions/planet-hover/`) : `motions/` tenait
+  déjà 8 fichiers, sa limite (`check:structure`).
+
+## `src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts`, le survol
+
+- Le bouton de la planète survolée (ou focalisée au clavier) passe devant les
+  autres (`z-index: 1`) : deux cibles qui se recouvrent laissaient sinon le
+  clic à celle posée après dans le DOM, pas à celle sous le pointeur. Hors
+  survol, aucun bouton ne reçoit de `z-index` : l'écriture ne part que du
+  changement, comme le reste de `Written`.
+- Inerte au téléphone (`!frame.state.phone`) : `emphasised` y désigne aussi la
+  planète mise en avant sans pointeur, que geler ou faire passer devant
+  aurait changée sans raison.
+
+## `src/app/shared/space-scene/models/scene-node.model.ts`
+
+- `SceneNodeStyle` gagne `zIndex`, à côté de `transform`, `opacity` et
+  `pointerEvents` : la même petite surface (D47) que le moteur écrit dans le
+  worker et que `RemoteSceneEngine` rejoue dans la page.
+
+## `src/app/shared/space-scene/components/space-scene/space-scene.component.ts`
+
+- `measure()` saute un panneau dont la visibilité calculée vaut `hidden` : le
+  repos ne l'évite pas tant qu'il ne compte pas pour un lecteur. Pendant
+  l'intro, la barre des projets vedettes et le rail de contact se tenaient
+  ainsi hors du calcul (`arrival.held` posait `visibility: hidden`), et le
+  repos ne les évitait qu'à l'arrivée, une fois montrés : mesuré au bureau, le
+  trou sautait de 25,7 px à l'arrivée et mettait encore 3,5 s à se poser.
+  `arrival.held` (`src/assets/styles/mixins/_arrival.scss`) ne pose plus que
+  `opacity: 0` par défaut, comme `home-title` le faisait déjà : ces panneaux
+  comptent dès le premier repos, avant même l'intro, et le trou n'a plus qu'à
+  glisser de 7,7 px à l'arrivée, posé sous 1,2 s. Une commande qu'ils
+  portent reste ainsi cliquable pendant l'intro (D1), sans changer leur
+  rythme d'apparition ni leur rendu une fois montrés.

@@ -6,7 +6,6 @@ export const SKYTED_APP: ProjectEntry = {
     slug: 'skyted-app',
     title: { fr: 'Application Skyted 320', en: draft('Skyted 320 app') },
     short: 'Skyted 320',
-    tag: { fr: 'publiée', en: draft('published') },
     family: 'professional',
     subject: {
       fr: 'L’application mobile du casque Skyted 320 : appairage, mises à jour, entraînement à parler bas et portée de la voix en temps réel.',

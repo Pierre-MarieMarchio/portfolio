@@ -1,14 +1,22 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { FormatCodeService } from '@app/core/services';
 import { WindowComponent } from '../components/window/window.component';
 import { WindowAnchor, WindowSize } from '../models/window.model';
 import { WINDOW_TEXTS, WindowTexts } from '../ports';
+import { WindowStackService } from '../services/window-stack.service';
+import { KeptWindowDirective } from './kept-window.directive';
+import { StackedWindowDirective } from './stacked-window.directive';
 import {
   loadWindowFrame,
   WindowFrameDirective,
 } from './window-frame.directive';
-import { resizeTo, stubViewport } from '@testing/doubles/browser.double';
+import {
+  resizeTo,
+  stubMedia,
+  stubViewport,
+} from '@testing/doubles/browser.double';
 import { firePointer, PointerAt } from '@testing/fixtures/pointer.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -39,6 +47,7 @@ const layOutFromTheRight = (slot: HTMLElement): void => {
         heading="Console"
         [size]="size()"
         [anchor]="anchor()"
+        [preview]="preview()"
         [stableHeight]="stableHeight()"
       >
         <div body>BODY-MARK</div>
@@ -49,6 +58,7 @@ const layOutFromTheRight = (slot: HTMLElement): void => {
 class Host {
   public readonly size = signal<WindowSize>('m');
   public readonly anchor = signal<WindowAnchor>('top');
+  public readonly preview = signal(false);
   public readonly stableHeight = signal(false);
 }
 
@@ -99,24 +109,9 @@ const mount = async (providers: unknown[] = []) => {
     [...host.querySelectorAll('button')].find(
       (button) => button.getAttribute('aria-label') === name,
     ) as HTMLButtonElement;
-  const press = async (
-    button: Element,
-    key: string,
-    isShifted = false,
-  ): Promise<KeyboardEvent> => {
-    const event = new KeyboardEvent('keydown', {
-      key,
-      shiftKey: isShifted,
-      bubbles: true,
-      cancelable: true,
-    });
-    button.dispatchEvent(event);
-    await settle();
-    return event;
-  };
-  const doubleClick = async (): Promise<void> => {
+  const doubleClick = async (on = '.titlebar'): Promise<void> => {
     host
-      .querySelector('.titlebar')
+      .querySelector(on)
       ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     await settle();
   };
@@ -126,6 +121,10 @@ const mount = async (providers: unknown[] = []) => {
     width: slot.style.width,
     height: slot.style.height,
   });
+  const directive = (): WindowFrameDirective =>
+    fixture.debugElement
+      .query(By.directive(WindowFrameDirective))
+      .injector.get(WindowFrameDirective);
   return {
     fixture,
     host,
@@ -135,23 +134,72 @@ const mount = async (providers: unknown[] = []) => {
     bar,
     edge,
     control,
-    press,
     doubleClick,
     frame,
+    directive,
   };
 };
 
-describe('WindowFrameDirective', () => {
-  const heard = vi.fn();
-
-  beforeEach(() => {
-    document.addEventListener('keydown', heard);
+const mountHost = async <T>(
+  component: new () => T,
+  layOut: (host: HTMLElement) => void,
+) => {
+  const frames: FrameRequestCallback[] = [];
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => {
+    frames.push(fn);
+    return frames.length;
   });
+  stubViewport(1200, 800);
+  TestBed.configureTestingModule({
+    imports: [component],
+    providers: [provideTexts()],
+  });
+  const fixture = TestBed.createComponent(component);
+  const host = fixture.nativeElement as HTMLElement;
+  layOut(host);
+  await fixture.whenStable();
+  await loadWindowFrame();
+  await new Promise((resolve) => setTimeout(resolve));
+  await fixture.whenStable();
+  const nextFrame = async (): Promise<void> => {
+    for (const next of frames.splice(0)) {
+      next(0);
+    }
+    await fixture.whenStable();
+  };
+  const show = async (
+    target: WritableSignal<boolean>,
+    isShown: boolean,
+  ): Promise<void> => {
+    target.set(isShown);
+    await fixture.whenStable();
+    await nextFrame();
+    await nextFrame();
+  };
+  const dragBar = async (
+    slot: HTMLElement,
+    path: readonly PointerAt[],
+  ): Promise<void> => {
+    const bar = slot.querySelector('.titlebar h2') as Element;
+    const [first, ...moves] = path;
+    firePointer(bar, 'pointerdown', { kind: 'mouse', ...first });
+    for (const move of moves) {
+      firePointer(window, 'pointermove', { kind: 'mouse', ...move });
+    }
+    firePointer(window, 'pointerup', {
+      kind: 'mouse',
+      ...moves.at(-1),
+    });
+    await fixture.whenStable();
+  };
+  const transformOf = (slot: HTMLElement): string => slot.style.transform;
+  return { fixture, host, show, dragBar, transformOf };
+};
 
+describe('WindowFrameDirective', () => {
   afterEach(() => {
-    document.removeEventListener('keydown', heard);
-    heard.mockReset();
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   describe('its code', () => {
@@ -186,6 +234,25 @@ describe('WindowFrameDirective', () => {
         width: '',
         height: '',
       });
+    });
+
+    it('publishes the rectangle it is dragged to, once per move, then none once dropped', async () => {
+      const { bar, drag, directive } = await mount();
+      const heardRects = vi.fn();
+      directive().onLive(heardRects);
+
+      await drag(bar(), [
+        { x: 800, y: 110 },
+        { x: 850, y: 140 },
+        { x: 860, y: 150 },
+      ]);
+
+      expect(heardRects).toHaveBeenCalledTimes(3);
+      expect(heardRects.mock.calls.at(-2)?.[0]).toMatchObject({
+        x: 1200 - GUTTER - NATURAL.width + 60,
+        y: TOP + 40,
+      });
+      expect(heardRects.mock.calls.at(-1)?.[0]).toBeNull();
     });
 
     it('keeps its bar below the real top bar, not a fixed margin', async () => {
@@ -304,6 +371,38 @@ describe('WindowFrameDirective', () => {
     });
   });
 
+  describe('text selection', () => {
+    afterEach(() => {
+      document.body.style.userSelect = '';
+    });
+
+    it('blocks it for the length of a drag by the title bar, and gives it back once dropped', async () => {
+      const { bar, settle } = await mount();
+
+      firePointer(bar(), 'pointerdown', mouse({ x: 800, y: 110 }));
+      firePointer(window, 'pointermove', mouse({ x: 850, y: 140 }));
+      expect(document.body.style.userSelect).toBe('none');
+
+      firePointer(window, 'pointerup', mouse({ x: 850, y: 140 }));
+      await settle();
+
+      expect(document.body.style.userSelect).toBe('');
+    });
+
+    it('blocks it for the length of a resize by an edge, and gives it back once dropped', async () => {
+      const { edge, settle } = await mount();
+
+      firePointer(edge('se'), 'pointerdown', mouse({ x: 1156, y: 400 }));
+      firePointer(window, 'pointermove', mouse({ x: 1200, y: 450 }));
+      expect(document.body.style.userSelect).toBe('none');
+
+      firePointer(window, 'pointerup', mouse({ x: 1200, y: 450 }));
+      await settle();
+
+      expect(document.body.style.userSelect).toBe('');
+    });
+  });
+
   describe('resized by an edge', () => {
     it.each([
       ['grows from its corner', { x: 656, y: 500 }, '500px', '400px'],
@@ -396,79 +495,79 @@ describe('WindowFrameDirective', () => {
 
       expect([frame().width, frame().height]).toEqual(['912px', '524px']);
     });
+
+    it.each([
+      ['the title', '.titlebar h2'],
+      ['an empty stretch of the bar', '.spacer'],
+      ['the bar near its right edge, outside the buttons', '.meta'],
+    ])(
+      'by a double click anywhere on the bar, including %s',
+      async (_case, on) => {
+        const { doubleClick, frame } = await mount();
+
+        await doubleClick(on);
+
+        expect(frame().mode).toBe('full');
+      },
+    );
+
+    it('never maximizes the preview, by its button or a double click', async () => {
+      const { fixture, host, doubleClick, frame } = await mount();
+      fixture.componentInstance.preview.set(true);
+      await fixture.whenStable();
+
+      expect(
+        [...host.querySelectorAll('button')].some((button) =>
+          [texts().maximize, texts().restore].includes(
+            button.getAttribute('aria-label') ?? '',
+          ),
+        ),
+      ).toBe(false);
+
+      await doubleClick();
+
+      expect(frame().mode).toBeNull();
+    });
   });
 
   describe('at the keyboard', () => {
-    it('moves by 8 px an arrow, by 64 with Shift, and ends on Escape without closing anything', async () => {
-      const { control, press, frame } = await mount();
-      const move = control(texts().move);
+    it('offers no arrow move or resize control any more, the menu being the alternative to dragging', async () => {
+      const { host } = await mount();
 
-      await press(move, 'ArrowRight');
-      expect(frame().transform).toBe('translate(8px,0px)');
-      expect(move.getAttribute('aria-pressed')).toBe('true');
-
-      await press(move, 'ArrowDown', true);
-      expect(frame().transform).toBe('translate(8px,64px)');
-
-      const escape = await press(move, 'Escape');
-      expect(move.getAttribute('aria-pressed')).toBe('false');
-      expect(escape.defaultPrevented).toBe(true);
       expect(
-        heard.mock.calls.map(([event]) => (event as KeyboardEvent).key),
-      ).not.toContain('Escape');
+        [...host.querySelectorAll('.titlebar button')].map((button) =>
+          button.getAttribute('aria-label'),
+        ),
+      ).toEqual([texts().menu, texts().maximize, texts().close]);
+    });
+  });
+
+  describe('animated', () => {
+    it('marks the frame as animating while it maximizes, and clears it after the transition', async () => {
+      stubMedia(() => false);
+      const { slot, control, frame, settle } = await mount();
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+
+      control(texts().maximize).click();
+      await settle();
+
+      expect(frame().mode).toBe('full');
+      expect(slot.dataset['frameAnimating']).toBe('true');
+
+      vi.advanceTimersByTime(280);
+      await settle();
+
+      expect(slot.dataset['frameAnimating']).toBeUndefined();
     });
 
-    it('keeps its bar below the real top bar when moved by an arrow', async () => {
-      const { slot, control, press, frame } = await mount();
-      slot.style.setProperty('--head-bottom', '600px');
-      const move = control(texts().move);
+    it('does not animate in reduced motion', async () => {
+      stubMedia((query) => query === '(prefers-reduced-motion: reduce)');
+      const { slot, control, settle } = await mount();
 
-      await press(move, 'ArrowUp', true);
-      await press(move, 'ArrowUp', true);
+      control(texts().maximize).click();
+      await settle();
 
-      expect(frame().transform).toBe('translate(0px,512px)');
-    });
-
-    it('lets Escape through when it is not moving', async () => {
-      const { control, press } = await mount();
-
-      await press(control(texts().move), 'Escape');
-
-      expect(heard).toHaveBeenCalledTimes(1);
-    });
-
-    it('resizes by an arrow, growing where there is room', async () => {
-      const { control, press, frame } = await mount();
-      const resize = control(texts().resize);
-
-      await press(resize, 'ArrowDown');
-      expect([frame().width, frame().height]).toEqual(['400px', '308px']);
-
-      await press(resize, 'ArrowRight', true);
-      expect(frame()).toEqual({
-        mode: 'free',
-        transform: 'translate(0px,0px)',
-        width: '464px',
-        height: '308px',
-      });
-
-      const enter = await press(resize, 'Enter');
-      expect(enter.defaultPrevented).toBe(true);
-      expect(resize.getAttribute('aria-pressed')).toBe('false');
-    });
-
-    it('describes the keys of its move and resize controls', async () => {
-      const { host, control } = await mount();
-
-      for (const [name, keys] of [
-        [texts().move, texts().moveKeys],
-        [texts().resize, texts().resizeKeys],
-      ] as const) {
-        const id = control(name).getAttribute('aria-describedby') ?? '';
-        expect(host.querySelector(`[id="${id}"]`)?.textContent?.trim()).toBe(
-          keys,
-        );
-      }
+      expect(slot.dataset['frameAnimating']).toBeUndefined();
     });
   });
 
@@ -574,6 +673,319 @@ describe('WindowFrameDirective', () => {
       ]);
 
       expect(frame().transform).toBe('');
+    });
+  });
+
+  describe('placed where it covers the windows already shown the least', () => {
+    @Component({
+      imports: [
+        KeptWindowDirective,
+        StackedWindowDirective,
+        WindowComponent,
+        WindowFrameDirective,
+      ],
+      providers: [WindowStackService],
+      template: `
+        <div
+          class="slot slot-a"
+          appStackedWindow="a"
+          appWindowFrame
+          appKeptWindow
+          [shown]="shownA()"
+          style="--window-reserve: 76px"
+        >
+          <app-window heading="A"><div body>A-BODY</div></app-window>
+        </div>
+        <div
+          class="slot slot-b"
+          appStackedWindow="b"
+          appWindowFrame
+          appKeptWindow
+          [shown]="shownB()"
+          style="--window-reserve: 76px"
+        >
+          <app-window heading="B"><div body>B-BODY</div></app-window>
+        </div>
+      `,
+    })
+    class CascadeHost {
+      public readonly shownA = signal(true);
+      public readonly shownB = signal(false);
+    }
+
+    const NATURAL_RECT = new DOMRect(800, 100, 400, 300);
+    const MIRROR_RECT = new DOMRect(0, 100, 400, 300);
+
+    const layOutAt = (slot: HTMLElement, natural: DOMRect): void => {
+      slot.getBoundingClientRect = () => {
+        const width = Number.parseFloat(slot.style.width) || natural.width;
+        const height = Number.parseFloat(slot.style.height) || natural.height;
+        const [, dx = '0', dy = '0'] =
+          TRANSLATE.exec(slot.style.transform) ?? [];
+        return new DOMRect(
+          natural.x + Number(dx),
+          natural.y + Number(dy),
+          width,
+          height,
+        );
+      };
+    };
+
+    const mountCascade = async () => {
+      const mounted = await mountHost(CascadeHost, (host) => {
+        layOutAt(host.querySelector('.slot-a') as HTMLElement, NATURAL_RECT);
+        layOutAt(host.querySelector('.slot-b') as HTMLElement, NATURAL_RECT);
+      });
+      const slotA = mounted.host.querySelector('.slot-a') as HTMLElement;
+      const slotB = mounted.host.querySelector('.slot-b') as HTMLElement;
+      return { ...mounted, slotA, slotB };
+    };
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    it('opens on the far side of the window already on screen, clearing it entirely', async () => {
+      const { fixture, slotB, show, transformOf } = await mountCascade();
+
+      await show(fixture.componentInstance.shownB, true);
+
+      expect(transformOf(slotB)).toBe('translate(-800px,0px)');
+    });
+
+    it('takes its default place when it is the only window shown', async () => {
+      const { slotA, transformOf } = await mountCascade();
+
+      expect(transformOf(slotA)).toBe('');
+    });
+
+    it('never moves a window the reader has already placed', async () => {
+      const { fixture, slotB, show, dragBar, transformOf } =
+        await mountCascade();
+      await show(fixture.componentInstance.shownB, true);
+      const autoPlaced = transformOf(slotB);
+
+      await dragBar(slotB, [
+        { x: 800, y: 110 },
+        { x: 850, y: 140 },
+      ]);
+      const placed = transformOf(slotB);
+      expect(placed).not.toBe(autoPlaced);
+
+      await show(fixture.componentInstance.shownB, false);
+      await show(fixture.componentInstance.shownB, true);
+
+      expect(transformOf(slotB)).toBe(placed);
+    });
+
+    it('drops a stale place and returns to the default once alone again', async () => {
+      const { fixture, slotB, show, transformOf } = await mountCascade();
+      await show(fixture.componentInstance.shownB, true);
+      expect(transformOf(slotB)).toBe('translate(-800px,0px)');
+
+      await show(fixture.componentInstance.shownA, false);
+      await show(fixture.componentInstance.shownB, false);
+      await show(fixture.componentInstance.shownB, true);
+
+      expect(transformOf(slotB)).toBe('');
+    });
+
+    describe('once the mirrored side is already taken', () => {
+      @Component({
+        imports: [
+          KeptWindowDirective,
+          StackedWindowDirective,
+          WindowComponent,
+          WindowFrameDirective,
+        ],
+        providers: [WindowStackService],
+        template: `
+          <div
+            class="slot slot-m"
+            appStackedWindow="m"
+            appWindowFrame
+            appKeptWindow
+            [shown]="true"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="M"><div body>M-BODY</div></app-window>
+          </div>
+          <div
+            class="slot slot-a"
+            appStackedWindow="a"
+            appWindowFrame
+            appKeptWindow
+            [shown]="true"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="A"><div body>A-BODY</div></app-window>
+          </div>
+          <div
+            class="slot slot-b"
+            appStackedWindow="b"
+            appWindowFrame
+            appKeptWindow
+            [shown]="shownB()"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="B"><div body>B-BODY</div></app-window>
+          </div>
+        `,
+      })
+      class MirrorBlockedHost {
+        public readonly shownB = signal(false);
+      }
+
+      const mountMirrorBlocked = async () => {
+        const mounted = await mountHost(MirrorBlockedHost, (host) => {
+          layOutAt(host.querySelector('.slot-m') as HTMLElement, MIRROR_RECT);
+          layOutAt(host.querySelector('.slot-a') as HTMLElement, NATURAL_RECT);
+          layOutAt(host.querySelector('.slot-b') as HTMLElement, NATURAL_RECT);
+        });
+        const slotB = mounted.host.querySelector('.slot-b') as HTMLElement;
+        return { ...mounted, slotB };
+      };
+
+      it('falls back to the cascade, its title bar left showing', async () => {
+        const { fixture, slotB, show, transformOf } =
+          await mountMirrorBlocked();
+
+        await show(fixture.componentInstance.shownB, true);
+
+        expect(transformOf(slotB)).toBe('translate(-32px,32px)');
+      });
+
+      it('keeps its bar reachable when the screen shrinks after a cascade', async () => {
+        const { fixture, slotB, show, transformOf } =
+          await mountMirrorBlocked();
+        await show(fixture.componentInstance.shownB, true);
+        expect(transformOf(slotB)).toBe('translate(-32px,32px)');
+
+        resizeTo(900, 700);
+        await fixture.whenStable();
+
+        expect(transformOf(slotB)).toBe('translate(-50px,32px)');
+      });
+    });
+
+    describe('once the default and the mirrored side are both already taken', () => {
+      @Component({
+        imports: [
+          KeptWindowDirective,
+          StackedWindowDirective,
+          WindowComponent,
+          WindowFrameDirective,
+        ],
+        providers: [WindowStackService],
+        template: `
+          <div
+            class="slot slot-d"
+            appStackedWindow="d"
+            appWindowFrame
+            appKeptWindow
+            [shown]="true"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="D"><div body>D-BODY</div></app-window>
+          </div>
+          <div
+            class="slot slot-m"
+            appStackedWindow="m"
+            appWindowFrame
+            appKeptWindow
+            [shown]="true"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="M"><div body>M-BODY</div></app-window>
+          </div>
+          <div
+            class="slot slot-a"
+            appStackedWindow="a"
+            appWindowFrame
+            appKeptWindow
+            [shown]="true"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="A"><div body>A-BODY</div></app-window>
+          </div>
+          <div
+            class="slot slot-b"
+            appStackedWindow="b"
+            appWindowFrame
+            appKeptWindow
+            [shown]="shownB()"
+            style="--window-reserve: 76px"
+          >
+            <app-window heading="B"><div body>B-BODY</div></app-window>
+          </div>
+        `,
+      })
+      class BlockedCascadeHost {
+        public readonly shownB = signal(false);
+      }
+
+      const mountBlocked = async () => {
+        const mounted = await mountHost(BlockedCascadeHost, (host) => {
+          layOutAt(host.querySelector('.slot-d') as HTMLElement, NATURAL_RECT);
+          layOutAt(host.querySelector('.slot-m') as HTMLElement, MIRROR_RECT);
+          layOutAt(host.querySelector('.slot-a') as HTMLElement, NATURAL_RECT);
+          layOutAt(host.querySelector('.slot-b') as HTMLElement, NATURAL_RECT);
+        });
+        const slotA = mounted.host.querySelector('.slot-a') as HTMLElement;
+        const slotB = mounted.host.querySelector('.slot-b') as HTMLElement;
+        return { ...mounted, slotA, slotB };
+      };
+
+      it('reduces its height instead of overflowing the window reserve, its body free to scroll', async () => {
+        const { fixture, slotA, slotB, show, transformOf } =
+          await mountBlocked();
+        slotA.getBoundingClientRect = () => new DOMRect(800, 450, 400, 300);
+
+        await show(fixture.componentInstance.shownB, true);
+
+        expect(transformOf(slotB)).toBe('translate(-32px,382px)');
+        expect(slotB.style.height).toBe('242px');
+      });
+
+      it('keeps its default place once even a reduced height would not fit', async () => {
+        const { fixture, slotA, slotB, show, transformOf } =
+          await mountBlocked();
+        slotA.getBoundingClientRect = () => new DOMRect(800, 600, 400, 300);
+
+        await show(fixture.componentInstance.shownB, true);
+
+        expect(transformOf(slotB)).toBe('');
+        expect(slotB.style.height).toBe('');
+      });
+
+      it('reduces its height further once the screen shrinks below its cascaded reach', async () => {
+        const { fixture, slotA, slotB, show, transformOf } =
+          await mountBlocked();
+        slotA.getBoundingClientRect = () => new DOMRect(800, 450, 400, 300);
+        await show(fixture.componentInstance.shownB, true);
+        expect(slotB.style.height).toBe('242px');
+
+        resizeTo(1200, 780);
+        await fixture.whenStable();
+
+        expect(transformOf(slotB)).toBe('translate(-32px,382px)');
+        expect(slotB.style.height).toBe('222px');
+      });
+
+      it('gives back its default place once shrinking leaves no room even reduced', async () => {
+        const { fixture, slotA, slotB, show, transformOf } =
+          await mountBlocked();
+        slotA.getBoundingClientRect = () => new DOMRect(800, 450, 400, 300);
+        await show(fixture.componentInstance.shownB, true);
+        expect(slotB.style.height).toBe('242px');
+
+        resizeTo(1200, 500);
+        await fixture.whenStable();
+
+        expect(transformOf(slotB)).toBe('');
+        expect(slotB.style.height).toBe('');
+      });
     });
   });
 });

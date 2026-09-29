@@ -124,34 +124,6 @@ describe('ObservatoryEffect', () => {
       expect(navigated).toEqual([]);
     });
 
-    it('sends the reader back to the list from a sheet', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
-
-      await statewise.dispatchAsync(observatoryEscaped());
-
-      expect(navigated).toEqual(['/projets']);
-    });
-
-    it.each([
-      {
-        way: 'back to the list from a not-found sheet',
-        view: 'not-found',
-        path: '/projets',
-      },
-      {
-        way: 'home from the index without a selection',
-        view: 'index',
-        path: '/',
-      },
-      { way: 'home from about', view: 'about', path: '/' },
-    ] as const)('sends the reader $way', async ({ view, path }) => {
-      statewise.dispatch(observatoryRouteSynced({ view, slug: null }));
-
-      await statewise.dispatchAsync(observatoryEscaped());
-
-      expect(navigated).toEqual([path]);
-    });
-
     it('closes an open preview on home without navigating', async () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
       statewise.dispatch(observatoryPreviewOpened('a'));
@@ -162,23 +134,45 @@ describe('ObservatoryEffect', () => {
       expect(navigated).toEqual([]);
     });
 
-    it('does nothing on home with nothing open', async () => {
-      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
+    it.each(['home', 'index', 'about', 'sheet', 'not-found'] as const)(
+      'never navigates away from %s',
+      async (view) => {
+        statewise.dispatch(observatoryRouteSynced({ view, slug: 'a' }));
 
-      await statewise.dispatchAsync(observatoryEscaped());
+        await statewise.dispatchAsync(observatoryEscaped());
 
-      expect(navigated).toEqual([]);
-      expect(state.preview()).toBeNull();
-    });
+        expect(navigated).toEqual([]);
+      },
+    );
   });
 
   describe('observatorySteppedBack', () => {
-    it('sends the reader back to the list from a sheet', async () => {
+    it('clears the selection without navigating when the index has one', async () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+      statewise.dispatch(observatorySelected('a'));
+
+      await statewise.dispatchAsync(observatorySteppedBack());
+
+      expect(state.selected()).toBeNull();
+      expect(navigated).toEqual([]);
+    });
+
+    it('closes an open preview on home without navigating', async () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
+      statewise.dispatch(observatoryPreviewOpened('a'));
+
+      await statewise.dispatchAsync(observatorySteppedBack());
+
+      expect(state.preview()).toBeNull();
+      expect(navigated).toEqual([]);
+    });
+
+    it('never navigates away from a sheet', async () => {
       statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
 
       await statewise.dispatchAsync(observatorySteppedBack());
 
-      expect(navigated).toEqual(['/projets']);
+      expect(navigated).toEqual([]);
     });
 
     it('does nothing on a view with nothing to step back from', async () => {

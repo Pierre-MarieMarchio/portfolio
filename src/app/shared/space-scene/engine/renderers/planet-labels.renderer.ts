@@ -26,6 +26,7 @@ interface Written {
   hidden: string;
   tab: number;
   opacity: string;
+  z: string;
 }
 
 const written = (): Written => ({
@@ -34,12 +35,34 @@ const written = (): Written => ({
   hidden: '',
   tab: 99,
   opacity: '',
+  z: '',
 });
 
 const bodiesOf = (
   bodies: readonly { readonly sx: number; readonly sy: number }[],
   dpr: number,
 ): BodyMark[] => bodies.map((body) => ({ x: body.sx / dpr, y: body.sy / dpr }));
+
+type WrittenStyle = 'transform' | 'events' | 'opacity' | 'z';
+
+const NODE_STYLE: Record<WrittenStyle, keyof SceneNode['style']> = {
+  transform: 'transform',
+  events: 'pointerEvents',
+  opacity: 'opacity',
+  z: 'zIndex',
+};
+
+const setStyle = (
+  node: SceneNode,
+  last: Written,
+  key: WrittenStyle,
+  value: string,
+): void => {
+  if (value !== last[key]) {
+    last[key] = value;
+    node.style[NODE_STYLE[key]] = value;
+  }
+};
 
 export class PlanetLabelsRenderer {
   private buttons: readonly SceneNode[] = [];
@@ -138,7 +161,7 @@ export class PlanetLabelsRenderer {
   }
 
   public hide(i: number): void {
-    this.writeButton(i, null, true);
+    this.writeButton(i, null, true, false);
     this.writeLabel(i, null, '0');
   }
 
@@ -154,21 +177,20 @@ export class PlanetLabelsRenderer {
     i: number,
     transform: string | null,
     isCovered: boolean,
+    isEmphasised: boolean,
   ): void {
     const button = this.buttons[i];
     const last = this.buttonsWritten[i];
     if (!button || !last) {
       return;
     }
-    if (transform !== null && transform !== last.transform) {
-      last.transform = transform;
-      button.style.transform = transform;
+    if (transform !== null) {
+      setStyle(button, last, 'transform', transform);
     }
     const events = isCovered ? 'none' : 'auto';
-    if (events !== last.events) {
-      last.events = events;
-      button.style.pointerEvents = events;
-    }
+    setStyle(button, last, 'events', events);
+    const z = isEmphasised ? '1' : '';
+    setStyle(button, last, 'z', z);
     this.writeReach(button, last, isCovered);
   }
 
@@ -182,14 +204,10 @@ export class PlanetLabelsRenderer {
     if (!label || !last) {
       return;
     }
-    if (transform !== null && transform !== last.transform) {
-      last.transform = transform;
-      label.style.transform = transform;
+    if (transform !== null) {
+      setStyle(label, last, 'transform', transform);
     }
-    if (opacity !== last.opacity) {
-      last.opacity = opacity;
-      label.style.opacity = opacity;
-    }
+    setStyle(label, last, 'opacity', opacity);
   }
 
   public writeLine(i: number, rise: number): void {
@@ -198,22 +216,12 @@ export class PlanetLabelsRenderer {
     if (!line || !last) {
       return;
     }
-    const opacity = rise.toFixed(3);
-    if (opacity !== last.opacity) {
-      last.opacity = opacity;
-      line.style.opacity = opacity;
-    }
+    setStyle(line, last, 'opacity', rise.toFixed(3));
     const transform =
       rise < 1 ? `translateY(${((1 - rise) * 9).toFixed(1)}px)` : 'none';
-    if (transform !== last.transform) {
-      last.transform = transform;
-      line.style.transform = transform;
-    }
+    setStyle(line, last, 'transform', transform);
     const events = rise > 0.5 ? 'auto' : 'none';
-    if (events !== last.events) {
-      last.events = events;
-      line.style.pointerEvents = events;
-    }
+    setStyle(line, last, 'events', events);
   }
 
   private writeReach(

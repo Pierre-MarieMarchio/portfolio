@@ -5,7 +5,6 @@ export type {
   FrameDelta,
   FrameEdge,
   FrameGrip,
-  FrameKeyControl,
   FrameMode,
   FramePlace,
   FrameRect,
@@ -16,3 +15,10 @@ export type {
   WindowControlView,
   WindowParts,
 } from './window-frame.model';
+export type {
+  WindowMenuAction,
+  WindowMenuActionId,
+  WindowMenuCode,
+  WindowMenuHost,
+  WindowMenuTracking,
+} from './window-menu.model';

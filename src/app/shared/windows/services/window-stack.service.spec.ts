@@ -3,6 +3,12 @@ import { WindowStackService } from './window-stack.service';
 
 const IDS = ['a', 'b', 'c', 'd'] as const;
 
+const elementShown = (isShown: boolean): HTMLElement => {
+  const element = document.createElement('div');
+  element.dataset['shown'] = String(isShown);
+  return element;
+};
+
 const setup = () => {
   TestBed.configureTestingModule({ providers: [WindowStackService] });
   const stack = TestBed.inject(WindowStackService);
@@ -72,5 +78,40 @@ describe('WindowStackService', () => {
     stack.bringToFront('b');
 
     expect(IDS.map((id) => stack.depthOf(id))).toEqual([0, 3, 1, 2]);
+  });
+
+  describe('shownFrontToBack', () => {
+    it('lists the shown windows from the front of the stack to the back', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      const b = elementShown(true);
+      const c = elementShown(true);
+      stack.register('a', a);
+      stack.register('b', b);
+      stack.register('c', c);
+      stack.bringToFront('b');
+
+      expect(stack.shownFrontToBack()).toEqual([b, c, a]);
+    });
+
+    it('skips a registered window that is not shown', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      const b = elementShown(false);
+      stack.register('a', a);
+      stack.register('b', b);
+
+      expect(stack.shownFrontToBack()).toEqual([a]);
+    });
+
+    it('gives an empty list when nothing is shown', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      stack.register('a', elementShown(false));
+
+      expect(stack.shownFrontToBack()).toEqual([]);
+    });
   });
 });

@@ -5,6 +5,7 @@ import {
   holeHeldLeftOf,
   isHoleInRoom,
   mirroredFrame,
+  mirrorTurnStep,
   sideOf,
   skyOfRoom,
   WindowRoom,
@@ -138,6 +139,33 @@ describe('the hole in its room', () => {
     expect(mirrored).toMatchObject({ x: 0.8, i: 0.3, y: frame.y, s: frame.s });
     expect(0.5 + mirrored.az).toBeCloseTo(Math.PI - (0.5 + frame.az), 9);
     expect(mirroredFrame(frame, null).az).toBe(frame.az);
+  });
+
+  it('starts on the target the first time, without an old turn to leave', () => {
+    expect(mirrorTurnStep(null, { i: 0.3, az: 1 }, 1 / 60)).toEqual({
+      i: 0.3,
+      az: 1,
+    });
+  });
+
+  it('turns toward the mirror instead of jumping there in one frame', () => {
+    const target = { i: 0.3, az: -0.3 };
+    const stepped = mirrorTurnStep({ i: -0.3, az: 1 }, target, 1 / 60);
+
+    expect(Math.abs(stepped.i - -0.3)).toBeLessThan(0.6);
+    expect(stepped.i).not.toBe(target.i);
+    expect(Math.abs(stepped.az - 1)).toBeLessThan(1.3);
+    expect(stepped.az).not.toBe(target.az);
+  });
+
+  it('reaches the target once the turn has had enough time', () => {
+    let turn = { i: -0.3, az: 1 };
+    const target = { i: 0.3, az: -0.3 };
+    for (let k = 0; k < 600; k++) {
+      turn = mirrorTurnStep(turn, target, 1 / 60);
+    }
+
+    expect(turn).toEqual(target);
   });
 
   it('holds the hole left of the edge of its window, and only if it crosses it', () => {

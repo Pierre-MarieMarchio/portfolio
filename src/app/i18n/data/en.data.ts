@@ -9,6 +9,7 @@ export const EN: Catalog = {
     pageBar: {
       languages: draft('Site language'),
       navigation: draft('Main navigation'),
+      openWindow: draft('window open'),
     },
     contactRail: {
       label: draft('Contact me'),
@@ -16,16 +17,11 @@ export const EN: Catalog = {
   },
 
   windows: {
-    pin: draft('Keep this window open when changing page'),
-    unpin: draft('Let this window close when changing page'),
-    move: draft('Move the window'),
-    moveKeys: draft(
-      'Move it with the arrow keys, in big steps with Shift. Enter or Escape to finish.',
-    ),
-    resize: draft('Resize the window'),
-    resizeKeys: draft(
-      'Change its size with the arrow keys, in big steps with Shift. Enter or Escape to finish.',
-    ),
+    menu: draft('Window menu'),
+    keepOpen: draft('Keep open when changing page'),
+    keptOpen: draft('kept open'),
+    snapLeft: draft('Left half'),
+    snapRight: draft('Right half'),
     maximize: draft('Maximize the window'),
     restore: draft('Put the window back to its size'),
     close: draft('Close the window'),
@@ -82,7 +78,6 @@ export const EN: Catalog = {
         draft('My role'),
       ],
       read: draft('viewed'),
-      openSheet: draft('See the project →'),
     },
     preview: {
       label: draft('Project preview'),
@@ -90,6 +85,8 @@ export const EN: Catalog = {
       body: draft(
         (number: string, title: string) => `Project ${number}: ${title}`,
       ),
+      previous: draft((title: string) => `Previous project: ${title}`),
+      next: draft((title: string) => `Next project: ${title}`),
       terms: {
         proof: draft('Status'),
         role: draft('Role'),
@@ -99,6 +96,8 @@ export const EN: Catalog = {
     },
     sheet: {
       label: draft('Project details'),
+      toIndex: draft('‹ Projects'),
+      toIndexLabel: draft('Back to the projects'),
       approaches: draft('Sections'),
       approach: draft(
         (number: string, title: string) => `Section ${number}: ${title}`,
@@ -137,11 +136,18 @@ export const EN: Catalog = {
       ],
     },
     home: {
-      void: draft('Close the windows'),
       name: OWNER_NAME,
       trade: draft('.NET and Angular developer'),
       status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',
+    },
+    intro: {
+      skip: draft('Skip the intro'),
+    },
+    stepBack: {
+      deselect: draft('Deselect the project'),
+      closePreview: draft('Close the preview'),
+      overview: draft('‹ Overview'),
     },
     closeTo: {
       home: draft('Close and go back home'),

@@ -1,10 +1,12 @@
 import { clamp } from '@app/core/helpers';
 import type {
+  CascadeBounds,
   FrameArea,
   FrameClearance,
   FrameDelta,
   FrameEdge,
   FrameMode,
+  FramePlace,
   FrameRect,
   FrameViewport,
   FrameZone,
@@ -14,20 +16,12 @@ import type { WindowAnchor } from '../models/window.model';
 export const FRAME_MIN_WIDTH = 320;
 export const FRAME_MIN_HEIGHT = 200;
 
-const KEY_STEP = 8;
-const FAST_KEY_STEP = 64;
 const VISIBLE_SIDEWAYS = 150;
 const EDGE_LEFT = 16;
 const HEAD_GAP = 12;
 const SNAP_REACH = 12;
 const HALF_GAP = 12;
-
-const KEY_DIRECTIONS = new Map<string, FrameDelta>([
-  ['ArrowLeft', { dx: -1, dy: 0 }],
-  ['ArrowRight', { dx: 1, dy: 0 }],
-  ['ArrowUp', { dx: 0, dy: -1 }],
-  ['ArrowDown', { dx: 0, dy: 1 }],
-]);
+const CASCADE_STEP = 32;
 
 const wholeWithin = (value: number, min: number, max: number): number =>
   clamp(Math.round(value), Math.ceil(min), Math.floor(Math.max(min, max)));
@@ -83,18 +77,6 @@ export const clampResize = (
   return { x, y: start.y, width, height };
 };
 
-export const keyResize = (
-  frame: FrameRect,
-  delta: FrameDelta,
-  area: FrameArea,
-): FrameRect => {
-  const eastward = clampResize(frame, 'se', delta, area);
-  const isBlocked = delta.dx > 0 && eastward.width < frame.width + delta.dx;
-  return isBlocked
-    ? clampResize(frame, 'sw', { dx: -delta.dx, dy: delta.dy }, area)
-    : eastward;
-};
-
 export const areaOf = (
   layout: FrameArea,
   anchor: WindowAnchor,
@@ -137,15 +119,6 @@ export const frameOfZone = (zone: FrameZone, area: FrameArea): FrameRect => {
   return { x, y: area.top, width, height };
 };
 
-export const keyStep = (key: string, isFast: boolean): FrameDelta | null => {
-  const direction = KEY_DIRECTIONS.get(key);
-  if (!direction) {
-    return null;
-  }
-  const step = isFast ? FAST_KEY_STEP : KEY_STEP;
-  return { dx: direction.dx * step, dy: direction.dy * step };
-};
-
 export const unsnapAt = (
   zoned: FrameRect,
   width: number,
@@ -161,6 +134,110 @@ export const clearanceOf = (
   top: headBottom + HEAD_GAP,
   bottom: reserve + barHeight,
 });
+
+export const fitBelowFloor = (
+  rect: FrameRect,
+  floor: number,
+): FrameRect | null => {
+  if (rect.y + rect.height <= floor) {
+    return rect;
+  }
+  const height = Math.floor(floor - rect.y);
+  return height >= FRAME_MIN_HEIGHT ? { ...rect, height } : null;
+};
+
+export const cascadePlaceOf = (
+  top: FrameRect,
+  own: FrameRect,
+  viewport: FrameViewport,
+  bounds: CascadeBounds,
+): FramePlace | null => {
+  const target: FrameRect = {
+    x: Math.round(top.x + top.width - CASCADE_STEP - own.width),
+    y: Math.round(top.y + CASCADE_STEP),
+    width: own.width,
+    height: own.height,
+  };
+  const clamped = clampMove(target, viewport, bounds);
+  if (clamped.x !== target.x || clamped.y !== target.y) {
+    return null;
+  }
+  const fitted = fitBelowFloor(target, bounds.floor);
+  return fitted
+    ? {
+        dx: Math.round(fitted.x - own.x),
+        dy: Math.round(fitted.y - own.y),
+        width: null,
+        height: fitted.height === target.height ? null : fitted.height,
+      }
+    : null;
+};
+
+const overlapArea = (a: FrameRect, b: FrameRect): number => {
+  const width = Math.max(
+    0,
+    Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x),
+  );
+  const height = Math.max(
+    0,
+    Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y),
+  );
+  return width * height;
+};
+
+const overlapWith = (rect: FrameRect, others: readonly FrameRect[]): number =>
+  others.reduce((total, other) => total + overlapArea(rect, other), 0);
+
+const placedRect = (own: FrameRect, place: FramePlace): FrameRect => ({
+  x: own.x + place.dx,
+  y: own.y + place.dy,
+  width: place.width ?? own.width,
+  height: place.height ?? own.height,
+});
+
+const mirroredPlaceOf = (
+  own: FrameRect,
+  viewport: FrameViewport,
+  bounds: CascadeBounds,
+): FramePlace | null => {
+  const target: FrameRect = {
+    ...own,
+    x: Math.round(viewport.width - own.x - own.width),
+    y: Math.round(own.y),
+  };
+  const clamped = clampMove(target, viewport, bounds);
+  return clamped.x === target.x && clamped.y === target.y
+    ? { dx: target.x - own.x, dy: target.y - own.y, width: null, height: null }
+    : null;
+};
+
+export const leastOverlapPlaceOf = (
+  own: FrameRect,
+  others: readonly FrameRect[],
+  viewport: FrameViewport,
+  bounds: CascadeBounds,
+): FramePlace | null => {
+  const front = others[0];
+  if (!front) {
+    return null;
+  }
+  let best: FramePlace | null = null;
+  let bestOverlap = overlapWith(own, others);
+  for (const place of [
+    mirroredPlaceOf(own, viewport, bounds),
+    cascadePlaceOf(front, own, viewport, bounds),
+  ]) {
+    if (!place) {
+      continue;
+    }
+    const overlap = overlapWith(placedRect(own, place), others);
+    if (overlap < bestOverlap) {
+      best = place;
+      bestOverlap = overlap;
+    }
+  }
+  return best;
+};
 
 export const fittedHeight = (
   layout: { readonly top: number; readonly height: number },

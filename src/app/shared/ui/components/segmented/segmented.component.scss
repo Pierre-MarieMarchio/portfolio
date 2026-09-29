@@ -9,16 +9,20 @@
 
 ul {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 2px;
   padding: 2px;
   border: 1px solid var(--line);
   width: fit-content;
   max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
 
 li {
   display: flex;
+  flex: 0 0 auto;
 }
 
 button {
@@ -38,10 +42,6 @@ button {
   }
 }
 
-.phone-label {
-  display: none;
-}
-
 .count {
   font-size: var(--m1);
   color: var(--ink-2);
@@ -52,32 +52,11 @@ button {
 }
 
 @include formats.handheld {
-  ul {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-  }
-
-  li {
-    flex: 0 0 auto;
-  }
-
   button {
     gap: 4px;
     padding: 5px 4px;
     font-size: var(--m1);
     letter-spacing: normal;
-  }
-}
-
-@include formats.phone {
-  .label--wide {
-    display: none;
-  }
-
-  .phone-label {
-    display: inline;
   }
 }
 

@@ -42,7 +42,7 @@ export interface SceneConfig {
     doubleTapPx: number;
     wheelNotchRatio: number;
   }>;
-  readonly planets: Readonly<{ gap: number }>;
+  readonly planets: Readonly<{ gap: number; slowSpan: number }>;
   readonly figures: Readonly<{
     targetMin: number;
     labelSize: number;
@@ -98,6 +98,7 @@ export const SCENE_CONFIG: SceneConfig = {
   },
   planets: {
     gap: 58,
+    slowSpan: 0.3,
   },
   figures: {
     targetMin: 44,

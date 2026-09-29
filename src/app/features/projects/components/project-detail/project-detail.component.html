@@ -3,7 +3,6 @@
     [label]="texts().sheet.label"
     size="l"
     [heading]="project()?.title ?? ''"
-    [meta]="meta()"
     [stableHeight]="true"
     [scrollKey]="scrollKey()"
     [scrollResetOn]="chapter()"
@@ -12,6 +11,13 @@
     [closeLabel]="closeLabel()"
     (closed)="closed.emit()"
   >
+    <a
+      before
+      class="to-index"
+      [routerLink]="links.index()"
+      [attr.aria-label]="texts().sheet.toIndexLabel"
+      >{{ texts().sheet.toIndex }}</a
+    >
     <app-segmented
       toolbar
       instant

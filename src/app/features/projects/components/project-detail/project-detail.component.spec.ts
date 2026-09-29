@@ -11,6 +11,7 @@ import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
+import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
@@ -127,13 +128,26 @@ describe('ProjectDetailComponent', () => {
     expect(host.querySelector('.window')).toBeNull();
   });
 
-  it('opens a window titled after the project, with its rank over the total', async () => {
+  it('opens a window titled after the project, without a rank counter', async () => {
     const { host, texts } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
     expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
+    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
+  });
+
+  it('links back to the list at the start of its title bar', async () => {
+    const { host, texts } = await mount({ slug: 'proj-b' });
+    const link = host.querySelector<HTMLAnchorElement>('.titlebar a.to-index');
+    const titlebarChildren = [
+      ...(host.querySelector('.titlebar')?.children ?? []),
+    ];
+
+    expect(link?.textContent?.trim()).toBe(texts.sheet.toIndex);
+    expect(link?.getAttribute('aria-label')).toBe(texts.sheet.toIndexLabel);
+    expect(link?.getAttribute('href')).toBe('/projets');
+    expect(titlebarChildren.indexOf(link as Element)).toBe(0);
   });
 
   it('asks its window for a stable height, so a chapter change does not resize it', async () => {
@@ -142,7 +156,7 @@ describe('ProjectDetailComponent', () => {
     expect(componentOf(fixture, WindowComponent).stableHeight()).toBe(true);
   });
 
-  it('lists one toolbar button per chapter, numbered, titled on the phone, labelled and pressed on the current one', async () => {
+  it('lists one toolbar button per chapter, titled by its own title, labelled and pressed on the current one', async () => {
     const { host, texts } = await mount({ slug: 'proj-b', chapter: 1 });
     const toolbar = host.querySelector(
       `[aria-label="${texts.sheet.approaches}"]`,
@@ -154,11 +168,6 @@ describe('ProjectDetailComponent', () => {
     expect(
       buttons.map((button) =>
         button.querySelector('span')?.textContent?.trim(),
-      ),
-    ).toEqual(['01', '02', '03']);
-    expect(
-      buttons.map((button) =>
-        button.querySelector('.phone-label')?.textContent?.trim(),
       ),
     ).toEqual(['Pourquoi', 'Comment', 'Et ensuite']);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
@@ -295,7 +304,12 @@ describe('ProjectDetailComponent', () => {
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    host.querySelector<HTMLButtonElement>('button.pin')?.click();
+    await loadWindowMenu();
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
     expect(pinToggled).toHaveLength(1);

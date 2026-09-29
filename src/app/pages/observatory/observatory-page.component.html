@@ -1,43 +1,16 @@
+<app-intro-skip />
+
 @if (isOpening()) {
   <app-intro-card />
 }
 
-<main tabindex="-1" [id]="ids.main">
+<main tabindex="-1" appWindowCycle [id]="ids.main">
   <section
     class="scene"
     [id]="ids.home"
     [attr.aria-labelledby]="ids.homeTitle"
     [attr.data-arrival]="arrival()"
   >
-    <app-observatory-scene
-      #object
-      [bodies]="planets()"
-      [featured]="projects.featured().length"
-      [view]="sceneView()"
-      [sheet]="sheetSlug()"
-      [chapter]="observatory.chapter()"
-      [part]="observatory.section()"
-      [preview]="observatory.preview()"
-      [hovered]="observatory.hovered()"
-      [designated]="designated()"
-      [selected]="observatory.selected()"
-      [paused]="animation.paused()"
-      [revealed]="arrival() === 'shown'"
-      (bodyClicked)="onBodyClicked($event)"
-      (bodyHovered)="onReaderHovered($event)"
-      (figureChosen)="observatory.chooseSection($event)"
-    />
-
-    @if (observatory.canStepBack()) {
-      <button
-        type="button"
-        class="void"
-        tabindex="-1"
-        [attr.aria-label]="observatoryTexts().home.void"
-        (click)="onVoid()"
-      ></button>
-    }
-
     <div
       class="bar"
       appBottomEdgeVariable="--head-bottom"
@@ -49,7 +22,9 @@
         [appLayoutAnchor]="anchor.chrome"
         [items]="links.navigation()"
         [current]="currentRoute()"
+        [openRoutes]="openRoutes()"
         [arrival]="arrival()"
+        [appHeldInert]="arrival()"
       />
     </div>
 
@@ -58,6 +33,7 @@
         appViewSlot="home"
         [appLayoutAnchor]="anchor.chrome"
         [arrival]="arrival()"
+        [appHeldInert]="arrival()"
       />
     }
 
@@ -105,7 +81,6 @@
             [visited]="observatory.visited()"
             [family]="family()"
             (familyChange)="observatory.filter($event)"
-            (selectedChange)="observatory.select($event)"
             (hoveredChange)="observatory.hover($event)"
             (pinToggled)="observatory.togglePin('index')"
             [closeLabel]="closeLabels().index"
@@ -175,6 +150,22 @@
       }
     </div>
 
+    @if (observatory.canStepBack()) {
+      <button
+        type="button"
+        class="void"
+        tabindex="-1"
+        [attr.aria-label]="voidLabel()"
+        (click)="onVoid()"
+      ></button>
+    }
+
+    @if (canDeselect()) {
+      <button type="button" class="overview" (click)="onVoid()">
+        {{ observatoryTexts().stepBack.overview }}
+      </button>
+    }
+
     @if (showsRule()) {
       <app-featured-bar
         [appLayoutAnchor]="anchor.rule"
@@ -183,10 +174,30 @@
         [hovered]="observatory.hovered()"
         [reading]="observatory.lastPreview()"
         [arrival]="arrival()"
+        [appHeldInert]="arrival()"
         (chosen)="observatory.openPreview($event)"
         (hoveredChange)="onReaderHovered($event)"
       />
     }
+
+    <app-observatory-scene
+      #object
+      [bodies]="planets()"
+      [featured]="projects.featured().length"
+      [view]="sceneView()"
+      [sheet]="sheetSlug()"
+      [chapter]="observatory.chapter()"
+      [part]="observatory.section()"
+      [preview]="observatory.preview()"
+      [hovered]="observatory.hovered()"
+      [designated]="designated()"
+      [selected]="observatory.selected()"
+      [paused]="animation.paused()"
+      [revealed]="arrival() === 'shown'"
+      (bodyClicked)="onBodyClicked($event)"
+      (bodyHovered)="onReaderHovered($event)"
+      (figureChosen)="observatory.chooseSection($event)"
+    />
   </section>
 </main>
 

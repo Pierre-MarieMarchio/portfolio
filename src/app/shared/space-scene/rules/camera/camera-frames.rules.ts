@@ -55,6 +55,17 @@ const unitRadius = (w: number, h: number): number => Math.min(w / 6.6, h / 3.2);
 export const referenceRadius = (w: number, h: number, s: number): number =>
   unitRadius(w, h) * s;
 
+export const unitRadiusOf = (w: number, h: number): number => unitRadius(w, h);
+
+const SETTLE_PX = 0.5;
+
+export const settledStep = (
+  eased: number,
+  target: number,
+  pxPerUnit: number,
+): number =>
+  Math.abs(target - eased) * pxPerUnit < SETTLE_PX ? target : eased;
+
 export const verticalFactor = (ev: number, roll: number): number =>
   opening(ev) + Math.abs(Math.sin(roll));
 

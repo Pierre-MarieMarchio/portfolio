@@ -6,6 +6,7 @@ import {
   inject,
   linkedSignal,
   untracked,
+  viewChildren,
 } from '@angular/core';
 import { DisplayFormatService, LocaleService } from '@app/core/services';
 import { SceneAnchorKind } from '@app/features/common';
@@ -13,6 +14,7 @@ import {
   AnimationToggleComponent,
   HomeTitleComponent,
   IntroCardComponent,
+  IntroSkipComponent,
   NotFoundWindowComponent,
   ObservatoryDockComponent,
   ObservatorySceneComponent,
@@ -54,22 +56,34 @@ import { ProjectsManager } from '@app/features/projects/states';
 import { pathOf, ViewLinksService } from '@app/i18n';
 import { BottomSheetComponent } from '@shared/mobile-nav/components';
 import type { SheetDetent } from '@shared/mobile-nav/models';
+import type { LayoutBox } from '@shared/space-scene/models';
+import { SCENE_WINDOW_DRAG, SceneWindowDrag } from '@shared/space-scene/ports';
+import type { FrameRect } from '@shared/windows/models';
 import {
   LanguageSwitchComponent,
   MainNavComponent,
 } from '@shared/ui/components';
 import {
   BottomEdgeVariableDirective,
+  HeldInertDirective,
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
 import {
   KeptWindowDirective,
   StackedWindowDirective,
+  WindowCycleDirective,
   WindowFrameDirective,
 } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
 
 const PREVIEW_DETENTS: readonly SheetDetent[] = ['folded', 'half'];
+
+const boxOf = (rect: FrameRect): LayoutBox => ({
+  left: rect.x,
+  top: rect.y,
+  right: rect.x + rect.width,
+  bottom: rect.y + rect.height,
+});
 
 interface SheetOnShow {
   readonly slug: string | null;
@@ -85,8 +99,10 @@ interface SheetOnShow {
     BottomSheetComponent,
     ContactLinksComponent,
     FeaturedBarComponent,
+    HeldInertDirective,
     HomeTitleComponent,
     IntroCardComponent,
+    IntroSkipComponent,
     KeptWindowDirective,
     LanguageSwitchComponent,
     LayoutAnchorDirective,
@@ -98,6 +114,7 @@ interface SheetOnShow {
     ProjectListComponent,
     ProjectPreviewComponent,
     StackedWindowDirective,
+    WindowCycleDirective,
     WindowFrameDirective,
     ViewSlotDirective,
     WindowSheetDirective,
@@ -107,6 +124,7 @@ interface SheetOnShow {
     FeaturedTourService,
     WindowStackService,
     ViewWindowsService,
+    { provide: SCENE_WINDOW_DRAG, useExisting: ObservatoryPageComponent },
   ],
   host: {
     '(document:keydown.escape)': 'onEscape()',
@@ -114,7 +132,8 @@ interface SheetOnShow {
   templateUrl: './observatory-page.component.html',
   styleUrl: './observatory-page.component.scss',
 })
-export class ObservatoryPageComponent {
+export class ObservatoryPageComponent implements SceneWindowDrag {
+  private readonly framedWindows = viewChildren(WindowFrameDirective);
   private readonly featuredTour = inject(FeaturedTourService);
   private readonly homeReveal = inject(HomeRevealService);
   protected readonly observatory = inject(ObservatoryManager);
@@ -189,6 +208,17 @@ export class ObservatoryPageComponent {
     this.links.routeOf(this.observatory.view()),
   );
 
+  protected readonly openRoutes = computed<readonly string[]>(() => {
+    const routes: string[] = [];
+    if (this.observatory.showsAbout()) {
+      routes.push(this.links.routeOf('about'));
+    }
+    if (this.observatory.showsList() || this.observatory.showsSheet()) {
+      routes.push(this.links.routeOf('index'));
+    }
+    return routes;
+  });
+
   protected readonly closeLabels = computed(() => {
     const view = this.observatory.view();
     const { closeTo } = this.observatoryTexts();
@@ -207,6 +237,17 @@ export class ObservatoryPageComponent {
     () =>
       this.observatory.view() === 'home' && this.observatory.preview() === null,
   );
+
+  protected readonly canDeselect = computed(
+    () =>
+      this.observatory.view() === 'index' &&
+      this.observatory.selected() !== null,
+  );
+
+  protected readonly voidLabel = computed(() => {
+    const { stepBack } = this.observatoryTexts();
+    return this.canDeselect() ? stepBack.deselect : stepBack.closePreview;
+  });
 
   constructor() {
     const locale = inject(LocaleService);
@@ -227,6 +268,17 @@ export class ObservatoryPageComponent {
         this.featuredTour.play(() => this.featuredSlugs());
       });
     });
+  }
+
+  public onDragging(handler: (rect: LayoutBox | null) => void): () => void {
+    const stops = this.framedWindows().map((framed) =>
+      framed.onLive((rect) => handler(rect && boxOf(rect))),
+    );
+    return () => {
+      for (const stop of stops) {
+        stop();
+      }
+    };
   }
 
   protected onEscape(): void {

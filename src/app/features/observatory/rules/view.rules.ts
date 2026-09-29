@@ -3,12 +3,7 @@ import { OBSERVATORY_WINDOWS } from '../models/observatory.model';
 
 export type ParentView = 'home' | 'index';
 
-type StepBack =
-  | { readonly kind: 'deselect' }
-  | { readonly kind: 'close-preview' }
-  | { readonly kind: 'navigate'; readonly to: ParentView };
-
-export type StepBackGesture = 'escape' | 'void';
+type StepBack = 'deselect' | 'close-preview';
 
 export interface StepBackFrom {
   readonly view: ObservatoryView;
@@ -55,18 +50,15 @@ export function windowOf(view: ObservatoryView): ObservatoryWindow | null {
   }
 }
 
-export function stepBack(
-  gesture: StepBackGesture,
-  { view, selection, preview }: StepBackFrom,
-): StepBack | null {
+export function stepBack({
+  view,
+  selection,
+  preview,
+}: StepBackFrom): StepBack | null {
   if (view === 'index' && selection !== null) {
-    return { kind: 'deselect' };
+    return 'deselect';
   }
-  const parent = parentOf(view);
-  if (parent !== null && (gesture === 'escape' || view === 'sheet')) {
-    return { kind: 'navigate', to: parent };
-  }
-  return preview !== null && view === 'home' ? { kind: 'close-preview' } : null;
+  return view === 'home' && preview !== null ? 'close-preview' : null;
 }
 
 export interface DockFrom {

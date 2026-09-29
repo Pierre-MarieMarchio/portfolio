@@ -226,10 +226,7 @@ describe('ObservatoryManager', () => {
   });
 
   describe('canStepBack', () => {
-    it('is true on a sheet, an index with a row open, a home page with a preview', () => {
-      manager.syncRoute('sheet', 'skyted');
-      expect(manager.canStepBack()).toBe(true);
-
+    it('is true on an index with a row open, and on a home page with a preview', () => {
       manager.syncRoute('index');
       manager.select('skyted');
       expect(manager.canStepBack()).toBe(true);
@@ -239,12 +236,14 @@ describe('ObservatoryManager', () => {
       expect(manager.canStepBack()).toBe(true);
     });
 
-    it('is false where the void would close nothing', () => {
+    it('is false where the void would close nothing, even on a sheet or about', () => {
       manager.syncRoute('home');
       expect(manager.canStepBack()).toBe(false);
       manager.syncRoute('index');
       expect(manager.canStepBack()).toBe(false);
       manager.syncRoute('about');
+      expect(manager.canStepBack()).toBe(false);
+      manager.syncRoute('sheet', 'skyted');
       expect(manager.canStepBack()).toBe(false);
     });
   });
@@ -275,38 +274,37 @@ describe('ObservatoryManager', () => {
     expect(manager.preview()).toBe('skyted');
   });
 
+  it('resolves close, once the effect has navigated home from the index', async () => {
+    manager.syncRoute('index');
+    await manager.close('index');
+
+    expect(navigated).toEqual(['/']);
+  });
+
   it.each<{
     case: string;
     act: (manager: ObservatoryManager) => Promise<void>;
-    navigated: string;
   }>([
     {
-      case: 'close, once the effect has navigated home from the index',
+      case: 'escape, once the effect has deselected the index row',
       act: async (m) => {
         m.syncRoute('index');
-        await m.close('index');
-      },
-      navigated: '/',
-    },
-    {
-      case: 'escape, once the effect has navigated back to the list from a sheet',
-      act: async (m) => {
-        m.syncRoute('sheet', 'skyted');
+        m.select('skyted');
         await m.escape();
       },
-      navigated: '/projets',
     },
     {
-      case: 'stepBack, once the effect has navigated back to the list from a sheet',
+      case: 'stepBack, once the effect has deselected the index row',
       act: async (m) => {
-        m.syncRoute('sheet', 'skyted');
+        m.syncRoute('index');
+        m.select('skyted');
         await m.stepBack();
       },
-      navigated: '/projets',
     },
-  ])('resolves $case', async ({ act, navigated: to }) => {
+  ])('resolves $case, never navigating', async ({ act }) => {
     await act(manager);
 
-    expect(navigated).toEqual([to]);
+    expect(manager.selected()).toBeNull();
+    expect(navigated).toEqual([]);
   });
 });

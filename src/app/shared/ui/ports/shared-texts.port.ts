@@ -7,6 +7,7 @@ export interface SharedTexts {
   readonly pageBar: {
     readonly languages: string;
     readonly navigation: string;
+    readonly openWindow: string;
   };
   readonly contactRail: {
     readonly label: string;

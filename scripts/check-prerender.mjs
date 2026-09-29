@@ -92,9 +92,9 @@ const wordsOf = (html) => {
   const names = [...body.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(
     (match) => match[1],
   );
-  return [body.replace(/<[^>]+>/g, ' '), ...names]
+  return [body.replace(/<[^<>]+>/g, ' '), ...names]
     .join(' ')
-    .replace(/Français/g, '');
+    .replaceAll('Français', '');
 };
 
 /** @type {string[]} */

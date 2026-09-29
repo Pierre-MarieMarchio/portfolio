@@ -35,6 +35,7 @@
 .said {
   @include type.mono(var(--m2));
 
+  display: block;
   min-height: var(--target);
   margin: 0;
   padding: var(--s2) 16px 0;

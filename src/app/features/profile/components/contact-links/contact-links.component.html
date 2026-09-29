@@ -10,8 +10,8 @@
   <ng-content />
   <app-contact-menu [links]="links()" />
 </app-social-links>
-<p class="visually-hidden copy-said" role="status">
+<output class="visually-hidden copy-said">
   @if (isCopied()) {
     {{ texts().contactMenu.copied }}
   }
-</p>
+</output>

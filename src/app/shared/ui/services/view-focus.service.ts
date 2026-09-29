@@ -51,7 +51,7 @@ export class ViewFocusService {
       ? [...this.headings].find((each) => container.contains(each))
       : undefined;
     heading?.focus({ preventScroll: true });
-    if (heading && heading.ownerDocument.activeElement === heading) {
+    if (heading?.matches(':focus') === true) {
       this.claim = null;
     }
   }

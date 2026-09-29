@@ -17,3 +17,14 @@ export const offsetOfPage = (
 
 export const isAt = (scrollLeft: number, offset: number): boolean =>
   Math.abs(scrollLeft - offset) < 1;
+
+export const indexOfChild = (
+  container: Element,
+  target: Element | null,
+): number | null => {
+  if (!target) {
+    return null;
+  }
+  const index = Array.prototype.indexOf.call(container.children, target);
+  return index === -1 ? null : index;
+};

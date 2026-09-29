@@ -1656,28 +1656,3 @@ describe('SpaceSceneEngine, under an interface already in', () => {
     expect(radii.at(-1)).toBeCloseTo(full, -1);
   });
 });
-
-describe('SpaceSceneEngine, telling its travels', () => {
-  it('tells once when the camera sets off for a planet, and once when it lands', () => {
-    const scene = mountEngineScene({ holeFocus: true });
-    scene.run(PAST_CROSSING_MS);
-    const before = scene.travels.length;
-
-    scene.set({
-      direction: { framing: { kind: 'close-up', body: bodyId(2) } },
-    });
-    scene.run(PAST_CROSSING_MS);
-
-    expect(scene.travels.slice(before)).toEqual([true, false]);
-  }, 60_000);
-
-  it('tells nothing while the camera rests', () => {
-    const scene = mountEngineScene({ holeFocus: true });
-    scene.run(PAST_CROSSING_MS);
-    const before = scene.travels.length;
-
-    scene.run(PAST_CROSSING_MS);
-
-    expect(scene.travels.length).toBe(before);
-  });
-});

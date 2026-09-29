@@ -104,9 +104,4 @@ export interface SceneWorkerFrame {
   readonly pan: { readonly x: number; readonly y: number } | null;
 }
 
-export interface SceneWorkerTravel {
-  readonly kind: 'travel';
-  readonly isTravelling: boolean;
-}
-
-export type FromSceneWorker = SceneWorkerFrame | SceneWorkerTravel;
+export type FromSceneWorker = SceneWorkerFrame;

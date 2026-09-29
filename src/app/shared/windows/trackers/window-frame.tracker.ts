@@ -3,6 +3,7 @@ import {
   FRAME_EDGES,
   type DraggedFrame,
   type FrameArea,
+  type FrameClearance,
   type FrameDelta,
   type FrameEdge,
   type FrameGrip,
@@ -16,7 +17,7 @@ import {
 import {
   areaOf,
   clampMove,
-  fittedHeight,
+  clearanceOf,
   frameOfZone,
   isZone,
   keyResize,
@@ -24,9 +25,11 @@ import {
   unsnapAt,
 } from '../rules/window-frame.rules';
 import { WindowDragTracker } from './window-drag.tracker';
+import { WindowHeightTracker } from './window-height.tracker';
 
 const NOWHERE: FramePlace = { dx: 0, dy: 0, width: null, height: null };
 const RESERVE = '--window-reserve';
+const HEAD = '--head-bottom';
 const ENDS = new Set(['Enter', 'Escape']);
 const EDGE_STYLES: Readonly<Record<FrameEdge, string>> = {
   e: 'top:0;right:0;bottom:0;width:5px;cursor:ew-resize',
@@ -39,18 +42,6 @@ const EDGE_STYLES: Readonly<Record<FrameEdge, string>> = {
 const rectOf = (element: Element): FrameRect => {
   const { left, top, width, height } = element.getBoundingClientRect();
   return { x: left, y: top, width, height };
-};
-
-const layoutTop = (element: HTMLElement): number => {
-  let top = element.offsetTop;
-  for (
-    let parent = element.offsetParent;
-    parent instanceof HTMLElement;
-    parent = parent.offsetParent
-  ) {
-    top += parent.offsetTop + parent.clientTop;
-  }
-  return top;
 };
 
 const listen = <K extends keyof HTMLElementEventMap>(
@@ -70,11 +61,13 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
   private drag: WindowDragTracker | null = null;
   private readonly edges: readonly HTMLElement[];
   private readonly stops: (() => void)[];
+  private readonly height: WindowHeightTracker;
 
   constructor(private readonly framed: FramedWindow) {
-    const { section, bar } = framed.parts;
+    const { bar } = framed.parts;
     const edges = FRAME_EDGES.map((edge) => ({ edge, at: this.edgeOf(edge) }));
     this.edges = edges.map(({ at }) => at);
+    this.height = new WindowHeightTracker(framed);
     this.stops = [
       listen(bar, 'pointerdown', (event) => {
         this.grab(event, 'bar', bar);
@@ -84,15 +77,8 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
           this.grab(event, edge, at);
         }),
       ),
-      listen(section, 'animationend', () => {
-        this.fitHeight();
-      }),
-      framed.onResize(section, () => {
-        this.fitHeight();
-      }),
       framed.onWindow('resize', () => this.fit(), { passive: true }),
     ];
-    this.fitHeight();
   }
 
   public press(control: FrameKeyControl | 'maximize', event: Event): void {
@@ -123,7 +109,7 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
   }
 
   public fit(): void {
-    this.fitHeight();
+    this.height.fit();
     const mode = this.framed.mode();
     const viewport = this.framed.viewport();
     if (this.drag || !viewport || mode === null) {
@@ -133,25 +119,12 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     const rect = this.rect();
     const place = isZone(mode)
       ? this.placeAt(frameOfZone(mode, this.area(rect)))
-      : this.moveTo(clampMove(rect, viewport));
+      : this.moveTo(clampMove(rect, viewport, this.clearance()));
     this.framed.commit(place, mode);
   }
 
   public fitHeight(): void {
-    const { section, anchor, ceiling } = this.framed.parts;
-    const viewport = this.framed.viewport();
-    if (!viewport || this.framed.place()?.height != null) {
-      section.style.maxHeight = '';
-      return;
-    }
-    const reserve = Number.parseFloat(this.framed.token(RESERVE, section)) || 0;
-    const height = fittedHeight(
-      { top: layoutTop(section), height: section.offsetHeight },
-      anchor(),
-      viewport,
-      { reserve, ceiling: ceiling() },
-    );
-    section.style.maxHeight = `${String(height)}px`;
+    this.height.fit();
   }
 
   public stop(): void {
@@ -162,7 +135,7 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     for (const edge of this.edges) {
       edge.remove();
     }
-    this.framed.parts.section.style.maxHeight = '';
+    this.height.stop();
   }
 
   public rect(): FrameRect {
@@ -172,12 +145,19 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
   public area(rect: FrameRect): FrameArea {
     const x = rect.x - this.painted.dx;
     const y = rect.y - this.painted.dy;
-    const token = this.framed.token(RESERVE, this.framed.element);
     return areaOf(
       { left: x, top: y, right: x + rect.width, bottom: y + rect.height },
       this.framed.parts.anchor(),
       this.framed.viewport() ?? { width: 0, height: 0 },
-      Number.parseFloat(token) || 0,
+      Number.parseFloat(this.framed.token(RESERVE, this.framed.element)) || 0,
+    );
+  }
+
+  public clearance(): FrameClearance {
+    return clearanceOf(
+      Number.parseFloat(this.framed.token(HEAD, this.framed.element)) || 0,
+      Number.parseFloat(this.framed.token(RESERVE, this.framed.element)) || 0,
+      this.framed.parts.bar.getBoundingClientRect().height,
     );
   }
 
@@ -278,6 +258,7 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
             clampMove(
               { ...rect, x: rect.x + delta.dx, y: rect.y + delta.dy },
               viewport,
+              this.clearance(),
             ),
           )
         : this.placeAt(keyResize(rect, delta, this.area(rect)));
@@ -301,7 +282,7 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
   private paintPlace(place: FramePlace | null): FramePlace {
     this.painted = place ?? NOWHERE;
     if (place?.height != null) {
-      this.framed.parts.section.style.maxHeight = '';
+      this.height.clear();
     }
     this.framed.paint(place);
     return this.painted;

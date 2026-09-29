@@ -205,13 +205,10 @@ li button {
 }
 
 @include formats.phone {
-  .all {
-    margin-top: 0;
-  }
-
   .head,
   .track,
-  .reading {
+  .reading,
+  .all {
     display: none;
   }
 

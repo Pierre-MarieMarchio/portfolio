@@ -95,7 +95,15 @@ export class ViewWindowsService {
   private focusAfterNavigations(): void {
     let withdraw: (() => void) | undefined;
     effect(() => {
-      const shown = windowOf(this.observatory.view()) ?? 'home';
+      const view = this.observatory.view();
+      const preview =
+        view === 'home'
+          ? this.observatory.preview()
+          : untracked(() => this.observatory.preview());
+      const shown: ViewSlot =
+        view === 'home' && preview !== null
+          ? 'preview'
+          : (windowOf(view) ?? 'home');
       this.observatory.slug();
       const slot = untracked(() => this.slots.get(shown));
       const isReady = slot?.isShown?.() ?? true;

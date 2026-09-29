@@ -2093,3 +2093,93 @@ les vues. Décaler le cadrage de droite sans le refléter : la planète
 partirait vers le bord. Suivre la fenêtre agrandie : il n'y a plus de ciel à
 montrer. Déplacer la constellation de l'à-propos : hors du cadrage, à
 reprendre à part.
+
+## 2026-09-29 — Au téléphone, la vitre garde son flou quand la caméra voyage (D67, amende D46)
+
+**Décision.** La vitre du téléphone ne perd plus son flou pendant que la
+caméra voyage. Le drapeau `data-sky-travel` disparaît, avec tout ce qui ne
+servait qu'à le produire : l'annonce du voyage par la scène, son message du
+worker et `flagRoot`. Le flou du ciel au téléphone ne dépend donc plus que
+du cran de la feuille.
+
+**Raison.** Chaque changement de cran fait voyager la caméra. La vitre
+passait alors nette pendant environ deux secondes, puis redevenait floue en
+fondu, et faisait un aller-retour quand le drapeau rebasculait : le lecteur
+voyait le trou net, puis flou, lentement, par à-coups. Mesuré image par
+image sur la liste, l'à-propos et la fiche, du cran replié au plein, puis à
+la mi-hauteur et au repli : la vitre ne change plus de valeur, et le flou de
+la feuille va d'un cran à l'autre sans revenir en arrière. D46 retirait ce
+flou quand la scène se dessinait sur le fil principal ; elle se dessine
+depuis dans un worker (D47). Le bundle initial passe de 516,44 à
+516,04 kB ; le worker de 62,04 à 61,79 kB.
+
+**Écarté.** Ne garder le drapeau qu'au cran plein : un aller-retour restait
+possible aux autres crans. Garder le drapeau pour un usage futur : du code
+que rien ne lit. Une vitre sans flou au téléphone : elle change le verre au
+repos (déjà écarté par D46).
+
+## 2026-09-29 — Au bureau, une fenêtre gardée reste là, sa barre reste à portée, et sa hauteur ne saute plus (D68, amende D62 et D65)
+
+**Décision.** Quatre correctifs des fenêtres du bureau. Une fiche épinglée
+reste affichée quand on change de page, comme la liste et l'à-propos.
+L'aperçu ouvert reçoit le focus sur un titre qui nomme le projet ; c'est un
+`h2`, et la page ne garde qu'un `h1`. Au lâcher d'un glisser, à la souris
+comme au clavier, et quand l'écran change, la barre de titre reste sous la
+barre des pages et au-dessus du rail du bas, avec au moins 120 px dans
+l'écran ; les marges se lisent de `--head-bottom`, de `--window-reserve` et
+de la hauteur de la barre (`clearanceOf`). L'à-propos et la fiche ont une
+hauteur fixe (`stableHeight`) : le corps défile dedans, et une taille
+choisie par le lecteur reste. `WindowHeightTracker` tient la hauteur bornée
+pour `WindowFrameTracker`.
+
+**Raison.** Épingler la fiche annonçait « Fenêtre gardée » et la cachait.
+L'aperçu ouvert au clavier laissait le focus au corps de la page, et Tab
+passait par-dessus la fenêtre. Les marges fixes (12 et 60 px) ignoraient la
+barre des pages et la réserve du rail (76 à 88 px) : une fenêtre pouvait
+glisser sous le rail, barre de titre comprise, et ne plus se reprendre. Seule
+la page posée du pager compte dans la hauteur, d'où 720 → 597 px d'une
+section à l'autre ; un plafond (`max-height`) suivait ce contenu, une hauteur
+fixe ne le suit plus. Le bundle initial reste à 516,44 kB ;
+`window-frame-tracker` passe de 8,19 à 8,88 kB, toujours chargé à part.
+
+**Écarté.** Un `h1` dans l'aperçu : deux `h1` à l'accueil. Une hauteur fixe
+pour toutes les fenêtres : la liste et l'aperçu suivent leur contenu. Toucher
+le mixin du pager pour qu'il garde les pages cachées dans la mise en page :
+elles pèseraient dans chaque layout de la fenêtre.
+
+## 2026-09-29 — Au téléphone, la carte et la page se choisissent dès que le navigateur connaît la cible (D69, amende D57 et D58)
+
+**Décision.** Le carrousel et le pager séparent ce qu'ils montrent de ce
+qu'ils disent. La sélection visible (`data-current`, `aria-current`, et
+l'onglet du segmenté lié au pager) passe à la cible dès que le navigateur
+l'annonce (`scrollsnapchanging`) ; sans cette annonce, dès que la cible la
+plus proche change au fil du défilement. Le pager la publie
+(`shownChange`) ; la fiche et l'à-propos règlent leur onglet dessus
+(`linkedSignal`). L'index commis (`indexChange`, `activeChange`, donc l'état,
+l'adresse et la planète) part une fois par geste, à la fin du défilement,
+pour la page la plus proche : il ne demande plus d'être à moins d'un pixel de
+son offset. Tant que le doigt est posé ou que l'élan court, rien ne fait
+défiler le composant ; une cible demandée d'en haut attend la fin du geste.
+Un défilement lancé par le composant montre sa cible dès le départ et ne
+publie pas les pages qu'il traverse ; le doigt reprend la main. Le segmenté
+lié au pager amène son onglet en vue sans animation (`instant`). Les écoutes
+du toucher sont passives. `MOBILE_NAV_PLATFORM` gagne `onSnapChanging` et
+`hasSnapChanging`.
+
+**Raison.** La carte et l'onglet attendaient la fin du défilement, puis une
+transition, puis un second défilement du segmenté : mesuré à × 6, de +257 à
++561 ms après le lâcher, et le lecteur d'un vrai téléphone dit une à trois
+secondes. Le navigateur connaît la cible 500 ms avant la fin. Un réglage qui
+échouait d'une fraction de pixel ne se rattrapait jamais. Mesuré après, même
+méthode, séquence complète : la carte et la page changent de −251 à +13 ms
+du lâcher, l'onglet dans la même image que la page, et chaque séquence va
+droit à la cible (flick, glisser, toucher d'un onglet lointain). Garder
+l'état commis à la fin évite de recadrer la scène et de changer l'adresse à
+chaque page traversée. Un `touchstart` non passif ferait attendre le fil
+principal avant de défiler. Le bundle initial passe de 516,44 à 520,02 kB.
+
+**Écarté.** Commettre l'index dès l'annonce : la scène et l'adresse
+changeraient au milieu du geste, et le doigt peut encore revenir. Suivre à la
+fois l'annonce et le plus proche : ils se contredisent sur un flick (2 → 1 →
+2). Un indicateur qui suit le doigt au pixel : une variable par image ; il
+viendra avec les feuilles du lot C si le besoin demeure.

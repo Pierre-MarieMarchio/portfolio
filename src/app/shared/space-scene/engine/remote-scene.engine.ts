@@ -22,7 +22,6 @@ export interface RemoteHost {
   frame(callback: (time: number) => void): () => void;
   now(): number;
   hidden(): boolean;
-  travel(isTravelling: boolean): void;
 }
 
 export interface SceneWorkerPort {
@@ -241,10 +240,6 @@ export class RemoteSceneEngine implements SceneEngine {
   }
 
   private take(message: FromSceneWorker): void {
-    if (message.kind === 'travel') {
-      this.host.travel(message.isTravelling);
-      return;
-    }
     this.keep(message);
     this.cancelShow ??= this.host.frame(() => {
       this.cancelShow = null;

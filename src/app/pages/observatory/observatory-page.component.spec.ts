@@ -303,6 +303,26 @@ describe('ObservatoryPageComponent', () => {
     expect(host.querySelector('.slot--index h2.landing')).not.toBeNull();
   });
 
+  it('keeps at most one h1, with the preview open on home, or pinned elsewhere', async () => {
+    const { fixture, station, host } = await mount();
+    station.openPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(host.querySelectorAll('h1')).toHaveLength(1);
+
+    station.togglePin('preview');
+    station.syncRoute('index');
+    await fixture.whenStable();
+    expect(host.querySelectorAll('h1')).toHaveLength(1);
+
+    station.syncRoute('about');
+    await fixture.whenStable();
+    expect(host.querySelectorAll('h1')).toHaveLength(1);
+
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+    expect(host.querySelectorAll('h1')).toHaveLength(1);
+  });
+
   it('keeps the sheet it last showed, on its chapter, once the reader leaves it', async () => {
     const { fixture, station, host } = await mount();
     station.syncRoute('sheet', KNOWN_SLUG);

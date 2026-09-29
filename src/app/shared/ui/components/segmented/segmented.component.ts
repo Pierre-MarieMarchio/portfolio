@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   afterRenderEffect,
+  booleanAttribute,
   Component,
   DestroyRef,
   computed,
@@ -27,6 +28,7 @@ const ignore = (): void => {};
 export class SegmentedComponent<T> {
   public readonly items = input.required<readonly SegmentedItem<T>[]>();
   public readonly label = input<string | null>(null);
+  public readonly instant = input(false, { transform: booleanAttribute });
 
   public readonly valueChange = output<T>();
 
@@ -68,7 +70,9 @@ export class SegmentedComponent<T> {
       list.scrollBy({
         left: shift,
         behavior:
-          this.hasShown && !this.media.reducedMotion() ? 'smooth' : 'instant',
+          this.hasShown && !this.media.reducedMotion() && !this.instant()
+            ? 'smooth'
+            : 'instant',
       });
     }
     this.hasShown = true;

@@ -84,9 +84,9 @@ describe('i18n', () => {
     expect(
       host.querySelector('app-main-nav nav')?.getAttribute('aria-label'),
     ).toBe(EN.shared.pageBar.navigation);
-    expect(host.querySelector('.window h2')?.textContent?.trim()).toBe(
-      EN.projects.index.heading,
-    );
+    expect(
+      host.querySelector('.slot--index .window h2')?.textContent?.trim(),
+    ).toBe(EN.projects.index.heading);
   });
 
   it('keeps the station as it was across the switch', async () => {

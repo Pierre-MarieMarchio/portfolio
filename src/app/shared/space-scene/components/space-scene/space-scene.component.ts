@@ -137,7 +137,6 @@ export class SpaceSceneComponent {
         stop();
       }
       this.cancelMeasure?.();
-      this.canvas.flagRoot('sky-travel', false);
       this.engine()?.stop();
       this.engine.set(null);
     });

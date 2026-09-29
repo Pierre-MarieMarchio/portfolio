@@ -142,24 +142,6 @@ describe('RemoteSceneEngine', { timeout: 30_000 }, () => {
     expect(engine.holdZoom(10, 10)).toBe(true);
   });
 
-  it('passes on when its camera sets off and when it lands', async () => {
-    const paired = pairedScene();
-    drive(paired.engine, sceneNodes());
-    await paired.run(PAST_CROSSING_MS);
-    const before = paired.travels.length;
-
-    paired.engine.setInputs({
-      ...SCENE_INPUTS,
-      direction: {
-        ...SCENE_INPUTS.direction,
-        framing: { kind: 'close-up', body: bodyId(2) },
-      },
-    });
-    await paired.run(PAST_CROSSING_MS);
-
-    expect(paired.travels.slice(before)).toEqual([true, false]);
-  });
-
   it('sends the pan of the page to the worker, and takes back the pan it eases', async () => {
     const pan = new SkyPanMotion();
     const paired = pairedScene();

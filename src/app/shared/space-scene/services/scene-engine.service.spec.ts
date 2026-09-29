@@ -33,7 +33,6 @@ const setup = ({ offThread, worker }: Browser) => {
     nextFrame: () => noop,
     now: () => 0,
     isHidden: () => false,
-    flagRoot: noop,
   };
   TestBed.configureTestingModule({
     providers: [

@@ -10,6 +10,7 @@ import {
 import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
+import { WindowComponent } from '@shared/windows/components';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
@@ -133,6 +134,12 @@ describe('ProjectDetailComponent', () => {
     expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
+  });
+
+  it('asks its window for a stable height, so a chapter change does not resize it', async () => {
+    const { fixture } = await mount({ slug: 'proj-b' });
+
+    expect(componentOf(fixture, WindowComponent).stableHeight()).toBe(true);
   });
 
   it('lists one toolbar button per chapter, numbered, titled on the phone, labelled and pressed on the current one', async () => {
@@ -302,5 +309,63 @@ describe('ProjectDetailComponent', () => {
     componentOf(fixture, PagerComponent).indexChange.emit(2);
 
     expect(values).toEqual([2]);
+  });
+
+  it('presses the tab of the page the pager is visibly on, before chapterChange settles', async () => {
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
+
+    componentOf(fixture, PagerComponent).shownChange.emit(2);
+    await fixture.whenStable();
+
+    const buttons = [
+      ...(host.querySelector(toolbar)?.querySelectorAll('button') ?? []),
+    ];
+    expect(
+      buttons.map((button) => button.getAttribute('aria-pressed')),
+    ).toEqual(['false', 'false', 'true']);
+  });
+
+  it('keeps the tab where the pager showed it once the committed chapter catches up to the same page', async () => {
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
+
+    componentOf(fixture, PagerComponent).shownChange.emit(2);
+    await fixture.whenStable();
+    fixture.componentRef.setInput('chapter', 2);
+    await fixture.whenStable();
+
+    expect(
+      host
+        .querySelector(toolbar)
+        ?.querySelectorAll('button')[2]
+        ?.getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
+  it('moves the tab back if the gesture returns to the page it started from', async () => {
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
+    const pager = componentOf(fixture, PagerComponent);
+
+    pager.shownChange.emit(2);
+    pager.shownChange.emit(0);
+    await fixture.whenStable();
+
+    expect(
+      host
+        .querySelector(toolbar)
+        ?.querySelectorAll('button')[0]
+        ?.getAttribute('aria-pressed'),
+    ).toBe('true');
   });
 });

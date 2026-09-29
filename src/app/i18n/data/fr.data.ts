@@ -114,6 +114,9 @@ export const FR: Catalog = {
       status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',
     },
+    intro: {
+      skip: 'Passer l’intro',
+    },
     stepBack: {
       deselect: 'Désélectionner le projet',
       closePreview: 'Fermer l’aperçu',

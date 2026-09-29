@@ -356,7 +356,10 @@ services pour un seul besoin appelle une façade propre à ce besoin.
   de mouvement. Contrat : `whenPresent(maxMs, fn)`. C'est une règle, pas un
   accès au navigateur : elle a son propre dossier. Deux utilisateurs, la
   carte d'ouverture et la révélation de l'accueil, qui écrivaient chacune la
-  même séquence.
+  même séquence. Tab et les touches de modification seules (`Shift`,
+  `Control`, `Alt`, `Meta`) ne comptent pas comme un geste : sans cette
+  exception, atteindre au clavier le bouton « Passer l'intro » (premier
+  arrêt de tabulation) aurait fini l'intro avant de l'avoir atteint.
 
 #### `core/services/head/`, `core/strategies/` : le `<head>` du document
 
@@ -547,6 +550,17 @@ par deux ports, auxquels la composition répond.
   entrée, sans rien du portfolio : la barre de navigation, les liens de
   contact et la barre des vedettes peuvent le lire sans connaître le bureau,
   qui le produit.
+- **`HeldInertDirective`** (`held-inert.directive.ts`). But : tant qu'une
+  entrée retient son porteur (`held`), le rendre `inert` — hors de l'ordre de
+  tabulation, sourd au clic, au toucher et à l'activation clavier, mais
+  toujours mesuré par la scène (contrairement à `visibility`). Contrat :
+  `appHeldInert` (une `Entrance`), sans sortie. La règle CSS de
+  `mixins/_arrival.scss` (`pointer-events`) reste seule responsable du délai
+  propre de chaque porteur une fois `shown` : `inert` ne couvre que `held`,
+  et se retire dès l'état suivant, aussi pour la souris et le toucher, où
+  `pointer-events` prend le relais (D1). La navigation, les liens de
+  contact et la barre des vedettes le portent, à côté de leur propre
+  `arrival`, sur la même valeur.
 
 #### Les autres composants de `shared/ui/`
 
@@ -686,6 +700,10 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
 
 - `intro-card/` : la carte d'ouverture, une fois par visite, sur
   `UserPresenceService`.
+- `intro-skip/` `IntroSkipComponent` : le bouton « Passer l'intro », visible
+  tant que `HomeRevealService.arrival()` vaut `held` ; il l'appelle en
+  direct (`arrive()`), sans détour par la page, faute d'un second
+  consommateur pour une entrée/sortie.
 - `home-title/` : le titre de l'accueil.
 - `not-found-window/` : la fenêtre « adresse inconnue ».
 - `animation-toggle/` : le bouton pause de la scène (sorti du rail de
@@ -906,6 +924,7 @@ src/app/
   features/observatory/components/animation-toggle/ animation-toggle.component
   features/observatory/components/home-title/  home-title.component
   features/observatory/components/intro-card/  intro-card.component
+  features/observatory/components/intro-skip/  intro-skip.component
   features/observatory/components/not-found-window/ not-found-window.component
   features/observatory/components/observatory-dock/ observatory-dock.component
   features/observatory/components/observatory-scene/ observatory-scene.component
@@ -981,7 +1000,7 @@ src/app/
   shared/ui/components/segmented/              segmented.component
   shared/ui/components/social-links/           social-links.component
   shared/ui/data/                              social-icons.data
-  shared/ui/directives/                        bottom-edge-variable.directive · hover-focus.directive · layout-anchor.directive · view-heading.directive
+  shared/ui/directives/                        bottom-edge-variable.directive · held-inert.directive · hover-focus.directive · layout-anchor.directive · view-heading.directive
   shared/ui/models/                            element-size.model · entrance.model · language-item.model · navigation-item.model · rail-action.model · segmented.model · social-link.model
   shared/ui/ports/                             shared-texts.port
   shared/ui/services/                          layout-anchors.service · view-focus.service

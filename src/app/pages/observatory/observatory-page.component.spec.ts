@@ -164,6 +164,58 @@ describe('ObservatoryPageComponent', () => {
       expect(host.querySelector('app-intro-card')).toBeNull();
     });
 
+    it('shows a button to skip the intro only while it is held, reachable before anything else', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host } = await mount({ reducedMotion: false });
+      const focusables = () =>
+        [...host.querySelectorAll<HTMLElement>('button, a[href]')].filter(
+          (el) => el.tabIndex >= 0,
+        );
+
+      expect(host.querySelector('.skip')?.textContent?.trim()).toBe(
+        TestBed.inject(OBSERVATORY_TEXTS)().intro.skip,
+      );
+      expect(focusables()[0]).toBe(host.querySelector('.skip'));
+
+      window.dispatchEvent(new Event('pointerdown'));
+      await fixture.whenStable();
+
+      expect(host.querySelector('.skip')).toBeNull();
+    });
+
+    it('skips the intro at once when the button is pressed', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host, station } = await mount({
+        reducedMotion: false,
+      });
+
+      host.querySelector<HTMLButtonElement>('.skip')?.click();
+      await fixture.whenStable();
+
+      expect(host.querySelector('.skip')).toBeNull();
+      expect(isRevealed(fixture)).toBe(true);
+      vi.advanceTimersByTime(4200);
+      await fixture.whenStable();
+      expect(station.hovered()).toBe(KNOWN_SLUG);
+    });
+
+    it('never shows the skip button with reduced motion', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { host } = await mount({ reducedMotion: true });
+
+      expect(host.querySelector('.skip')).toBeNull();
+    });
+
+    it('never shows the skip button from a deep link', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { host } = await mount({
+        reducedMotion: false,
+        address: '/a-propos',
+      });
+
+      expect(host.querySelector('.skip')).toBeNull();
+    });
+
     it.each([
       ['/projets', 'index'],
       [`/projet/${KNOWN_SLUG}`, 'sheet'],

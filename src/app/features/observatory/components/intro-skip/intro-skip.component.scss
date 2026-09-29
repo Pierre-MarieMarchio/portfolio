@@ -1,0 +1,21 @@
+@use 'mixins/controls';
+@use 'mixins/type';
+
+:host {
+  display: contents;
+}
+
+.skip {
+  @include controls.glass;
+  @include type.caps(var(--m2));
+
+  position: fixed;
+  z-index: var(--z-skip);
+  left: 50%;
+  bottom: max(var(--s3), env(safe-area-inset-bottom));
+  min-height: var(--target-compact);
+  padding: 0 var(--s3);
+  color: var(--ink-2);
+  cursor: pointer;
+  transform: translateX(-50%);
+}

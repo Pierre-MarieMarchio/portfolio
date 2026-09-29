@@ -670,3 +670,18 @@ et de `src/testing/`, rangées par unité (D10).
 - `SceneNodeStyle` gagne `zIndex`, à côté de `transform`, `opacity` et
   `pointerEvents` : la même petite surface (D47) que le moteur écrit dans le
   worker et que `RemoteSceneEngine` rejoue dans la page.
+
+## `src/app/shared/space-scene/components/space-scene/space-scene.component.ts`
+
+- `measure()` saute un panneau dont la visibilité calculée vaut `hidden` : le
+  repos ne l'évite pas tant qu'il ne compte pas pour un lecteur. Pendant
+  l'intro, la barre des projets vedettes et le rail de contact se tenaient
+  ainsi hors du calcul (`arrival.held` posait `visibility: hidden`), et le
+  repos ne les évitait qu'à l'arrivée, une fois montrés : mesuré au bureau, le
+  trou sautait de 25,7 px à l'arrivée et mettait encore 3,5 s à se poser.
+  `arrival.held` (`src/assets/styles/mixins/_arrival.scss`) ne pose plus que
+  `opacity: 0` par défaut, comme `home-title` le faisait déjà : ces panneaux
+  comptent dès le premier repos, avant même l'intro, et le trou n'a plus qu'à
+  glisser de 7,7 px à l'arrivée, posé sous 1,2 s. Une commande qu'ils
+  portent reste ainsi cliquable pendant l'intro (D1), sans changer leur
+  rythme d'apparition ni leur rendu une fois montrés.

@@ -14,6 +14,7 @@ import {
   AnimationToggleComponent,
   HomeTitleComponent,
   IntroCardComponent,
+  IntroSkipComponent,
   NotFoundWindowComponent,
   ObservatoryDockComponent,
   ObservatorySceneComponent,
@@ -64,6 +65,7 @@ import {
 } from '@shared/ui/components';
 import {
   BottomEdgeVariableDirective,
+  HeldInertDirective,
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
 import {
@@ -97,8 +99,10 @@ interface SheetOnShow {
     BottomSheetComponent,
     ContactLinksComponent,
     FeaturedBarComponent,
+    HeldInertDirective,
     HomeTitleComponent,
     IntroCardComponent,
+    IntroSkipComponent,
     KeptWindowDirective,
     LanguageSwitchComponent,
     LayoutAnchorDirective,

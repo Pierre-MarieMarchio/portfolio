@@ -77,6 +77,27 @@ describe('UserPresenceService', () => {
     expect(called).toHaveBeenCalledTimes(1);
   });
 
+  it.each(['Tab', 'Shift', 'Control', 'Alt', 'Meta'])(
+    'ignores a lone %s key, waiting for another gesture',
+    (key) => {
+      const called = vi.fn();
+
+      inject('browser').whenPresent(1000, called);
+      window.dispatchEvent(new KeyboardEvent('keydown', { key }));
+
+      expect(called).not.toHaveBeenCalled();
+    },
+  );
+
+  it('calls back on a key that is not Tab or a modifier', () => {
+    const called = vi.fn();
+
+    inject('browser').whenPresent(1000, called);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(called).toHaveBeenCalledTimes(1);
+  });
+
   it('never calls back once cancelled', () => {
     const called = vi.fn();
 

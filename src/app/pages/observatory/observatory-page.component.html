@@ -1,3 +1,5 @@
+<app-intro-skip />
+
 @if (isOpening()) {
   <app-intro-card />
 }
@@ -22,6 +24,7 @@
         [current]="currentRoute()"
         [openRoutes]="openRoutes()"
         [arrival]="arrival()"
+        [appHeldInert]="arrival()"
       />
     </div>
 
@@ -30,6 +33,7 @@
         appViewSlot="home"
         [appLayoutAnchor]="anchor.chrome"
         [arrival]="arrival()"
+        [appHeldInert]="arrival()"
       />
     }
 
@@ -170,6 +174,7 @@
         [hovered]="observatory.hovered()"
         [reading]="observatory.lastPreview()"
         [arrival]="arrival()"
+        [appHeldInert]="arrival()"
         (chosen)="observatory.openPreview($event)"
         (hoveredChange)="onReaderHovered($event)"
       />

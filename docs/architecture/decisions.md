@@ -2447,3 +2447,36 @@ comprise. Le bundle initial passe de 527,51 à 529,37 kB.
 **Écarté.** Un bouton « Contact » qui ouvre une feuille, comme au
 téléphone : au bureau la place ne manque pas, et un geste de plus éloigne le
 CV. Deux logiques de copie : elles auraient pu diverger.
+
+## 2026-09-29 — L'intro se passe d'un geste, aucun geste ne se perd, et la scène se pose à la fin (D80, amende D41)
+
+**Décision.** L'intro garde sa durée (choix de l'opérateur). Tant qu'elle
+joue, « Passer l'intro » est visible, nommé, et c'est le premier arrêt de Tab
+après le lien d'évitement ; il n'existe ni au prérendu, ni en mouvement
+réduit, ni sur une adresse profonde. N'importe quel clic, toucher ou touche,
+sauf Tab et les touches de modification, achève l'intro. Une commande qu'on
+voit prend aussi le geste : toucher une carte qui apparaît ouvre son aperçu
+dans le même geste. Une commande qu'on ne voit pas encore ne prend rien :
+retenue, elle est `inert` (`HeldInertDirective`, `shared/ui`, posée sur
+chaque panneau qui porte `data-arrival`) ; pendant son délai propre
+d'apparition, elle est `pointer-events: none`, et l'animation `reach` du
+mixin `_arrival.scss` la rend active à la première image de son apparition,
+même en mouvement réduit. Retenus, les panneaux ne sont plus en
+`visibility: hidden` mais à opacité nulle : la scène les compte dans son
+repos dès le début, et ne saute plus à l'arrivée.
+
+**Raison.** Dix à douze secondes au bureau sans rien qui dise qu'on peut
+passer ; un toucher sur une carte ignoré vers 8 s ; un clic sur un lien sans
+effet. `visibility: hidden` retirait les panneaux du pointeur et de la mesure
+du repos : la caméra dérivait encore de 130 px trois secondes et demie après
+l'arrivée. Mesuré : après « Passer », il reste 2,6 px à 1,2 s (15,9 px avant)
+et la scène est posée à 2,4 s (4,5 s avant). Une commande invisible qui
+prendrait le geste ouvrirait un aperçu par surprise sous un toucher « pour
+passer » ; au clavier, Tab l'atteignait encore, `inert` l'en retire. Le
+bundle initial passe de 529,37 à 531,70 kB.
+
+**Écarté.** Raccourcir l'intro : écarté par l'opérateur. Un écouteur de clic
+en capture sur toute la fenêtre, qui annule les clics sur une commande à
+opacité nulle : il interceptait le site entier, à toute heure, et reposait
+sur une règle qui lisait le DOM. Revenir à `visibility: hidden` : il rouvrait
+le saut de la caméra.

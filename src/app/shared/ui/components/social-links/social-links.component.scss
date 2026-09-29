@@ -37,26 +37,13 @@ ul {
   gap: 2px;
 }
 
-a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--target);
-  height: var(--target);
-  border: 1px solid transparent;
-  border-radius: var(--radius-control);
-  color: var(--ink-2);
-  text-decoration: none;
-  transition:
-    color var(--t),
-    border-color var(--t);
+a,
+.action {
+  @include controls.rail-control;
+}
 
-  @include formats.can-hover {
-    &:hover {
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-  }
+.label {
+  @include controls.rail-control-label;
 }
 
 svg {

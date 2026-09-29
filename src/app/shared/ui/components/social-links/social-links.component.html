@@ -1,17 +1,32 @@
 <div class="rail" [attr.data-list-on-phone]="listOnPhone()">
   <ul [attr.aria-label]="texts().contactRail.label">
-    @for (link of links(); track link.href) {
+    @for (link of links(); track link.href; let first = $first) {
       <li>
         <a
           [href]="link.href"
           [attr.target]="link.external ? '_blank' : null"
           [attr.rel]="link.external ? 'noopener' : null"
-          [attr.aria-label]="link.label"
-          [title]="link.title"
-          ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-            <path [attr.d]="icons[link.icon]" /></svg
-        ></a>
+          [attr.aria-labelledby]="link.icon + '-word ' + link.icon + '-desc'"
+        >
+          <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path [attr.d]="icons[link.icon]" />
+          </svg>
+          <span class="label" [id]="link.icon + '-word'">{{ link.title }}</span>
+          <span class="visually-hidden" [id]="link.icon + '-desc'">{{
+            link.label
+          }}</span>
+        </a>
       </li>
+      @if (first && action(); as act) {
+        <li>
+          <button type="button" class="action" (click)="actioned.emit()">
+            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+              <path [attr.d]="act.icon" />
+            </svg>
+            <span class="label">{{ act.label }}</span>
+          </button>
+        </li>
+      }
     }
   </ul>
   <ng-content />

@@ -2421,3 +2421,29 @@ comparaison stricte la croyait hors d'atteinte. Le bundle initial passe de
 l'ancien budget, elle mêlait une pile et un clavier ; le budget à 540 kB
 (D77) rend sa place à une directive. Un `tabindex` positif pour l'ordre :
 l'ordre du DOM suffit et reste celui des lecteurs d'écran.
+
+## 2026-09-29 — Au bureau, le contact se lit en mots, et l'adresse se copie (D79, amende D60)
+
+**Décision.** À partir de 1280 px, chaque entrée du rail de contact montre
+son mot court à côté de son icône (« E-mail », « LinkedIn », « GitHub »,
+« CV »), en vrai texte ; en dessous, le mot reste dans l'arbre
+d'accessibilité, caché à l'œil. Le nom accessible de chaque lien commence par
+ce mot, suivi de la phrase qu'il portait déjà (WCAG 2.5.3) ; le `title` qui
+doublait une bulle part. Après l'e-mail, « Copier l'adresse » copie l'adresse
+et dit « Adresse copiée », comme la feuille du téléphone ; la copie et son
+annonce passent par un seul `CopyFeedbackService`, que la feuille du
+téléphone utilise aussi. `SocialLinksComponent` (`shared/ui`) gagne une
+action facultative générique ; il ne dit rien du portfolio. La pause reste à
+part. Le téléphone ne change pas.
+
+**Raison.** Des icônes seules : la recruteuse cherchait le CV sans savoir
+quelle icône c'était, le gérant n'a vu « aucun Contact », et l'enveloppe
+n'ouvrait que le logiciel de messagerie ; au téléphone, la feuille qui dit
+tout en mots est ce que les trois visiteurs ont trouvé le plus clair. Un mot
+généré en CSS (`content: attr(title)`) a été essayé et écarté : ce n'est pas
+un texte de la page. Aucune fenêtre ne passe sous le rail élargi, en cascade
+comprise. Le bundle initial passe de 527,51 à 529,37 kB.
+
+**Écarté.** Un bouton « Contact » qui ouvre une feuille, comme au
+téléphone : au bureau la place ne manque pas, et un geste de plus éloigne le
+CV. Deux logiques de copie : elles auraient pu diverger.

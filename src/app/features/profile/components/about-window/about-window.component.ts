@@ -1,4 +1,11 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
 import { LINKS } from '@app/features/common';
@@ -65,11 +72,13 @@ export class AboutWindowComponent {
     this.about().title(this.section().title),
   );
 
+  protected readonly visiblePart = linkedSignal(() => this.index());
+
   protected readonly parts = computed<readonly SegmentedItem<number>[]>(() =>
     PARTS.map((key, index) => ({
       value: index,
       label: this.about()[key].label,
-      active: index === this.index(),
+      active: index === this.visiblePart(),
       aria: this.about().goTo(this.about()[key].title),
     })),
   );

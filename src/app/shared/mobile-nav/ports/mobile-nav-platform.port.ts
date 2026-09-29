@@ -6,7 +6,12 @@ export interface MobileNavPlatform {
   readonly nextFrame: (fn: () => void) => () => void;
   readonly after: (ms: number, fn: () => void) => () => void;
   readonly hasScrollEnd: () => boolean;
+  readonly hasSnapChanging: () => boolean;
   readonly onResize: (element: Element, fn: () => void) => () => void;
+  readonly onSnapChanging: (
+    element: Element,
+    fn: (target: Element | null) => void,
+  ) => () => void;
   readonly whenStill: (element: Element) => Promise<void>;
   readonly closesOnBack: () => boolean;
   readonly historyState: () => unknown;

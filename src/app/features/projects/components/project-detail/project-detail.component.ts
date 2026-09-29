@@ -6,6 +6,7 @@ import {
   ElementRef,
   inject,
   input,
+  linkedSignal,
   output,
   viewChild,
 } from '@angular/core';
@@ -85,12 +86,14 @@ export class ProjectDetailComponent {
     () => this.pages()[this.chapter()] ?? null,
   );
 
+  protected readonly visibleChapter = linkedSignal(() => this.chapter());
+
   protected readonly chapters = computed<readonly SegmentedItem<number>[]>(() =>
     this.pages().map((page, index) => ({
       value: index,
       label: page.number,
       phoneLabel: page.heading,
-      active: index === this.chapter(),
+      active: index === this.visibleChapter(),
       aria: this.texts().sheet.approach(page.number, page.heading),
     })),
   );

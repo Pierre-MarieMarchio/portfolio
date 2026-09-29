@@ -64,6 +64,22 @@ describe('provideMobileNav', () => {
     expect(observers.map((observer) => observer.kind)).toEqual(['resize']);
   });
 
+  it('reports no snap change where the browser does not announce one', () => {
+    const platform = platformOn('browser');
+    const called = vi.fn();
+
+    const stop = platform.onSnapChanging(document.createElement('div'), called);
+    stop();
+
+    expect(called).not.toHaveBeenCalled();
+  });
+
+  it('says whether the browser announces snap targets', () => {
+    const platform = platformOn('browser');
+
+    expect(platform.hasSnapChanging()).toBe(false);
+  });
+
   it('says when the router starts to leave the view, until stopped', async () => {
     const platform = platformOn('browser');
     const left = vi.fn();

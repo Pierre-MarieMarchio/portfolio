@@ -15,6 +15,7 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   public readonly compact = signal(false);
   public isReduced = false;
   public knowsScrollEnd = true;
+  public knowsSnapChanging = false;
   public hasCloseWatcher = false;
   public entries: unknown[] = [{ navigationId: 1 }];
   public place = 0;
@@ -23,6 +24,10 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   private frames: (() => void)[] = [];
   private waiting: Waiting[] = [];
   private readonly resized: (() => void)[] = [];
+  private readonly snapping = new Map<
+    Element,
+    (target: Element | null) => void
+  >();
   private stillnesses: (() => void)[] = [];
   private pops: ((state: unknown) => void)[] = [];
   private leaves: (() => void)[] = [];
@@ -49,9 +54,21 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
 
   public readonly hasScrollEnd = (): boolean => this.knowsScrollEnd;
 
+  public readonly hasSnapChanging = (): boolean => this.knowsSnapChanging;
+
   public readonly onResize = (_element: Element, fn: () => void) => {
     this.resized.push(fn);
     return ignore;
+  };
+
+  public readonly onSnapChanging = (
+    element: Element,
+    fn: (target: Element | null) => void,
+  ): (() => void) => {
+    this.snapping.set(element, fn);
+    return () => {
+      this.snapping.delete(element);
+    };
   };
 
   public readonly whenStill = (element: Element): Promise<void> => {
@@ -110,6 +127,10 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
     for (const fn of this.resized) {
       fn();
     }
+  }
+
+  public snapTo(element: Element, target: Element | null): void {
+    this.snapping.get(element)?.(target);
   }
 
   public async settle(): Promise<void> {

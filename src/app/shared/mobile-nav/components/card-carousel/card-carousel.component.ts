@@ -1,5 +1,6 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { isPlatformBrowser, NgTemplateOutlet } from '@angular/common';
 import {
+  afterNextRender,
   Component,
   computed,
   contentChild,
@@ -9,6 +10,7 @@ import {
   inject,
   input,
   output,
+  PLATFORM_ID,
   signal,
   TemplateRef,
   untracked,
@@ -18,9 +20,10 @@ import {
 import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
 import { MOBILE_NAV_TEXTS } from '../../ports/mobile-nav-texts.port';
 import { cardAt, centredOffset } from '../../rules/carousel.rules';
-import { clampPage, isAt } from '../../rules/pager.rules';
+import { clampPage, indexOfChild, isAt } from '../../rules/pager.rules';
 
 const SETTLE_MS = 120;
+const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
 
 interface CardContext<T> {
   readonly $implicit: T;
@@ -56,13 +59,22 @@ export class CardCarouselComponent<T> {
   private readonly track = viewChild<ElementRef<HTMLElement>>('track');
   private readonly places = viewChildren<ElementRef<HTMLElement>>('place');
   private readonly settled = signal<number | null>(null);
+  private readonly headingTo = signal<number | null>(null);
   protected readonly current = computed(() =>
-    clampPage(this.settled() ?? this.active(), this.items().length),
+    clampPage(
+      this.headingTo() ?? this.settled() ?? this.active(),
+      this.items().length,
+    ),
   );
 
   private stopFrame: () => void = () => {};
   private stopTimer: () => void = () => {};
+  private stopSnap: () => void = () => {};
+  private stopTouch: () => void = () => {};
   private isHeading = false;
+  private isTouching = false;
+  private isScrolling = false;
+  private pendingTarget: number | null = null;
   private width = 0;
 
   constructor() {
@@ -77,14 +89,40 @@ export class CardCarouselComponent<T> {
     const stopResize = this.platform.onResize(this.element, () => {
       this.realign();
     });
+    const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+    afterNextRender(() => {
+      const track = this.track()?.nativeElement;
+      if (!track) {
+        return;
+      }
+      this.stopSnap = this.platform.onSnapChanging(track, (target) => {
+        this.showNearest(indexOfChild(track, target));
+      });
+      if (isBrowser) {
+        for (const type of TOUCHES) {
+          track.addEventListener(type, this.onTouch, { passive: true });
+        }
+        this.stopTouch = () => {
+          for (const type of TOUCHES) {
+            track.removeEventListener(type, this.onTouch);
+          }
+        };
+      }
+    });
     inject(DestroyRef).onDestroy(() => {
       stopResize();
+      this.stopSnap();
+      this.stopTouch();
       this.stopFrame();
       this.stopTimer();
     });
   }
 
-  protected awaitSettle(): void {
+  protected onScroll(): void {
+    this.isScrolling = true;
+    if (!this.platform.hasSnapChanging()) {
+      this.showNearest(cardAt(this.scrollLeft(), this.offsets()));
+    }
     if (this.platform.hasScrollEnd()) {
       return;
     }
@@ -94,34 +132,86 @@ export class CardCarouselComponent<T> {
     });
   }
 
-  protected settle(): void {
-    this.stopTimer();
-    const scrollLeft = this.scrollLeft();
-    const offsets = this.offsets();
-    const place = cardAt(scrollLeft, offsets);
-    if (this.isHeading || !isAt(scrollLeft, offsets[place] ?? 0)) {
+  private readonly onTouch = (event: Event): void => {
+    if (event.type === 'touchstart') {
+      this.isTouching = true;
+      this.stopFrame();
+      this.isHeading = false;
+      this.headingTo.set(null);
       return;
     }
-    this.settled.set(place);
+    this.isTouching = false;
+    this.resumePending();
+  };
+
+  protected settle(): void {
+    this.stopTimer();
+    if (this.isHeading) {
+      return;
+    }
+    this.isScrolling = false;
+    const place = cardAt(this.scrollLeft(), this.offsets());
+    this.commit(place);
     if (place !== clampPage(this.active(), this.items().length)) {
       this.activeChange.emit(place);
     }
+    this.resumePending();
   }
 
   protected show(target: number): void {
     this.stopFrame();
-    this.isHeading = false;
+    if (this.isShowing(target)) {
+      return;
+    }
+    this.headingTo.set(target);
     this.scrollTo(target, this.platform.reducedMotion() ? 'instant' : 'smooth');
   }
 
+  private showNearest(place: number | null): void {
+    if (this.headingTo() !== null || place === null) {
+      return;
+    }
+    const clamped = clampPage(place, this.items().length);
+    if (clamped !== this.settled()) {
+      this.settled.set(clamped);
+    }
+  }
+
+  private commit(target: number): void {
+    this.headingTo.set(null);
+    this.settled.set(target);
+  }
+
+  private isGestureActive(): boolean {
+    return this.isTouching || this.isScrolling;
+  }
+
+  private resumePending(): void {
+    if (this.isGestureActive()) {
+      return;
+    }
+    this.realign();
+    const pending = this.pendingTarget;
+    this.pendingTarget = null;
+    if (pending !== null) {
+      this.goTo(pending);
+    }
+  }
+
   private goTo(target: number): void {
+    if (this.isGestureActive()) {
+      this.pendingTarget = target;
+      return;
+    }
+    this.pendingTarget = null;
     this.stopFrame();
-    this.isHeading = false;
+    this.headingTo.set(null);
     if (this.settled() === null ? target === 0 : this.isShowing(target)) {
-      this.settled.set(target);
+      this.commit(target);
       return;
     }
     this.isHeading = true;
+    this.headingTo.set(target);
     this.stopFrame = this.platform.nextFrame(() => {
       this.isHeading = false;
       this.head(target);
@@ -130,24 +220,27 @@ export class CardCarouselComponent<T> {
 
   private head(target: number): void {
     if (this.isShowing(target)) {
-      this.settled.set(target);
+      this.commit(target);
       return;
     }
     const isInstant = this.settled() === null || this.platform.reducedMotion();
     this.scrollTo(target, isInstant ? 'instant' : 'smooth');
     if (isInstant) {
-      this.settled.set(target);
+      this.commit(target);
     }
   }
 
   private realign(): void {
+    if (this.isGestureActive()) {
+      return;
+    }
     const width = this.track()?.nativeElement.clientWidth ?? 0;
     if (width === this.width) {
       return;
     }
     this.width = width;
     const place = this.current();
-    if (!this.isHeading && !this.isShowing(place)) {
+    if (this.headingTo() === null && !this.isShowing(place)) {
       this.scrollTo(place, 'instant');
     }
   }

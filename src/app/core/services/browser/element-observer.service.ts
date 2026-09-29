@@ -1,6 +1,10 @@
 import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT, inject, PLATFORM_ID, Service } from '@angular/core';
 
+interface SnapChangingEvent extends Event {
+  readonly snapTargetInline: Element | null;
+}
+
 @Service()
 export class ElementObserverService {
   private readonly document = inject(DOCUMENT);
@@ -44,6 +48,26 @@ export class ElementObserverService {
     };
   }
 
+  public onSnapChanging(
+    el: Element,
+    fn: (target: Element | null) => void,
+  ): () => void {
+    if (!this.supportsSnapChanging(el)) {
+      return () => {};
+    }
+    const listener = (event: Event): void => {
+      fn((event as SnapChangingEvent).snapTargetInline);
+    };
+    el.addEventListener('scrollsnapchanging', listener);
+    return () => {
+      el.removeEventListener('scrollsnapchanging', listener);
+    };
+  }
+
+  public hasSnapChanging(): boolean {
+    return this.supportsSnapChanging(this.document.documentElement);
+  }
+
   public async whenStill(el: Element): Promise<void> {
     if (!this.isBrowser || typeof el.getAnimations !== 'function') {
       return;
@@ -55,5 +79,9 @@ export class ElementObserverService {
 
   private view(): (Window & typeof globalThis) | null {
     return this.isBrowser ? this.document.defaultView : null;
+  }
+
+  private supportsSnapChanging(el: Element): boolean {
+    return 'onscrollsnapchanging' in el;
   }
 }

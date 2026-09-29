@@ -2146,3 +2146,40 @@ fixe ne le suit plus. Le bundle initial reste à 516,44 kB ;
 pour toutes les fenêtres : la liste et l'aperçu suivent leur contenu. Toucher
 le mixin du pager pour qu'il garde les pages cachées dans la mise en page :
 elles pèseraient dans chaque layout de la fenêtre.
+
+## 2026-09-29 — Au téléphone, la carte et la page se choisissent dès que le navigateur connaît la cible (D69, amende D57 et D58)
+
+**Décision.** Le carrousel et le pager séparent ce qu'ils montrent de ce
+qu'ils disent. La sélection visible (`data-current`, `aria-current`, et
+l'onglet du segmenté lié au pager) passe à la cible dès que le navigateur
+l'annonce (`scrollsnapchanging`) ; sans cette annonce, dès que la cible la
+plus proche change au fil du défilement. Le pager la publie
+(`shownChange`) ; la fiche et l'à-propos règlent leur onglet dessus
+(`linkedSignal`). L'index commis (`indexChange`, `activeChange`, donc l'état,
+l'adresse et la planète) part une fois par geste, à la fin du défilement,
+pour la page la plus proche : il ne demande plus d'être à moins d'un pixel de
+son offset. Tant que le doigt est posé ou que l'élan court, rien ne fait
+défiler le composant ; une cible demandée d'en haut attend la fin du geste.
+Un défilement lancé par le composant montre sa cible dès le départ et ne
+publie pas les pages qu'il traverse ; le doigt reprend la main. Le segmenté
+lié au pager amène son onglet en vue sans animation (`instant`). Les écoutes
+du toucher sont passives. `MOBILE_NAV_PLATFORM` gagne `onSnapChanging` et
+`hasSnapChanging`.
+
+**Raison.** La carte et l'onglet attendaient la fin du défilement, puis une
+transition, puis un second défilement du segmenté : mesuré à × 6, de +257 à
++561 ms après le lâcher, et le lecteur d'un vrai téléphone dit une à trois
+secondes. Le navigateur connaît la cible 500 ms avant la fin. Un réglage qui
+échouait d'une fraction de pixel ne se rattrapait jamais. Mesuré après, même
+méthode, séquence complète : la carte et la page changent de −251 à +13 ms
+du lâcher, l'onglet dans la même image que la page, et chaque séquence va
+droit à la cible (flick, glisser, toucher d'un onglet lointain). Garder
+l'état commis à la fin évite de recadrer la scène et de changer l'adresse à
+chaque page traversée. Un `touchstart` non passif ferait attendre le fil
+principal avant de défiler. Le bundle initial passe de 516,44 à 520,02 kB.
+
+**Écarté.** Commettre l'index dès l'annonce : la scène et l'adresse
+changeraient au milieu du geste, et le doigt peut encore revenir. Suivre à la
+fois l'annonce et le plus proche : ils se contredisent sur un flick (2 → 1 →
+2). Un indicateur qui suit le doigt au pixel : une variable par image ; il
+viendra avec les feuilles du lot C si le besoin demeure.

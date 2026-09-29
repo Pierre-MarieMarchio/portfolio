@@ -1,6 +1,7 @@
 @use 'mixins/controls';
 @use 'mixins/formats';
 @use 'mixins/motion';
+@use 'mixins/type';
 
 :host {
   display: block;
@@ -17,15 +18,29 @@ main {
   overflow: hidden;
 }
 
-.bar {
+.bar,
+.overview,
+.void,
+.slot {
+  position: absolute;
+}
+
+.bar,
+.slot {
+  right: var(--gutter);
+  display: flex;
+}
+
+.bar,
+.overview {
   @include controls.glass;
 
-  position: absolute;
-  right: var(--gutter);
-  top: clamp(20px, 4vh, 40px);
   z-index: var(--z-chrome);
+}
+
+.bar {
+  top: clamp(20px, 4vh, 40px);
   max-width: calc(100% - 2 * var(--gutter));
-  display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
@@ -39,7 +54,6 @@ main {
 }
 
 .void {
-  position: absolute;
   inset: 0;
   z-index: var(--z-scene);
   background: transparent;
@@ -48,13 +62,28 @@ main {
   cursor: default;
 }
 
+$index-width: min(78ch, max(56vw, 320px));
+
+.overview {
+  @include type.caps(var(--m2));
+
+  top: var(--window-top);
+  right: calc(var(--gutter) + #{$index-width} + var(--s2));
+  line-height: var(--target);
+  padding: 0 var(--s2);
+  color: var(--ink-2);
+
+  @include formats.can-hover {
+    &:hover {
+      @include controls.lit;
+    }
+  }
+}
+
 .slot {
-  position: absolute;
-  right: var(--gutter);
   top: max(var(--window-top), calc(var(--head-bottom, 0px) + 14px));
   z-index: calc(var(--z-window) + var(--stack, 0));
   width: min(58ch, max(52vw, 320px));
-  display: flex;
   flex-direction: column;
   min-height: 0;
   pointer-events: none;
@@ -62,7 +91,7 @@ main {
 }
 
 .slot--index {
-  width: min(78ch, max(56vw, 320px));
+  width: #{$index-width};
   container-type: inline-size;
 }
 
@@ -121,6 +150,10 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
 
   .void {
     touch-action: none;
+  }
+
+  .overview {
+    display: none;
   }
 
   .slot {

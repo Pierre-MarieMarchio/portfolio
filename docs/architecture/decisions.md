@@ -2183,3 +2183,29 @@ changeraient au milieu du geste, et le doigt peut encore revenir. Suivre à la
 fois l'annonce et le plus proche : ils se contredisent sur un flick (2 → 1 →
 2). Un indicateur qui suit le doigt au pixel : une variable par image ; il
 viendra avec les feuilles du lot C si le besoin demeure.
+
+## 2026-09-29 — Le fond et Échap remontent d'un cran dans la scène, et le retour se voit (D70, amende D41 et D63)
+
+**Décision.** Le clic sur le fond et Échap font la même chose, et seulement
+dans la scène : désélectionner le projet de la liste, ou fermer l'aperçu de
+l'accueil. Ils ne changent jamais de page et ne ferment jamais une fenêtre de
+page ; sans rien à remonter, ils ne font rien. `stepBack` ne rend plus que
+`deselect`, `close-preview` ou rien. Le fond n'existe que s'il y a un cran à
+remonter, et son nom dit ce qu'il fait : « Désélectionner le projet » ou
+« Fermer l'aperçu ». La fiche porte « ‹ Projets » au début de sa barre de
+titre, à tous les formats (une projection `[before]` de la fenêtre). Au
+bureau et à la tablette, un projet sélectionné montre « ‹ Vue d'ensemble »
+dans le ciel libre, hors des fenêtres ; elle reprend la barre des pages
+(verre, capitales mono, survol). Fermer, la croix, ne change pas.
+
+**Raison.** Le fond et Échap fermaient la page qu'on lisait : cliquer le
+ciel pour le regarder ramenait de la fiche à la liste, Échap pendant l'intro
+renvoyait à l'accueil. Sur un bureau, cliquer le fond ne ferme rien, et
+Échap quitte un état passager, pas une fenêtre. Le seul retour d'un gros
+plan était un bouton invisible nommé « Fermer les fenêtres », qui ne fermait
+rien. Un lien dans la barre et une puce dans le ciel le montrent, et le lien
+marche sans JS au prérendu. Le bundle initial passe de 520,02 à 521,58 kB.
+
+**Écarté.** Garder la navigation d'Échap : c'est elle qui faisait perdre la
+page. Une puce au téléphone : la feuille et le retour du système y suffisent
+(lot C). Un bouton « Retour » générique : il ne dirait pas où il mène.

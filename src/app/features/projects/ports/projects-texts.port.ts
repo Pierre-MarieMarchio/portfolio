@@ -32,6 +32,8 @@ export interface ProjectsTexts {
   };
   readonly sheet: {
     readonly label: string;
+    readonly toIndex: string;
+    readonly toIndexLabel: string;
     readonly approaches: string;
     readonly approach: (number: string, title: string) => string;
     readonly terms: {

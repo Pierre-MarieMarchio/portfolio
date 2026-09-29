@@ -32,8 +32,7 @@ main {
 }
 
 .bar,
-.overview,
-.home {
+.overview {
   @include controls.glass;
 
   z-index: var(--z-chrome);
@@ -113,7 +112,7 @@ $index-width: min(78ch, max(56vw, 320px));
   z-index: calc(var(--z-window) + var(--stack, 1));
 }
 
-@include formats.tablet {
+@include formats.handheld {
   .void {
     touch-action: none;
   }
@@ -147,14 +146,6 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
 
   .scene {
     min-height: 0;
-  }
-
-  .void {
-    touch-action: none;
-  }
-
-  .overview {
-    display: none;
   }
 
   .slot {
@@ -241,7 +232,12 @@ $glass-landscape-min: 324px;
 }
 
 .home {
-  flex: 1 1 auto;
+  flex: auto;
+  overflow: clip;
+  border-top: 1px solid var(--line);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  background: var(--sheet-surface);
+  box-shadow: var(--sheet-shadow);
   pointer-events: auto;
   animation: rise 1300ms calc(var(--arrival-at) + 400ms) both;
 }
@@ -271,8 +267,7 @@ $glass-landscape-min: 324px;
 
 @include motion.reduced {
   .bar,
-  .home,
-  .home[data-arrival] {
+  .home {
     animation: none;
   }
 }

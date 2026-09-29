@@ -6,13 +6,7 @@
   [attr.aria-label]="name()"
 >
   @if (isHeld()) {
-    <button
-      type="button"
-      class="grip"
-      [attr.aria-label]="gripLabel()"
-      [attr.aria-expanded]="!folded()"
-      (click)="toggleFold()"
-    ></button>
+    <app-window-grip />
   }
   <div #bar class="titlebar" appDoublePress (doublePressed)="onDoublePress()">
     <ng-content select="[before]" />

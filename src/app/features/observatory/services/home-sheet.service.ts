@@ -54,8 +54,13 @@ export class HomeSheetService {
     ),
   );
 
-  public follow(featured: Featured): void {
-    this.featured.set(featured);
+  public readonly shownIndex = linkedSignal(() => this.posedIndex());
+
+  public follow(
+    slugs: () => readonly string[],
+    resting: () => string | null,
+  ): void {
+    this.featured.set({ slugs, resting });
   }
 
   public settle(detent: SheetDetent): void {
@@ -70,6 +75,10 @@ export class HomeSheetService {
     if (this.observatory.preview() === null && slug !== null) {
       this.observatory.openPreview(slug);
     }
+  }
+
+  public showIndex(index: number): void {
+    this.shownIndex.set(index);
   }
 
   public turnTo(index: number): void {

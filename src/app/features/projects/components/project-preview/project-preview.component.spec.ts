@@ -98,10 +98,9 @@ describe('ProjectPreviewComponent', () => {
     });
 
     it('draws no pin, no numbered segments and no position counter', async () => {
-      const { host, texts } = await mountOnPhone('proj-2');
+      const { host } = await mountOnPhone('proj-2');
 
       expect(host.querySelector('app-segmented')).toBeNull();
-      expect(host.querySelector(`[aria-label="${texts.bodies}"]`)).toBeNull();
       expect(host.querySelector('.meta')).toBeNull();
       expect(host.querySelector('button')).toBeNull();
       expect(host.textContent).not.toContain(

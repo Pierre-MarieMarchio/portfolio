@@ -107,21 +107,29 @@ describe('HomeTitleComponent', () => {
       expect(released).toEqual(held);
     });
 
-    it('folds and unfolds the sheet from its button, named for what it will do', async () => {
+    it('carries the same handle as the other sheets, and no chevron', async () => {
+      const { host } = await mountOnPhone();
+
+      expect(host.querySelectorAll('button')).toHaveLength(1);
+      expect(host.querySelector('.bar button.grip')).not.toBeNull();
+      expect(host.querySelector('.fold, svg')).toBeNull();
+    });
+
+    it('folds and unfolds the sheet from its handle, named for what it will do', async () => {
       const { fixture, host, toggle, isFolded } = await mountOnPhone();
-      const button = host.querySelector<HTMLButtonElement>('button.fold');
+      const grip = host.querySelector<HTMLButtonElement>('button.grip');
 
       expect(isFolded()).toBe(false);
-      expect(button?.getAttribute('aria-label')).toBe('Baisser la fenêtre');
-      expect(button?.getAttribute('aria-expanded')).toBe('true');
+      expect(grip?.getAttribute('aria-label')).toBe('Baisser la fenêtre');
+      expect(grip?.getAttribute('aria-expanded')).toBe('true');
 
-      button?.click();
+      grip?.click();
       await fixture.whenStable();
 
       expect(toggle).toHaveBeenCalledOnce();
       expect(isFolded()).toBe(true);
-      expect(button?.getAttribute('aria-label')).toBe('Remonter la fenêtre');
-      expect(button?.getAttribute('aria-expanded')).toBe('false');
+      expect(grip?.getAttribute('aria-label')).toBe('Remonter la fenêtre');
+      expect(grip?.getAttribute('aria-expanded')).toBe('false');
     });
   });
 });

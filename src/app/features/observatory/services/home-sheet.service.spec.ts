@@ -16,7 +16,10 @@ const mount = (isPhone = true) => {
   const observatory = TestBed.inject(ObservatoryManager);
   observatory.syncRoute('home');
   const sheet = TestBed.inject(HomeSheetService);
-  sheet.follow({ slugs: () => SLUGS, resting: () => 'alpha' });
+  sheet.follow(
+    () => SLUGS,
+    () => 'alpha',
+  );
   return { observatory, sheet };
 };
 

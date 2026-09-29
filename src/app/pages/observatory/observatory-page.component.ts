@@ -61,6 +61,7 @@ import {
   PagerComponent,
   PagerPageComponent,
 } from '@shared/mobile-nav/components';
+import { PagerDotsComponent } from '@shared/mobile-nav/components/pager-dots/pager-dots.component';
 import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import type { LayoutBox } from '@shared/space-scene/models';
@@ -116,6 +117,7 @@ interface SheetOnShow {
     ObservatoryDockComponent,
     ObservatorySceneComponent,
     PagerComponent,
+    PagerDotsComponent,
     PagerPageComponent,
     ProjectDetailComponent,
     ProjectListComponent,
@@ -267,10 +269,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     const loaded = viewAtAddress(locale.path(), (at) => pathOf(at, lang));
     this.observatory.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
-    this.homeSheet.follow({
-      slugs: () => this.featuredSlugs(),
-      resting: () => this.designated(),
-    });
+    this.homeSheet.follow(this.featuredSlugs, this.designated);
     const windows = inject(ViewWindowsService);
     effect(() => {
       if (this.arrival() === 'shown') {

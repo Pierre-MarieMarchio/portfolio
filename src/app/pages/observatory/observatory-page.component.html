@@ -181,6 +181,7 @@
                 <app-pager
                   [index]="homeSheet.posedIndex()"
                   (indexChange)="homeSheet.turnTo($event)"
+                  (shownChange)="homeSheet.showIndex($event)"
                 >
                   @for (project of projects.featured(); track project.slug) {
                     <app-pager-page>
@@ -188,6 +189,11 @@
                     </app-pager-page>
                   }
                 </app-pager>
+                <app-pager-dots
+                  [count]="projects.featured().length"
+                  [current]="homeSheet.shownIndex()"
+                  (chosen)="homeSheet.turnTo($event)"
+                />
               </div>
             </div>
           </div>
@@ -205,7 +211,7 @@
       ></button>
     }
 
-    @if (canDeselect()) {
+    @if (canDeselect() && !homeSheet.isPhone()) {
       <button type="button" class="overview" (click)="onVoid()">
         {{ observatoryTexts().stepBack.overview }}
       </button>

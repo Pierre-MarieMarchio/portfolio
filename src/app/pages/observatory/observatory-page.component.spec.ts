@@ -10,6 +10,7 @@ import {
 import { resizeTo } from '@testing/doubles/browser.double';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 import { componentOf } from '@testing/fixtures/testbed.fixture';
+import { SessionHistoryService } from '@app/core/services';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
@@ -29,6 +30,8 @@ import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
+
+const NOTHING = (): void => {};
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
@@ -993,6 +996,101 @@ describe('ObservatoryPageComponent', () => {
 
       expect(station.preview()).toBeNull();
       expect(sheet().detent()).toBe('folded');
+    });
+
+    it('has the handle of the other sheets, and no chevron', async () => {
+      const { fixture, host, sheet } = await mountOnPhone();
+      const grip = host.querySelector<HTMLButtonElement>(
+        '.slot--home app-home-title button.grip',
+      );
+
+      expect(grip?.getAttribute('aria-label')).toBe('Baisser la fenêtre');
+      expect(grip?.getAttribute('aria-expanded')).toBe('true');
+      expect(host.querySelector('.slot--home .fold')).toBeNull();
+      expect(host.querySelector('.slot--home app-home-title svg')).toBeNull();
+
+      const toggle = vi.spyOn(sheet(), 'toggle');
+
+      grip?.click();
+      expect(toggle).toHaveBeenCalledOnce();
+
+      sheet().detent.set('folded');
+      await fixture.whenStable();
+
+      expect(grip?.getAttribute('aria-label')).toBe('Remonter la fenêtre');
+      expect(grip?.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('says the posed project among the featured ones with dots under the preview, and follows the swipe', async () => {
+      const { fixture, host, cards } = await mountOnPhone();
+      const dots = (): HTMLButtonElement[] => [
+        ...host.querySelectorAll<HTMLButtonElement>(
+          '.slot--home app-pager ~ app-pager-dots .dot',
+        ),
+      ];
+      const current = (): number =>
+        dots().findIndex((dot) => dot.hasAttribute('aria-current'));
+
+      expect(dots()).toHaveLength(3);
+      cards()[1]?.click();
+      await fixture.whenStable();
+      expect(current()).toBe(1);
+
+      componentOf(fixture, PagerComponent).shownChange.emit(2);
+      await fixture.whenStable();
+
+      expect(current()).toBe(2);
+      expect(dots().every((dot) => dot.tabIndex === -1)).toBe(true);
+      expect(dots().map((dot) => dot.getAttribute('aria-label'))).toEqual([
+        'Page 1 sur 3',
+        'Page 2 sur 3',
+        'Page 3 sur 3',
+      ]);
+    });
+
+    it('leads to a project when its dot is touched, the card and the scene following', async () => {
+      const { fixture, station, host, sheet, cards } = await mountOnPhone();
+      cards()[0]?.click();
+      await fixture.whenStable();
+
+      host
+        .querySelectorAll<HTMLButtonElement>(
+          '.slot--home app-pager ~ app-pager-dots .dot',
+        )[2]
+        ?.click();
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('gamma');
+      expect(sceneOf(fixture).preview()).toBe('gamma');
+      expect(sheet().detent()).toBe('full');
+      expect(
+        cards().findIndex((card) => card.hasAttribute('aria-current')),
+      ).toBe(2);
+    });
+
+    it('comes down to half on the system back from full, and lifts the project', async () => {
+      vi.spyOn(
+        SessionHistoryService.prototype,
+        'hasCloseWatcher',
+      ).mockReturnValue(true);
+      const back: (() => void)[] = [];
+      vi.spyOn(
+        SessionHistoryService.prototype,
+        'watchClose',
+      ).mockImplementation((fn) => {
+        back.push(fn);
+        return NOTHING;
+      });
+      const { fixture, station, sheet, cards } = await mountOnPhone();
+      cards()[1]?.click();
+      await fixture.whenStable();
+      expect(sheet().detent()).toBe('full');
+
+      back.at(-1)?.();
+      await fixture.whenStable();
+
+      expect(sheet().detent()).toBe('half');
+      expect(station.preview()).toBeNull();
     });
 
     it('lowers the sheet to half when the sky is touched or escape is pressed', async () => {

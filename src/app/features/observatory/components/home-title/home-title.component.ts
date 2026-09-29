@@ -11,13 +11,13 @@ import { DisplayFormatService } from '@app/core/services';
 import { OBSERVATORY_TEXTS } from '../../ports/observatory-texts.port';
 import { Entrance } from '@shared/ui/models';
 import { ViewHeadingDirective } from '@shared/ui/directives';
-import { WINDOW_ICONS } from '@shared/windows/models/window-icons.model';
-import { WINDOW_FOLD, WINDOW_TEXTS } from '@shared/windows/ports';
+import { WindowGripComponent } from '@shared/windows/components/window-grip/window-grip.component';
+import { WINDOW_FOLD } from '@shared/windows/ports';
 import { OBSERVATORY_IDS } from '../../models/observatory-ids.model';
 
 @Component({
   selector: 'app-home-title',
-  imports: [ViewHeadingDirective],
+  imports: [ViewHeadingDirective, WindowGripComponent],
   templateUrl: './home-title.component.html',
   styleUrl: './home-title.component.scss',
   host: { '[attr.data-arrival]': 'arrival()' },
@@ -31,10 +31,7 @@ export class HomeTitleComponent {
 
   protected readonly headingId = OBSERVATORY_IDS.homeTitle;
   protected readonly texts = inject(OBSERVATORY_TEXTS);
-  protected readonly windowTexts = inject(WINDOW_TEXTS);
-  protected readonly icons = WINDOW_ICONS;
   protected readonly isLine = computed(() => this.display.format() === 'phone');
-  protected readonly isFolded = computed(() => this.fold?.isFolded() ?? false);
 
   constructor() {
     afterRenderEffect((onCleanup) => {
@@ -46,9 +43,5 @@ export class HomeTitleComponent {
         });
       }
     });
-  }
-
-  protected toggleFold(): void {
-    this.fold?.toggle();
   }
 }

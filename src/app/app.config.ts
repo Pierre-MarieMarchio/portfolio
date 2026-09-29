@@ -20,7 +20,6 @@ import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
 import { ObservatoryEffect } from './features/observatory/states';
 import { provideI18n } from './i18n';
-import { provideMobileNav } from './pages/providers/mobile-nav.provider';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -42,7 +41,6 @@ export const appConfig: ApplicationConfig = {
     }),
 
     provideI18n(),
-    provideMobileNav(),
 
     provideAppInitializer(async () => {
       await inject(ProjectsManager).load();

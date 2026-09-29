@@ -16,11 +16,13 @@ import { LayoutAnchorsService } from '@shared/ui/services';
 import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
 import { FeaturedBarComponent } from '@app/features/projects/components';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
+import { MobileNavPlatformService } from '@app/features/observatory/services';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PAGES_TEXTS } from '@app/i18n';
+import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
+import { BackLayersService } from '@shared/mobile-nav/services';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
-import { provideMobileNav } from '../providers/mobile-nav.provider';
 
 const arrivals = (host: HTMLElement) =>
   ['#home', 'app-main-nav', 'app-featured-bar', 'app-social-links'].map(
@@ -86,7 +88,6 @@ describe('ObservatoryPageComponent', () => {
       providers: [
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(ENTRIES, [ObservatoryEffect]),
-        provideMobileNav(),
       ],
     });
     await loadProjects();
@@ -107,6 +108,18 @@ describe('ObservatoryPageComponent', () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('provides the mobile-nav platform and back layers from its own tree, never from the root', async () => {
+    const { fixture } = await mount();
+    const page = fixture.debugElement.injector;
+
+    expect(() => TestBed.inject(MOBILE_NAV_PLATFORM)).toThrow();
+    expect(page.get(MOBILE_NAV_PLATFORM)).toBeInstanceOf(
+      MobileNavPlatformService,
+    );
+    expect(() => TestBed.inject(BackLayersService)).toThrow();
+    expect(() => page.get(BackLayersService)).not.toThrow();
   });
 
   describe('the arrival of the home page', () => {

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
-import { provideMobileNav } from './mobile-nav.provider';
+import { MobileNavPlatformService } from './mobile-nav-platform.service';
 import { stubObservers } from '@testing/doubles/browser.double';
 import { onPlatform, Platform } from '@testing/fixtures/testbed.fixture';
 
@@ -10,13 +10,13 @@ const platformOn = (platform: Platform) => {
   TestBed.configureTestingModule({
     providers: [
       provideRouter([{ path: '**', children: [] }]),
-      provideMobileNav(),
+      { provide: MOBILE_NAV_PLATFORM, useClass: MobileNavPlatformService },
     ],
   });
   return TestBed.inject(MOBILE_NAV_PLATFORM);
 };
 
-describe('provideMobileNav', () => {
+describe('MobileNavPlatformService', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();

@@ -115,8 +115,16 @@ const ROLES_IN = {
     'ports',
   ],
   'features/common': ['ports', 'models'],
-  i18n: ['services', 'providers', 'guards', 'models', 'rules', 'data'],
-  pages: ['resolvers', 'guards', 'providers'],
+  i18n: [
+    'services',
+    'providers',
+    'guards',
+    'resolvers',
+    'models',
+    'rules',
+    'data',
+  ],
+  pages: [],
 };
 
 const ENGINE_ZONES = new Set(['shared/space-scene']);

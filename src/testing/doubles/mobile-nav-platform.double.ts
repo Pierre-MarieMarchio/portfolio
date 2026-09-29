@@ -21,6 +21,7 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   public place = 0;
   public readonly backs: number[] = [];
   public readonly moving: Element[] = [];
+  public readonly vibrations: number[] = [];
   private frames: (() => void)[] = [];
   private waiting: Waiting[] = [];
   private readonly resized: (() => void)[] = [];
@@ -106,6 +107,10 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
     return () => {
       this.pops = this.pops.filter((pop) => pop !== fn);
     };
+  };
+
+  public readonly vibrate = (ms: number): void => {
+    this.vibrations.push(ms);
   };
 
   public readonly onLeave = (fn: () => void) => {

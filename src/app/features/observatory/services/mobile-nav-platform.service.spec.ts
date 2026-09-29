@@ -80,6 +80,15 @@ describe('MobileNavPlatformService', () => {
     expect(platform.hasSnapChanging()).toBe(false);
   });
 
+  it('vibrates through the browser where it can', () => {
+    const vibrate = vi.fn();
+    vi.stubGlobal('navigator', { vibrate });
+
+    platformOn('browser').vibrate(10);
+
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith(10);
+  });
+
   it('says when the router starts to leave the view, until stopped', async () => {
     const platform = platformOn('browser');
     const left = vi.fn();

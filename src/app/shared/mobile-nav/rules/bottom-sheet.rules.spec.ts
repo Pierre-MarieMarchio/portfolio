@@ -2,6 +2,7 @@ import type { SheetDetent, SheetStop } from '../models/bottom-sheet.model';
 import {
   detentAfter,
   isDismissedBy,
+  isFelt,
   speedOf,
   stopOf,
   stopsOf,
@@ -160,5 +161,16 @@ describe('isDismissedBy', () => {
   it('takes the lowest of two stops for the one to dismiss from', () => {
     expect(isDismissedBy(TWO, 'folded', 0, 80)).toBe(true);
     expect(isDismissedBy(TWO, 'half', 300, 80)).toBe(false);
+  });
+});
+
+describe('isFelt', () => {
+  it.each<[boolean, SheetDetent | null, SheetDetent, boolean]>([
+    [true, 'half', 'full', true],
+    [true, 'half', 'half', false],
+    [true, null, 'half', false],
+    [false, 'half', 'full', false],
+  ])('by user %s, from %s to %s: %s', (isByUser, from, to, expected) => {
+    expect(isFelt(isByUser, from, to)).toBe(expected);
   });
 });

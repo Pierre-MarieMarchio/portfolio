@@ -14,6 +14,12 @@ const SLACK = 1;
 export const isAtStop = (top: number, at: number): boolean =>
   Math.abs(top - at) < SLACK;
 
+export const isFelt = (
+  isByUser: boolean,
+  from: SheetDetent | null,
+  to: SheetDetent,
+): boolean => isByUser && from !== null && from !== to;
+
 export const stopsOf = (
   detents: readonly SheetDetent[],
   { peek, half, end }: SheetRoom,

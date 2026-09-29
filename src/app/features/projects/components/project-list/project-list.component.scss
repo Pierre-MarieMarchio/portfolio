@@ -56,7 +56,8 @@ $cards-below: 500px;
   transition:
     color var(--t),
     border-color var(--t),
-    padding-left var(--t);
+    padding-left var(--t),
+    filter var(--t);
 
   &[data-selected='true'] {
     @include lit-row;

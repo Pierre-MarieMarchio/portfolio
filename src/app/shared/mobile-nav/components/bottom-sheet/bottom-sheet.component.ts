@@ -17,11 +17,12 @@ import {
 import { ScrollReleaseDirective } from '../../directives/scroll-release.directive';
 import type { SheetDetent, SheetStop } from '../../models/bottom-sheet.model';
 import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
-import { BackLayersService } from '../../services/back-layers.service';
+import { BackClaimService } from '../../services/back-claim.service';
 import {
   detentAfter,
   isAtStop,
   isDismissedBy,
+  isFelt,
   shadeFromOf,
   stopOf,
   stopsOf,
@@ -29,11 +30,14 @@ import {
 
 const CONTROLS = 'button, a, input, select, textarea, label';
 
+const SETTLE_VIBRATION_MS = 10;
+
 const ignore = (): void => {};
 
 @Component({
   selector: 'app-bottom-sheet',
   imports: [ScrollReleaseDirective],
+  providers: [BackClaimService],
   templateUrl: './bottom-sheet.component.html',
   styleUrl: './bottom-sheet.component.scss',
   host: {
@@ -43,7 +47,7 @@ const ignore = (): void => {};
 })
 export class BottomSheetComponent {
   private readonly platform = inject(MOBILE_NAV_PLATFORM);
-  private readonly backLayers = inject(BackLayersService);
+  private readonly back = inject(BackClaimService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly rail = viewChild.required<ElementRef<HTMLElement>>('rail');
@@ -71,9 +75,9 @@ export class BottomSheetComponent {
   private band = '';
   private isLanded = false;
   private isHeading = false;
+  private isByUser = false;
   private stopFrame: () => void = ignore;
   private stopMeasure: () => void = ignore;
-  private releaseBack: () => void = ignore;
   private readonly stops: (() => void)[] = [];
 
   constructor() {
@@ -85,9 +89,11 @@ export class BottomSheetComponent {
           this.ask(detent);
         }
         if (isActive && detent === 'full') {
-          this.claimBack();
+          this.back.claim(() => {
+            this.detent.set('half');
+          });
         } else {
-          this.letGoOfBack();
+          this.back.letGo();
         }
       });
     });
@@ -99,7 +105,6 @@ export class BottomSheetComponent {
     inject(DestroyRef).onDestroy(() => {
       this.stopFrame();
       this.stopMeasure();
-      this.releaseBack();
       for (const stop of this.stops) {
         stop();
       }
@@ -110,6 +115,7 @@ export class BottomSheetComponent {
     if (!this.isActive()) {
       return;
     }
+    this.isByUser = true;
     const isFolded = this.detent() === 'folded';
     const target = this.stopsNow().find(
       (stop) => (stop.detent === 'folded') !== isFolded,
@@ -134,6 +140,7 @@ export class BottomSheetComponent {
 
   protected press(): void {
     this.stopFrame();
+    this.isByUser = false;
     this.isHeading = false;
     this.origin = this.detent();
   }
@@ -144,6 +151,7 @@ export class BottomSheetComponent {
     if (!origin) {
       return;
     }
+    this.isByUser = true;
     const top = this.rail().nativeElement.scrollTop;
     if (this.transient() && isDismissedBy(stops, origin.detent, top, pull)) {
       this.dismissed.emit();
@@ -167,20 +175,6 @@ export class BottomSheetComponent {
     } else if (!this.isHeading) {
       this.letGo(0);
     }
-  }
-
-  private claimBack(): void {
-    if (this.releaseBack === ignore) {
-      this.releaseBack = this.backLayers.claim(() => {
-        this.releaseBack = ignore;
-        this.detent.set('half');
-      });
-    }
-  }
-
-  private letGoOfBack(): void {
-    this.releaseBack();
-    this.releaseBack = ignore;
   }
 
   private land(): void {
@@ -287,6 +281,10 @@ export class BottomSheetComponent {
       this.band = band;
       this.element.style.setProperty('--mnav-sheet-band', band);
     }
+    if (isFelt(this.isByUser, this.committed, stop.detent)) {
+      this.platform.vibrate(SETTLE_VIBRATION_MS);
+    }
+    this.isByUser = false;
     this.committed = stop.detent;
     if (this.detent() !== stop.detent) {
       this.detent.set(stop.detent);

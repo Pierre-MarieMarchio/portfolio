@@ -2542,3 +2542,32 @@ titre existe : deux tests la refusent.
 
 **Écarté.** Suivre Sonar contre le lint sur `Number.NaN` : treize erreurs de
 lint. Marquer les défauts à la main dans l'interface : la raison s'y perdrait.
+
+## 2026-09-29 — `pages/` ne garde que ses écrans, et l'atelier est défait (D83, amende D57 et défait « Atelier de composants en route de développement »)
+
+**Décision.** `pages/` ne contient plus que `observatory/`. Le branchement de
+`shared/mobile-nav` sur le navigateur devient `MobileNavPlatformService`
+(`features/observatory/services/`), qui implémente `MOBILE_NAV_PLATFORM`
+avec les services de `core` et le routeur ; la page le fournit, avec
+`BackLayersService`, comme la scène fournit `SceneSurroundingsService` à
+`shared/space-scene`. `provideMobileNav()` et `app.config.ts` n'en disent plus
+rien. Le resolver des têtes de page va dans `i18n/resolvers/`, à côté de la
+garde du catalogue que les mêmes routes appellent. L'atelier (`/atelier`,
+route de développement) disparaît avec sa route. `check-structure` refuse tout
+dossier de rôle dans `pages/` et accepte `i18n/resolvers/`.
+
+**Raison.** L'opérateur voulait `pages/` réservé aux écrans, et chaque pièce là
+où les zones existantes l'accueillent, sans zone nouvelle : `core` ne peut pas
+connaître le port d'une librairie, la librairie n'importe rien du dépôt (D57),
+`features/common` n'importe rien ; une feature le peut, et le dépôt avait déjà
+ce cas pour la scène. Le titre, la description et les adresses d'une route
+dans chaque langue sont des textes et des adresses : la définition d'`i18n/`.
+La décision de l'atelier disait de le défaire quand les pages montreraient
+tous les états de la fenêtre et du segmenté : c'est le cas depuis le lot B.
+Les titres et descriptions prérendus sont identiques avant et après ; le
+bundle initial passe de 532,08 à 532,47 kB.
+
+**Écarté.** Un dossier nouveau à la racine (`providers/`, `resolvers/`, ou
+`app/`) : une zone de plus pour deux fichiers, que l'opérateur a refusée.
+Garder le provider à la racine de l'injection : la page est le seul arbre qui
+utilise la librairie.

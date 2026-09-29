@@ -6,7 +6,9 @@ import type {
 } from '@angular/router';
 import { Lang, LANGS, langOfUrl } from '@app/core/models';
 import { ProjectsManager } from '@app/features/projects/states';
-import { CatalogLoaderService, PagesTexts, translatePath } from '@app/i18n';
+import type { PagesTexts } from '../models/catalog.model';
+import { translatePath } from '../rules/paths.rules';
+import { CatalogLoaderService } from '../services/catalog-loader.service';
 
 type HeadedView = keyof PagesTexts['heads'];
 

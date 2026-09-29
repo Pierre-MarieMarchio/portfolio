@@ -34,6 +34,7 @@ import { closeTargetOf, viewAtAddress } from '@app/features/observatory/rules';
 import {
   FeaturedTourService,
   HomeRevealService,
+  MobileNavPlatformService,
   ViewWindowsService,
 } from '@app/features/observatory/services';
 import {
@@ -56,6 +57,8 @@ import { ProjectsManager } from '@app/features/projects/states';
 import { pathOf, ViewLinksService } from '@app/i18n';
 import { BottomSheetComponent } from '@shared/mobile-nav/components';
 import type { SheetDetent } from '@shared/mobile-nav/models';
+import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
+import { BackLayersService } from '@shared/mobile-nav/services';
 import type { LayoutBox } from '@shared/space-scene/models';
 import { SCENE_WINDOW_DRAG, SceneWindowDrag } from '@shared/space-scene/ports';
 import type { FrameRect } from '@shared/windows/models';
@@ -125,6 +128,8 @@ interface SheetOnShow {
     WindowStackService,
     ViewWindowsService,
     { provide: SCENE_WINDOW_DRAG, useExisting: ObservatoryPageComponent },
+    { provide: MOBILE_NAV_PLATFORM, useClass: MobileNavPlatformService },
+    BackLayersService,
   ],
   host: {
     '(document:keydown.escape)': 'onEscape()',

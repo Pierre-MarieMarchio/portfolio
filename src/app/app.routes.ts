@@ -1,13 +1,14 @@
 import { Route, Routes } from '@angular/router';
 import { Lang, LANGS } from '@app/core/models';
-import { loadCatalog, PATHS } from '@app/i18n';
 import {
   alternates,
+  loadCatalog,
+  PATHS,
   sheetDescription,
   sheetTitle,
   viewDescription,
   viewTitle,
-} from './pages/resolvers/page-head.resolver';
+} from '@app/i18n';
 import {
   ObservatoryRouteComponent,
   ObservatoryRouteData,
@@ -50,18 +51,6 @@ function unknownIn(lang: Lang): Route {
 
 export const routes: Routes = [
   ...LANGS.flatMap((lang) => routesIn(lang)),
-  ...(typeof ngDevMode === 'undefined' || ngDevMode
-    ? [
-        {
-          path: 'atelier',
-          loadComponent: () =>
-            import('./pages/workbench/workbench-page.component').then(
-              (m) => m.WorkbenchPageComponent,
-            ),
-          title: 'Atelier',
-        },
-      ]
-    : []),
   unknownIn('en'),
   unknownIn('fr'),
 ];

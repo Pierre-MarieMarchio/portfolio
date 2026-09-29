@@ -2290,3 +2290,34 @@ fenêtre cachée sans la montrer. Le bundle initial passe de 520,95 à
 **Écarté.** Une sortie de la barre pour remonter la fenêtre : la navigation
 le fait déjà. Un dock au bureau : une seconde barre pour ce que la première
 peut dire. Un compteur de fenêtres : il ne dit pas lesquelles.
+
+## 2026-09-29 — Au bureau, la barre d'une fenêtre ne garde qu'Agrandir et Fermer ; le reste passe dans le menu de la fenêtre (D74, amende D63 et D65)
+
+**Décision.** Au bureau et à la tablette, la barre de titre ne porte plus, à
+droite, qu'« Agrandir » (ou « Remettre à sa taille ») et « Fermer » ;
+l'aperçu, seulement « Fermer », sans double-clic qui agrandit. Le carré à
+gauche du titre devient « Menu de la fenêtre » : « Garder ouverte en
+changeant de page » (case cochable), « Moitié gauche », « Moitié droite »,
+« Agrandir » (sauf l'aperçu). Le menu suit le clavier d'un menu ARIA (↑ ↓,
+Début, Fin, Entrée, Échap et Tab rendent le focus au bouton ; Échap ne fait
+rien d'autre) et reste dans l'écran ; il passe au-dessus du cadre par
+`popover`. « Déplacer » et « Redimensionner » partent avec leur clavier par
+flèches : le menu est l'alternative au glisser (WCAG 2.5.7). Agrandir et
+restaurer s'animent en 280 ms, sans animation en mouvement réduit. Seul le
+bouton du menu est dans le bundle initial ; le panneau, sa logique et ses
+actions arrivent par `FormatCodeService` (`window-menu-tracker`, 3,2 kB) et
+s'ouvrent au premier geste, même si le morceau n'était pas encore là. Le
+téléphone ne change pas.
+
+**Raison.** Cinq boutons par barre, dont deux qu'aucun système n'a :
+recruteurs et clients n'osaient pas y toucher, et le CTO y voyait un tableau
+de bord. Sur un bureau, on déplace à la souris ; l'accès sans glisser se
+trouve dans un menu de fenêtre, comme Alt+Espace sous Windows. Les
+raccourcis Alt+flèches sont écartés : Alt+← est déjà « Page précédente »
+dans les navigateurs. Le bundle initial passe de 521,89 à 526,04 kB, dont
+0,9 kB pour le style du panneau, gardé en SCSS avec les jetons du site.
+
+**Écarté.** Garder Déplacer et Redimensionner pour le clavier : le menu le
+fait sans bouton visible. Charger le menu par `@defer` : son runtime
+reprenait le gain. Injecter le style du panneau depuis le code : il
+échapperait au lint et aux jetons.

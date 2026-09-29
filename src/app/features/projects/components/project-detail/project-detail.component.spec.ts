@@ -11,6 +11,7 @@ import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
+import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
@@ -303,7 +304,12 @@ describe('ProjectDetailComponent', () => {
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    host.querySelector<HTMLButtonElement>('button.pin')?.click();
+    await loadWindowMenu();
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
     expect(pinToggled).toHaveLength(1);

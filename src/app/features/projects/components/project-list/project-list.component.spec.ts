@@ -8,6 +8,7 @@ import {
 import { FamilyFilter, ProjectEntry } from '@app/features/projects/models';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectListComponent } from './project-list.component';
+import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const rows = (host: HTMLElement) => [
@@ -260,7 +261,12 @@ describe('ProjectListComponent', () => {
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    host.querySelector<HTMLButtonElement>('button.pin')?.click();
+    await loadWindowMenu();
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
     expect(pinToggled).toHaveLength(1);

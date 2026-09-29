@@ -45,14 +45,13 @@ export const FRAME_EDGES: readonly FrameEdge[] = ['e', 'w', 's', 'se', 'sw'];
 
 export type FrameGrip = 'bar' | FrameEdge;
 
-export type FrameKeyControl = 'move' | 'resize';
-
 export interface WindowParts {
   readonly section: HTMLElement;
   readonly bar: HTMLElement;
   readonly anchor: () => WindowAnchor;
   readonly ceiling: () => number;
   readonly stable: () => boolean;
+  readonly maximizable: () => boolean;
 }
 
 export interface WindowControlView {
@@ -61,7 +60,6 @@ export interface WindowControlView {
   readonly icon: string;
   readonly pressed: boolean | null;
   readonly expanded: boolean | null;
-  readonly keys: string | null;
 }
 
 type Unlisten = () => void;
@@ -75,8 +73,6 @@ export interface FramedWindow {
   readonly reducedMotion: () => boolean;
   readonly place: () => FramePlace | null;
   readonly mode: () => FrameMode | null;
-  readonly holding: () => FrameKeyControl | null;
-  readonly hold: (control: FrameKeyControl | null) => void;
   readonly paint: (place: FramePlace | null) => void;
   readonly commit: (place: FramePlace | null, mode: FrameMode | null) => void;
   readonly live: (rect: FrameRect | null) => void;
@@ -88,8 +84,8 @@ export interface FramedWindow {
 }
 
 export interface FrameTracking {
-  press(control: FrameKeyControl | 'maximize', event: Event): void;
   toggleMaximize(): void;
+  snapTo(zone: 'left' | 'right'): void;
   fit(): void;
   fitHeight(): void;
   stop(): void;
@@ -117,6 +113,6 @@ export interface FrameCode {
   readonly controlsOf: (
     texts: WindowTexts,
     mode: FrameMode | null,
-    holding: FrameKeyControl | null,
+    isMaximizable: boolean,
   ) => readonly WindowControlView[];
 }

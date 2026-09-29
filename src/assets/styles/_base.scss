@@ -1,5 +1,7 @@
+@use 'mixins/controls';
 @use 'mixins/formats';
 @use 'mixins/motion';
+@use 'mixins/type';
 
 *,
 *::before,
@@ -68,6 +70,58 @@ button {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
+}
+
+[data-frame-animating] {
+  transition:
+    transform 280ms var(--ease),
+    width 280ms var(--ease),
+    height 280ms var(--ease);
+}
+
+.window-menu-panel {
+  position: fixed;
+  z-index: var(--z-chrome);
+  margin: 0;
+  min-width: 12rem;
+  padding: var(--s1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--ink) 16%, transparent);
+
+  button {
+    @include type.mono(var(--m2));
+
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: var(--target-compact);
+    padding: 0 var(--s2);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  button::before {
+    content: '';
+    display: inline-block;
+    width: 1em;
+    margin-right: var(--s1);
+  }
+
+  button[aria-checked='true']::before {
+    content: '✓';
+  }
+
+  @include formats.can-hover {
+    button:hover {
+      @include controls.lit;
+    }
+  }
 }
 
 *::-webkit-scrollbar {

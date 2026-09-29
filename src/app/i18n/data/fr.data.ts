@@ -16,14 +16,10 @@ export const FR: Catalog = {
   },
 
   windows: {
-    pin: 'Garder cette fenêtre ouverte en changeant de page',
-    unpin: 'Laisser cette fenêtre se fermer en changeant de page',
-    move: 'Déplacer la fenêtre',
-    moveKeys:
-      'Déplacez-la avec les flèches, à grands pas avec Maj. Entrée ou Échap pour finir.',
-    resize: 'Redimensionner la fenêtre',
-    resizeKeys:
-      'Changez sa taille avec les flèches, à grands pas avec Maj. Entrée ou Échap pour finir.',
+    menu: 'Menu de la fenêtre',
+    keepOpen: 'Garder ouverte en changeant de page',
+    snapLeft: 'Moitié gauche',
+    snapRight: 'Moitié droite',
     maximize: 'Agrandir la fenêtre',
     restore: 'Remettre la fenêtre à sa taille',
     close: 'Fermer la fenêtre',

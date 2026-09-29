@@ -21,13 +21,6 @@ const ICONS = {
     'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z',
 } as const;
 
-let lastId = 0;
-
-const nextKeysId = (): string => {
-  lastId += 1;
-  return `window-keys-${String(lastId)}`;
-};
-
 @Component({
   selector: 'app-window-controls',
   templateUrl: './window-controls.component.html',
@@ -50,22 +43,19 @@ export class WindowControlsComponent {
 
   private readonly asked = signal<boolean | null>(null);
 
-  protected readonly keysId = nextKeysId();
-
   protected readonly controls = computed<readonly WindowControlView[]>(() => {
     const texts = this.texts();
-    const isPinned = this.pinned();
-    const pins = this.display.format() === 'phone' ? texts.phone : texts;
-    const controls: WindowControlView[] = [
-      {
+    const controls: WindowControlView[] = [];
+    if (this.display.format() === 'phone') {
+      const isPinned = this.pinned();
+      controls.push({
         name: 'pin',
-        label: isPinned ? pins.unpin : pins.pin,
+        label: isPinned ? texts.phone.unpin : texts.phone.pin,
         icon: isPinned ? ICONS.pinned : ICONS.pin,
         pressed: isPinned,
         expanded: null,
-        keys: null,
-      },
-    ];
+      });
+    }
     controls.push(...this.middle());
     if (this.closable()) {
       controls.push({
@@ -74,7 +64,6 @@ export class WindowControlsComponent {
         icon: ICONS.close,
         pressed: null,
         expanded: null,
-        keys: null,
       });
     }
     return controls;
@@ -93,7 +82,6 @@ export class WindowControlsComponent {
         icon: isFolded ? ICONS.up : ICONS.down,
         pressed: null,
         expanded: !isFolded,
-        keys: null,
       },
     ];
   }
@@ -106,7 +94,7 @@ export class WindowControlsComponent {
     return isPinned ? this.texts().kept : this.texts().released;
   });
 
-  protected press(control: WindowControl, event: Event): void {
+  protected press(control: WindowControl): void {
     switch (control) {
       case 'pin': {
         this.asked.set(!this.pinned());
@@ -117,12 +105,12 @@ export class WindowControlsComponent {
         this.foldToggled.emit();
         return;
       }
-      case 'close': {
-        this.closed.emit();
+      case 'maximize': {
+        this.frame?.toggleMaximize();
         return;
       }
-      default: {
-        this.frame?.press(control, event);
+      case 'close': {
+        this.closed.emit();
       }
     }
   }

@@ -1,6 +1,7 @@
 import {
   afterRenderEffect,
   computed,
+  DestroyRef,
   Directive,
   effect,
   ElementRef,
@@ -10,6 +11,7 @@ import {
 } from '@angular/core';
 import {
   BrowserWindowService,
+  ClockService,
   DisplayFormatService,
   DocumentStylesService,
   ElementObserverService,
@@ -18,7 +20,6 @@ import {
 } from '@app/core/services';
 import type {
   FrameCode,
-  FrameKeyControl,
   FrameMode,
   FramePlace,
   FrameRect,
@@ -28,6 +29,8 @@ import type {
   WindowParts,
 } from '../models/window-frame.model';
 import { WINDOW_TEXTS } from '../ports/window-texts.port';
+
+const FRAME_ANIMATION_MS = 280;
 
 export const loadWindowFrame = (): Promise<FrameCode> =>
   Promise.all([
@@ -53,6 +56,7 @@ const NO_CONTROLS: readonly WindowControlView[] = [];
     '[style.width]': 'width()',
     '[style.height]': 'height()',
     '[attr.data-frame]': 'mode()',
+    '[attr.data-frame-animating]': 'animating() || null',
   },
 })
 export class WindowFrameDirective {
@@ -63,6 +67,7 @@ export class WindowFrameDirective {
   private readonly observer = inject(ElementObserverService);
   private readonly media = inject(MediaPreferencesService);
   private readonly display = inject(DisplayFormatService);
+  private readonly clock = inject(ClockService);
   private readonly texts = inject(WINDOW_TEXTS);
   private readonly code = inject(FormatCodeService).load(
     ['desktop', 'tablet'],
@@ -70,17 +75,19 @@ export class WindowFrameDirective {
   );
   private readonly place = signal<FramePlace | null>(null);
   private readonly framedMode = signal<FrameMode | null>(null);
-  private readonly holding = signal<FrameKeyControl | null>(null);
   private readonly parts = signal<WindowParts | null>(null);
   private readonly liveHandlers = new Set<(rect: FrameRect | null) => void>();
+  protected readonly animating = signal(false);
   private tracker: FrameTracking | null = null;
+  private stopAnimating: () => void = () => {};
 
   public readonly mode = this.framedMode.asReadonly();
   public readonly isActive = computed(() => this.display.format() !== 'phone');
   public readonly controls = computed(() => {
     const code = this.code();
-    return code && this.parts() && this.isActive()
-      ? code.controlsOf(this.texts(), this.framedMode(), this.holding())
+    const parts = this.parts();
+    return code && parts && this.isActive()
+      ? code.controlsOf(this.texts(), this.framedMode(), parts.maximizable())
       : NO_CONTROLS;
   });
 
@@ -119,6 +126,9 @@ export class WindowFrameDirective {
         untracked(() => this.tracker?.fitHeight());
       },
     });
+    inject(DestroyRef).onDestroy(() => {
+      this.stopAnimating();
+    });
   }
 
   public onLive(handler: (rect: FrameRect | null) => void): () => void {
@@ -137,12 +147,25 @@ export class WindowFrameDirective {
     };
   }
 
-  public press(control: FrameKeyControl | 'maximize', event: Event): void {
-    this.tracker?.press(control, event);
+  public snapTo(zone: 'left' | 'right'): void {
+    this.tracker?.snapTo(zone);
   }
 
   public toggleMaximize(): void {
     this.tracker?.toggleMaximize();
+    this.animate();
+  }
+
+  private animate(): void {
+    this.stopAnimating();
+    if (this.media.reducedMotion()) {
+      this.animating.set(false);
+      return;
+    }
+    this.animating.set(true);
+    this.stopAnimating = this.clock.after(FRAME_ANIMATION_MS, () => {
+      this.animating.set(false);
+    });
   }
 
   private paint(place: FramePlace | null): void {
@@ -155,9 +178,6 @@ export class WindowFrameDirective {
   private commit(place: FramePlace | null, mode: FrameMode | null): void {
     this.place.set(place);
     this.framedMode.set(mode);
-    if (mode === null) {
-      this.holding.set(null);
-    }
   }
 
   private framed(parts: WindowParts): FramedWindow {
@@ -170,10 +190,6 @@ export class WindowFrameDirective {
       reducedMotion: () => this.media.reducedMotion(),
       place: () => untracked(this.place),
       mode: () => untracked(this.framedMode),
-      holding: () => untracked(this.holding),
-      hold: (control) => {
-        this.holding.set(control);
-      },
       paint: (place) => {
         this.paint(place);
       },

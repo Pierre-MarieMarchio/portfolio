@@ -17,6 +17,9 @@ export interface ObservatoryTexts {
     readonly status: string;
     readonly brand: string;
   };
+  readonly intro: {
+    readonly skip: string;
+  };
   readonly stepBack: {
     readonly deselect: string;
     readonly closePreview: string;

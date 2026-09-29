@@ -5,6 +5,7 @@ import { ClockService } from '../browser/clock.service';
 import { MediaPreferencesService } from '../browser/media-preferences.service';
 
 const GESTURES = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
+const IDLE_KEYS = new Set(['Tab', 'Shift', 'Control', 'Alt', 'Meta']);
 
 @Service()
 export class UserPresenceService {
@@ -27,7 +28,10 @@ export class UserPresenceService {
         stop();
       }
     };
-    const once = (): void => {
+    const once = (event?: Event): void => {
+      if (event instanceof KeyboardEvent && IDLE_KEYS.has(event.key)) {
+        return;
+      }
       cancel();
       fn();
     };

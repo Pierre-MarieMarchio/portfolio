@@ -140,6 +140,9 @@ export const EN: Catalog = {
       status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',
     },
+    intro: {
+      skip: draft('Skip the intro'),
+    },
     stepBack: {
       deselect: draft('Deselect the project'),
       closePreview: draft('Close the preview'),

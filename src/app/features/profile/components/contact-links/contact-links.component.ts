@@ -1,7 +1,10 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { SceneAnchorKind } from '@app/features/common';
 import { SocialLinksComponent } from '@shared/ui/components';
-import { LayoutAnchorDirective } from '@shared/ui/directives';
+import {
+  HeldInertDirective,
+  LayoutAnchorDirective,
+} from '@shared/ui/directives';
 import { Entrance, RailAction, SocialLink } from '@shared/ui/models';
 import { CONTACT_ADDRESSES, CONTACT_EMAIL, COPY_ICON } from '../../data';
 import { PROFILE_TEXTS } from '../../ports';
@@ -10,7 +13,12 @@ import { ContactMenuComponent } from '../contact-menu/contact-menu.component';
 
 @Component({
   selector: 'app-contact-links',
-  imports: [ContactMenuComponent, SocialLinksComponent, LayoutAnchorDirective],
+  imports: [
+    ContactMenuComponent,
+    HeldInertDirective,
+    SocialLinksComponent,
+    LayoutAnchorDirective,
+  ],
   providers: [CopyFeedbackService],
   templateUrl: './contact-links.component.html',
   styleUrl: './contact-links.component.scss',

@@ -1,10 +1,19 @@
+@use 'mixins/motion';
+
+@keyframes reach {
+  to {
+    pointer-events: auto;
+  }
+}
+
 @mixin on-its-own($duration, $delay) {
   animation: rise $duration calc(var(--arrival-at) + #{$delay}) both;
 }
 
-@mixin held($hide: true) {
+@mixin held($hide: false) {
   animation: none;
   opacity: 0;
+  pointer-events: none;
 
   @if $hide {
     visibility: hidden;
@@ -12,5 +21,12 @@
 }
 
 @mixin shown($duration, $delay) {
-  animation: rise $duration $delay both;
+  pointer-events: none;
+  animation:
+    rise $duration $delay both,
+    reach 0s $delay forwards;
+
+  @include motion.reduced {
+    pointer-events: auto;
+  }
 }

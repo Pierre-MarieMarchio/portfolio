@@ -1,0 +1,5 @@
+@if (reveal.arrival() === 'held') {
+  <button type="button" class="skip" (click)="reveal.arrive()">
+    {{ texts().intro.skip }}
+  </button>
+}

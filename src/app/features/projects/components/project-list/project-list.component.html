@@ -28,24 +28,8 @@
   <ul body class="rows">
     @for (row of rows(); track row.slug) {
       <li>
-        <button
-          type="button"
-          class="row toggle"
-          [attr.aria-pressed]="row.isSelected"
-          [attr.aria-label]="row.label"
-          [attr.data-selected]="row.isSelected"
-          appHoverFocus
-          (click)="toggle(row.slug)"
-          (entered)="hoveredChange.emit(row.slug)"
-          (exited)="hoveredChange.emit(null)"
-        >
-          <ng-container
-            [ngTemplateOutlet]="facts"
-            [ngTemplateOutletContext]="{ $implicit: row }"
-          />
-        </button>
         <a
-          class="row card"
+          class="row"
           [routerLink]="links.sheet(row.slug)"
           [attr.aria-label]="row.label"
           [attr.data-selected]="row.isSelected"
@@ -58,28 +42,6 @@
             [ngTemplateOutletContext]="{ $implicit: row }"
           />
         </a>
-        @if (row.isSelected) {
-          <div class="opened">
-            <span aria-hidden="true"></span>
-            <span class="opened-body">
-              <span class="subject">{{ row.subject }}</span>
-              <span class="links">
-                <a class="to-sheet" [routerLink]="links.sheet(row.slug)">{{
-                  texts().index.openSheet
-                }}</a>
-                @if (row.link; as link) {
-                  <a
-                    class="outbound"
-                    [href]="link.href"
-                    target="_blank"
-                    rel="noopener"
-                    >{{ link.label }} ↗</a
-                  >
-                }
-              </span>
-            </span>
-          </div>
-        }
       </li>
     }
   </ul>

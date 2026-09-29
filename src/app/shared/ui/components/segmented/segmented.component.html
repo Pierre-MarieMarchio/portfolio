@@ -9,10 +9,7 @@
         [title]="item.aria ?? item.label"
         (click)="valueChange.emit(item.value)"
       >
-        <span [class.label--wide]="item.phoneLabel">{{ item.label }}</span>
-        @if (item.phoneLabel) {
-          <span class="phone-label">{{ item.phoneLabel }}</span>
-        }
+        <span>{{ item.label }}</span>
         @if (item.count) {
           <span class="count" aria-hidden="true">{{ item.count }}</span>
         }

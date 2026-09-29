@@ -1,13 +1,20 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DisplayFormatService } from '@app/core/services';
 import { SegmentedComponent } from '@shared/ui/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
+import { RankedProject } from '../../models';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
 import { positionOf } from '../../rules/project-labels.rules';
+
+interface Neighbours {
+  readonly previous: RankedProject;
+  readonly next: RankedProject;
+}
 
 @Component({
   selector: 'app-project-preview',
@@ -24,6 +31,7 @@ export class ProjectPreviewComponent {
   private readonly manager = inject(ProjectsManager);
   protected readonly texts = inject(PROJECTS_TEXTS);
   protected readonly links = inject(LINKS);
+  protected readonly display = inject(DisplayFormatService);
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
@@ -52,4 +60,15 @@ export class ProjectPreviewComponent {
       aria: this.texts().preview.body(project.number, project.title),
     })),
   );
+
+  protected readonly neighbours = computed<Neighbours | null>(() => {
+    const featured = this.manager.featured();
+    const index = featured.findIndex((project) => project.slug === this.slug());
+    if (index < 0 || featured.length < 2) {
+      return null;
+    }
+    const previous = featured[(index - 1 + featured.length) % featured.length];
+    const next = featured[(index + 1) % featured.length];
+    return previous && next ? { previous, next } : null;
+  });
 }

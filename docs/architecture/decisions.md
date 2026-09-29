@@ -2209,3 +2209,31 @@ marche sans JS au prérendu. Le bundle initial passe de 520,02 à 521,58 kB.
 **Écarté.** Garder la navigation d'Échap : c'est elle qui faisait perdre la
 page. Une puce au téléphone : la feuille et le retour du système y suffisent
 (lot C). Un bouton « Retour » générique : il ne dirait pas où il mène.
+
+## 2026-09-29 — Les fenêtres de projet disent les choses par leur nom (D71, amende D34, D40, D57 et D59)
+
+**Décision.** Les onglets de la fiche portent le titre de leur chapitre à tous
+les formats ; la rangée défile à l'horizontale plutôt que de couper un mot
+(`phoneLabel` part). La barre de titre de la fiche ne porte plus « 02 / 08 ».
+Au bureau et à la tablette, l'aperçu passe d'un projet vedette à l'autre par
+« ‹ précédent · suivant › », deux boutons qui nomment le projet et bouclent ;
+son pied ne répète plus le statut (le mot « publiée » quitte les trois projets
+dont la preuve dit déjà « Sur Google Play »), et ses propriétés n'emploient
+qu'une police. Dans la liste, à tous les formats, une ligne est un lien vers
+sa fiche, comme la carte du téléphone (D59) : l'accordéon, la sélection par
+clic de ligne et « Voir le projet » partent ; le survol allume toujours la
+planète, et le clic sur une planète garde son effet.
+
+**Raison.** « 01 02 03 04 » voulait dire des chapitres ici et des projets là,
+et « 02 / 08 » un rang : trois sens pour les mêmes chiffres. Un nom dit où
+mène un onglet. Ouvrir une ligne demandait deux clics, le premier n'ouvrant
+qu'une phrase ; un lien ouvre, se lit comme un lien, marche au prérendu et
+revient par le bouton retour. Un aperçu agrandi ou une étiquette qui répète
+le statut ne disent rien de plus. Boucler garde deux boutons toujours nommés.
+Le bundle initial passe de 521,58 à 520,38 kB : l'accordéon pesait plus que
+la navigation.
+
+**Écarté.** Garder les numéros au bureau : ils ne disent pas où l'on va.
+Garder l'accordéon au bureau : deux commandes pour une ligne. Cacher
+l'étiquette en CSS : elle resterait dans les données sans rien dire. Ne pas
+boucler : le premier et le dernier projet perdraient un bouton.

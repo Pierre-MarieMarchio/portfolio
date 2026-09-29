@@ -52,9 +52,6 @@ const mount = async (featured: number, total: number) => {
     scene,
     station: TestBed.inject(ObservatoryManager),
     markers: () => host.querySelectorAll('app-featured-bar .row li').length,
-    choices: () =>
-      host.querySelectorAll('[aria-label="Projets mis en avant"] button')
-        .length,
   };
 };
 
@@ -84,13 +81,21 @@ describe('featured count', () => {
       expect(object.featured()).toBe(shown);
     });
 
-    it('offers the featured ones, and only them, in the preview', async () => {
-      const { fixture, station, choices } = await mount(featured, total);
+    it('walks only the featured ones, and all of them, from the preview neighbours', async () => {
+      const { fixture, station, host } = await mount(featured, total);
 
       station.openPreview('project-1');
       await fixture.whenStable();
 
-      expect(choices()).toBe(shown);
+      const seen = new Set<string>();
+      for (let step = 0; step < shown; step += 1) {
+        seen.add(station.preview() ?? '');
+        host.querySelector<HTMLButtonElement>('.next')?.click();
+        await fixture.whenStable();
+      }
+
+      expect(seen.size).toBe(shown);
+      expect(station.preview()).toBe('project-1');
     });
 
     it('numbers the featured rows of the index, and them only', async () => {
@@ -99,10 +104,10 @@ describe('featured count', () => {
       station.syncRoute('index');
       await fixture.whenStable();
 
-      expect(host.querySelectorAll('button.row .number.featured')).toHaveLength(
+      expect(host.querySelectorAll('a.row .number.featured')).toHaveLength(
         shown,
       );
-      expect(host.querySelectorAll('button.row')).toHaveLength(total);
+      expect(host.querySelectorAll('a.row')).toHaveLength(total);
     });
   });
 

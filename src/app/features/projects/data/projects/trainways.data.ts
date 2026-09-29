@@ -6,7 +6,6 @@ export const TRAINWAYS: ProjectEntry = {
     slug: 'trainways',
     title: 'TrainWays',
     short: 'TrainWays',
-    tag: { fr: 'publiée', en: draft('published') },
     family: 'professional',
     subject: {
       fr: 'Une application Android et iOS qui montre, avant un trajet en train, où le réseau passe et où il coupe.',

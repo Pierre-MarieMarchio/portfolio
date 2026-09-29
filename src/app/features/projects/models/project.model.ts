@@ -6,7 +6,7 @@ export interface ProjectSource {
   readonly slug: string;
   readonly title: Text;
   readonly short: Text;
-  readonly tag: Text;
+  readonly tag?: Text;
   readonly family: ProjectFamily;
   readonly subject: Text;
   readonly summary: Text;

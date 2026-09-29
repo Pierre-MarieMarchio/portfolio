@@ -40,7 +40,6 @@ export class ProjectListComponent {
 
   public readonly pinToggled = output();
   public readonly closed = output();
-  public readonly selectedChange = output<string | null>();
   public readonly hoveredChange = output<string | null>();
   public readonly familyChange = output<FamilyFilter>();
 
@@ -94,11 +93,6 @@ export class ProjectListComponent {
         label: rowLabel(project),
         isSelected: project.slug === selected,
         isVisited: visited.has(project.slug),
-        link: this.manager.detailOf(project.slug)?.links[0] ?? null,
       }));
   });
-
-  protected toggle(slug: string): void {
-    this.selectedChange.emit(this.selected() === slug ? null : slug);
-  }
 }

@@ -127,13 +127,13 @@ describe('ProjectDetailComponent', () => {
     expect(host.querySelector('.window')).toBeNull();
   });
 
-  it('opens a window titled after the project, with its rank over the total', async () => {
+  it('opens a window titled after the project, without a rank counter', async () => {
     const { host, texts } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
     expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
-    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
+    expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
 
   it('links back to the list at the start of its title bar', async () => {
@@ -155,7 +155,7 @@ describe('ProjectDetailComponent', () => {
     expect(componentOf(fixture, WindowComponent).stableHeight()).toBe(true);
   });
 
-  it('lists one toolbar button per chapter, numbered, titled on the phone, labelled and pressed on the current one', async () => {
+  it('lists one toolbar button per chapter, titled by its own title, labelled and pressed on the current one', async () => {
     const { host, texts } = await mount({ slug: 'proj-b', chapter: 1 });
     const toolbar = host.querySelector(
       `[aria-label="${texts.sheet.approaches}"]`,
@@ -167,11 +167,6 @@ describe('ProjectDetailComponent', () => {
     expect(
       buttons.map((button) =>
         button.querySelector('span')?.textContent?.trim(),
-      ),
-    ).toEqual(['01', '02', '03']);
-    expect(
-      buttons.map((button) =>
-        button.querySelector('.phone-label')?.textContent?.trim(),
       ),
     ).toEqual(['Pourquoi', 'Comment', 'Et ensuite']);
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([

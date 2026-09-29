@@ -44,10 +44,6 @@ dd {
   @include facts.value;
 }
 
-.text {
-  font-size: var(--p1);
-}
-
 .tag {
   flex: 1 1 auto;
   min-width: 0;
@@ -57,6 +53,48 @@ dd {
   @include controls.next-link;
 
   flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.neighbours {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.previous,
+.next {
+  @include type.mono(var(--m2));
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  min-height: var(--target-compact);
+  padding: 5px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include controls.touch-target;
+
+  @include formats.can-hover {
+    &:hover {
+      @include controls.lit;
+    }
+  }
+}
+
+.separator {
+  flex: 0 0 auto;
+  color: var(--ink-2);
 }
 
 @include formats.short-phone-portrait {

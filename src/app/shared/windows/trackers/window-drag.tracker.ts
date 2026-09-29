@@ -43,6 +43,7 @@ export class WindowDragTracker {
     if (grab.grip === 'bar') {
       grab.handle.style.cursor = 'grabbing';
     }
+    framed.blockSelection(true);
     this.stops = [
       framed.onWindow('pointermove', (move) => this.drag(move), {
         passive: false,
@@ -60,6 +61,7 @@ export class WindowDragTracker {
     if (this.grab.grip === 'bar') {
       this.grab.handle.style.cursor = '';
     }
+    this.framed.blockSelection(false);
   }
 
   private drag(event: PointerEvent): void {

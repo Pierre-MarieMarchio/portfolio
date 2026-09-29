@@ -60,6 +60,9 @@ const openOf = (host: HTMLElement): boolean[] =>
     (a) => a.dataset['open'] !== undefined,
   );
 
+const follows = (first: Element, second: Element): number =>
+  first.compareDocumentPosition(second);
+
 describe('ObservatoryPageComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
@@ -531,6 +534,28 @@ describe('ObservatoryPageComponent', () => {
     expect(station.selected()).toBeNull();
   });
 
+  it('does nothing on F6 without a window shown, and focuses its title once one is', async () => {
+    const { fixture, station, host } = await mount();
+    document.body.append(host);
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'F6', bubbles: true }),
+    );
+    expect(document.activeElement).toBe(document.body);
+
+    station.syncRoute('about');
+    await shownAfterFrames(fixture);
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'F6', bubbles: true }),
+    );
+
+    expect(document.activeElement).toBe(
+      host.querySelector('.slot--about [data-window-title]'),
+    );
+    host.remove();
+  });
+
   it('leaves the focus alone on the first load', async () => {
     const { fixture, host } = await mount();
     document.body.append(host);
@@ -717,6 +742,22 @@ describe('ObservatoryPageComponent', () => {
       await fixture.whenStable();
 
       expect(rank('about')).toBeGreaterThan(rank('index'));
+    });
+  });
+
+  describe('the order of the page', () => {
+    it('reaches the page bar, the windows and the rest of the page before the moving planets', async () => {
+      const { host } = await mount();
+      const bar = host.querySelector('.bar') as Element;
+      const about = host.querySelector('.slot--about') as Element;
+      const index = host.querySelector('.slot--index') as Element;
+      const sheet = host.querySelector('.slot--sheet') as Element;
+      const featured = host.querySelector('app-featured-bar') as Element;
+      const scene = host.querySelector('app-observatory-scene') as Element;
+
+      for (const before of [bar, about, index, sheet, featured]) {
+        expect(follows(before, scene)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      }
     });
   });
 });

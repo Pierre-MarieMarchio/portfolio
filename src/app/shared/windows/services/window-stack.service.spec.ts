@@ -114,4 +114,39 @@ describe('WindowStackService', () => {
       expect(stack.frontShownOf(a)).toBeNull();
     });
   });
+
+  describe('shownFrontToBack', () => {
+    it('lists the shown windows from the front of the stack to the back', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      const b = elementShown(true);
+      const c = elementShown(true);
+      stack.register('a', a);
+      stack.register('b', b);
+      stack.register('c', c);
+      stack.bringToFront('b');
+
+      expect(stack.shownFrontToBack()).toEqual([b, c, a]);
+    });
+
+    it('skips a registered window that is not shown', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      const a = elementShown(true);
+      const b = elementShown(false);
+      stack.register('a', a);
+      stack.register('b', b);
+
+      expect(stack.shownFrontToBack()).toEqual([a]);
+    });
+
+    it('gives an empty list when nothing is shown', () => {
+      TestBed.configureTestingModule({ providers: [WindowStackService] });
+      const stack = TestBed.inject(WindowStackService);
+      stack.register('a', elementShown(false));
+
+      expect(stack.shownFrontToBack()).toEqual([]);
+    });
+  });
 });

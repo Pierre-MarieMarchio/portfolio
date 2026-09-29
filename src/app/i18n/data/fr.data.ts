@@ -8,6 +8,7 @@ export const FR: Catalog = {
     pageBar: {
       languages: 'Langue du site',
       navigation: 'Navigation principale',
+      openWindow: 'fenêtre ouverte',
     },
     contactRail: {
       label: 'Me contacter',

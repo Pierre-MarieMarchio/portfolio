@@ -6,6 +6,7 @@ import { WindowStackService } from '../services/window-stack.service';
   host: {
     '[style.--stack]': 'depth()',
     '(pointerdown)': 'bringToFront()',
+    '(focusin)': 'bringToFront()',
   },
 })
 export class StackedWindowDirective {

@@ -57,6 +57,17 @@ describe('StackedWindowDirective', () => {
     expect(depths()).toEqual(['2', '0', '1']);
   });
 
+  it('brings its window to the front when focus moves into it', async () => {
+    const { fixture, windows, depths } = await mount();
+
+    windows[0]
+      ?.querySelector('button')
+      ?.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    await fixture.whenStable();
+
+    expect(depths()).toEqual(['2', '0', '1']);
+  });
+
   it('leaves the stack once its element goes', async () => {
     const { fixture, stack } = await mount();
 

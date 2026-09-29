@@ -6,6 +6,10 @@
           [routerLink]="item.route"
           [attr.aria-current]="item.route === current() ? 'page' : null"
           [attr.data-active]="item.route === current()"
+          [attr.data-open]="isOpen(item) ? '' : null"
+          [attr.aria-label]="
+            isOpen(item) ? item.label + ', ' + texts().pageBar.openWindow : null
+          "
           >{{ item.label }}</a
         >
       </li>

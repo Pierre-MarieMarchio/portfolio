@@ -14,7 +14,12 @@ import { NavigationItem } from '../../models/navigation-item.model';
 export class MainNavComponent {
   public readonly items = input.required<readonly NavigationItem[]>();
   public readonly current = input<string | null>(null);
+  public readonly openRoutes = input<readonly string[]>([]);
   public readonly arrival = input<Entrance>('timed');
 
   protected readonly texts = inject(SHARED_TEXTS);
+
+  protected isOpen(item: NavigationItem): boolean {
+    return this.openRoutes().includes(item.route);
+  }
 }

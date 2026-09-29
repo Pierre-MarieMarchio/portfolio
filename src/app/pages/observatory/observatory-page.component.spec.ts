@@ -46,6 +46,20 @@ const shownAfterFrames = async (fixture: {
   await fixture.whenStable();
 };
 
+const rankOf =
+  (host: HTMLElement) =>
+  (name: string): number =>
+    Number(
+      host
+        .querySelector<HTMLElement>(`.slot--${name}`)
+        ?.style.getPropertyValue('--stack'),
+    );
+
+const openOf = (host: HTMLElement): boolean[] =>
+  [...host.querySelectorAll<HTMLElement>('app-main-nav a')].map(
+    (a) => a.dataset['open'] !== undefined,
+  );
+
 describe('ObservatoryPageComponent', () => {
   const KNOWN_SLUG = 'known-project';
 
@@ -559,12 +573,7 @@ describe('ObservatoryPageComponent', () => {
 
   it('brings the window of the view to the front at each navigation, from one sheet to the next too', async () => {
     const { fixture, station, host } = await mount();
-    const rank = (name: string): number =>
-      Number(
-        host
-          .querySelector<HTMLElement>(`.slot--${name}`)
-          ?.style.getPropertyValue('--stack'),
-      );
+    const rank = rankOf(host);
     station.togglePin('index');
     station.syncRoute('sheet', KNOWN_SLUG);
     await fixture.whenStable();
@@ -653,5 +662,61 @@ describe('ObservatoryPageComponent', () => {
 
     expect(nav).not.toBeNull();
     expect(TestBed.inject(LayoutAnchorsService).list('chrome')).toContain(nav);
+  });
+
+  describe('the page bar marks the windows shown on screen', () => {
+    it('marks Home never, and marks Projets and À propos when their window shows', async () => {
+      const { fixture, station, host } = await mount();
+      expect(openOf(host)).toEqual([false, false, false]);
+
+      station.syncRoute('index');
+      await fixture.whenStable();
+      expect(openOf(host)).toEqual([false, true, false]);
+
+      station.togglePin('about');
+      station.syncRoute('home');
+      await fixture.whenStable();
+      expect(openOf(host)).toEqual([false, false, true]);
+    });
+
+    it('counts the sheet for Projets, even when the list itself is not kept', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('sheet', KNOWN_SLUG);
+      await fixture.whenStable();
+
+      expect(openOf(host)).toEqual([false, true, false]);
+    });
+
+    it('names an open entry as such, without touching its visible label', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('index');
+      await fixture.whenStable();
+      const [home, projects, about] = [
+        ...host.querySelectorAll('app-main-nav a'),
+      ];
+
+      expect(home?.getAttribute('aria-label')).toBeNull();
+      expect(projects?.getAttribute('aria-label')).toBe(
+        'Projets, fenêtre ouverte',
+      );
+      expect(projects?.textContent?.trim()).toBe('Projets');
+      expect(about?.getAttribute('aria-label')).toBeNull();
+    });
+
+    it('brings the window a marked entry points to the front, once its page is reached', async () => {
+      const { fixture, station, host } = await mount();
+      const rank = rankOf(host);
+      station.syncRoute('about');
+      station.togglePin('about');
+      station.syncRoute('index');
+      await fixture.whenStable();
+      expect(openOf(host)).toEqual([false, true, true]);
+      expect(rank('index')).toBeGreaterThan(rank('about'));
+
+      station.syncRoute('about');
+      await fixture.whenStable();
+
+      expect(rank('about')).toBeGreaterThan(rank('index'));
+    });
   });
 });

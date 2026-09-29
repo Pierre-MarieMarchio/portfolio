@@ -8,7 +8,10 @@ const ITEMS = [
   { label: 'Projets', route: '/projets' },
 ];
 
-const mount = async (current: string | null = null) => {
+const mount = async (
+  current: string | null = null,
+  openRoutes: readonly string[] = [],
+) => {
   TestBed.configureTestingModule({
     imports: [MainNavComponent],
     providers: [provideRouter([]), provideTexts()],
@@ -17,6 +20,7 @@ const mount = async (current: string | null = null) => {
   const fixture = TestBed.createComponent(MainNavComponent);
   fixture.componentRef.setInput('items', ITEMS);
   fixture.componentRef.setInput('current', current);
+  fixture.componentRef.setInput('openRoutes', openRoutes);
   await fixture.whenStable();
 
   return { fixture, host: fixture.nativeElement as HTMLElement };
@@ -62,5 +66,36 @@ describe('MainNavComponent', () => {
     await fixture.whenStable();
 
     expect(host.dataset['arrival']).toBe('held');
+  });
+
+  it('marks the entries it is told are open, and only those', async () => {
+    const { host } = await mount(null, ['/projets']);
+    const links = [...host.querySelectorAll<HTMLElement>('nav a')];
+
+    expect(links.map((link) => link.dataset['open'] !== undefined)).toEqual([
+      false,
+      true,
+    ]);
+  });
+
+  it('says an open entry keeps its window open, without touching what shows', async () => {
+    const { host } = await mount(null, ['/projets']);
+    const [home, projects] = [...host.querySelectorAll('nav a')];
+
+    expect(home?.getAttribute('aria-label')).toBeNull();
+    expect(projects?.getAttribute('aria-label')).toBe(
+      'Projets, fenêtre ouverte',
+    );
+    expect(projects?.textContent?.trim()).toBe('Projets');
+  });
+
+  it('keeps the current entry marked current even once its window counts as open', async () => {
+    const { host } = await mount('/projets', ['/projets']);
+    const projects = host.querySelector<HTMLElement>('[aria-current="page"]');
+
+    expect(projects?.dataset['open']).toBe('');
+    expect(projects?.getAttribute('aria-label')).toBe(
+      'Projets, fenêtre ouverte',
+    );
   });
 });

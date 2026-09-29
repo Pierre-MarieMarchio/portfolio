@@ -30,9 +30,16 @@ export class BackLayersService {
   }
 
   public push(onBack: () => void): () => void {
-    if (this.platform.closesOnBack()) {
-      return ignore;
-    }
+    return this.platform.closesOnBack() ? ignore : this.stack(onBack);
+  }
+
+  public claim(onBack: () => void): () => void {
+    return this.platform.closesOnBack()
+      ? this.platform.watchClose(onBack)
+      : this.stack(onBack);
+  }
+
+  private stack(onBack: () => void): () => void {
     this.listen();
     const layer = { depth: this.layers.length + 1, onBack };
     this.layers = [...this.layers, layer];

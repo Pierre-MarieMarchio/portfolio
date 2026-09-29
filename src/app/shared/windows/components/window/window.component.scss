@@ -161,7 +161,6 @@ h2 {
     gap: 4px;
     cursor: default;
     touch-action: manipulation;
-    background: var(--glass-handle);
   }
 
   .spacer {
@@ -177,6 +176,43 @@ h2 {
   .meta {
     flex: 1 0 auto;
     text-align: right;
+  }
+}
+
+.sheet {
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  background: var(--sheet-surface);
+  backdrop-filter: none;
+  box-shadow: var(--sheet-shadow);
+
+  .titlebar {
+    padding-block-start: 14px;
+  }
+}
+
+.grip {
+  position: absolute;
+  inset: 0 auto auto 50%;
+  z-index: 3;
+  width: 72px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  translate: -50% 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 36px;
+    height: 5px;
+    border-radius: 3px;
+    translate: -50% 0;
+    background: var(--sheet-grip);
   }
 }
 

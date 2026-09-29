@@ -14,6 +14,7 @@ export interface MobileNavPlatform {
   ) => () => void;
   readonly whenStill: (element: Element) => Promise<void>;
   readonly closesOnBack: () => boolean;
+  readonly watchClose: (fn: () => void) => () => void;
   readonly historyState: () => unknown;
   readonly pushHistory: (state: unknown) => void;
   readonly historyBack: (steps: number) => void;

@@ -2,6 +2,16 @@ import { isPlatformBrowser } from '@angular/common';
 import { DOCUMENT, inject, PLATFORM_ID, Service } from '@angular/core';
 import { BrowserWindowService } from '../browser/browser-window.service';
 
+interface CloseWatcherInstance {
+  onclose: (() => void) | null;
+  destroy: () => void;
+}
+
+type CloseWatcherClass = new () => CloseWatcherInstance;
+
+const isCloseWatcherClass = (value: unknown): value is CloseWatcherClass =>
+  typeof value === 'function';
+
 @Service()
 export class SessionHistoryService {
   private readonly document = inject(DOCUMENT);
@@ -29,6 +39,20 @@ export class SessionHistoryService {
   public hasCloseWatcher(): boolean {
     const view = this.view();
     return view ? 'CloseWatcher' in view : false;
+  }
+
+  public watchClose(fn: () => void): () => void {
+    const view = this.view();
+    const watcher: unknown = view ? Reflect.get(view, 'CloseWatcher') : null;
+    if (!isCloseWatcherClass(watcher)) {
+      return () => {};
+    }
+    const watching = new watcher();
+    watching.onclose = fn;
+    return () => {
+      watching.onclose = null;
+      watching.destroy();
+    };
   }
 
   private view(): Window | null {

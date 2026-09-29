@@ -88,6 +88,10 @@ export class WindowComponent {
   protected readonly folded = computed(
     () => this.isHeld() && (this.fold?.isFolded() ?? false),
   );
+  protected readonly gripLabel = computed(() => {
+    const words = this.texts().phone;
+    return this.folded() ? words.unfold : words.fold;
+  });
   protected readonly maximizable = computed(() => !this.preview());
   protected readonly isMenuActive = computed(
     () => this.display.format() !== 'phone',

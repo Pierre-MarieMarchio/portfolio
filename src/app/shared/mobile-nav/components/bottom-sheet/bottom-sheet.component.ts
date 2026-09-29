@@ -9,6 +9,7 @@ import {
   inject,
   input,
   model,
+  output,
   PLATFORM_ID,
   untracked,
   viewChild,
@@ -16,9 +17,11 @@ import {
 import { ScrollReleaseDirective } from '../../directives/scroll-release.directive';
 import type { SheetDetent, SheetStop } from '../../models/bottom-sheet.model';
 import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
+import { BackLayersService } from '../../services/back-layers.service';
 import {
   detentAfter,
   isAtStop,
+  isDismissedBy,
   shadeFromOf,
   stopOf,
   stopsOf,
@@ -40,6 +43,7 @@ const ignore = (): void => {};
 })
 export class BottomSheetComponent {
   private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly backLayers = inject(BackLayersService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly rail = viewChild.required<ElementRef<HTMLElement>>('rail');
@@ -54,6 +58,8 @@ export class BottomSheetComponent {
     'full',
   ]);
   public readonly detent = model<SheetDetent>('half');
+  public readonly transient = input(false);
+  public readonly dismissed = output();
 
   public readonly isActive = computed(() => this.platform.isCompact());
 
@@ -67,16 +73,23 @@ export class BottomSheetComponent {
   private isHeading = false;
   private stopFrame: () => void = ignore;
   private stopMeasure: () => void = ignore;
+  private releaseBack: () => void = ignore;
   private readonly stops: (() => void)[] = [];
 
   constructor() {
     effect(() => {
       const detent = this.detent();
-      if (this.isActive()) {
-        untracked(() => {
+      const isActive = this.isActive();
+      untracked(() => {
+        if (isActive) {
           this.ask(detent);
-        });
-      }
+        }
+        if (isActive && detent === 'full') {
+          this.claimBack();
+        } else {
+          this.letGoOfBack();
+        }
+      });
     });
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
       afterNextRender(() => {
@@ -86,6 +99,7 @@ export class BottomSheetComponent {
     inject(DestroyRef).onDestroy(() => {
       this.stopFrame();
       this.stopMeasure();
+      this.releaseBack();
       for (const stop of this.stops) {
         stop();
       }
@@ -124,13 +138,17 @@ export class BottomSheetComponent {
     this.origin = this.detent();
   }
 
-  protected letGo(vy: number): void {
+  protected letGo(vy: number, pull = 0): void {
     const stops = this.stopsNow();
     const origin = stopOf(stops, this.origin);
     if (!origin) {
       return;
     }
     const top = this.rail().nativeElement.scrollTop;
+    if (this.transient() && isDismissedBy(stops, origin.detent, top, pull)) {
+      this.dismissed.emit();
+      return;
+    }
     const stop = stopOf(
       stops,
       detentAfter(origin.detent, top - origin.at, vy, stops),
@@ -149,6 +167,20 @@ export class BottomSheetComponent {
     } else if (!this.isHeading) {
       this.letGo(0);
     }
+  }
+
+  private claimBack(): void {
+    if (this.releaseBack === ignore) {
+      this.releaseBack = this.backLayers.claim(() => {
+        this.releaseBack = ignore;
+        this.detent.set('half');
+      });
+    }
+  }
+
+  private letGoOfBack(): void {
+    this.releaseBack();
+    this.releaseBack = ignore;
   }
 
   private land(): void {

@@ -64,7 +64,7 @@ describe('ObservatoryManager', () => {
   it.each<{
     case: string;
     arrange: (manager: ObservatoryManager) => void;
-    shows: 'showsList' | 'showsAbout' | 'showsPreview';
+    shows: 'showsList' | 'showsAbout' | 'showsSheet' | 'showsPreview';
     expected: boolean;
   }>([
     {
@@ -107,6 +107,28 @@ describe('ObservatoryManager', () => {
       case: 'no about otherwise',
       arrange: (m) => m.syncRoute('home'),
       shows: 'showsAbout',
+      expected: false,
+    },
+    {
+      case: 'the sheet when it is the current view',
+      arrange: (m) => m.syncRoute('sheet', 'skyted'),
+      shows: 'showsSheet',
+      expected: true,
+    },
+    {
+      case: 'the sheet when it is pinned over another view',
+      arrange: (m) => {
+        m.syncRoute('sheet', 'skyted');
+        m.togglePin('sheet');
+        m.syncRoute('index');
+      },
+      shows: 'showsSheet',
+      expected: true,
+    },
+    {
+      case: 'no sheet otherwise',
+      arrange: (m) => m.syncRoute('index'),
+      shows: 'showsSheet',
       expected: false,
     },
     {

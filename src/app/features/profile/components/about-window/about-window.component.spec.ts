@@ -5,6 +5,7 @@ import { PagerComponent } from '@shared/mobile-nav/components';
 import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
+import { WindowComponent } from '@shared/windows/components';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
@@ -58,6 +59,12 @@ describe('AboutWindowComponent', () => {
       about.heading,
     );
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
+  });
+
+  it('asks its window for a stable height, so a section change does not resize it', async () => {
+    const { fixture } = await mount();
+
+    expect(componentOf(fixture, WindowComponent).stableHeight()).toBe(true);
   });
 
   it('lists the parts in the toolbar, in order, pressed on the current one', async () => {

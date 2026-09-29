@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SegmentedComponent } from '@shared/ui/components';
+import { ViewHeadingDirective } from '@shared/ui/directives';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
 import { ProjectsManager } from '../../states';
@@ -10,7 +11,12 @@ import { positionOf } from '../../rules/project-labels.rules';
 
 @Component({
   selector: 'app-project-preview',
-  imports: [RouterLink, SegmentedComponent, WindowComponent],
+  imports: [
+    RouterLink,
+    SegmentedComponent,
+    ViewHeadingDirective,
+    WindowComponent,
+  ],
   templateUrl: './project-preview.component.html',
   styleUrl: './project-preview.component.scss',
 })

@@ -10,6 +10,7 @@ import {
 import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
+import { WindowComponent } from '@shared/windows/components';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
@@ -133,6 +134,12 @@ describe('ProjectDetailComponent', () => {
     expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
+  });
+
+  it('asks its window for a stable height, so a chapter change does not resize it', async () => {
+    const { fixture } = await mount({ slug: 'proj-b' });
+
+    expect(componentOf(fixture, WindowComponent).stableHeight()).toBe(true);
   });
 
   it('lists one toolbar button per chapter, numbered, titled on the phone, labelled and pressed on the current one', async () => {

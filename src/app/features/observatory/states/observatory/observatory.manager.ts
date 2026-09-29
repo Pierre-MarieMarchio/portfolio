@@ -45,7 +45,7 @@ export class ObservatoryManager {
     () => this.view() === 'about' || this.pins().about,
   );
   public readonly showsSheet = computed(
-    () => windowOf(this.view()) === 'sheet',
+    () => windowOf(this.view()) === 'sheet' || this.pins().sheet,
   );
   public readonly kept = computed(() =>
     keptOf({

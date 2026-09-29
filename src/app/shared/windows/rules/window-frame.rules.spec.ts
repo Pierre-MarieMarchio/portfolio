@@ -7,6 +7,7 @@ import {
   areaOf,
   clampMove,
   clampResize,
+  clearanceOf,
   frameOfZone,
   isZone,
   keyResize,
@@ -18,6 +19,7 @@ import {
 const VIEWPORT = { width: 1200, height: 800 };
 const AREA: FrameArea = { left: 44, top: 100, right: 1156, bottom: 724 };
 const FRAME: FrameRect = { x: 756, y: 100, width: 400, height: 300 };
+const CLEARANCE = { top: 12, bottom: 60 };
 
 describe('window frame rules', () => {
   describe('clampMove', () => {
@@ -29,11 +31,20 @@ describe('window frame rules', () => {
       ['below the bottom, its bar still on screen', [500, 1000], [500, 740]],
       ['to whole pixels', [500.4, 300.6], [500, 301]],
     ] as const)('keeps %s', (_case, [x, y], [keptX, keptY]) => {
-      expect(clampMove({ ...FRAME, x, y }, VIEWPORT)).toEqual({
+      expect(clampMove({ ...FRAME, x, y }, VIEWPORT, CLEARANCE)).toEqual({
         ...FRAME,
         x: keptX,
         y: keptY,
       });
+    });
+
+    it('reads its clearance from the caller rather than a fixed margin', () => {
+      expect(
+        clampMove({ ...FRAME, y: -900 }, VIEWPORT, { top: 400, bottom: 60 }),
+      ).toEqual({ ...FRAME, y: 400 });
+      expect(
+        clampMove({ ...FRAME, y: 2000 }, VIEWPORT, { top: 12, bottom: 300 }),
+      ).toEqual({ ...FRAME, y: 500 });
     });
   });
 
@@ -192,6 +203,16 @@ describe('window frame rules', () => {
         expect(areaOf(layout, anchor, VIEWPORT, 76)).toEqual(area);
       },
     );
+  });
+
+  describe('clearanceOf', () => {
+    it('keeps a gap under the top bar, and above the bottom reserve plus the title bar', () => {
+      expect(clearanceOf(400, 76, 48)).toEqual({ top: 412, bottom: 124 });
+    });
+
+    it('falls back to no head bar and no bar height', () => {
+      expect(clearanceOf(0, 76, 0)).toEqual({ top: 12, bottom: 76 });
+    });
   });
 
   describe('unsnapAt', () => {

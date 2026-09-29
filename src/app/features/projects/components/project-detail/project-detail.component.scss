@@ -108,6 +108,10 @@ h2 {
   app-pager-page {
     padding-inline: var(--s2);
   }
+
+  header {
+    padding-bottom: var(--s2);
+  }
 }
 
 @include formats.short-phone-portrait {

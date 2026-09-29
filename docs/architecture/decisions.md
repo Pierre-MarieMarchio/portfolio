@@ -2237,3 +2237,32 @@ la navigation.
 Garder l'accordéon au bureau : deux commandes pour une ligne. Cacher
 l'étiquette en CSS : elle resterait dans les données sans rien dire. Ne pas
 boucler : le premier et le dernier projet perdraient un bouton.
+
+## 2026-09-29 — Au bureau, le trou noir suit la fenêtre qu'on déplace, et ne se retourne plus d'un bloc (D72, amende D66)
+
+**Décision.** Pendant qu'on glisse ou redimensionne une fenêtre, la scène
+cadre la bande libre du moment, relue au plus une fois par image : la
+fenêtre publie son rectangle en mouvement (`FramedWindow.live`), et la page,
+seule à connaître les deux librairies, le passe à la scène par le port
+facultatif `SCENE_WINDOW_DRAG`. Quand la bande libre change de côté, l'objet
+glisse vers son nouveau cadrage ; son inclinaison et son azimut tournent
+vers leur reflet à 0,6 rad/s au plus (`mirrorTurnStep`) au lieu d'y sauter.
+L'amorti garde sa demi-vie de 0,55 s ; chaque clé de la caméra se pose sur
+sa cible quand il ne reste plus un demi-pixel (`settledStep`).
+`framing.rules.ts` se range en `rules/camera/framing/`.
+
+**Raison.** La scène ne remesurait qu'au lâcher : le trou restait sous la
+fenêtre qui passait sur lui, puis partait d'un bloc, x, roulis et planètes
+ensemble, et rampait encore après trois secondes. Mesuré sur la liste glissée
+de droite à gauche : le trou bouge dès le sixième pas du glisser, s'écarte de
+la fenêtre qui arrive puis passe de l'autre côté ; le roulis va de −0,1 à
++0,1 sans saut ; il se pose exactement vers 2,2 s. Le rythme calme de la
+scène reste celui du site, par choix de l'opérateur. Poser la caméra sous le
+demi-pixel change l'empreinte de presque toutes les scènes de référence, sans
+rien changer à l'œil ; elles sont régénérées. Le bundle initial passe de
+520,38 à 520,95 kB ; le worker de 61,79 à 62,45 kB.
+
+**Écarté.** Accélérer l'amorti : il est commun au zoom, au panoramique et aux
+grains. Garder le miroir d'un bloc au lâcher : c'est lui qui retournait le
+disque. Suivre la fenêtre par un signal : une écriture par image lue par un
+gabarit, en zoneless.

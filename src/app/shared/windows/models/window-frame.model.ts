@@ -79,6 +79,7 @@ export interface FramedWindow {
   readonly hold: (control: FrameKeyControl | null) => void;
   readonly paint: (place: FramePlace | null) => void;
   readonly commit: (place: FramePlace | null, mode: FrameMode | null) => void;
+  readonly live: (rect: FrameRect | null) => void;
   readonly onWindow: <K extends keyof WindowEventMap>(
     type: K,
     handler: (event: WindowEventMap[K]) => void,

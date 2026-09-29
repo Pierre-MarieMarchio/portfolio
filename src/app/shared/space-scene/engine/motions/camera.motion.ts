@@ -4,6 +4,8 @@ import {
   REST_FRAME,
   isFiniteFrame,
   referenceRadius,
+  settledStep,
+  unitRadiusOf,
 } from '../../rules/camera/camera-frames.rules';
 import type { RestMeasure } from '../../rules/camera/rest-frame.rules';
 import { CONSTELLATIONS } from '../../rules/figures/constellations.rules';
@@ -73,6 +75,7 @@ export class CameraMotion {
     ...REST_FRAME,
   };
   private measure: RestMeasure | null = null;
+  private dims: Dims | null = null;
   private opened = 0;
   private openTarget = 0;
   private hasOpenedMoved = false;
@@ -106,6 +109,10 @@ export class CameraMotion {
 
   public get isPosed(): boolean {
     return Number.isFinite(this.now.scale);
+  }
+
+  public setDims(dims: Dims | null): void {
+    this.dims = dims;
   }
 
   public measureRest(measure: RestMeasure): void {
@@ -241,12 +248,37 @@ export class CameraMotion {
 
   private ease(aim: Frame, kc: number): void {
     const now = this.now;
-    now.roll += (aim.i - now.roll) * kc;
-    now.scale += (aim.s - now.scale) * kc;
-    now.camX += (aim.x - now.camX) * kc;
-    now.camY += (aim.y - now.camY) * kc;
-    now.elev += (aim.ev - now.elev) * kc;
-    now.azim += (aim.az - now.azim) * kc;
+    const dims = this.dims;
+    const unit = dims ? unitRadiusOf(dims.w, dims.h) / dims.dpr : null;
+    const radius = unit === null ? null : unit * finiteOr(now.scale, aim.s);
+    const widthPx = dims ? dims.w / dims.dpr : null;
+    const heightPx = dims ? dims.h / dims.dpr : null;
+    now.roll = this.settled(now.roll + (aim.i - now.roll) * kc, aim.i, radius);
+    now.scale = this.settled(now.scale + (aim.s - now.scale) * kc, aim.s, unit);
+    now.camX = this.settled(now.camX + (aim.x - now.camX) * kc, aim.x, widthPx);
+    now.camY = this.settled(
+      now.camY + (aim.y - now.camY) * kc,
+      aim.y,
+      heightPx,
+    );
+    now.elev = this.settled(
+      now.elev + (aim.ev - now.elev) * kc,
+      aim.ev,
+      radius,
+    );
+    now.azim = this.settled(
+      now.azim + (aim.az - now.azim) * kc,
+      aim.az,
+      radius,
+    );
+  }
+
+  private settled(
+    eased: number,
+    target: number,
+    pxPerUnit: number | null,
+  ): number {
+    return pxPerUnit === null ? eased : settledStep(eased, target, pxPerUnit);
   }
 
   private light(lit: number, kc: number): number {

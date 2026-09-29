@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { FormatCodeService } from '@app/core/services';
 import { WindowComponent } from '../components/window/window.component';
 import { WindowAnchor, WindowSize } from '../models/window.model';
@@ -126,6 +127,10 @@ const mount = async (providers: unknown[] = []) => {
     width: slot.style.width,
     height: slot.style.height,
   });
+  const directive = (): WindowFrameDirective =>
+    fixture.debugElement
+      .query(By.directive(WindowFrameDirective))
+      .injector.get(WindowFrameDirective);
   return {
     fixture,
     host,
@@ -138,6 +143,7 @@ const mount = async (providers: unknown[] = []) => {
     press,
     doubleClick,
     frame,
+    directive,
   };
 };
 
@@ -186,6 +192,25 @@ describe('WindowFrameDirective', () => {
         width: '',
         height: '',
       });
+    });
+
+    it('publishes the rectangle it is dragged to, once per move, then none once dropped', async () => {
+      const { bar, drag, directive } = await mount();
+      const heardRects = vi.fn();
+      directive().onLive(heardRects);
+
+      await drag(bar(), [
+        { x: 800, y: 110 },
+        { x: 850, y: 140 },
+        { x: 860, y: 150 },
+      ]);
+
+      expect(heardRects).toHaveBeenCalledTimes(3);
+      expect(heardRects.mock.calls.at(-2)?.[0]).toMatchObject({
+        x: 1200 - GUTTER - NATURAL.width + 60,
+        y: TOP + 40,
+      });
+      expect(heardRects.mock.calls.at(-1)?.[0]).toBeNull();
     });
 
     it('keeps its bar below the real top bar, not a fixed margin', async () => {

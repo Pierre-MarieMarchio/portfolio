@@ -6,4 +6,4 @@ export type {
   SceneBody,
   SceneDirection,
 } from './scene.model';
-export type { ScenePanelRole } from './scene-layout.model';
+export type { LayoutBox, ScenePanelRole } from './scene-layout.model';

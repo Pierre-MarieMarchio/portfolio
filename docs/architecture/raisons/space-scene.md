@@ -575,3 +575,58 @@ et de `src/testing/`, rangées par unité (D10).
 - Quand ses deux flancs sont pris, un nom du téléphone se pose sous sa
   planète, puis au-dessus, centré ou décalé vers l'extérieur, sans trait de
   rappel.
+
+## `src/app/shared/space-scene/rules/rooms/window-room.rules.ts`, le miroir progressif
+
+- `mirroredFrame` reste un calcul pur du cadrage totalement retourné : c'est
+  la valeur visée, pas celle rendue. `mirrorTurnStep` en approche
+  l'inclinaison et l'azimut à un rythme borné (0,6 rad/s), image par image,
+  au lieu de les poser d'un bloc dès que le côté change. La position `x` du
+  trou, elle, bascule tout de suite : elle glisse ensuite avec l'amorti
+  ordinaire de la caméra, ce qui donne le glissé voulu (D66 amendé). Sans ce
+  découplage, un bord de fenêtre franchi pendant un glisser retournait
+  l'inclinaison et l'angle des planètes d'un coup, et l'amorti de la caméra
+  ne faisait alors que ralentir un aller-retour déjà écrit, pas l'empêcher.
+  `mirrorTurnStep(null, cible, dt)` rend la cible telle quelle : au tout
+  premier calcul d'une scène, rien ne justifie de faire tourner le disque
+  depuis zéro.
+
+## `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts`, l'arrêt sous le pixel
+
+- `settledStep` compare l'écart restant, converti en pixels CSS par la
+  valeur qu'un pixel vaut pour cette clé (largeur, hauteur ou rayon de
+  référence), et rend la cible telle quelle sous 0,5 px au lieu du résultat
+  amorti. `CameraMotion.ease` l'applique à chaque clé de la caméra
+  (position, échelle, inclinaison, élévation, azimut) ; sans dimensions
+  connues (avant le premier `resize`), la clé continue de ramper sans arrêt
+  net. La demi-vie de 0,55 s ne change pas : seule la traîne, qui rampait
+  plusieurs secondes sans jamais atteindre la cible, est coupée.
+
+## `src/app/shared/space-scene/rules/camera/framing/`
+
+- `framing.rules.ts` et `body-framing.rules.ts` sont un seul module scindé
+  en deux fichiers pour rester sous la limite de `check:structure` :
+  `body-framing.rules.ts` porte `FramingScene`, sa fabrique et les cadrages
+  par état (aside, overview, approche, gros plan, repos) ; `framing.rules.ts`
+  garde l'orchestration par bande de fenêtres (côté, miroir progressif,
+  ciel libre). Les deux ne se lisent que comme un tout.
+
+## `src/app/shared/space-scene/ports/scene-window-drag.port.ts`
+
+- `space-scene` ne connaît rien de `windows` (les deux librairies de
+  `shared/` ne s'importent pas) : ce port est le seul trou dans la cloison,
+  et seule une page peut le refermer en fournissant les deux côtés. Sans
+  lui, la scène ne remesurait la page qu'aux événements `resize`,
+  `pointerup`, `animationend` et `transitionend` : rien ne se déclenchait
+  pendant qu'une fenêtre est tenue et glissée à la souris.
+
+## `src/app/pages/observatory/observatory-page.component.ts`, le lien aux fenêtres
+
+- La page fournit `SCENE_WINDOW_DRAG` à elle-même (`useExisting`) : elle est
+  la seule à importer à la fois `shared/windows` (les quatre
+  `WindowFrameDirective` de ses fenêtres) et `shared/space-scene` (le port).
+  `onDragging` s'abonne au rectangle publié par chaque fenêtre
+  (`WindowFrameDirective.onLive`, lui-même nourri par `WindowFrameTracker`
+  à chaque `moveTo`/`placeAt`, donc à chaque image d'un glisser ou d'un
+  redimensionnement) et le retransmet à la scène, qui s'en sert pour se
+  remesurer aussitôt (`measureSoon`, sans attendre le lâcher).

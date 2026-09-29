@@ -172,6 +172,33 @@ export const mirroredFrame = (frame: Frame, turn: PlanetTurn | null): Frame => {
   return { ...frame, x: 1 - frame.x, i: -frame.i, az };
 };
 
+export interface MirrorTurn {
+  readonly i: number;
+  readonly az: number;
+}
+
+const MIRROR_TURN_RATE = 0.6;
+
+const turnToward = (current: number, target: number, max: number): number => {
+  const delta = target - current;
+  return Math.abs(delta) <= max ? target : current + Math.sign(delta) * max;
+};
+
+export const mirrorTurnStep = (
+  current: MirrorTurn | null,
+  target: MirrorTurn,
+  dt: number,
+): MirrorTurn => {
+  if (!current) {
+    return target;
+  }
+  const max = MIRROR_TURN_RATE * Math.max(dt, 0);
+  return {
+    i: turnToward(current.i, target.i, max),
+    az: turnToward(current.az, target.az, max),
+  };
+};
+
 interface TurnedOrbits {
   readonly orbits: readonly Orbit[];
   readonly phase: number;

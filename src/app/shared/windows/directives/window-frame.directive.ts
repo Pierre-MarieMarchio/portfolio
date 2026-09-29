@@ -21,6 +21,7 @@ import type {
   FrameKeyControl,
   FrameMode,
   FramePlace,
+  FrameRect,
   FrameTracking,
   FramedWindow,
   WindowControlView,
@@ -71,6 +72,7 @@ export class WindowFrameDirective {
   private readonly framedMode = signal<FrameMode | null>(null);
   private readonly holding = signal<FrameKeyControl | null>(null);
   private readonly parts = signal<WindowParts | null>(null);
+  private readonly liveHandlers = new Set<(rect: FrameRect | null) => void>();
   private tracker: FrameTracking | null = null;
 
   public readonly mode = this.framedMode.asReadonly();
@@ -117,6 +119,13 @@ export class WindowFrameDirective {
         untracked(() => this.tracker?.fitHeight());
       },
     });
+  }
+
+  public onLive(handler: (rect: FrameRect | null) => void): () => void {
+    this.liveHandlers.add(handler);
+    return () => {
+      this.liveHandlers.delete(handler);
+    };
   }
 
   public hold(parts: WindowParts): () => void {
@@ -170,6 +179,11 @@ export class WindowFrameDirective {
       },
       commit: (place, mode) => {
         this.commit(place, mode);
+      },
+      live: (rect) => {
+        for (const handler of this.liveHandlers) {
+          handler(rect);
+        }
       },
       onWindow: (type, handler, options) =>
         this.browserWindow.on(type, handler, options),

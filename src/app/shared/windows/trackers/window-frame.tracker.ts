@@ -163,11 +163,13 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
 
   public moveTo(rect: FrameRect): FramePlace {
     const now = this.rect();
-    return this.paintPlace({
+    const place = this.paintPlace({
       ...this.painted,
       dx: Math.round(this.painted.dx + rect.x - now.x),
       dy: Math.round(this.painted.dy + rect.y - now.y),
     });
+    this.framed.live(rect);
+    return place;
   }
 
   public placeAt(rect: FrameRect): FramePlace {
@@ -197,6 +199,7 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
 
   public land(isMoved: boolean, zone: FrameZone | null): void {
     this.drag = null;
+    this.framed.live(null);
     if (!isMoved) {
       return;
     }

@@ -19,6 +19,7 @@ const EDGE_LEFT = 16;
 const HEAD_GAP = 12;
 const SNAP_REACH = 12;
 const HALF_GAP = 12;
+const CASCADE_STEP = 32;
 
 const wholeWithin = (value: number, min: number, max: number): number =>
   clamp(Math.round(value), Math.ceil(min), Math.floor(Math.max(min, max)));
@@ -131,6 +132,24 @@ export const clearanceOf = (
   top: headBottom + HEAD_GAP,
   bottom: reserve + barHeight,
 });
+
+export const cascadePlaceOf = (
+  top: FrameRect,
+  own: FrameRect,
+  viewport: FrameViewport,
+  clearance: FrameClearance,
+): FrameDelta | null => {
+  const target: FrameRect = {
+    x: top.x + top.width - CASCADE_STEP - own.width,
+    y: top.y + CASCADE_STEP,
+    width: own.width,
+    height: own.height,
+  };
+  const clamped = clampMove(target, viewport, clearance);
+  return clamped.x === target.x && clamped.y === target.y
+    ? { dx: target.x - own.x, dy: target.y - own.y }
+    : null;
+};
 
 export const fittedHeight = (
   layout: { readonly top: number; readonly height: number },

@@ -5,6 +5,7 @@ import type {
 } from '../models/window-frame.model';
 import {
   areaOf,
+  cascadePlaceOf,
   clampMove,
   clampResize,
   clearanceOf,
@@ -165,6 +166,38 @@ describe('window frame rules', () => {
 
     it('falls back to no head bar and no bar height', () => {
       expect(clearanceOf(0, 76, 0)).toEqual({ top: 12, bottom: 76 });
+    });
+  });
+
+  describe('cascadePlaceOf', () => {
+    const OWN: FrameRect = { x: 800, y: 100, width: 400, height: 300 };
+
+    it('offsets 32 px left and 32 px down from the corner of the window above', () => {
+      expect(cascadePlaceOf(OWN, OWN, VIEWPORT, CLEARANCE)).toEqual({
+        dx: -32,
+        dy: 32,
+      });
+    });
+
+    it('reads the offset from the window above, wherever it sits and whatever its size', () => {
+      const top: FrameRect = { x: 500, y: 200, width: 300, height: 250 };
+
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, CLEARANCE)).toEqual({
+        dx: 500 + 300 - 32 - 400 - 800,
+        dy: 200 + 32 - 100,
+      });
+    });
+
+    it('gives up and lets the window keep its default place once the offset goes off screen', () => {
+      const top: FrameRect = { ...OWN, x: 1150 };
+
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, CLEARANCE)).toBeNull();
+    });
+
+    it('gives up once the offset leaves its title bar unreachable', () => {
+      const top: FrameRect = { ...OWN, y: VIEWPORT.height - CLEARANCE.bottom };
+
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, CLEARANCE)).toBeNull();
     });
   });
 

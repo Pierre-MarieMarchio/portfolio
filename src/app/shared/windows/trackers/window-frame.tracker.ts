@@ -14,6 +14,7 @@ import {
 } from '../models/window-frame.model';
 import {
   areaOf,
+  cascadePlaceOf,
   clampMove,
   clearanceOf,
   frameOfZone,
@@ -81,6 +82,30 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     this.snap(zone);
   }
 
+  public cascadeFrom(top: HTMLElement | null): void {
+    if (!top) {
+      this.painted = NOWHERE;
+      this.framed.paint(null);
+      this.framed.commit(null, null);
+      return;
+    }
+    const viewport = this.framed.viewport();
+    if (!viewport) {
+      return;
+    }
+    const delta = cascadePlaceOf(
+      rectOf(top),
+      this.rect(),
+      viewport,
+      this.clearance(),
+    );
+    if (!delta) {
+      return;
+    }
+    const place = this.paintPlace({ ...delta, width: null, height: null });
+    this.framed.commit(place, null);
+  }
+
   public toggleMaximize(): void {
     this.settle();
     if (this.framed.mode() !== 'full') {
@@ -97,7 +122,11 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     this.height.fit();
     const mode = this.framed.mode();
     const viewport = this.framed.viewport();
-    if (this.drag || !viewport || mode === null) {
+    if (
+      this.drag ||
+      !viewport ||
+      (mode === null && this.framed.place() === null)
+    ) {
       return;
     }
     this.painted = this.framed.place() ?? NOWHERE;

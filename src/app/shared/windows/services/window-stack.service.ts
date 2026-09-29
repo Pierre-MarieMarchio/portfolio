@@ -4,6 +4,7 @@ import { computed, Service, signal } from '@angular/core';
 export class WindowStackService {
   private readonly registered = signal<readonly string[]>([]);
   private readonly raised = signal<readonly string[]>([]);
+  private readonly elements = new Map<string, HTMLElement>();
 
   private readonly order = computed<readonly string[] | null>(() => {
     const raised = this.raised();
@@ -17,10 +18,16 @@ export class WindowStackService {
     ];
   });
 
-  public register(id: string): () => void {
+  public register(id: string, element?: HTMLElement): () => void {
     this.registered.update((ids) => (ids.includes(id) ? ids : [...ids, id]));
+    if (element) {
+      this.elements.set(id, element);
+    }
     return () => {
       this.registered.update((ids) => ids.filter((each) => each !== id));
+      if (this.elements.get(id) === element) {
+        this.elements.delete(id);
+      }
     };
   }
 
@@ -35,5 +42,20 @@ export class WindowStackService {
   public depthOf(id: string): number | null {
     const depth = this.order()?.indexOf(id) ?? -1;
     return depth === -1 ? null : depth;
+  }
+
+  public frontShownOf(excluding: HTMLElement): HTMLElement | null {
+    const order = this.order() ?? this.registered();
+    for (let depth = order.length - 1; depth >= 0; depth -= 1) {
+      const element = this.elements.get(order[depth] ?? '');
+      if (
+        element &&
+        element !== excluding &&
+        element.dataset['shown'] === 'true'
+      ) {
+        return element;
+      }
+    }
+    return null;
   }
 }

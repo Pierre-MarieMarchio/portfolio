@@ -1,4 +1,11 @@
-import { computed, Directive, effect, inject, input } from '@angular/core';
+import {
+  computed,
+  Directive,
+  effect,
+  ElementRef,
+  inject,
+  input,
+} from '@angular/core';
 import { WindowStackService } from '../services/window-stack.service';
 
 @Directive({
@@ -11,6 +18,8 @@ import { WindowStackService } from '../services/window-stack.service';
 })
 export class StackedWindowDirective {
   private readonly stack = inject(WindowStackService);
+  private readonly element =
+    inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   public readonly appStackedWindow = input.required<string>();
 
@@ -20,7 +29,7 @@ export class StackedWindowDirective {
 
   constructor() {
     effect((onCleanup) => {
-      onCleanup(this.stack.register(this.appStackedWindow()));
+      onCleanup(this.stack.register(this.appStackedWindow(), this.element));
     });
   }
 

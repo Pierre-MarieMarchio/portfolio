@@ -103,6 +103,7 @@ export class WindowComponent {
         const isShown = this.isShown();
         if (isShown && !wasShown) {
           this.rise();
+          this.frame?.cascade();
         }
         wasShown = isShown;
         const code = this.menuCode();

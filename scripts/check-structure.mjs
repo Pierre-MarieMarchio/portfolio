@@ -115,8 +115,16 @@ const ROLES_IN = {
     'ports',
   ],
   'features/common': ['ports', 'models'],
-  i18n: ['services', 'providers', 'guards', 'models', 'rules', 'data'],
-  pages: ['resolvers', 'guards', 'providers'],
+  i18n: [
+    'services',
+    'providers',
+    'guards',
+    'resolvers',
+    'models',
+    'rules',
+    'data',
+  ],
+  pages: [],
 };
 
 const ENGINE_ZONES = new Set(['shared/space-scene']);
@@ -202,6 +210,58 @@ const misnamedClasses = (path, suffix) => {
 };
 
 /**
+ * @param {string} kind
+ * @param {string} suffix
+ * @param {string} name
+ * @param {string[]} rest
+ * @returns {string[] | null}
+ */
+const pageComponentErrors = (kind, suffix, name, rest) => {
+  if (kind !== 'pages' || suffix !== 'component') {
+    return null;
+  }
+  const screenFile = /-(page|route)$/.test(name) && rest.length === 2;
+  return screenFile
+    ? []
+    : ['a page folder holds only -page and -route components'];
+};
+
+/**
+ * @param {string} suffix
+ * @param {string} role
+ * @param {string} first
+ * @param {string} second
+ * @returns {string[] | null}
+ */
+const engineRoleErrors = (suffix, role, first, second) => {
+  if (suffix !== 'motion' && suffix !== 'renderer') {
+    return null;
+  }
+  return first === 'engine' && second === role
+    ? []
+    : [`belongs in engine/${role}/`];
+};
+
+/**
+ * @param {string} suffix
+ * @param {string} role
+ * @param {string[]} rest
+ * @param {string} second
+ * @param {string} name
+ * @returns {string[]}
+ */
+const extraRoleErrors = (suffix, role, rest, second, name) => {
+  const errors = [];
+  if (suffix === 'component' && (rest.length !== 3 || second !== name)) {
+    errors.push(`a component lives alone in components/${name}/`);
+  }
+  if (role === 'states' && rest.length !== 3) {
+    errors.push('a state lives in states/<state>/');
+  }
+  return errors;
+};
+
+/**
  * @param {{ kind: string, zone: string, rest: string[] }} where
  * @param {string} suffix
  * @param {string} name
@@ -210,16 +270,13 @@ const misnamedClasses = (path, suffix) => {
 const misplaced = ({ kind, zone, rest }, suffix, name) => {
   const role = ROLE_OF[suffix] ?? '';
   const [first = '', second = ''] = rest;
-  if (kind === 'pages' && suffix === 'component') {
-    const screenFile = /-(page|route)$/.test(name) && rest.length === 2;
-    return screenFile
-      ? []
-      : ['a page folder holds only -page and -route components'];
+  const pageErrors = pageComponentErrors(kind, suffix, name, rest);
+  if (pageErrors) {
+    return pageErrors;
   }
-  if (suffix === 'motion' || suffix === 'renderer') {
-    return first === 'engine' && second === role
-      ? []
-      : [`belongs in engine/${role}/`];
+  const engineErrors = engineRoleErrors(suffix, role, first, second);
+  if (engineErrors) {
+    return engineErrors;
   }
   if (first !== role) {
     return [`belongs in ${role}/`];
@@ -230,12 +287,7 @@ const misplaced = ({ kind, zone, rest }, suffix, name) => {
     allowed.includes(role) || engineHere
       ? []
       : [`${zone}/ has no ${role}/ role`];
-  if (suffix === 'component' && (rest.length !== 3 || second !== name)) {
-    errors.push(`a component lives alone in components/${name}/`);
-  }
-  if (role === 'states' && rest.length !== 3) {
-    errors.push('a state lives in states/<state>/');
-  }
+  errors.push(...extraRoleErrors(suffix, role, rest, second, name));
   return errors;
 };
 

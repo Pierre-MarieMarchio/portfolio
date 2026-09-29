@@ -2507,3 +2507,67 @@ de 531,70 à 532,20 kB ; `window-frame-tracker` à 9,72 kB, chargé à part.
 **Écarté.** Agrandir le pas de la cascade : les fenêtres se recouvriraient
 toujours. Des colonnes automatiques : écartées par l'opérateur. Lire un jeton
 CSS pour la place à gauche : le miroir se calcule de la place par défaut.
+
+## 2026-09-29 — Les défauts relevés par SonarQube Cloud sont corrigés, ou exclus par écrit avec leur raison (D82, étend D48)
+
+**Décision.** Des défauts de la première analyse de `main`, douze sont
+corrigés sans rien changer de visible : `role="status"` devient `<output>`
+(boutons de fenêtre, feuille et rail de contact) ; deux chaînages optionnels,
+dont `view-focus.service.ts`, qui passe à `heading?.matches(':focus') ===
+true` ; deux paires de sélecteurs fusionnées dans la liste ; la vérification
+de structure découpée sous le seuil de complexité ; la regex de la
+vérification du prérendu rendue linéaire, et `replaceAll`. Les autres sont
+exclus dans `sonar-project.properties` (`sonar.issue.ignore.multicriteria`),
+chacun limité à son fichier sauf le premier :
+
+- `typescript:S7773` (`Number.NaN`), sur `src/**` : il contredit la règle du
+  lint du dépôt `unicorn/prefer-global-number-constants`, qui fait foi ;
+- `Web:S6822`, `card-carousel` : `role="list"` rend à Safari la sémantique de
+  liste qu'il retire avec `list-style: none` ;
+- `Web:S6819`, `segmented` et `language-switch` : des boutons à bascule et
+  des liens, pas des champs ; un `fieldset` en changerait le sens ;
+- `typescript:S7754`, `observatory-page` : `find` y est une méthode métier du
+  manager, pas celle des tableaux ;
+- `Web:S6825`, `space-scene` : les canvas `aria-hidden` ne sont jamais
+  focalisables.
+
+**Raison.** Une première analyse compte tout le code comme nouveau : la
+barrière échouait et bloquait le déploiement ; elle ne juge depuis que le
+code nouveau, mais un défaut ouvert qu'on ne traite pas finit par masquer
+les nouveaux. Exclure par le fichier de configuration garde la décision dans
+le dépôt, relue en PR, sans `NOSONAR` dans le code (D10) ni clic sans trace
+dans l'interface. La réécriture naïve de `view-focus` (`heading?.ownerDocument
+.activeElement === heading`) vidait la revendication de focus avant que le
+titre existe : deux tests la refusent.
+
+**Écarté.** Suivre Sonar contre le lint sur `Number.NaN` : treize erreurs de
+lint. Marquer les défauts à la main dans l'interface : la raison s'y perdrait.
+
+## 2026-09-29 — `pages/` ne garde que ses écrans, et l'atelier est défait (D83, amende D57 et défait « Atelier de composants en route de développement »)
+
+**Décision.** `pages/` ne contient plus que `observatory/`. Le branchement de
+`shared/mobile-nav` sur le navigateur devient `MobileNavPlatformService`
+(`features/observatory/services/`), qui implémente `MOBILE_NAV_PLATFORM`
+avec les services de `core` et le routeur ; la page le fournit, avec
+`BackLayersService`, comme la scène fournit `SceneSurroundingsService` à
+`shared/space-scene`. `provideMobileNav()` et `app.config.ts` n'en disent plus
+rien. Le resolver des têtes de page va dans `i18n/resolvers/`, à côté de la
+garde du catalogue que les mêmes routes appellent. L'atelier (`/atelier`,
+route de développement) disparaît avec sa route. `check-structure` refuse tout
+dossier de rôle dans `pages/` et accepte `i18n/resolvers/`.
+
+**Raison.** L'opérateur voulait `pages/` réservé aux écrans, et chaque pièce là
+où les zones existantes l'accueillent, sans zone nouvelle : `core` ne peut pas
+connaître le port d'une librairie, la librairie n'importe rien du dépôt (D57),
+`features/common` n'importe rien ; une feature le peut, et le dépôt avait déjà
+ce cas pour la scène. Le titre, la description et les adresses d'une route
+dans chaque langue sont des textes et des adresses : la définition d'`i18n/`.
+La décision de l'atelier disait de le défaire quand les pages montreraient
+tous les états de la fenêtre et du segmenté : c'est le cas depuis le lot B.
+Les titres et descriptions prérendus sont identiques avant et après ; le
+bundle initial passe de 532,08 à 532,47 kB.
+
+**Écarté.** Un dossier nouveau à la racine (`providers/`, `resolvers/`, ou
+`app/`) : une zone de plus pour deux fichiers, que l'opérateur a refusée.
+Garder le provider à la racine de l'injection : la page est le seul arbre qui
+utilise la librairie.

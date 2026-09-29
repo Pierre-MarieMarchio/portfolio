@@ -60,16 +60,14 @@ $cards-below: 500px;
 
   &[data-selected='true'] {
     @include lit-row;
+
+    background: color-mix(in oklab, var(--accent) 8%, transparent);
   }
 
   @include formats.can-hover {
     &:hover {
       @include lit-row;
     }
-  }
-
-  &[data-selected='true'] {
-    background: color-mix(in oklab, var(--accent) 8%, transparent);
   }
 }
 
@@ -106,10 +104,6 @@ $cards-below: 500px;
 .stack,
 .proof {
   @include type.mono(var(--m2));
-}
-
-.stack,
-.proof {
   color: var(--ink);
 }
 

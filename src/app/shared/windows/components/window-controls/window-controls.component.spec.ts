@@ -32,7 +32,7 @@ const mount = async (inputs: Record<string, unknown> = {}) => {
       (button) => button.getAttribute('aria-label') ?? '',
     );
   const note = (): string =>
-    host.querySelector('[role="status"]')?.textContent?.trim() ?? '';
+    host.querySelector('output')?.textContent?.trim() ?? '';
   return { fixture, host, named, names, note };
 };
 

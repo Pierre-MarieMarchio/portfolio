@@ -40,7 +40,7 @@ const setup = async ({ canCopy = true } = {}) => {
   const opener = host.querySelector<HTMLButtonElement>('.opener');
   const rows = [...host.querySelectorAll<HTMLElement>('.action-row')];
   const copyRow = rows.find((row) => row.tagName === 'BUTTON');
-  const said = () => host.querySelector('[role="status"]');
+  const said = () => host.querySelector('output');
   return {
     fixture,
     host,

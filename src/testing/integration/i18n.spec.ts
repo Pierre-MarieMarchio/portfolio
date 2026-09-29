@@ -20,7 +20,6 @@ import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
 import { OWNER_NAME } from '@app/i18n/data/owner.data';
 import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
-import { provideMobileNav } from '@app/pages/providers/mobile-nav.provider';
 import { routes } from '@app/app.routes';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 
@@ -39,7 +38,6 @@ const mount = async () => {
       { provide: TitleStrategy, useClass: RouteHeadStrategy },
       provideStatewise({ effects: [ProjectsEffect, ObservatoryEffect] }),
       provideI18n(),
-      provideMobileNav(),
     ],
   });
   await TestBed.inject(CatalogLoaderService).ensure('fr');

@@ -256,8 +256,8 @@ d'Angular). `src/testing/` a `fixtures/` (`.fixture`), `doubles/`
 | `shared/mobile-nav/`  | `components/` `directives/` `services/` `rules/` `models/` `ports/`                                                                           |
 | `features/<concept>/` | `components/` `directives/` `pipes/` `services/` `states/` `ports/` `validators/` `rules/` `models/` `data/`, et `engine/` pour `observatory` |
 | `features/common/`    | `ports/` `models/` (types seuls)                                                                                                              |
-| `i18n/`               | `services/` `providers/` `guards/` `models/` `rules/` `data/`                                                                                 |
-| `pages/`              | un dossier par écran (`-page.component`, `-route.component`) ; `resolvers/` `guards/` `providers/`                                            |
+| `i18n/`               | `services/` `providers/` `guards/` `resolvers/` `models/` `rules/` `data/`                                                                    |
+| `pages/`              | un dossier par écran (`-page.component`, `-route.component`)                                                                                  |
 | racine `src/app/`     | les `app.*.ts`                                                                                                                                |
 
 `pages/` est la seule zone rangée par écran : un écran est une page.
@@ -468,10 +468,14 @@ par deux ports, auxquels la composition répond.
 | `mobile-nav-platform.port.ts` `MOBILE_NAV_PLATFORM`  | le navigateur de la librairie, inerte au serveur                                                   | `isCompact`, `reducedMotion`, `nextFrame`, `after`, `hasScrollEnd`, `onResize`, `whenStill`, `closesOnBack`, `historyState`, `pushHistory`, `historyBack`, `onHistoryPop`, `onLeave` |
 | `mobile-nav-texts.port.ts` `MOBILE_NAV_TEXTS`        | ses mots                                                                                           | `pageOf(place, count)`, `close`                                                                                                                                                      |
 
-- `provideMobileNav()` (`pages/providers/`) répond à `MOBILE_NAV_PLATFORM`
-  avec les services de `core/services/browser/` et `core/services/history/`,
-  et le `NavigationStart` du routeur pour `onLeave` ; `provideI18n` répond à
-  `MOBILE_NAV_TEXTS`. Les ports grandissent avec les briques suivantes.
+- `ObservatoryPageComponent` (`pages/observatory/`) fournit `MOBILE_NAV_PLATFORM`
+  avec `MobileNavPlatformService` (`features/observatory/services/`), sur le
+  modèle de `SceneSurroundingsService` : elle s'appuie sur les services de
+  `core/services/browser/` et `core/services/history/`, et le
+  `NavigationStart` du routeur pour `onLeave`. Elle fournit aussi
+  `BackLayersService`, sinon résolu à la racine (D57) : sans lui, son injection
+  n'y trouverait pas le port. `provideI18n` répond à `MOBILE_NAV_TEXTS`. Les
+  ports grandissent avec les briques suivantes.
 - Une page réglée d'en haut (`index`) défile en douceur après l'image
   suivante, sans animation sous `prefers-reduced-motion`, et ne se renvoie
   pas. Sans `scrollend`, le pager se pose 120 ms après le dernier `scroll`.
@@ -731,6 +735,12 @@ short }` et des slugs (la fiche, l'aperçu, le survol, la sélection), la vue
   titre. Chaque créneau de la page se déclare avec `appViewSlot` (D50).
   Une fois l'accueil révélé, `prepareWhenIdle()` monte, cachées, la liste et
   l'à-propos quand le navigateur est libre (D62).
+- **`MobileNavPlatformService`**. But : le navigateur de `shared/mobile-nav`
+  (D57), sur le modèle de `SceneSurroundingsService`. Contrat :
+  `MOBILE_NAV_PLATFORM`, qu'elle implémente avec les services de
+  `core/services/browser/` et `core/services/history/`, et le
+  `NavigationStart` du routeur pour `onLeave`. Fournie par
+  `ObservatoryPageComponent`, jamais à la racine.
 
 #### La scène qu'il anime : `shared/space-scene/`
 
@@ -840,6 +850,9 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
   restent ici, sous `pages` : les pages et la racine les lisent.
 - `fr.data.ts`, `en.data.ts` : le contenu ; la tranche `profile` a son
   fichier à côté (`fr-profile.data.ts`, `en-profile.data.ts`, D22).
+- `resolvers/page-head.resolver.ts` : titre, description et adresses
+  alternatives de chaque vue (ex-`view-head` + `project-title.resolver`) ;
+  `app.routes.ts` l'importe par la surface de `i18n/`.
 
 Les têtes de page lisent le catalogue **de la langue visée**
 (`CatalogLoaderService.of(langOfUrl(url))`) et non la tranche courante : au
@@ -852,8 +865,9 @@ français quand les resolvers tournent.
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `observatory/observatory-page.component.*`   | composer l'écran : scène, navigation, fenêtres ; brancher les gestes sur les managers                                                                                                       |
 | `observatory/observatory-route.component.ts` | la feuille de route, vide : à son activation, dire au bureau quelle vue son adresse montre ; un seul composant pour toutes les vues, fiche comprise (ex-`ViewMarker` + `ProjectDetailPage`) |
-| `page-head.resolver.ts`                      | titre, description et adresses alternatives de chaque vue (ex-`view-head` + `project-title.resolver`)                                                                                       |
-| `workbench/workbench-page.component.*`       | l'atelier des composants partagés, en développement                                                                                                                                         |
+
+`pages/` ne contient qu'un dossier par écran : ni resolver ni provider n'y
+vivent, quand bien même seul un écran les consomme (§3.4).
 
 - `station-projects.binding.ts` disparaît. La scène traduit elle-même slug
   et rang, le filtre est typé, les relais tombent. Il reste deux
@@ -864,9 +878,17 @@ français quand les resolvers tournent.
   (`features/observatory`), que la page fournit avec `WindowStackService` :
   la lib de fenêtres reste générique, et la correspondance vue → fenêtre vit
   avec `windowOf` (D50).
+- `ObservatoryPageComponent` fournit `MOBILE_NAV_PLATFORM` avec
+  `MobileNavPlatformService` (`features/observatory/services/`), ainsi que
+  `BackLayersService` : le premier n'a pas d'implémentation à la racine, le
+  second y résoudrait un port absent (D57). Tout consommateur de
+  `shared/mobile-nav` qui vit sous l'écran (feuilles, pager, carrousel,
+  feuille d'actions, retour Android) en hérite.
 
 Un resolver ne fait que calculer une donnée : c'est le composant de route,
-dont c'est le rôle, qui déclare la vue au bureau.
+dont c'est le rôle, qui déclare la vue au bureau. C'est pourquoi
+`page-head.resolver.ts` vit dans `i18n/` (§4.7), qui connaît le catalogue,
+plutôt que dans `pages/`.
 
 ### 4.9 La racine
 
@@ -932,7 +954,7 @@ src/app/
   features/observatory/models/                 observatory-ids.model · observatory.model
   features/observatory/ports/                  observatory-texts.port
   features/observatory/rules/                  scene-direction.rules · view.rules
-  features/observatory/services/               featured-tour.service · home-reveal.service · scene-surroundings.service · view-windows.service
+  features/observatory/services/               featured-tour.service · home-reveal.service · mobile-nav-platform.service · scene-surroundings.service · view-windows.service
   features/observatory/states/animation/       animation.action · animation.manager · animation.state · animation.updater
   features/observatory/states/observatory/     observatory.action · observatory.effect · observatory.manager · observatory.state · observatory.updater
   features/profile/components/about-window/    about-window.component
@@ -958,12 +980,10 @@ src/app/
   i18n/guards/                                 catalog.guard
   i18n/models/                                 catalog.model
   i18n/providers/                              i18n.provider
+  i18n/resolvers/                              page-head.resolver
   i18n/rules/                                  paths.rules
   i18n/services/                               catalog-loader.service · view-links.service
   pages/observatory/                           observatory-page.component · observatory-route.component
-  pages/providers/                             mobile-nav.provider
-  pages/resolvers/                             page-head.resolver
-  pages/workbench/                             workbench-page.component
   shared/mobile-nav/components/action-menu/    action-menu.component
   shared/mobile-nav/components/bottom-sheet/   bottom-sheet.component
   shared/mobile-nav/components/card-carousel/  card-carousel.component

@@ -4,6 +4,11 @@ import { SegmentedItem } from '../../models/segmented.model';
 import { SHARED_TEXTS } from '../../ports';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
+import {
+  resizeObserved,
+  stubMedia,
+  stubObservers,
+} from '@testing/doubles/browser.double';
 
 const ITEMS: readonly SegmentedItem[] = [
   { value: 'all', label: 'Tout', active: true },
@@ -34,7 +39,20 @@ const buttonsOf = (host: HTMLElement): HTMLButtonElement[] => [
   ...host.querySelectorAll<HTMLButtonElement>('li button'),
 ];
 
+const rectsOf = (rects: WeakMap<Element, Partial<DOMRect>>): void => {
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: HTMLElement) {
+      return (rects.get(this) ?? { left: 0, right: 0 }) as DOMRect;
+    },
+  );
+};
+
 describe('SegmentedComponent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it('lists one <li><button> per item inside a group, in order, its label as its text', async () => {
     const { host } = await mount();
 
@@ -125,5 +143,61 @@ describe('SegmentedComponent', () => {
 
     expect(buttons).toHaveLength(2);
     expect(received).toEqual(['b', 'a']);
+  });
+
+  it('brings the newly active item into view smoothly, once already shown', async () => {
+    stubMedia(() => false);
+    const observers = stubObservers();
+    const rects = new WeakMap<Element, Partial<DOMRect>>();
+    rectsOf(rects);
+    const { fixture, host } = await mount([
+      { value: 'a', label: 'A', active: true },
+      { value: 'b', label: 'B', active: false },
+    ]);
+    const list = host.querySelector('ul') as HTMLElement;
+    rects.set(list, { left: 0, right: 100 });
+    resizeObserved(observers);
+    const scrollBy = vi.fn();
+    Object.defineProperty(list, 'scrollBy', {
+      value: scrollBy,
+      configurable: true,
+    });
+    rects.set(at(buttonsOf(host), 1), { left: 150, right: 200 });
+
+    fixture.componentRef.setInput('items', [
+      { value: 'a', label: 'A', active: false },
+      { value: 'b', label: 'B', active: true },
+    ]);
+    await fixture.whenStable();
+
+    expect(scrollBy).toHaveBeenCalledWith({ left: 100, behavior: 'smooth' });
+  });
+
+  it('brings the newly active item into view without animation when instant, even once shown', async () => {
+    const observers = stubObservers();
+    const rects = new WeakMap<Element, Partial<DOMRect>>();
+    rectsOf(rects);
+    const { fixture, host } = await mount([
+      { value: 'a', label: 'A', active: true },
+      { value: 'b', label: 'B', active: false },
+    ]);
+    fixture.componentRef.setInput('instant', true);
+    const list = host.querySelector('ul') as HTMLElement;
+    rects.set(list, { left: 0, right: 100 });
+    resizeObserved(observers);
+    const scrollBy = vi.fn();
+    Object.defineProperty(list, 'scrollBy', {
+      value: scrollBy,
+      configurable: true,
+    });
+    rects.set(at(buttonsOf(host), 1), { left: 150, right: 200 });
+
+    fixture.componentRef.setInput('items', [
+      { value: 'a', label: 'A', active: false },
+      { value: 'b', label: 'B', active: true },
+    ]);
+    await fixture.whenStable();
+
+    expect(scrollBy).toHaveBeenCalledWith({ left: 100, behavior: 'instant' });
   });
 });

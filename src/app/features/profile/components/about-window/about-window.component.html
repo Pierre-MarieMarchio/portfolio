@@ -11,6 +11,7 @@
 >
   <app-segmented
     toolbar
+    instant
     [label]="about().parts"
     [items]="parts()"
     (valueChange)="partChange.emit($event)"
@@ -21,7 +22,11 @@
     } @else {
       <h2 class="landing">{{ heading() }}</h2>
     }
-    <app-pager [index]="index()" (indexChange)="partChange.emit($event)">
+    <app-pager
+      [index]="index()"
+      (indexChange)="partChange.emit($event)"
+      (shownChange)="visiblePart.set($event)"
+    >
       <app-pager-page>
         <p class="lead">{{ about().profile.lead }}</p>
         <dl class="facts">

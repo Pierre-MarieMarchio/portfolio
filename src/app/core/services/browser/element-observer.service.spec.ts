@@ -62,6 +62,59 @@ describe('ElementObserverService', () => {
     expect(heard).toEqual([true, false]);
   });
 
+  it('is deaf to snap changes where the browser does not announce them', () => {
+    const element = document.createElement('div');
+    const heard = vi.fn();
+
+    const stop = injectOn(ElementObserverService, 'browser').onSnapChanging(
+      element,
+      heard,
+    );
+    element.dispatchEvent(new Event('scrollsnapchanging'));
+    stop();
+
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it('reports the element the browser is about to snap to, until stopped', () => {
+    const element = document.createElement('div');
+    Object.defineProperty(element, 'onscrollsnapchanging', {
+      value: null,
+      configurable: true,
+    });
+    const target = document.createElement('li');
+    const heard: (Element | null)[] = [];
+
+    const stop = injectOn(ElementObserverService, 'browser').onSnapChanging(
+      element,
+      (snapped) => {
+        heard.push(snapped);
+      },
+    );
+    const event = new Event('scrollsnapchanging');
+    Object.defineProperty(event, 'snapTargetInline', { value: target });
+    element.dispatchEvent(event);
+    stop();
+    element.dispatchEvent(event);
+
+    expect(heard).toEqual([target]);
+  });
+
+  it('says whether the browser announces snap targets, from the document itself', () => {
+    const observer = injectOn(ElementObserverService, 'browser');
+
+    expect(observer.hasSnapChanging()).toBe(false);
+
+    Object.defineProperty(document.documentElement, 'onscrollsnapchanging', {
+      value: null,
+      configurable: true,
+    });
+
+    expect(observer.hasSnapChanging()).toBe(true);
+
+    Reflect.deleteProperty(document.documentElement, 'onscrollsnapchanging');
+  });
+
   it('waits for the animations of an element to end, in the browser', async () => {
     const element = document.createElement('div');
     const ends: (() => void)[] = [];

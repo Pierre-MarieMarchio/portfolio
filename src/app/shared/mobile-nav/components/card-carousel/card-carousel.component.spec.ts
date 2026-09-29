@@ -151,18 +151,109 @@ describe('CardCarouselComponent', () => {
     expect(dots.every((dot) => dot.tabIndex === -1)).toBe(true);
   });
 
-  it('says which card the reader swiped to only once the scroll has ended', async () => {
+  it('shows the nearest card as soon as the scroll approaches it, but says so only once it has ended', async () => {
     const { changes, current, rest } = await setup();
 
     await rest(STEP, ['scroll']);
 
     expect(changes).toEqual([]);
-    expect(current()).toBe(0);
+    expect(current()).toBe(1);
 
     await rest(STEP, ['scrollend']);
 
     expect(changes).toEqual([1]);
     expect(current()).toBe(1);
+  });
+
+  it('shows the card the browser announces as its next snap target, before the scroll ends', async () => {
+    const { platform, track, places, current, fixture } = await setup();
+
+    platform.snapTo(track, places[2] ?? null);
+    await fixture.whenStable();
+
+    expect(current()).toBe(2);
+  });
+
+  it('follows only the snap announcements once the browser makes them, ignoring the nearest guess from scroll', async () => {
+    const { platform, track, places, current, rest } = await setup();
+    platform.knowsSnapChanging = true;
+
+    platform.snapTo(track, places[2] ?? null);
+    await rest(STEP, ['scroll']);
+
+    expect(current()).toBe(2);
+  });
+
+  it('listens to touch passively, so it never blocks the browser from scrolling', async () => {
+    const addEventListener = vi.spyOn(Element.prototype, 'addEventListener');
+
+    await setup();
+
+    const touchCalls = addEventListener.mock.calls.filter(([type]) =>
+      ['touchstart', 'touchend', 'touchcancel'].includes(type),
+    );
+    expect(touchCalls).toHaveLength(3);
+    expect(
+      touchCalls.every(
+        ([, , options]) =>
+          (options as AddEventListenerOptions | undefined)?.passive === true,
+      ),
+    ).toBe(true);
+    addEventListener.mockRestore();
+  });
+
+  it('commits the nearest card even a couple of pixels off the exact offset', async () => {
+    const { changes, current, rest } = await setup();
+
+    await rest(STEP - 2, ['scroll', 'scrollend']);
+
+    expect(current()).toBe(1);
+    expect(changes).toEqual([1]);
+  });
+
+  it('commits the nearest card even a fraction of a pixel off the exact offset', async () => {
+    const { changes, current, rest } = await setup();
+
+    await rest(STEP - 0.6, ['scroll', 'scrollend']);
+
+    expect(current()).toBe(1);
+    expect(changes).toEqual([1]);
+  });
+
+  it('never scrolls to a card set from outside while a finger is on the track, but catches up once it lifts', async () => {
+    const { platform, track, scrollTo, pointTo } = await setup();
+
+    track.dispatchEvent(new Event('touchstart'));
+    await pointTo(2);
+
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    track.dispatchEvent(new Event('touchend'));
+    platform.frame();
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      left: 2 * STEP,
+      behavior: 'smooth',
+    });
+  });
+
+  it('keeps a realignment off while the scroll has not ended, and catches up once it does', async () => {
+    const { platform, track, places, scrollTo, rest } = await setup();
+    await rest(2 * STEP);
+    scrollTo.mockClear();
+
+    track.dispatchEvent(new Event('scroll'));
+    layOut(track, places, 400);
+    platform.resize();
+
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    await rest(2 * STEP, ['scrollend']);
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      left: 2 * (400 - 2 * 48 + 8),
+      behavior: 'instant',
+    });
   });
 
   it('says nothing when the scroll ends back on the current card, or between two', async () => {
@@ -182,6 +273,7 @@ describe('CardCarouselComponent', () => {
     await pointTo(2);
 
     expect(scrollTo).not.toHaveBeenCalled();
+    expect(current()).toBe(2);
 
     platform.frame();
 
@@ -189,11 +281,27 @@ describe('CardCarouselComponent', () => {
       left: 2 * STEP,
       behavior: 'smooth',
     });
-    expect(current()).toBe(0);
+    expect(current()).toBe(2);
 
     await rest(2 * STEP);
 
     expect(current()).toBe(2);
+    expect(changes).toEqual([]);
+  });
+
+  it('reaches the card it was heading to without ever showing the cards a programmed scroll crosses', async () => {
+    const { platform, changes, current, rest, pointTo } = await setup();
+
+    await pointTo(3);
+    platform.frame();
+
+    expect(current()).toBe(3);
+
+    await rest(STEP, ['scroll']);
+    await rest(2 * STEP, ['scroll']);
+    await rest(3 * STEP, ['scroll', 'scrollend']);
+
+    expect(current()).toBe(3);
     expect(changes).toEqual([]);
   });
 
@@ -284,7 +392,7 @@ describe('CardCarouselComponent', () => {
     await pointTo(3);
 
     expect(scrollTo).not.toHaveBeenCalled();
-    expect(current()).toBe(0);
+    expect(current()).toBe(3);
     expect(host.querySelectorAll('.card')).toHaveLength(4);
   });
 });

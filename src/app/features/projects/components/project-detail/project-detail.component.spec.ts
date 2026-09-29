@@ -310,4 +310,62 @@ describe('ProjectDetailComponent', () => {
 
     expect(values).toEqual([2]);
   });
+
+  it('presses the tab of the page the pager is visibly on, before chapterChange settles', async () => {
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
+
+    componentOf(fixture, PagerComponent).shownChange.emit(2);
+    await fixture.whenStable();
+
+    const buttons = [
+      ...(host.querySelector(toolbar)?.querySelectorAll('button') ?? []),
+    ];
+    expect(
+      buttons.map((button) => button.getAttribute('aria-pressed')),
+    ).toEqual(['false', 'false', 'true']);
+  });
+
+  it('keeps the tab where the pager showed it once the committed chapter catches up to the same page', async () => {
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
+
+    componentOf(fixture, PagerComponent).shownChange.emit(2);
+    await fixture.whenStable();
+    fixture.componentRef.setInput('chapter', 2);
+    await fixture.whenStable();
+
+    expect(
+      host
+        .querySelector(toolbar)
+        ?.querySelectorAll('button')[2]
+        ?.getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
+  it('moves the tab back if the gesture returns to the page it started from', async () => {
+    const { fixture, host, texts } = await mount({
+      slug: 'proj-b',
+      chapter: 0,
+    });
+    const toolbar = `[aria-label="${texts.sheet.approaches}"]`;
+    const pager = componentOf(fixture, PagerComponent);
+
+    pager.shownChange.emit(2);
+    pager.shownChange.emit(0);
+    await fixture.whenStable();
+
+    expect(
+      host
+        .querySelector(toolbar)
+        ?.querySelectorAll('button')[0]
+        ?.getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
 });

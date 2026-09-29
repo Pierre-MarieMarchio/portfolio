@@ -2,7 +2,7 @@
   #track
   class="scroller"
   role="list"
-  (scroll)="awaitSettle()"
+  (scroll)="onScroll()"
   (scrollend)="settle()"
 >
   @for (item of items(); track $index) {

@@ -1,4 +1,10 @@
-import { clampPage, isAt, offsetOfPage, pageAt } from './pager.rules';
+import {
+  clampPage,
+  indexOfChild,
+  isAt,
+  offsetOfPage,
+  pageAt,
+} from './pager.rules';
 
 describe('clampPage', () => {
   it.each([
@@ -48,5 +54,29 @@ describe('isAt', () => {
   it('takes a scroll within a pixel of the offset as there', () => {
     expect(isAt(779.5, 780)).toBe(true);
     expect(isAt(778, 780)).toBe(false);
+  });
+});
+
+describe('indexOfChild', () => {
+  const container = document.createElement('ul');
+  const children = [
+    document.createElement('li'),
+    document.createElement('li'),
+    document.createElement('li'),
+  ];
+  for (const child of children) {
+    container.append(child);
+  }
+
+  it('reads the rank of the snapped-to child among its siblings', () => {
+    expect(indexOfChild(container, children[1] ?? null)).toBe(1);
+  });
+
+  it('reads no index where the browser announces none', () => {
+    expect(indexOfChild(container, null)).toBeNull();
+  });
+
+  it('reads no index for an element outside the container', () => {
+    expect(indexOfChild(container, document.createElement('li'))).toBeNull();
   });
 });

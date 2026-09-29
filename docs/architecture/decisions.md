@@ -2266,3 +2266,27 @@ rien changer à l'œil ; elles sont régénérées. Le bundle initial passe de
 grains. Garder le miroir d'un bloc au lâcher : c'est lui qui retournait le
 disque. Suivre la fenêtre par un signal : une écriture par image lue par un
 gabarit, en zoneless.
+
+## 2026-09-29 — Au bureau, la barre des pages marque les fenêtres ouvertes (D73, étend D62)
+
+**Décision.** Au bureau et à la tablette, chaque entrée de la barre des pages
+dont la fenêtre est à l'écran porte un point sous son libellé, comme une
+application ouverte dans un dock : « Projets » pour la liste ou la fiche,
+« À propos » pour l'à-propos ; « Accueil » jamais. Son nom accessible le dit
+(« Projets, fenêtre ouverte ») ; `aria-current` reste à la page courante. La
+barre reçoit la liste des entrées ouvertes (`openRoutes`) ; la page la tire
+des managers (`showsList`, `showsSheet`, `showsAbout`). Cliquer une entrée
+ouverte navigue, et la vue ramène sa fenêtre devant sans la bouger
+(`ViewWindowsService`, déjà là). Une fenêtre passe aussi devant quand le focus
+clavier y entre (`focusin`), plus seulement au `pointerdown`. Le point
+n'anime que son opacité ; il n'existe pas au téléphone.
+
+**Raison.** Une fenêtre gardée peut en cacher une autre, et le bureau n'a pas
+de dock : rien ne disait qu'une fenêtre restait ouverte derrière. Le point
+reprend un geste connu de tout bureau. Au clavier, Tab entrait dans une
+fenêtre cachée sans la montrer. Le bundle initial passe de 520,95 à
+521,89 kB.
+
+**Écarté.** Une sortie de la barre pour remonter la fenêtre : la navigation
+le fait déjà. Un dock au bureau : une seconde barre pour ce que la première
+peut dire. Un compteur de fenêtres : il ne dit pas lesquelles.

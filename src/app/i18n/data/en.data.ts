@@ -9,6 +9,7 @@ export const EN: Catalog = {
     pageBar: {
       languages: draft('Site language'),
       navigation: draft('Main navigation'),
+      openWindow: draft('window open'),
     },
     contactRail: {
       label: draft('Contact me'),

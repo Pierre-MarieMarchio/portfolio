@@ -503,8 +503,8 @@ par deux ports, auxquels la composition répond.
   `windowOf(view)`.
 - **`StackedWindowDirective`** (ex-`WindowSlotDirective`). But : inscrire un
   élément dans la pile, écrire sa profondeur, le mettre devant quand on le
-  touche. Écoute sur son propre élément : l'écouteur global en capture et
-  le contrat par `data-slot` disparaissent.
+  touche ou que le focus y entre (`focusin`). Écoute sur son propre élément :
+  l'écouteur global en capture et le contrat par `data-slot` disparaissent.
 
 #### Mesurer un élément : `shared/ui/`
 
@@ -537,7 +537,12 @@ par deux ports, auxquels la composition répond.
   défile à l'horizontale si elle déborde, et le choix allumé y défile en vue.
 - **`language-switch/`, `main-nav/`** (ex-`page-bar`, deux responsabilités) :
   `LanguageSwitchComponent` (les liens de langue) et `MainNavComponent`
-  (la navigation), composés par l'écran.
+  (la navigation), composés par l'écran. `MainNavComponent` reçoit en plus,
+  par `openRoutes`, la liste des entrées dont la fenêtre est affichée à
+  l'écran (le bureau la calcule depuis `ObservatoryManager`, jamais du
+  `*State`) : chacune porte une marque discrète sous son libellé et le dit
+  dans son nom accessible, sans toucher `aria-current`, réservé à la page
+  courante.
 - **`social-links/`** (ex-`contact-rail`) : `SocialLinksComponent`, une liste
   de liens à icône. Le bouton pause, qui commande l'animation du bureau,
   part dans `features/observatory`. Au format `phone`, la liste se cache

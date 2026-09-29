@@ -202,6 +202,17 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     this.links.routeOf(this.observatory.view()),
   );
 
+  protected readonly openRoutes = computed<readonly string[]>(() => {
+    const routes: string[] = [];
+    if (this.observatory.showsAbout()) {
+      routes.push(this.links.routeOf('about'));
+    }
+    if (this.observatory.showsList() || this.observatory.showsSheet()) {
+      routes.push(this.links.routeOf('index'));
+    }
+    return routes;
+  });
+
   protected readonly closeLabels = computed(() => {
     const view = this.observatory.view();
     const { closeTo } = this.observatoryTexts();

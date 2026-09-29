@@ -33,9 +33,15 @@
         type="button"
         class="void"
         tabindex="-1"
-        [attr.aria-label]="observatoryTexts().home.void"
+        [attr.aria-label]="voidLabel()"
         (click)="onVoid()"
       ></button>
+    }
+
+    @if (canDeselect()) {
+      <button type="button" class="overview" (click)="onVoid()">
+        {{ observatoryTexts().stepBack.overview }}
+      </button>
     }
 
     <div

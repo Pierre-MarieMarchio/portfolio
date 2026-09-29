@@ -208,6 +208,17 @@ export class ObservatoryPageComponent {
       this.observatory.view() === 'home' && this.observatory.preview() === null,
   );
 
+  protected readonly canDeselect = computed(
+    () =>
+      this.observatory.view() === 'index' &&
+      this.observatory.selected() !== null,
+  );
+
+  protected readonly voidLabel = computed(() => {
+    const { stepBack } = this.observatoryTexts();
+    return this.canDeselect() ? stepBack.deselect : stepBack.closePreview;
+  });
+
   constructor() {
     const locale = inject(LocaleService);
     const lang = locale.lang();

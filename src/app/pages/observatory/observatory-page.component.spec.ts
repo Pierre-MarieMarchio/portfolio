@@ -408,29 +408,83 @@ describe('ObservatoryPageComponent', () => {
     expect(host.querySelector('app-project-detail')).toBeNull();
   });
 
-  it('has no void button on the plain home view', async () => {
-    const { host } = await mount();
+  it('has no void button on the plain home, index, about or sheet view', async () => {
+    const { fixture, station, host } = await mount();
+    for (const view of ['home', 'index', 'about'] as const) {
+      station.syncRoute(view);
+      await fixture.whenStable();
+      expect(host.querySelector('button.void')).toBeNull();
+    }
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
     expect(host.querySelector('button.void')).toBeNull();
   });
 
-  it('shows the void button on the sheet view', async () => {
+  it('shows the void button, named after what it closes, once there is something to step back from', async () => {
     const { fixture, station, host } = await mount();
-    station.syncRoute('sheet', KNOWN_SLUG);
-    await fixture.whenStable();
+    const { stepBack } = TestBed.inject(OBSERVATORY_TEXTS)();
 
-    const button = host.querySelector('button.void');
-    expect(button?.getAttribute('aria-label')).toBe(
-      TestBed.inject(OBSERVATORY_TEXTS)().home.void,
-    );
+    station.syncRoute('index');
+    station.select(KNOWN_SLUG);
+    await fixture.whenStable();
+    let button = host.querySelector('button.void');
+    expect(button?.getAttribute('aria-label')).toBe(stepBack.deselect);
     expect(button?.getAttribute('tabindex')).toBe('-1');
+
+    station.syncRoute('home');
+    station.openPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+    button = host.querySelector('button.void');
+    expect(button?.getAttribute('aria-label')).toBe(stepBack.closePreview);
   });
 
-  it('steps back from the sheet to the list on a click in the void', async () => {
+  it('deselects the index row on a click in the void, never navigating away', async () => {
     const { fixture, station, host } = await mount();
-    station.syncRoute('sheet', KNOWN_SLUG);
+    const before = TestBed.inject(Router).url;
+    station.syncRoute('index');
+    station.select(KNOWN_SLUG);
     await fixture.whenStable();
 
     host.querySelector<HTMLButtonElement>('button.void')?.click();
+    await fixture.whenStable();
+
+    expect(station.selected()).toBeNull();
+    expect(TestBed.inject(Router).url).toBe(before);
+  });
+
+  it('shows an overview chip only when the index has a selection, and it deselects', async () => {
+    const { fixture, station, host } = await mount();
+    const { stepBack } = TestBed.inject(OBSERVATORY_TEXTS)();
+    station.syncRoute('index');
+    await fixture.whenStable();
+    expect(host.querySelector('button.overview')).toBeNull();
+
+    station.select(KNOWN_SLUG);
+    await fixture.whenStable();
+    const chip = host.querySelector<HTMLButtonElement>('button.overview');
+    expect(chip?.textContent?.trim()).toBe(stepBack.overview);
+
+    chip?.click();
+    await fixture.whenStable();
+    expect(station.selected()).toBeNull();
+    expect(host.querySelector('button.overview')).toBeNull();
+  });
+
+  it('never shows the overview chip outside the index', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('home');
+    station.openPreview(KNOWN_SLUG);
+    await fixture.whenStable();
+
+    expect(host.querySelector('button.overview')).toBeNull();
+  });
+
+  it('leaves the sheet for the list on its title-bar link', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('sheet', KNOWN_SLUG);
+    await fixture.whenStable();
+
+    host.querySelector<HTMLAnchorElement>('.slot--sheet a.to-index')?.click();
     await fixture.whenStable();
 
     expect(TestBed.inject(Router).url).toBe('/projets');

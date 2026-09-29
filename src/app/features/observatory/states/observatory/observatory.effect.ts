@@ -10,12 +10,7 @@ import {
   observatoryWindowClosed,
 } from './observatory.action';
 import { ObservatoryState } from './observatory.state';
-import {
-  closeTargetOf,
-  ParentView,
-  stepBack,
-  StepBackGesture,
-} from '../../rules/view.rules';
+import { closeTargetOf, ParentView, stepBack } from '../../rules/view.rules';
 
 @Service()
 export class ObservatoryEffect {
@@ -32,30 +27,27 @@ export class ObservatoryEffect {
   );
 
   public readonly escapeEffect = createEffect(observatoryEscaped, () =>
-    this.stepBack('escape'),
+    this.stepBack(),
   );
 
   public readonly stepBackEffect = createEffect(observatorySteppedBack, () =>
-    this.stepBack('void'),
+    this.stepBack(),
   );
 
-  private stepBack(gesture: StepBackGesture) {
-    const step = stepBack(gesture, {
+  private stepBack() {
+    const step = stepBack({
       view: this.state.view(),
       selection: this.state.selected(),
       preview: this.state.preview(),
     });
-    switch (step?.kind) {
+    switch (step) {
       case 'deselect': {
         return observatorySelected(null);
       }
       case 'close-preview': {
         return observatoryPreviewClosed();
       }
-      case 'navigate': {
-        return this.go(step.to);
-      }
-      case undefined: {
+      case null: {
         return;
       }
     }

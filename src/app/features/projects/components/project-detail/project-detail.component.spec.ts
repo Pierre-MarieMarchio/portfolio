@@ -136,6 +136,19 @@ describe('ProjectDetailComponent', () => {
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 03');
   });
 
+  it('links back to the list at the start of its title bar', async () => {
+    const { host, texts } = await mount({ slug: 'proj-b' });
+    const link = host.querySelector<HTMLAnchorElement>('.titlebar a.to-index');
+    const titlebarChildren = [
+      ...(host.querySelector('.titlebar')?.children ?? []),
+    ];
+
+    expect(link?.textContent?.trim()).toBe(texts.sheet.toIndex);
+    expect(link?.getAttribute('aria-label')).toBe(texts.sheet.toIndexLabel);
+    expect(link?.getAttribute('href')).toBe('/projets');
+    expect(titlebarChildren.indexOf(link as Element)).toBe(0);
+  });
+
   it('asks its window for a stable height, so a chapter change does not resize it', async () => {
     const { fixture } = await mount({ slug: 'proj-b' });
 

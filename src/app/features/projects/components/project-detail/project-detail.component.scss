@@ -99,6 +99,14 @@ h2 {
   white-space: nowrap;
 }
 
+.to-index {
+  @include controls.next-link($height: 24px);
+
+  flex: 0 0 auto;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
 @include formats.phone {
   :host {
     --window-body-padding: var(--s3) 0 0;

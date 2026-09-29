@@ -80,6 +80,8 @@ export const FR: Catalog = {
     },
     sheet: {
       label: 'Détail du projet',
+      toIndex: '‹ Projets',
+      toIndexLabel: 'Revenir aux projets',
       approaches: 'Parties',
       approach: (number, title) => `Partie ${number} : ${title}`,
       terms: {
@@ -109,11 +111,15 @@ export const FR: Catalog = {
       parts: ['Profil', 'Compétences', 'Parcours', 'Et après'],
     },
     home: {
-      void: 'Fermer les fenêtres',
       name: OWNER_NAME,
       trade: 'Développeur .NET et Angular',
       status: 'Je cherche le prochain projet à construire.',
       brand: 'Portfolio',
+    },
+    stepBack: {
+      deselect: 'Désélectionner le projet',
+      closePreview: 'Fermer l’aperçu',
+      overview: '‹ Vue d’ensemble',
     },
     closeTo: {
       home: 'Fermer et revenir à l’accueil',

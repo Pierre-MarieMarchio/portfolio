@@ -99,6 +99,8 @@ export const EN: Catalog = {
     },
     sheet: {
       label: draft('Project details'),
+      toIndex: draft('‹ Projects'),
+      toIndexLabel: draft('Back to the projects'),
       approaches: draft('Sections'),
       approach: draft(
         (number: string, title: string) => `Section ${number}: ${title}`,
@@ -137,11 +139,15 @@ export const EN: Catalog = {
       ],
     },
     home: {
-      void: draft('Close the windows'),
       name: OWNER_NAME,
       trade: draft('.NET and Angular developer'),
       status: draft('I am looking for the next project to build.'),
       brand: 'Portfolio',
+    },
+    stepBack: {
+      deselect: draft('Deselect the project'),
+      closePreview: draft('Close the preview'),
+      overview: draft('‹ Overview'),
     },
     closeTo: {
       home: draft('Close and go back home'),

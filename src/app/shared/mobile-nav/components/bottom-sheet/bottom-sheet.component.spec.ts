@@ -416,6 +416,25 @@ describe('BottomSheetComponent', () => {
       expect(host.dataset['detent']).toBe('half');
     });
 
+    it('lowers a full sheet to half when the router leaves, and leaves the next back alone, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host } = await risen(hasCloseWatcher);
+
+        platform.leave();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+
+        const backs = platform.backs.length;
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+        expect(platform.backs).toHaveLength(backs);
+      }
+    });
+
     it('leaves the back to the page once the sheet is not full, and takes its entry back', async () => {
       const { fixture, platform } = await risen(false);
 

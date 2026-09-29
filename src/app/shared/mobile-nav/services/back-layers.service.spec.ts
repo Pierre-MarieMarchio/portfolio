@@ -153,4 +153,21 @@ describe('BackLayersService', () => {
       expect(onBack).not.toHaveBeenCalled();
     }
   });
+
+  it('lets go of a claimed layer when the router leaves the view, with or without a close watcher', () => {
+    for (const hasCloseWatcher of [true, false]) {
+      TestBed.resetTestingModule();
+      const { platform, layers } = setup({ hasCloseWatcher });
+      const onBack = vi.fn();
+      layers.claim(onBack);
+
+      platform.leave();
+
+      expect(onBack).toHaveBeenCalledOnce();
+
+      platform.pressBack();
+
+      expect(onBack).toHaveBeenCalledOnce();
+    }
+  });
 });

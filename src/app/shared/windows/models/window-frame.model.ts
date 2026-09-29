@@ -91,7 +91,7 @@ export interface FramedWindow {
 export interface FrameTracking {
   toggleMaximize(): void;
   snapTo(zone: 'left' | 'right'): void;
-  cascadeFrom(top: HTMLElement | null): void;
+  cascadeFrom(shown: readonly HTMLElement[]): void;
   fit(): void;
   fitHeight(): void;
   stop(): void;

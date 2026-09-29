@@ -13,6 +13,7 @@ export interface WindowPhoneTexts extends WindowPinTexts {
 export interface WindowTexts {
   readonly menu: string;
   readonly keepOpen: string;
+  readonly keptOpen: string;
   readonly snapLeft: string;
   readonly snapRight: string;
   readonly maximize: string;

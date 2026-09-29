@@ -25,6 +25,7 @@ import type {
   WindowMenuHost,
   WindowMenuTracking,
 } from '../../models/window-menu.model';
+import { WINDOW_ICONS } from '../../models/window-icons.model';
 import {
   WINDOW_CEILINGS,
   WindowAnchor,
@@ -88,10 +89,18 @@ export class WindowComponent {
     () => this.isHeld() && (this.fold?.isFolded() ?? false),
   );
   protected readonly maximizable = computed(() => !this.preview());
-  protected readonly name = computed(() => this.label() || this.heading());
   protected readonly isMenuActive = computed(
     () => this.display.format() !== 'phone',
   );
+  protected readonly isKeptOpen = computed(
+    () => this.isMenuActive() && this.pinned(),
+  );
+  protected readonly name = computed(() => {
+    const label = this.label() || this.heading();
+    return this.isKeptOpen() ? `${label}, ${this.texts().keptOpen}` : label;
+  });
+  protected readonly chevron = WINDOW_ICONS.down;
+  protected readonly keptIcon = WINDOW_ICONS.pinned;
 
   private menu: WindowMenuTracking | null = null;
   private pendingButton: HTMLButtonElement | null = null;

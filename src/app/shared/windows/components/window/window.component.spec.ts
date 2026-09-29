@@ -210,7 +210,39 @@ describe('WindowComponent', () => {
     }
   });
 
+  describe('kept mark', () => {
+    it('shows a mark next to the title and says it in the window name once pinned', async () => {
+      const { fixture, host, section } = await mount();
+
+      expect(host.querySelector('.titlebar .kept')).toBeNull();
+      expect(section.getAttribute('aria-label')).toBe('Console');
+
+      fixture.componentRef.setInput('pinned', true);
+      await fixture.whenStable();
+
+      expect(host.querySelector('.titlebar .kept')).not.toBeNull();
+      expect(section.getAttribute('aria-label')).toBe(
+        `Console, ${texts().keptOpen}`,
+      );
+
+      fixture.componentRef.setInput('pinned', false);
+      await fixture.whenStable();
+
+      expect(host.querySelector('.titlebar .kept')).toBeNull();
+      expect(section.getAttribute('aria-label')).toBe('Console');
+    });
+  });
+
   describe('window menu', () => {
+    it('shows a chevron next to the square, and keeps the same name and tip', async () => {
+      const { host } = await mount();
+
+      const opener = menuOpener(host);
+      expect(opener.querySelector('svg.chevron')).not.toBeNull();
+      expect(opener.getAttribute('aria-label')).toBe(texts().menu);
+      expect(opener.querySelector('.tip')?.textContent).toBe(texts().menu);
+    });
+
     it('keeps the pin checked state in step with the pinned input, and emits once per press', async () => {
       const { fixture, host } = await mount();
       const calls = recordOutput(fixture.componentInstance.pinToggled);

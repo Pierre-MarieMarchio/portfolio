@@ -5,6 +5,7 @@ import { WindowMenuTracker } from './window-menu.tracker';
 const TEXTS: WindowTexts = {
   menu: 'Menu de la fenêtre',
   keepOpen: 'Garder ouverte en changeant de page',
+  keptOpen: 'gardée ouverte',
   snapLeft: 'Moitié gauche',
   snapRight: 'Moitié droite',
   maximize: 'Agrandir la fenêtre',

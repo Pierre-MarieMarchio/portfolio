@@ -19,6 +19,7 @@ export const EN: Catalog = {
   windows: {
     menu: draft('Window menu'),
     keepOpen: draft('Keep open when changing page'),
+    keptOpen: draft('kept open'),
     snapLeft: draft('Left half'),
     snapRight: draft('Right half'),
     maximize: draft('Maximize the window'),

@@ -12,6 +12,7 @@ import {
   fitBelowFloor,
   frameOfZone,
   isZone,
+  leastOverlapPlaceOf,
   snapZoneOf,
   unsnapAt,
 } from './window-frame.rules';
@@ -234,6 +235,61 @@ describe('window frame rules', () => {
       const top: FrameRect = { ...OWN, y: 600 };
 
       expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
+    });
+  });
+
+  describe('leastOverlapPlaceOf', () => {
+    const OWN: FrameRect = { x: 800, y: 100, width: 400, height: 300 };
+    const MIRROR: FrameRect = { x: 0, y: 100, width: 400, height: 300 };
+
+    it('moves to the mirrored left when it clears the window already there entirely', () => {
+      expect(leastOverlapPlaceOf(OWN, [OWN], VIEWPORT, BOUNDS)).toEqual({
+        dx: -800,
+        dy: 0,
+        width: null,
+        height: null,
+      });
+    });
+
+    it('is not thrown off by a fractional layout position', () => {
+      const own: FrameRect = { ...OWN, y: 100.5 };
+
+      expect(leastOverlapPlaceOf(own, [own], VIEWPORT, BOUNDS)).toEqual({
+        dx: -800,
+        dy: 0.5,
+        width: null,
+        height: null,
+      });
+    });
+
+    it('keeps the default place when there is nothing else shown', () => {
+      expect(leastOverlapPlaceOf(OWN, [], VIEWPORT, BOUNDS)).toBeNull();
+    });
+
+    it('prefers the default place when every reachable candidate clears the overlap equally', () => {
+      const front: FrameRect = { ...OWN, x: -1000 };
+
+      expect(leastOverlapPlaceOf(OWN, [front], VIEWPORT, BOUNDS)).toBeNull();
+    });
+
+    it('keeps the default place when the mirrored side is worse and the cascade is not reachable', () => {
+      const front: FrameRect = { ...OWN, x: 1150 };
+
+      expect(
+        leastOverlapPlaceOf(OWN, [front, MIRROR], VIEWPORT, BOUNDS),
+      ).toBeNull();
+    });
+
+    it('falls back to the cascade once the default and the mirrored side are both already taken', () => {
+      expect(leastOverlapPlaceOf(OWN, [OWN, MIRROR], VIEWPORT, BOUNDS)).toEqual(
+        { dx: -32, dy: 32, width: null, height: null },
+      );
+    });
+
+    it('keeps the default place once even the cascade would leave it covered more', () => {
+      const wide: FrameRect = { x: 100, y: 100, width: 1000, height: 300 };
+
+      expect(leastOverlapPlaceOf(OWN, [wide], VIEWPORT, BOUNDS)).toBeNull();
     });
   });
 

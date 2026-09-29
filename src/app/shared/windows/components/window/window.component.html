@@ -22,7 +22,7 @@
     } @else {
       <span class="square" aria-hidden="true"></span>
     }
-    <h2>{{ heading() }}</h2>
+    <h2 tabindex="-1" data-window-title>{{ heading() }}</h2>
     <span class="spacer"></span>
     <p class="meta">{{ meta() }}</p>
     <app-window-controls

@@ -35,6 +35,10 @@ export interface FrameClearance {
   readonly bottom: number;
 }
 
+export interface CascadeBounds extends FrameClearance {
+  readonly floor: number;
+}
+
 export type FrameZone = 'left' | 'right' | 'full';
 
 export type FrameMode = 'free' | FrameZone;
@@ -76,6 +80,7 @@ export interface FramedWindow {
   readonly paint: (place: FramePlace | null) => void;
   readonly commit: (place: FramePlace | null, mode: FrameMode | null) => void;
   readonly live: (rect: FrameRect | null) => void;
+  readonly blockSelection: (isBlocked: boolean) => void;
   readonly onWindow: <K extends keyof WindowEventMap>(
     type: K,
     handler: (event: WindowEventMap[K]) => void,

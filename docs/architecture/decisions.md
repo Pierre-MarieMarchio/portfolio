@@ -2391,3 +2391,33 @@ part (D39).
 proposé, l'opérateur a préféré avancer et reporter la mesure au chantier de
 retour à 520 kB. Garder 530 et faire de la place dans le lot du téléphone :
 il aurait commencé par déplacer du code au lieu de livrer.
+
+## 2026-09-29 — Au bureau, les fenêtres ne sélectionnent rien au glisser, restent au-dessus du rail, et F6 passe de l'une à l'autre (D78, amende D68 et D76)
+
+**Décision.** Pendant un glisser ou un redimensionnement, la page ne
+sélectionne aucun texte (`CursorService.blockSelection`), et la sélection
+revient à la fin du geste. Une fenêtre en cascade reste entière entre la
+barre des pages et le rail du bas : sa hauteur se réduit pour tenir, et si
+elle ne tient plus à sa hauteur minimale, elle garde sa place par défaut ; la
+même règle vaut quand l'écran change (`fitBelowFloor`). La cascade arrondit
+sa cible avant de la comparer au pixel. Dans le DOM, la barre des pages et
+la navigation viennent d'abord, puis les fenêtres, puis le reste, et la
+scène en dernier : Tab n'atteint plus les planètes avant les pages. F6 et
+Maj+F6 passent le focus au titre de la fenêtre affichée suivante ou
+précédente, dans l'ordre de la pile, en bouclant ; Ctrl+F6 fait comme F6 ;
+rien dans un champ de saisie (`WindowCycleDirective`, règles pures
+`window-cycle.rules`).
+
+**Raison.** Les personas l'ont trouvé en rejouant les parcours du bureau :
+un glisser surlignait le texte de la fenêtre voisine ; une fenêtre en
+cascade descendait sous les icônes de contact ; Tab passait par quatre
+planètes qui bougent avant la navigation ; et le clavier n'avait aucun moyen
+de passer d'une fenêtre à l'autre, que Windows donne par F6. La cascade ne
+s'appliquait pas quand une position tombait sur une fraction de pixel : la
+comparaison stricte la croyait hors d'atteinte. Le bundle initial passe de
+526,54 à 527,51 kB ; `window-frame-tracker` de 8,43 à 9,07 kB.
+
+**Écarté.** L'écoute de F6 dans `WindowStackService` : essayée pour tenir
+l'ancien budget, elle mêlait une pile et un clavier ; le budget à 540 kB
+(D77) rend sa place à une directive. Un `tabindex` positif pour l'ordre :
+l'ordre du DOM suffit et reste celui des lecteurs d'écran.

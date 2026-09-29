@@ -45,17 +45,20 @@ export class WindowStackService {
   }
 
   public frontShownOf(excluding: HTMLElement): HTMLElement | null {
+    return (
+      this.shownFrontToBack().find((element) => element !== excluding) ?? null
+    );
+  }
+
+  public shownFrontToBack(): readonly HTMLElement[] {
     const order = this.order() ?? this.registered();
+    const shown: HTMLElement[] = [];
     for (let depth = order.length - 1; depth >= 0; depth -= 1) {
       const element = this.elements.get(order[depth] ?? '');
-      if (
-        element &&
-        element !== excluding &&
-        element.dataset['shown'] === 'true'
-      ) {
-        return element;
+      if (element?.dataset['shown'] === 'true') {
+        shown.push(element);
       }
     }
-    return null;
+    return shown;
   }
 }

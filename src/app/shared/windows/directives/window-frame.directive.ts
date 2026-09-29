@@ -12,6 +12,7 @@ import {
 import {
   BrowserWindowService,
   ClockService,
+  CursorService,
   DisplayFormatService,
   DocumentStylesService,
   ElementObserverService,
@@ -67,6 +68,7 @@ export class WindowFrameDirective {
   private readonly styles = inject(DocumentStylesService);
   private readonly observer = inject(ElementObserverService);
   private readonly media = inject(MediaPreferencesService);
+  private readonly cursor = inject(CursorService);
   private readonly display = inject(DisplayFormatService);
   private readonly clock = inject(ClockService);
   private readonly texts = inject(WINDOW_TEXTS);
@@ -208,6 +210,9 @@ export class WindowFrameDirective {
         for (const handler of this.liveHandlers) {
           handler(rect);
         }
+      },
+      blockSelection: (isBlocked) => {
+        this.cursor.blockSelection(isBlocked);
       },
       onWindow: (type, handler, options) =>
         this.browserWindow.on(type, handler, options),

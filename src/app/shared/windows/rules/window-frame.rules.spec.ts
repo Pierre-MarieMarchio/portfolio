@@ -9,6 +9,7 @@ import {
   clampMove,
   clampResize,
   clearanceOf,
+  fitBelowFloor,
   frameOfZone,
   isZone,
   snapZoneOf,
@@ -19,6 +20,8 @@ const VIEWPORT = { width: 1200, height: 800 };
 const AREA: FrameArea = { left: 44, top: 100, right: 1156, bottom: 724 };
 const FRAME: FrameRect = { x: 756, y: 100, width: 400, height: 300 };
 const CLEARANCE = { top: 12, bottom: 60 };
+const FLOOR = AREA.bottom;
+const BOUNDS = { ...CLEARANCE, floor: FLOOR };
 
 describe('window frame rules', () => {
   describe('clampMove', () => {
@@ -173,31 +176,80 @@ describe('window frame rules', () => {
     const OWN: FrameRect = { x: 800, y: 100, width: 400, height: 300 };
 
     it('offsets 32 px left and 32 px down from the corner of the window above', () => {
-      expect(cascadePlaceOf(OWN, OWN, VIEWPORT, CLEARANCE)).toEqual({
+      expect(cascadePlaceOf(OWN, OWN, VIEWPORT, BOUNDS)).toEqual({
         dx: -32,
         dy: 32,
+        width: null,
+        height: null,
+      });
+    });
+
+    it('is not thrown off by a fractional layout position', () => {
+      const top: FrameRect = { x: 800, y: 94.5, width: 400, height: 300 };
+      const own: FrameRect = { x: 768, y: 94.5, width: 400, height: 300 };
+
+      expect(cascadePlaceOf(top, own, VIEWPORT, BOUNDS)).toEqual({
+        dx: 0,
+        dy: 33,
+        width: null,
+        height: null,
       });
     });
 
     it('reads the offset from the window above, wherever it sits and whatever its size', () => {
       const top: FrameRect = { x: 500, y: 200, width: 300, height: 250 };
 
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, CLEARANCE)).toEqual({
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toEqual({
         dx: 500 + 300 - 32 - 400 - 800,
         dy: 200 + 32 - 100,
+        width: null,
+        height: null,
       });
     });
 
     it('gives up and lets the window keep its default place once the offset goes off screen', () => {
       const top: FrameRect = { ...OWN, x: 1150 };
 
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, CLEARANCE)).toBeNull();
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
     });
 
     it('gives up once the offset leaves its title bar unreachable', () => {
       const top: FrameRect = { ...OWN, y: VIEWPORT.height - CLEARANCE.bottom };
 
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, CLEARANCE)).toBeNull();
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
+    });
+
+    it('reduces its height to stay above the floor, the body free to scroll inside', () => {
+      const top: FrameRect = { ...OWN, y: 450 };
+
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toEqual({
+        dx: -32,
+        dy: 382,
+        width: null,
+        height: FLOOR - 482,
+      });
+    });
+
+    it('gives up once even the minimum height would not fit above the floor', () => {
+      const top: FrameRect = { ...OWN, y: 600 };
+
+      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
+    });
+  });
+
+  describe('fitBelowFloor', () => {
+    const RECT: FrameRect = { x: 100, y: 300, width: 400, height: 300 };
+
+    it('keeps a rect that already fits above the floor', () => {
+      expect(fitBelowFloor(RECT, 700)).toBe(RECT);
+    });
+
+    it('shrinks a rect that would cross the floor', () => {
+      expect(fitBelowFloor(RECT, 500)).toEqual({ ...RECT, height: 200 });
+    });
+
+    it('gives up once the minimum height would still cross the floor', () => {
+      expect(fitBelowFloor(RECT, 450)).toBeNull();
     });
   });
 

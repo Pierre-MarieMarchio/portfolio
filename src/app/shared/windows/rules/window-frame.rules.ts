@@ -1,10 +1,12 @@
 import { clamp } from '@app/core/helpers';
 import type {
+  CascadeBounds,
   FrameArea,
   FrameClearance,
   FrameDelta,
   FrameEdge,
   FrameMode,
+  FramePlace,
   FrameRect,
   FrameViewport,
   FrameZone,
@@ -133,21 +135,41 @@ export const clearanceOf = (
   bottom: reserve + barHeight,
 });
 
+export const fitBelowFloor = (
+  rect: FrameRect,
+  floor: number,
+): FrameRect | null => {
+  if (rect.y + rect.height <= floor) {
+    return rect;
+  }
+  const height = Math.floor(floor - rect.y);
+  return height >= FRAME_MIN_HEIGHT ? { ...rect, height } : null;
+};
+
 export const cascadePlaceOf = (
   top: FrameRect,
   own: FrameRect,
   viewport: FrameViewport,
-  clearance: FrameClearance,
-): FrameDelta | null => {
+  bounds: CascadeBounds,
+): FramePlace | null => {
   const target: FrameRect = {
-    x: top.x + top.width - CASCADE_STEP - own.width,
-    y: top.y + CASCADE_STEP,
+    x: Math.round(top.x + top.width - CASCADE_STEP - own.width),
+    y: Math.round(top.y + CASCADE_STEP),
     width: own.width,
     height: own.height,
   };
-  const clamped = clampMove(target, viewport, clearance);
-  return clamped.x === target.x && clamped.y === target.y
-    ? { dx: target.x - own.x, dy: target.y - own.y }
+  const clamped = clampMove(target, viewport, bounds);
+  if (clamped.x !== target.x || clamped.y !== target.y) {
+    return null;
+  }
+  const fitted = fitBelowFloor(target, bounds.floor);
+  return fitted
+    ? {
+        dx: Math.round(fitted.x - own.x),
+        dy: Math.round(fitted.y - own.y),
+        width: null,
+        height: fitted.height === target.height ? null : fitted.height,
+      }
     : null;
 };
 

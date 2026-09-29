@@ -295,16 +295,16 @@ toujours `matchMedia`, un document et une mise en page : une méthode qui
 oublierait sa garde les atteindrait, et le spec le verrait. Le HTML prérendu
 lui-même se vérifie par `scripts/check-prerender.mjs`.
 
-| Unité                                                    | But                                                 | Contrat                                                                           |
-| -------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `browser-window.service.ts` `BrowserWindowService`       | la fenêtre : sa taille, ses événements              | `size()`, `on(type, handler)`                                                     |
-| `media-preferences.service.ts` `MediaPreferencesService` | ce que le lecteur a demandé au système              | `reducedMotion()`, `cannotHover()`, `hasCoarsePointer()`, `watch(query, handler)` |
-| `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai | `now()`, `nextFrame(fn)`, `after(ms, fn)`, `whenIdle(fn)`                         |
-| `page-visibility.service.ts` `PageVisibilityService`     | l'onglet est-il visible                             | `isHidden()`, `watch(handler)`                                                    |
-| `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément             | `onResize(el, fn)`, `onVisible(el, threshold, fn)`, `whenStill(el)`               |
-| `document-styles.service.ts` `DocumentStylesService`     | lire les jetons CSS, attendre les polices           | `token(name, el?)`, `duration(name)`, `fontsReady(fn)`                            |
-| `cursor.service.ts` `CursorService`                      | le curseur de la page                               | `set(cursor)`                                                                     |
-| `canvas-contexts.service.ts` `CanvasContextsService`     | un contexte 2D et la densité de pixels              | `context2d(canvas)`, `pixelRatio()`                                               |
+| Unité                                                    | But                                                              | Contrat                                                                           |
+| -------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `browser-window.service.ts` `BrowserWindowService`       | la fenêtre : sa taille, ses événements                           | `size()`, `on(type, handler)`                                                     |
+| `media-preferences.service.ts` `MediaPreferencesService` | ce que le lecteur a demandé au système                           | `reducedMotion()`, `cannotHover()`, `hasCoarsePointer()`, `watch(query, handler)` |
+| `clock.service.ts` `ClockService`                        | le temps : maintenant, la prochaine image, un délai              | `now()`, `nextFrame(fn)`, `after(ms, fn)`, `whenIdle(fn)`                         |
+| `page-visibility.service.ts` `PageVisibilityService`     | l'onglet est-il visible                                          | `isHidden()`, `watch(handler)`                                                    |
+| `element-observer.service.ts` `ElementObserverService`   | la taille et la visibilité d'un élément                          | `onResize(el, fn)`, `onVisible(el, threshold, fn)`, `whenStill(el)`               |
+| `document-styles.service.ts` `DocumentStylesService`     | lire les jetons CSS, attendre les polices                        | `token(name, el?)`, `duration(name)`, `fontsReady(fn)`                            |
+| `cursor.service.ts` `CursorService`                      | le curseur et la sélection de texte de la page, pendant un geste | `set(cursor)`, `blockSelection(blocked)`                                          |
+| `canvas-contexts.service.ts` `CanvasContextsService`     | un contexte 2D et la densité de pixels                           | `context2d(canvas)`, `pixelRatio()`                                               |
 
 Les accès directs relevés passent par elles : `Date.now` de la mise au point
 du focus, `setTimeout` du rideau ; l'`addEventListener('scroll')` de la
@@ -401,7 +401,7 @@ contenait remonte dans une feature ou devient générique.
 
 | Unité                                                    | But                                                                                                                                                                                                                                                                                                                                                                  | Contrat                                                                                                                                            |
 | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, zones ; porte lui-même le bouton de menu (nom accessible, bulle, `aria-haspopup`/`aria-expanded`), relaie ses autres boutons à `WindowControlsComponent`, donne sa section et sa barre au cadre                                                                                                                                           | `heading`, `meta`, `size`, `anchor`, `preview`, `pinned`, `closable`, `closeLabel`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
+| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, zones ; porte lui-même le bouton de menu (nom accessible, bulle, `aria-haspopup`/`aria-expanded`), relaie ses autres boutons à `WindowControlsComponent`, donne sa section et sa barre au cadre ; son titre porte `data-window-title` et `tabindex="-1"`, visé par `WindowCycleDirective`                                                 | `heading`, `meta`, `size`, `anchor`, `preview`, `pinned`, `closable`, `closeLabel`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
 | `window-menu.tracker.ts` `WindowMenuTracker`             | chargé à part (`FormatCodeService`, desktop/tablet) : construit le panneau du menu en DOM pur (garder ouverte, moitié gauche, moitié droite, agrandir/restaurer sauf pour l'aperçu), roving focus au clavier, popover natif, se ferme au clic dehors, sa propre feuille de style injectée une fois                                                                   | créé par `WindowComponent` au premier besoin (clic ou Entrée sur le bouton, attend le code s'il n'est pas encore là)                               |
 | `window-menu.rules.ts`                                   | `menuActionsOf` : les items du menu selon l'épingle, si la fenêtre peut s'agrandir et son mode courant                                                                                                                                                                                                                                                               | pure, chargée à part avec le tracker                                                                                                               |
 | `window-controls.component.ts` `WindowControlsComponent` | les boutons de la barre (D63) : icônes SVG, bulle CSS, mots du format, note `role="status"` quand l'épingle change ; au téléphone l'épingle et le repli, au bureau et à la tablette seulement agrandir/restaurer (le reste vit dans le menu de `WindowComponent`)                                                                                                    | `pinned`, `foldable`, `folded`, `closable`, `closeLabel` ; `pinToggled`, `foldToggled`, `closed`                                                   |
@@ -409,7 +409,8 @@ contenait remonte dans une feature ou devient générique.
 | `window-frame.tracker.ts` `WindowFrameTracker`           | chargé à part : poignées des bords, agrandir, aimanter à une moitié depuis le menu (`snapTo`), décale en cascade depuis une autre fenêtre ou revient à la place par défaut (`cascadeFrom`), garde la barre de titre atteignable (`clearance`), recaler quand l'écran change ; crée son `WindowHeightTracker`                                                         | créé par `WindowFrameDirective`                                                                                                                    |
 | `window-height.tracker.ts` `WindowHeightTracker`         | chargé à part : hauteur bornée à l'écran moins `--window-reserve`, ou fixe si la fenêtre le demande (`stable`), recalée à l'animation, à son redimensionnement et à celui de l'écran                                                                                                                                                                                 | créé par `WindowFrameTracker`                                                                                                                      |
 | `window-drag.tracker.ts` `WindowDragTracker`             | chargé à part : un glisser du pointeur, par la barre (déplacer, aimanter aux bords, contour) ou par un bord (redimensionner)                                                                                                                                                                                                                                         | créé par `WindowFrameTracker` à chaque appui                                                                                                       |
-| `window-frame.rules.ts`, `window-controls.rules.ts`      | `clampMove`, `clampResize`, `snapZoneOf`, `frameOfZone`, `areaOf`, `unsnapAt`, `clearanceOf`, `fittedHeight`, `cascadePlaceOf` ; `frameControlsOf`                                                                                                                                                                                                                   | pures, chargées à part                                                                                                                             |
+| `window-frame.rules.ts`, `window-controls.rules.ts`      | `clampMove`, `clampResize`, `snapZoneOf`, `frameOfZone`, `areaOf`, `unsnapAt`, `clearanceOf`, `fittedHeight`, `cascadePlaceOf`, `fitBelowFloor` (réduit une hauteur pour rester au-dessus d'un plancher, ou abandonne sous la hauteur minimale) ; `frameControlsOf`                                                                                                  | pures, chargées à part                                                                                                                             |
+| `window-cycle.rules.ts`                                  | `cycleTarget` (la fenêtre suivante ou précédente d'une liste devant-derrière, en bouclant), `isTypingTarget` (le focus est-il dans un champ de saisie)                                                                                                                                                                                                               | pures, lues par `WindowCycleDirective`                                                                                                             |
 | `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                                                                                                                                                                                                                                                                                   | `appDoublePress` ; `doublePressed`                                                                                                                 |
 | `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                                                                                                                                                                                                                                                                     | `appRememberScroll` (clé), `resetOn`                                                                                                               |
 | `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après                                                                                                                                                                                                                                                      | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                                                       |
@@ -503,16 +504,27 @@ par deux ports, auxquels la composition répond.
   devant, et laquelle est affichée juste derrière une autre. Contrat :
   `register(id, element?)`, `bringToFront(id)`, `depthOf(id)`,
   `frontShownOf(excluding)` (l'élément le plus devant, parmi ceux dont
-  `data-shown` vaut `"true"`, en écartant celui qui demande). Générique (des
-  `id` et leurs éléments) ; le bureau garde sa liste de fenêtres et
-  `windowOf(view)`. `frontShownOf` sert la cascade des fenêtres au bureau et à
-  la tablette : `WindowFrameDirective` l'interroge pour trouver la fenêtre par
-  rapport à laquelle décaler celle qui s'ouvre.
+  `data-shown` vaut `"true"`, en écartant celui qui demande),
+  `shownFrontToBack()` (la même liste, entière, du dessus vers le dessous).
+  Générique (des `id` et leurs éléments) ; le bureau garde sa liste de
+  fenêtres et `windowOf(view)`. `frontShownOf` sert la cascade des fenêtres au
+  bureau et à la tablette : `WindowFrameDirective` l'interroge pour trouver la
+  fenêtre par rapport à laquelle décaler celle qui s'ouvre.
+  `shownFrontToBack` sert le même ordre à `WindowCycleDirective`.
 - **`StackedWindowDirective`** (ex-`WindowSlotDirective`). But : inscrire un
   élément dans la pile, écrire sa profondeur, le mettre devant quand on le
   touche ou que le focus y entre (`focusin`). Écoute sur son propre élément :
   l'écouteur global en capture et le contrat par `data-slot` disparaissent.
   Il passe son élément à `register`, que `frontShownOf` relit ensuite.
+- **`WindowCycleDirective`** (posée sur `<main>`). But : F6 et Maj+F6 mènent
+  le focus d'une fenêtre affichée à la suivante ou la précédente dans l'ordre
+  de `shownFrontToBack`, en bouclant ; Ctrl+F6 comme F6 ; rien si le focus est
+  dans un champ de saisie, ni sans fenêtre affichée. Contrat : `appWindowCycle`,
+  sans entrée ni sortie ; écoute par `BrowserWindowService`, relâchée à sa
+  destruction. Rend le focus au titre de la fenêtre visée
+  (`data-window-title`, posé par `WindowComponent`) ; la fenêtre passe devant
+  d'elle-même, par le `focusin` de `StackedWindowDirective`. Lit `cycleTarget`
+  et `isTypingTarget` (`window-cycle.rules.ts`, pures).
 
 #### Mesurer un élément : `shared/ui/`
 
@@ -955,10 +967,10 @@ src/app/
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
   shared/windows/components/window-controls/   window-controls.component
-  shared/windows/directives/                   double-press.directive · kept-window.directive · remember-scroll.directive · stacked-window.directive · window-frame.directive
+  shared/windows/directives/                   double-press.directive · kept-window.directive · remember-scroll.directive · stacked-window.directive · window-cycle.directive · window-frame.directive
   shared/windows/models/                       window-frame.model · window-menu.model · window.model
   shared/windows/ports/                        window-fold.port · window-texts.port
-  shared/windows/rules/                        window-controls.rules · window-frame.rules · window-menu.rules
+  shared/windows/rules/                        window-controls.rules · window-cycle.rules · window-frame.rules · window-menu.rules
   shared/windows/services/                     scroll-memory.service · window-stack.service
   shared/windows/trackers/                     window-drag.tracker · window-frame.tracker · window-height.tracker · window-menu.tracker
 ```

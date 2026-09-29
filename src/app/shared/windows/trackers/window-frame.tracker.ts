@@ -9,6 +9,7 @@ import {
   type FramePlace,
   type FrameRect,
   type FrameTracking,
+  type FrameViewport,
   type FrameZone,
   type FramedWindow,
 } from '../models/window-frame.model';
@@ -17,6 +18,7 @@ import {
   cascadePlaceOf,
   clampMove,
   clearanceOf,
+  fitBelowFloor,
   frameOfZone,
   isZone,
   unsnapAt,
@@ -93,17 +95,13 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     if (!viewport) {
       return;
     }
-    const delta = cascadePlaceOf(
-      rectOf(top),
-      this.rect(),
-      viewport,
-      this.clearance(),
-    );
-    if (!delta) {
+    const rect = this.rect();
+    const bounds = { ...this.clearance(), floor: this.area(rect).bottom };
+    const place = cascadePlaceOf(rectOf(top), rect, viewport, bounds);
+    if (!place) {
       return;
     }
-    const place = this.paintPlace({ ...delta, width: null, height: null });
-    this.framed.commit(place, null);
+    this.framed.commit(this.paintPlace(place), null);
   }
 
   public toggleMaximize(): void {
@@ -131,6 +129,10 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     }
     this.painted = this.framed.place() ?? NOWHERE;
     const rect = this.rect();
+    if (mode === null) {
+      this.settleFree(rect, viewport);
+      return;
+    }
     const place = isZone(mode)
       ? this.placeAt(frameOfZone(mode, this.area(rect)))
       : this.moveTo(clampMove(rect, viewport, this.clearance()));
@@ -242,6 +244,26 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
       x: event.clientX,
       y: event.clientY,
     });
+  }
+
+  private settleFree(rect: FrameRect, viewport: FrameViewport): void {
+    const moved = clampMove(rect, viewport, this.clearance());
+    const fitted = fitBelowFloor(moved, this.area(rect).bottom);
+    if (!fitted) {
+      this.painted = NOWHERE;
+      this.framed.paint(null);
+      this.framed.commit(null, null);
+      return;
+    }
+    const place = this.moveTo(fitted);
+    if (fitted.height === moved.height) {
+      this.framed.commit(place, null);
+      return;
+    }
+    this.framed.commit(
+      this.paintPlace({ ...place, height: fitted.height }),
+      null,
+    );
   }
 
   private snap(zone: FrameZone): void {

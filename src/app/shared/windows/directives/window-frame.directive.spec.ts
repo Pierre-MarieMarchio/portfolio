@@ -315,6 +315,38 @@ describe('WindowFrameDirective', () => {
     });
   });
 
+  describe('text selection', () => {
+    afterEach(() => {
+      document.body.style.userSelect = '';
+    });
+
+    it('blocks it for the length of a drag by the title bar, and gives it back once dropped', async () => {
+      const { bar, settle } = await mount();
+
+      firePointer(bar(), 'pointerdown', mouse({ x: 800, y: 110 }));
+      firePointer(window, 'pointermove', mouse({ x: 850, y: 140 }));
+      expect(document.body.style.userSelect).toBe('none');
+
+      firePointer(window, 'pointerup', mouse({ x: 850, y: 140 }));
+      await settle();
+
+      expect(document.body.style.userSelect).toBe('');
+    });
+
+    it('blocks it for the length of a resize by an edge, and gives it back once dropped', async () => {
+      const { edge, settle } = await mount();
+
+      firePointer(edge('se'), 'pointerdown', mouse({ x: 1156, y: 400 }));
+      firePointer(window, 'pointermove', mouse({ x: 1200, y: 450 }));
+      expect(document.body.style.userSelect).toBe('none');
+
+      firePointer(window, 'pointerup', mouse({ x: 1200, y: 450 }));
+      await settle();
+
+      expect(document.body.style.userSelect).toBe('');
+    });
+  });
+
   describe('resized by an edge', () => {
     it.each([
       ['grows from its corner', { x: 656, y: 500 }, '500px', '400px'],
@@ -755,6 +787,52 @@ describe('WindowFrameDirective', () => {
       await show(fixture.componentInstance.shownB, true);
 
       expect(transformOf(slotB)).toBe('');
+    });
+
+    it('reduces its height instead of overflowing the window reserve, its body free to scroll', async () => {
+      const { fixture, slotA, slotB, show, transformOf } = await mountCascade();
+      slotA.getBoundingClientRect = () => new DOMRect(800, 450, 400, 300);
+
+      await show(fixture.componentInstance.shownB, true);
+
+      expect(transformOf(slotB)).toBe('translate(-32px,382px)');
+      expect(slotB.style.height).toBe('242px');
+    });
+
+    it('keeps its default place once even a reduced height would not fit', async () => {
+      const { fixture, slotA, slotB, show, transformOf } = await mountCascade();
+      slotA.getBoundingClientRect = () => new DOMRect(800, 600, 400, 300);
+
+      await show(fixture.componentInstance.shownB, true);
+
+      expect(transformOf(slotB)).toBe('');
+      expect(slotB.style.height).toBe('');
+    });
+
+    it('reduces its height further once the screen shrinks below its cascaded reach', async () => {
+      const { fixture, slotA, slotB, show, transformOf } = await mountCascade();
+      slotA.getBoundingClientRect = () => new DOMRect(800, 450, 400, 300);
+      await show(fixture.componentInstance.shownB, true);
+      expect(slotB.style.height).toBe('242px');
+
+      resizeTo(1200, 780);
+      await fixture.whenStable();
+
+      expect(transformOf(slotB)).toBe('translate(-32px,382px)');
+      expect(slotB.style.height).toBe('222px');
+    });
+
+    it('gives back its default place once shrinking leaves no room even reduced', async () => {
+      const { fixture, slotA, slotB, show, transformOf } = await mountCascade();
+      slotA.getBoundingClientRect = () => new DOMRect(800, 450, 400, 300);
+      await show(fixture.componentInstance.shownB, true);
+      expect(slotB.style.height).toBe('242px');
+
+      resizeTo(1200, 500);
+      await fixture.whenStable();
+
+      expect(transformOf(slotB)).toBe('');
+      expect(slotB.style.height).toBe('');
     });
   });
 });

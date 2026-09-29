@@ -2321,3 +2321,27 @@ dans les navigateurs. Le bundle initial passe de 521,89 à 526,04 kB, dont
 fait sans bouton visible. Charger le menu par `@defer` : son runtime
 reprenait le gain. Injecter le style du panneau depuis le code : il
 échapperait au lint et aux jetons.
+
+## 2026-09-29 — Au bureau, la planète visée s'arrête sous la souris (D75)
+
+**Décision.** Au bureau et à la tablette, la planète survolée ou dont le bouton
+a le focus ralentit jusqu'à l'arrêt en 0,3 s (`smoothstep`), reste arrêtée
+tant qu'on la vise, puis repart en 0,3 s ; les autres planètes continuent.
+Chaque orbite tient sa propre phase (`PlanetHoverMotion`, dans le worker) :
+une planète repartie ne rattrape pas le chemin perdu. Le bouton de la planète
+visée passe devant les autres (`zIndex`, nouvelle clé de la petite surface
+DOM du moteur). Sa cible fait déjà 48 × 48 px. Le téléphone ne change pas.
+
+**Raison.** Une recruteuse a cliqué une planète de l'accueil : la planète
+avait avancé entre le survol et le clic, et le clic est tombé à côté. Mesuré
+sur 1,5 s de survol : la planète dérivait de 1,9 px et ne se posait qu'après
+1,2 s ; elle se fige maintenant en 64 ms, et un clic 600 ms après le survol
+ouvre son aperçu. Rattraper le retard demanderait une vitesse sans borne après
+un long survol. Une orbite jamais visée garde exactement sa phase : les
+empreintes sans survol ne bougent pas. Le bundle initial ne change pas
+(526,05 kB) ; le worker passe de 62,45 à 63,15 kB.
+
+**Écarté.** Agrandir la cible : elle faisait déjà 48 px, ce n'était pas la
+cause. Arrêter toutes les planètes au survol : la scène se figerait dès que la
+souris passe. Geler au téléphone : la planète mise en avant sans pointeur s'y
+arrêterait sans raison.

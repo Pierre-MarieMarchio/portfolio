@@ -49,7 +49,12 @@ export class SceneRenderer {
     this.labels = new PlanetLabelsRenderer(ctx);
     this.grains = new GrainsRenderer(ctx, grains, motion.grains, motion.camera);
     this.orbits = new OrbitsRenderer(ctx, motion.turntable);
-    this.planets = new PlanetsRenderer(ctx, this.labels, motion.turntable);
+    this.planets = new PlanetsRenderer(
+      ctx,
+      this.labels,
+      motion.turntable,
+      motion.hoverSlow,
+    );
     this.comets = options.figures === 'comets' ? new CometsRenderer(ctx) : null;
     this.sky = skyOf(canvases, options, motion, this.figureTargets);
   }

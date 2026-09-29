@@ -38,6 +38,14 @@ class RecordedStyle implements SceneNodeStyle {
     this.keep('pointerEvents', value);
   }
 
+  public get zIndex(): string {
+    return this.values.zIndex ?? '';
+  }
+
+  public set zIndex(value: string) {
+    this.keep('zIndex', value);
+  }
+
   public get cssText(): string {
     return this.values.cssText ?? '';
   }

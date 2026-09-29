@@ -921,6 +921,7 @@ src/app/
   shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
   shared/space-scene/engine/                   frame-loop.engine · node-recorder.engine · remote-scene.engine · scene-worker.engine · scene.worker · space-scene.engine
   shared/space-scene/engine/motions/           camera.motion · clock.motion · grains.motion · scene.motion · sky-pan.motion · star-flow.motion · turntable.motion · zoom.motion
+  shared/space-scene/engine/motions/planet-hover/ planet-hover.motion
   shared/space-scene/engine/renderers/         grains.renderer · hole-mark.renderer · orbits.renderer · planet-labels.renderer · planets.renderer · scene.renderer
   shared/space-scene/engine/renderers/sky/     comets.renderer · constellations.renderer · figure-strokes.renderer · figure-targets.renderer · sky.renderer · star-sky.renderer · trail-batch.renderer
   shared/space-scene/models/                   scene-config.model · scene-constants.model · scene-engine.model · scene-layout.model · scene-look.model · scene-node.model · scene-worker.model · scene.model

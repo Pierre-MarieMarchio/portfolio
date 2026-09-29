@@ -1656,3 +1656,60 @@ describe('SpaceSceneEngine, under an interface already in', () => {
     expect(radii.at(-1)).toBeCloseTo(full, -1);
   });
 });
+
+describe('SpaceSceneEngine, the hovered planet stays reachable', () => {
+  it('freezes the hovered planet on its orbit, and lets the others turn', () => {
+    const { run, set, styles } = mountEngineScene();
+    run(3000);
+    set({ direction: { emphasised: bodyId(1) } });
+    run(300);
+    const hoveredBefore = styles()[1];
+    const otherBefore = styles()[2];
+
+    run(1000);
+
+    expect(styles()[1]).toBe(hoveredBefore);
+    expect(styles()[2]).not.toBe(otherBefore);
+  });
+
+  it('resumes turning once no longer hovered', () => {
+    const { run, set, styles } = mountEngineScene();
+    run(3000);
+    set({ direction: { emphasised: bodyId(1) } });
+    run(600);
+    set({});
+    run(600);
+    const justAfterRelease = styles()[1];
+
+    run(600);
+
+    expect(styles()[1]).not.toBe(justAfterRelease);
+  });
+
+  it('raises the hovered planet above its neighbours so a click always lands on it', () => {
+    const { run, set, styles } = mountEngineScene();
+    run(3000);
+    expect(styles()[1]).not.toContain('z-index');
+
+    set({ direction: { emphasised: bodyId(1) } });
+    run(50);
+
+    expect(styles()[1]).toContain('z-index: 1');
+    expect(styles()[2]).not.toContain('z-index');
+  });
+
+  it('never freezes or raises a planet on the phone, where hovering means something else', () => {
+    const { run, set, styles } = mountEngineScene({
+      inputs: { ...SCENE_INPUTS, format: 'phone' },
+    });
+    run(3000);
+    set({ direction: { emphasised: bodyId(1) } });
+    run(300);
+    const before = styles()[1];
+
+    run(1000);
+
+    expect(styles()[1]).not.toBe(before);
+    expect(styles()[1]).not.toContain('z-index');
+  });
+});

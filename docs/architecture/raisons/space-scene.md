@@ -630,3 +630,43 @@ et de `src/testing/`, rangées par unité (D10).
   à chaque `moveTo`/`placeAt`, donc à chaque image d'un glisser ou d'un
   redimensionnement) et le retransmet à la scène, qui s'en sert pour se
   remesurer aussitôt (`measureSoon`, sans attendre le lâcher).
+
+## `src/app/shared/space-scene/engine/motions/planet-hover/planet-hover.motion.ts`
+
+- Le survol (ou le focus clavier) d'une planète la ralentit jusqu'à l'arrêt
+  sur son orbite en 0,3 s (`SCENE_CONFIG.planets.slowSpan`), par un
+  `smoothstep` d'une rampe bornée dans le temps : la vitesse touche zéro et y
+  reste sans à-coup, tant que l'index survolé ne change pas. `phaseOf` ne
+  soustrait un retard (`lag`) qu'à l'orbite touchée ; une orbite jamais
+  survolée rend exactement la phase commune, au bit près, ce qui garde
+  intactes les empreintes qui ne survolent rien.
+- Le retard n'est jamais remboursé au relâchement : la planète reprend sa
+  vitesse en 0,3 s, mais reste décalée de l'angle qu'elle n'a pas tourné
+  pendant l'arrêt, comme une pause de lecture. Le rembourser exigerait une
+  vitesse illimitée après un survol long ; une planète qui accélère au
+  relâchement serait plus surprenante que ce léger décalage permanent,
+  invisible à l'œil.
+- Une fois qu'une planète a été survolée, son décalage traverse la session :
+  l'empreinte du golden qui la suit dans le même test change aussi, même sans
+  nouveau survol. `space-scene.engine.golden.spec.ts` place donc chaque
+  scénario de survol en dernier dans sa suite, pour que les scènes qui n'en
+  ont pas gardent leur empreinte d'avant.
+- Rangé dans son propre dossier (`motions/planet-hover/`) : `motions/` tenait
+  déjà 8 fichiers, sa limite (`check:structure`).
+
+## `src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts`, le survol
+
+- Le bouton de la planète survolée (ou focalisée au clavier) passe devant les
+  autres (`z-index: 1`) : deux cibles qui se recouvrent laissaient sinon le
+  clic à celle posée après dans le DOM, pas à celle sous le pointeur. Hors
+  survol, aucun bouton ne reçoit de `z-index` : l'écriture ne part que du
+  changement, comme le reste de `Written`.
+- Inerte au téléphone (`!frame.state.phone`) : `emphasised` y désigne aussi la
+  planète mise en avant sans pointeur, que geler ou faire passer devant
+  aurait changée sans raison.
+
+## `src/app/shared/space-scene/models/scene-node.model.ts`
+
+- `SceneNodeStyle` gagne `zIndex`, à côté de `transform`, `opacity` et
+  `pointerEvents` : la même petite surface (D47) que le moteur écrit dans le
+  worker et que `RemoteSceneEngine` rejoue dans la page.

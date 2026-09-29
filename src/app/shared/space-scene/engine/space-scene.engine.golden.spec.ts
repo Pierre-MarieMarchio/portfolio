@@ -101,15 +101,15 @@ describe('SpaceSceneEngine, drawn frame for frame', () => {
 const GOLDEN: Record<string, string> = {
   crossing: '0561053f',
   arrival: '7d6b7a10',
-  'rest, emphasised': 'e98e2e8e',
-  'close-up': '4cf6cc87',
-  overview: '16a0beed',
-  approach: '1655b649',
-  aside: '17fa7007',
-  'empty overview': 'e057bf1b',
-  'rest, pointer': 'ad61a3a6',
-  'turned by hand': '2a921756',
-  'reduced motion': 'ed47f5b9',
+  'rest, emphasised': '3f932d2d',
+  'close-up': '216dcedf',
+  overview: '2bb0f172',
+  approach: 'b59399f1',
+  aside: '51724907',
+  'empty overview': '7d9fe8a2',
+  'rest, pointer': '82bb3fba',
+  'turned by hand': 'fdb8dd05',
+  'reduced motion': 'f115cf39',
 };
 
 const PHONE_LAYOUT: SceneLayout = {
@@ -332,8 +332,8 @@ const SCENES_GOLDEN = {
   },
   measuredLabels: {
     arrival: '29a2446b',
-    emphasised: 'c40c9eed',
-    overview: '8bea9e28',
+    emphasised: 'e0b1d7cd',
+    overview: '2fba48b5',
   },
   reducedFromStart: {
     rest: 'c2f3041b',

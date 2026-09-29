@@ -79,10 +79,8 @@ export class SpaceSceneEngine {
     options: EngineOptions,
     viewportArea: number,
   ) {
-    const grains = buildScene(
-      Math.round(options.density * RESERVE),
-      options.rnd,
-    );
+    const density = Math.round(options.density * RESERVE);
+    const grains = buildScene(density, options.rnd);
     this.motion.grains.startDensity(densityShare(viewportArea));
     this.frame = sceneFrame(this.state, options);
     this.renderer = new SceneRenderer(canvases, options, grains, this.motion);
@@ -293,6 +291,8 @@ export class SpaceSceneEngine {
     this.fitOrbits();
     this.motion.advance(dt, this.state, this.target(dt), isVisible);
     this.isTurning = this.turntable.step(dt, this.state.reduced, this.orbits);
+    const hovered = this.state.phone ? -1 : this.state.emphasised;
+    this.motion.hoverSlow.step(dt, this.motion.phase, hovered);
   }
 
   private target(dt: number): Frame {

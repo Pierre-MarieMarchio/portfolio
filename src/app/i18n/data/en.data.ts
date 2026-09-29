@@ -82,7 +82,6 @@ export const EN: Catalog = {
         draft('My role'),
       ],
       read: draft('viewed'),
-      openSheet: draft('See the project →'),
     },
     preview: {
       label: draft('Project preview'),
@@ -90,6 +89,8 @@ export const EN: Catalog = {
       body: draft(
         (number: string, title: string) => `Project ${number}: ${title}`,
       ),
+      previous: draft((title: string) => `Previous project: ${title}`),
+      next: draft((title: string) => `Next project: ${title}`),
       terms: {
         proof: draft('Status'),
         role: draft('Role'),

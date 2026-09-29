@@ -22,7 +22,7 @@ import { WindowComponent } from '@shared/windows/components';
 import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
-import { chapterTitle, positionOf } from '../../rules/project-labels.rules';
+import { chapterTitle } from '../../rules/project-labels.rules';
 import { ViewHeadingDirective } from '@shared/ui/directives';
 import {
   ChapterOnShow,
@@ -67,13 +67,6 @@ export class ProjectDetailComponent {
   );
   protected readonly project = computed(() => this.manager.find(this.slug()));
 
-  protected readonly meta = computed(() => {
-    const project = this.project();
-    return project
-      ? positionOf(project.rank + 1, this.manager.ranked().length)
-      : '';
-  });
-
   protected readonly pages = computed<readonly ChapterOnShow[]>(() =>
     (this.detail()?.chapters ?? []).map((chapter, index) => ({
       ...chapter,
@@ -91,8 +84,7 @@ export class ProjectDetailComponent {
   protected readonly chapters = computed<readonly SegmentedItem<number>[]>(() =>
     this.pages().map((page, index) => ({
       value: index,
-      label: page.number,
-      phoneLabel: page.heading,
+      label: page.heading,
       active: index === this.visibleChapter(),
       aria: this.texts().sheet.approach(page.number, page.heading),
     })),

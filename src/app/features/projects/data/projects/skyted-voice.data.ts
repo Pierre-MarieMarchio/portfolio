@@ -6,7 +6,6 @@ export const SKYTED_VOICE: ProjectEntry = {
     slug: 'skyted-voice',
     title: 'Skyted Voice',
     short: 'Skyted Voice',
-    tag: { fr: 'publiée', en: draft('published') },
     family: 'professional',
     subject: {
       fr: 'Une application Android gratuite qui amplifie la voix, pour les personnes qui ont du mal à se faire entendre.',

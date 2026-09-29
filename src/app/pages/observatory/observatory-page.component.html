@@ -111,7 +111,6 @@
             [visited]="observatory.visited()"
             [family]="family()"
             (familyChange)="observatory.filter($event)"
-            (selectedChange)="observatory.select($event)"
             (hoveredChange)="observatory.hover($event)"
             (pinToggled)="observatory.togglePin('index')"
             [closeLabel]="closeLabels().index"

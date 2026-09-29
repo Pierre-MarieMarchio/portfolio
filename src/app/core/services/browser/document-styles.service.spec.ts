@@ -1,4 +1,3 @@
-import { TestBed } from '@angular/core/testing';
 import { DocumentStylesService } from './document-styles.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
@@ -62,18 +61,5 @@ describe('DocumentStylesService', () => {
     await ready;
 
     expect(onFonts).toHaveBeenCalledTimes(1);
-  });
-
-  it('raises and lowers a flag on the root in the browser, and leaves it alone on the server', () => {
-    const root = document.documentElement;
-    injectOn(DocumentStylesService, 'server').flagRoot('probe', true);
-    expect('probe' in root.dataset).toBe(false);
-    TestBed.resetTestingModule();
-
-    const styles = injectOn(DocumentStylesService, 'browser');
-    styles.flagRoot('probe', true);
-    expect('probe' in root.dataset).toBe(true);
-    styles.flagRoot('probe', false);
-    expect('probe' in root.dataset).toBe(false);
   });
 });

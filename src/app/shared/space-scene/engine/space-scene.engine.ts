@@ -84,7 +84,6 @@ export class SpaceSceneEngine {
       options.rnd,
     );
     this.motion.grains.startDensity(densityShare(viewportArea));
-    this.motion.onTravel = (isOn) => host.travel?.(isOn);
     this.frame = sceneFrame(this.state, options);
     this.renderer = new SceneRenderer(canvases, options, grains, this.motion);
     this.frames = new FrameLoopEngine(host, (dt, isVisible) =>

@@ -2603,3 +2603,32 @@ budget de style du composant (4 kB).
 **Écarté.** Garder l'épingle au téléphone : le modèle d'interaction ne garde
 pas de fenêtres au téléphone, on tire ou on touche la poignée. Une poignée
 dessinée en image de fond : elle ne se touche pas et n'a pas de nom.
+
+## 2026-09-29 — Au téléphone, le bord d'une page qui défile s'estompe, et un balayage court tourne la page (D85, amende D57)
+
+**Décision.** Au téléphone, une page du pager défilée sous l'en-tête d'une
+fenêtre estompe ses 8 px du haut (masque dont la hauteur suit le défilement
+par `animation-timeline: scroll(self y)`, complet à 12 px) : en haut, le
+premier texte reste net ; sans `animation-timeline`, pas de fondu. Au lâcher
+d'un doigt, `pageAfterSwipe` avance d'une page dans le sens du geste quand il
+fait au moins 24 px, plus horizontal que vertical, à au moins 0,1 px/ms de
+moyenne ; sinon le pager laisse faire l'aimantation native.
+
+**Raison.** ETUDE, téléphone 7 et lot C : sous le titre de la fiche, la ligne
+coupée par le bord laissait des pixels de ses caractères. Un balayage court
+revenait à la page de départ : mesuré, `scroll-snap-type: x mandatory` garde
+la page la plus proche quand le lâcher est trop lent pour un élan et que le
+geste fait moins d'une demi-page ; ni le rail de la feuille ni un `index`
+réinjecté n'y sont pour quelque chose. Le fondu tient en CSS, comme l'ombre
+de la feuille. Le seuil se juge sur la vitesse moyenne plutôt que sur une
+durée maximale : un geste lent mais net est une intention de tourner la page.
+À confirmer au téléphone de l'opérateur.
+
+**Écarté.** Un fondu fixe, présent même en haut de page : il estompe le
+premier texte sans raison. Désactiver `scroll-snap-stop: always` : il empêche
+un élan de sauter plusieurs pages.
+
+Le toucher sur la ligne 02 qui a basculé une fois le site en anglais n'est
+pas reproduit (touchers aux trois crans, liste défilée ou non : chaque
+toucher mène à la fiche, en français ; aucune ligne ne passe sous le lien de
+langue). Il reste à observer sur l'appareil.

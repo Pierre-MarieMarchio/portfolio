@@ -6,7 +6,7 @@ import {
   WindowFold,
   WindowTexts,
 } from '../../ports';
-import { WindowComponent } from './window.component';
+import { loadWindowMenu, WindowComponent } from './window.component';
 import { ScrollMemoryService } from '../../services/scroll-memory.service';
 import { tap as tapOn } from '@testing/fixtures/pointer.fixture';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
@@ -14,12 +14,11 @@ import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const texts = (): WindowTexts => TestBed.inject(WINDOW_TEXTS)();
 
-type Control = 'pin' | 'collapse' | 'close';
+type Control = 'collapse' | 'close';
 
 const namesOf = (name: Control): readonly string[] => {
-  const { pin, unpin, close, phone } = texts();
+  const { close, phone } = texts();
   return {
-    pin: [pin, unpin, phone.pin, phone.unpin],
     collapse: [phone.fold, phone.unfold],
     close: [close],
   }[name];
@@ -84,6 +83,30 @@ const control = (host: HTMLElement, name: Control): HTMLButtonElement => {
 
 const tap = (on: Element, at = 0): void => {
   tapOn(on, { x: 100, y: 10, at }, { at: at + 50 });
+};
+
+const menuOpener = (host: HTMLElement): HTMLButtonElement =>
+  host.querySelector('.titlebar button.menu-opener') as HTMLButtonElement;
+
+const openMenu = async (
+  fixture: ComponentFixture<unknown>,
+  host: HTMLElement,
+): Promise<void> => {
+  await loadWindowMenu();
+  await new Promise((resolve) => setTimeout(resolve));
+  await fixture.whenStable();
+  menuOpener(host).click();
+  await fixture.whenStable();
+};
+
+const menuItem = (host: HTMLElement, label: string): HTMLButtonElement => {
+  const found = [
+    ...host.querySelectorAll<HTMLButtonElement>('[role="menu"] button'),
+  ].find((button) => button.textContent?.trim() === label);
+  if (!found) {
+    throw new Error(`expected the menu item « ${label} »`);
+  }
+  return found;
 };
 
 class FoldDouble implements WindowFold {
@@ -159,60 +182,52 @@ describe('WindowComponent', () => {
     expect(section.getAttribute('aria-label')).toBe('Console des expériences');
   });
 
-  it('orders the title bar: decorative square, title, meta, then the buttons', async () => {
+  it('orders the title bar: the window menu, title, meta, then the other buttons', async () => {
     const { fixture, host } = await mount();
     fixture.componentRef.setInput('meta', '3 éléments');
     await fixture.whenStable();
 
     const titlebar = host.querySelector('.titlebar') as HTMLElement;
     const children = [...titlebar.children];
+    const menuIndex = children.findIndex((el) =>
+      el.classList.contains('menu-opener'),
+    );
     const h2Index = children.findIndex((el) => el.tagName === 'H2');
     const metaIndex = children.findIndex((el) => el.classList.contains('meta'));
-    const firstButtonIndex = children.findIndex(
-      (el) => el.querySelector('button') !== null,
+    const controlsIndex = children.findIndex(
+      (el) => el.tagName.toLowerCase() === 'app-window-controls',
     );
 
-    expect(at(children, 0).getAttribute('aria-hidden')).toBe('true');
-    expect(h2Index).toBeGreaterThan(0);
+    expect(menuIndex).toBe(0);
+    expect(menuOpener(host).getAttribute('aria-label')).toBe(texts().menu);
+    expect(h2Index).toBeGreaterThan(menuIndex);
     expect(at(children, h2Index).textContent?.trim()).toBe('Console');
     expect(metaIndex).toBeGreaterThan(h2Index);
     expect(at(children, metaIndex).textContent?.trim()).toBe('3 éléments');
-    expect(firstButtonIndex).toBeGreaterThan(metaIndex);
+    expect(controlsIndex).toBeGreaterThan(metaIndex);
     for (const button of titlebarButtons(host)) {
       expect(button.getAttribute('type')).toBe('button');
     }
   });
 
-  describe('pin button', () => {
-    it('starts unpinned, and only the pinned input changes its state and label', async () => {
-      const { fixture, host } = await mount();
-      const pin = control(host, 'pin');
-
-      expect(pin.getAttribute('aria-pressed')).toBe('false');
-      expect(pin.getAttribute('aria-label')).toBe(texts().pin);
-
-      pin.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      await fixture.whenStable();
-
-      expect(pin.getAttribute('aria-pressed')).toBe('false');
-
-      fixture.componentRef.setInput('pinned', true);
-      await fixture.whenStable();
-
-      expect(pin.getAttribute('aria-pressed')).toBe('true');
-      expect(pin.getAttribute('aria-label')).toBe(texts().unpin);
-    });
-
-    it('emits pinToggled exactly once per click', async () => {
+  describe('window menu', () => {
+    it('keeps the pin checked state in step with the pinned input, and emits once per press', async () => {
       const { fixture, host } = await mount();
       const calls = recordOutput(fixture.componentInstance.pinToggled);
+      await openMenu(fixture, host);
 
-      control(host, 'pin').dispatchEvent(
-        new MouseEvent('click', { bubbles: true }),
-      );
+      const pin = menuItem(host, texts().keepOpen);
+      expect(pin.getAttribute('aria-checked')).toBe('false');
+
+      pin.click();
+      fixture.componentRef.setInput('pinned', true);
       await fixture.whenStable();
+      await openMenu(fixture, host);
 
       expect(calls).toHaveLength(1);
+      expect(
+        menuItem(host, texts().keepOpen).getAttribute('aria-checked'),
+      ).toBe('true');
     });
   });
 

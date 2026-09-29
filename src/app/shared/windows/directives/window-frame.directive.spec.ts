@@ -9,7 +9,11 @@ import {
   loadWindowFrame,
   WindowFrameDirective,
 } from './window-frame.directive';
-import { resizeTo, stubViewport } from '@testing/doubles/browser.double';
+import {
+  resizeTo,
+  stubMedia,
+  stubViewport,
+} from '@testing/doubles/browser.double';
 import { firePointer, PointerAt } from '@testing/fixtures/pointer.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -40,6 +44,7 @@ const layOutFromTheRight = (slot: HTMLElement): void => {
         heading="Console"
         [size]="size()"
         [anchor]="anchor()"
+        [preview]="preview()"
         [stableHeight]="stableHeight()"
       >
         <div body>BODY-MARK</div>
@@ -50,6 +55,7 @@ const layOutFromTheRight = (slot: HTMLElement): void => {
 class Host {
   public readonly size = signal<WindowSize>('m');
   public readonly anchor = signal<WindowAnchor>('top');
+  public readonly preview = signal(false);
   public readonly stableHeight = signal(false);
 }
 
@@ -100,21 +106,6 @@ const mount = async (providers: unknown[] = []) => {
     [...host.querySelectorAll('button')].find(
       (button) => button.getAttribute('aria-label') === name,
     ) as HTMLButtonElement;
-  const press = async (
-    button: Element,
-    key: string,
-    isShifted = false,
-  ): Promise<KeyboardEvent> => {
-    const event = new KeyboardEvent('keydown', {
-      key,
-      shiftKey: isShifted,
-      bubbles: true,
-      cancelable: true,
-    });
-    button.dispatchEvent(event);
-    await settle();
-    return event;
-  };
   const doubleClick = async (): Promise<void> => {
     host
       .querySelector('.titlebar')
@@ -140,7 +131,6 @@ const mount = async (providers: unknown[] = []) => {
     bar,
     edge,
     control,
-    press,
     doubleClick,
     frame,
     directive,
@@ -148,16 +138,9 @@ const mount = async (providers: unknown[] = []) => {
 };
 
 describe('WindowFrameDirective', () => {
-  const heard = vi.fn();
-
-  beforeEach(() => {
-    document.addEventListener('keydown', heard);
-  });
-
   afterEach(() => {
-    document.removeEventListener('keydown', heard);
-    heard.mockReset();
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   describe('its code', () => {
@@ -421,79 +404,64 @@ describe('WindowFrameDirective', () => {
 
       expect([frame().width, frame().height]).toEqual(['912px', '524px']);
     });
+
+    it('never maximizes the preview, by its button or a double click', async () => {
+      const { fixture, host, doubleClick, frame } = await mount();
+      fixture.componentInstance.preview.set(true);
+      await fixture.whenStable();
+
+      expect(
+        [...host.querySelectorAll('button')].some((button) =>
+          [texts().maximize, texts().restore].includes(
+            button.getAttribute('aria-label') ?? '',
+          ),
+        ),
+      ).toBe(false);
+
+      await doubleClick();
+
+      expect(frame().mode).toBeNull();
+    });
   });
 
   describe('at the keyboard', () => {
-    it('moves by 8 px an arrow, by 64 with Shift, and ends on Escape without closing anything', async () => {
-      const { control, press, frame } = await mount();
-      const move = control(texts().move);
+    it('offers no arrow move or resize control any more, the menu being the alternative to dragging', async () => {
+      const { host } = await mount();
 
-      await press(move, 'ArrowRight');
-      expect(frame().transform).toBe('translate(8px,0px)');
-      expect(move.getAttribute('aria-pressed')).toBe('true');
-
-      await press(move, 'ArrowDown', true);
-      expect(frame().transform).toBe('translate(8px,64px)');
-
-      const escape = await press(move, 'Escape');
-      expect(move.getAttribute('aria-pressed')).toBe('false');
-      expect(escape.defaultPrevented).toBe(true);
       expect(
-        heard.mock.calls.map(([event]) => (event as KeyboardEvent).key),
-      ).not.toContain('Escape');
+        [...host.querySelectorAll('.titlebar button')].map((button) =>
+          button.getAttribute('aria-label'),
+        ),
+      ).toEqual([texts().menu, texts().maximize, texts().close]);
+    });
+  });
+
+  describe('animated', () => {
+    it('marks the frame as animating while it maximizes, and clears it after the transition', async () => {
+      stubMedia(() => false);
+      const { slot, control, frame, settle } = await mount();
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+
+      control(texts().maximize).click();
+      await settle();
+
+      expect(frame().mode).toBe('full');
+      expect(slot.dataset['frameAnimating']).toBe('true');
+
+      vi.advanceTimersByTime(280);
+      await settle();
+
+      expect(slot.dataset['frameAnimating']).toBeUndefined();
     });
 
-    it('keeps its bar below the real top bar when moved by an arrow', async () => {
-      const { slot, control, press, frame } = await mount();
-      slot.style.setProperty('--head-bottom', '600px');
-      const move = control(texts().move);
+    it('does not animate in reduced motion', async () => {
+      stubMedia((query) => query === '(prefers-reduced-motion: reduce)');
+      const { slot, control, settle } = await mount();
 
-      await press(move, 'ArrowUp', true);
-      await press(move, 'ArrowUp', true);
+      control(texts().maximize).click();
+      await settle();
 
-      expect(frame().transform).toBe('translate(0px,512px)');
-    });
-
-    it('lets Escape through when it is not moving', async () => {
-      const { control, press } = await mount();
-
-      await press(control(texts().move), 'Escape');
-
-      expect(heard).toHaveBeenCalledTimes(1);
-    });
-
-    it('resizes by an arrow, growing where there is room', async () => {
-      const { control, press, frame } = await mount();
-      const resize = control(texts().resize);
-
-      await press(resize, 'ArrowDown');
-      expect([frame().width, frame().height]).toEqual(['400px', '308px']);
-
-      await press(resize, 'ArrowRight', true);
-      expect(frame()).toEqual({
-        mode: 'free',
-        transform: 'translate(0px,0px)',
-        width: '464px',
-        height: '308px',
-      });
-
-      const enter = await press(resize, 'Enter');
-      expect(enter.defaultPrevented).toBe(true);
-      expect(resize.getAttribute('aria-pressed')).toBe('false');
-    });
-
-    it('describes the keys of its move and resize controls', async () => {
-      const { host, control } = await mount();
-
-      for (const [name, keys] of [
-        [texts().move, texts().moveKeys],
-        [texts().resize, texts().resizeKeys],
-      ] as const) {
-        const id = control(name).getAttribute('aria-describedby') ?? '';
-        expect(host.querySelector(`[id="${id}"]`)?.textContent?.trim()).toBe(
-          keys,
-        );
-      }
+      expect(slot.dataset['frameAnimating']).toBeUndefined();
     });
   });
 

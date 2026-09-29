@@ -51,10 +51,34 @@
   user-select: none;
 }
 
+.menu-opener {
+  @include controls.icon-button(var(--target-compact), 32px, var(--t-duration));
+
+  position: relative;
+}
+
 .square {
   @include controls.marker(7px);
+}
 
-  flex: 0 0 auto;
+.tip {
+  @include controls.tip;
+
+  left: 0;
+  right: auto;
+}
+
+.menu-opener:focus-visible .tip {
+  opacity: 1;
+  visibility: visible;
+}
+
+@include formats.can-hover {
+  .menu-opener:hover .tip {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 350ms;
+  }
 }
 
 h2 {
@@ -151,5 +175,10 @@ h2 {
 @include motion.reduced {
   .window {
     animation: none;
+  }
+
+  .menu-opener,
+  .tip {
+    transition: none;
   }
 }

@@ -41,34 +41,37 @@ describe('WindowControlsComponent', () => {
     vi.unstubAllGlobals();
   });
 
-  it('names pin, fold and close by what they do, and emits each once per press', async () => {
-    const { fixture, named } = await mount({ foldable: true });
+  it('hides the pin from the bar outside the phone format', async () => {
+    const { names } = await mount();
+
+    expect(names()).toEqual([texts().close]);
+  });
+
+  it('says on the phone what pin and fold do there, and emits each once per press', async () => {
+    stubViewport(390, 844);
+    const { fixture, named, names } = await mount({ foldable: true });
     const pins = recordOutput(fixture.componentInstance.pinToggled);
     const folds = recordOutput(fixture.componentInstance.foldToggled);
     const closes = recordOutput(fixture.componentInstance.closed);
-
-    named(texts().pin).click();
-    named(texts().phone.fold).click();
-    named(texts().close).click();
-
-    expect([pins.length, folds.length, closes.length]).toEqual([1, 1, 1]);
-  });
-
-  it('says on the phone what pin and fold do there', async () => {
-    stubViewport(390, 844);
-    const { names } = await mount({ foldable: true });
 
     expect(names()).toEqual([
       texts().phone.pin,
       texts().phone.fold,
       texts().close,
     ]);
+
+    named(texts().phone.pin).click();
+    named(texts().phone.fold).click();
+    named(texts().close).click();
+
+    expect([pins.length, folds.length, closes.length]).toEqual([1, 1, 1]);
   });
 
   it('presses the pin and renames it while pinned, and names the fold by its state', async () => {
+    stubViewport(390, 844);
     const { fixture, named } = await mount({ foldable: true });
 
-    expect(named(texts().pin).getAttribute('aria-pressed')).toBe('false');
+    expect(named(texts().phone.pin).getAttribute('aria-pressed')).toBe('false');
     expect(named(texts().phone.fold).getAttribute('aria-expanded')).toBe(
       'true',
     );
@@ -77,33 +80,37 @@ describe('WindowControlsComponent', () => {
     fixture.componentRef.setInput('folded', true);
     await fixture.whenStable();
 
-    expect(named(texts().unpin).getAttribute('aria-pressed')).toBe('true');
+    expect(named(texts().phone.unpin).getAttribute('aria-pressed')).toBe(
+      'true',
+    );
     expect(named(texts().phone.unfold).getAttribute('aria-expanded')).toBe(
       'false',
     );
   });
 
-  it('says briefly that the window is kept or released once the pin is pressed', async () => {
+  it('says briefly that the window is kept or released once the pin is pressed, on the phone', async () => {
+    stubViewport(390, 844);
     const { fixture, named, note } = await mount();
 
     expect(note()).toBe('');
 
-    named(texts().pin).click();
+    named(texts().phone.pin).click();
     fixture.componentRef.setInput('pinned', true);
     await fixture.whenStable();
 
     expect(note()).toBe(texts().kept);
 
-    named(texts().unpin).click();
+    named(texts().phone.unpin).click();
     fixture.componentRef.setInput('pinned', false);
     await fixture.whenStable();
 
     expect(note()).toBe(texts().released);
   });
 
-  it('says nothing when the pin changes without being pressed', async () => {
+  it('says nothing when the pin changes without being pressed, on the phone', async () => {
+    stubViewport(390, 844);
     const { fixture, named, note } = await mount();
-    named(texts().pin).click();
+    named(texts().phone.pin).click();
     fixture.componentRef.setInput('pinned', true);
     await fixture.whenStable();
 
@@ -114,6 +121,7 @@ describe('WindowControlsComponent', () => {
   });
 
   it('shows each name in a tooltip hidden from assistive technologies, never in a title', async () => {
+    stubViewport(390, 844);
     const { host } = await mount({ foldable: true });
     const buttons = [...host.querySelectorAll('button')];
 
@@ -136,6 +144,6 @@ describe('WindowControlsComponent', () => {
     fixture.componentRef.setInput('closable', false);
     await fixture.whenStable();
 
-    expect(names()).toEqual([texts().pin]);
+    expect(names()).toEqual([]);
   });
 });

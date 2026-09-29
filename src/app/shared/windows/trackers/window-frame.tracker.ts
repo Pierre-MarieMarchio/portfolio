@@ -4,10 +4,8 @@ import {
   type DraggedFrame,
   type FrameArea,
   type FrameClearance,
-  type FrameDelta,
   type FrameEdge,
   type FrameGrip,
-  type FrameKeyControl,
   type FramePlace,
   type FrameRect,
   type FrameTracking,
@@ -20,8 +18,6 @@ import {
   clearanceOf,
   frameOfZone,
   isZone,
-  keyResize,
-  keyStep,
   unsnapAt,
 } from '../rules/window-frame.rules';
 import { WindowDragTracker } from './window-drag.tracker';
@@ -30,7 +26,6 @@ import { WindowHeightTracker } from './window-height.tracker';
 const NOWHERE: FramePlace = { dx: 0, dy: 0, width: null, height: null };
 const RESERVE = '--window-reserve';
 const HEAD = '--head-bottom';
-const ENDS = new Set(['Enter', 'Escape']);
 const EDGE_STYLES: Readonly<Record<FrameEdge, string>> = {
   e: 'top:0;right:0;bottom:0;width:5px;cursor:ew-resize',
   w: 'top:0;left:0;bottom:0;width:5px;cursor:ew-resize',
@@ -81,19 +76,9 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     ];
   }
 
-  public press(control: FrameKeyControl | 'maximize', event: Event): void {
-    if (control === 'maximize') {
-      this.toggleMaximize();
-      return;
-    }
-    const holding = this.framed.holding();
-    if (event instanceof KeyboardEvent) {
-      this.key(control, event);
-    } else if (event.type === 'click') {
-      this.framed.hold(holding === control ? null : control);
-    } else if (holding === control) {
-      this.framed.hold(null);
-    }
+  public snapTo(zone: 'left' | 'right'): void {
+    this.settle();
+    this.snap(zone);
   }
 
   public toggleMaximize(): void {
@@ -228,44 +213,6 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
       x: event.clientX,
       y: event.clientY,
     });
-  }
-
-  private key(control: FrameKeyControl, event: KeyboardEvent): void {
-    if (ENDS.has(event.key)) {
-      if (this.framed.holding() === control) {
-        event.preventDefault();
-        event.stopPropagation();
-        this.framed.hold(null);
-      }
-      return;
-    }
-    const delta = keyStep(event.key, event.shiftKey);
-    if (!delta) {
-      return;
-    }
-    event.preventDefault();
-    this.framed.hold(control);
-    this.step(control, delta);
-  }
-
-  private step(control: FrameKeyControl, delta: FrameDelta): void {
-    const viewport = this.framed.viewport();
-    if (!viewport) {
-      return;
-    }
-    this.settle();
-    const rect = this.rect();
-    const place =
-      control === 'move'
-        ? this.moveTo(
-            clampMove(
-              { ...rect, x: rect.x + delta.dx, y: rect.y + delta.dy },
-              viewport,
-              this.clearance(),
-            ),
-          )
-        : this.placeAt(keyResize(rect, delta, this.area(rect)));
-    this.framed.commit(place, 'free');
   }
 
   private snap(zone: FrameZone): void {

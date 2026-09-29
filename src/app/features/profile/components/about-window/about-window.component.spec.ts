@@ -6,6 +6,7 @@ import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { WindowComponent } from '@shared/windows/components';
+import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
@@ -40,14 +41,21 @@ const textsOf = (elements: Iterable<Element>): (string | undefined)[] =>
 
 describe('AboutWindowComponent', () => {
   it('defaults to the first part and unpinned, with no input set', async () => {
-    const { host, about } = await mount();
+    const { fixture, host, about } = await mount();
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
       about.title(about.profile.title),
     );
-    expect(host.querySelector('button.pin')?.getAttribute('aria-pressed')).toBe(
-      'false',
-    );
+    await loadWindowMenu();
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
+    await fixture.whenStable();
+    expect(
+      host
+        .querySelector('[role="menuitemcheckbox"]')
+        ?.getAttribute('aria-checked'),
+    ).toBe('false');
   });
 
   it('opens a window titled and labelled for "about", with an empty meta', async () => {
@@ -236,7 +244,12 @@ describe('AboutWindowComponent', () => {
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    host.querySelector<HTMLButtonElement>('button.pin')?.click();
+    await loadWindowMenu();
+    await new Promise((resolve) => setTimeout(resolve));
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
+    await fixture.whenStable();
+    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
     expect(pinToggled).toHaveLength(1);

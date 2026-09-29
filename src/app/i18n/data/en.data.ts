@@ -17,16 +17,10 @@ export const EN: Catalog = {
   },
 
   windows: {
-    pin: draft('Keep this window open when changing page'),
-    unpin: draft('Let this window close when changing page'),
-    move: draft('Move the window'),
-    moveKeys: draft(
-      'Move it with the arrow keys, in big steps with Shift. Enter or Escape to finish.',
-    ),
-    resize: draft('Resize the window'),
-    resizeKeys: draft(
-      'Change its size with the arrow keys, in big steps with Shift. Enter or Escape to finish.',
-    ),
+    menu: draft('Window menu'),
+    keepOpen: draft('Keep open when changing page'),
+    snapLeft: draft('Left half'),
+    snapRight: draft('Right half'),
     maximize: draft('Maximize the window'),
     restore: draft('Put the window back to its size'),
     close: draft('Close the window'),

@@ -10,8 +10,6 @@ import {
   clearanceOf,
   frameOfZone,
   isZone,
-  keyResize,
-  keyStep,
   snapZoneOf,
   unsnapAt,
 } from './window-frame.rules';
@@ -98,37 +96,6 @@ describe('window frame rules', () => {
     });
   });
 
-  describe('keyResize', () => {
-    it.each([
-      [
-        'widens eastwards while there is room',
-        { ...FRAME, x: 500 },
-        { dx: 8, dy: 0 },
-        { x: 500, y: 100, width: 408, height: 300 },
-      ],
-      [
-        'widens westwards at the edge of the area',
-        FRAME,
-        { dx: 8, dy: 0 },
-        { x: 748, y: 100, width: 408, height: 300 },
-      ],
-      [
-        'narrows from its right edge',
-        FRAME,
-        { dx: -64, dy: 0 },
-        { x: 756, y: 100, width: 336, height: 300 },
-      ],
-      [
-        'grows taller',
-        FRAME,
-        { dx: 0, dy: 64 },
-        { x: 756, y: 100, width: 400, height: 364 },
-      ],
-    ])('%s', (_case, frame, delta, resized) => {
-      expect(keyResize(frame, delta, AREA)).toEqual(resized);
-    });
-  });
-
   describe('snapZoneOf', () => {
     it.each([
       ['the left edge', 0, 400, 'left'],
@@ -174,20 +141,6 @@ describe('window frame rules', () => {
         width: 320,
         height: 624,
       });
-    });
-  });
-
-  describe('keyStep', () => {
-    it.each([
-      ['ArrowLeft', false, { dx: -8, dy: 0 }],
-      ['ArrowRight', false, { dx: 8, dy: 0 }],
-      ['ArrowUp', false, { dx: 0, dy: -8 }],
-      ['ArrowDown', true, { dx: 0, dy: 64 }],
-      ['ArrowLeft', true, { dx: -64, dy: 0 }],
-      ['Enter', false, null],
-      ['a', true, null],
-    ])('steps %s (fast: %s)', (key, isFast, delta) => {
-      expect(keyStep(key, isFast)).toEqual(delta);
     });
   });
 

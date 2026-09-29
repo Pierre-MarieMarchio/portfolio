@@ -211,8 +211,11 @@ describe('ObservatoryPageComponent', () => {
     const rail = host.querySelector(
       `ul[aria-label="${TestBed.inject(SHARED_TEXTS)().contactRail.label}"]`,
     );
+    const descriptions = [
+      ...(rail?.querySelectorAll('.visually-hidden') ?? []),
+    ].map((el) => el.textContent);
     for (const label of [contact.email, contact.linkedin, contact.github]) {
-      expect(rail?.querySelector(`[aria-label="${label}"]`)).not.toBeNull();
+      expect(descriptions).toContain(label);
     }
     expect(
       host.querySelector('app-social-links app-contact-menu dialog'),

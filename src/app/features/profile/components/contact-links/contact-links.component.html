@@ -1,0 +1,16 @@
+<app-social-links
+  [appLayoutAnchor]="anchor"
+  [links]="links()"
+  [arrival]="arrival()"
+  [listOnPhone]="false"
+  [action]="copyAction()"
+  (actioned)="copy()"
+>
+  <ng-content />
+  <app-contact-menu [links]="links()" />
+</app-social-links>
+<p class="visually-hidden copy-said" role="status">
+  @if (isCopied()) {
+    {{ texts().contactMenu.copied }}
+  }
+</p>

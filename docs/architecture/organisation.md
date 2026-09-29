@@ -564,11 +564,21 @@ par deux ports, auxquels la composition répond.
   dans son nom accessible, sans toucher `aria-current`, réservé à la page
   courante.
 - **`social-links/`** (ex-`contact-rail`) : `SocialLinksComponent`, une liste
-  de liens à icône. Le bouton pause, qui commande l'animation du bureau,
-  part dans `features/observatory`. Au format `phone`, la liste se cache
-  si l'écran le demande (`listOnPhone` à faux) et le rail ne garde que ce
-  qu'on lui projette, chaque commande sur son fond (D60, remplace le repli
-  de D27).
+  de liens à icône. Chaque lien porte son mot court dans un vrai `<span>`
+  (capitales mono), visible à partir de 1280 px de large ; en dessous, il est
+  gardé dans l'arbre d'accessibilité mais réduit visuellement (jamais
+  `display: none`, qui l'en sortirait). Le nom accessible du lien vient d'un
+  `aria-labelledby` qui joint ce mot au texte plus complet qu'il portait déjà
+  (WCAG 2.5.3, le mot visible est dans le nom). Un `action` facultatif
+  (`RailAction` : `icon`, `label`) ajoute un bouton juste après le premier
+  lien, dans le même style et le même `<span>`, nommé par son seul contenu ;
+  son clic remonte par `actioned` : c'est ce que `ContactLinksComponent` lui
+  donne pour « Copier l'adresse » au bureau et à la tablette. Plus de `title`
+  : il doublait la bulle native avec le mot déjà visible. Le bouton pause, qui
+  commande l'animation du bureau, part dans `features/observatory`. Au format
+  `phone`, la liste se cache si l'écran le demande (`listOnPhone` à faux) et
+  le rail ne garde que ce qu'on lui projette, chaque commande sur son fond
+  (D60, remplace le repli de D27).
 - **`ViewFocusService`** (ex-`landing-focus`) :
   `claim(container)`, avec `ViewHeadingDirective`. But : mettre le focus sur
   le titre de la vue qui vient d'apparaître.
@@ -774,15 +784,25 @@ corps en orbite identifiés par un id, de mise en avant et de figures du ciel.
   du pager (« part » devient « section »).
 - `components/contact-links/` : le rail de contact, `SocialLinksComponent`
   garni des adresses de `contact.data.ts` et de leurs noms (D50), avec le
-  menu du téléphone.
+  menu du téléphone. Au bureau et à la tablette, lui donne aussi l'`action`
+  « Copier l'adresse » du rail et dit l'annonce dans sa propre région
+  `status`.
 - `components/contact-menu/` : au téléphone, le bouton « Contact » et sa
   feuille d'actions (`app-action-menu`) : écrire, copier l'adresse (par
   `ClipboardService`, dit dans une région `status`), LinkedIn, GitHub, le
   CV (D60).
 - `data/contact.data.ts` : les liens de contact (ex-`app.contact.ts`).
+- `data/copy-icon.data.ts` : le tracé de l'icône « copier », partagé par le
+  bouton du bureau et la feuille du téléphone.
 - `models/contact.model.ts` : la forme d'une adresse de contact.
 - `ports/profile-texts.port.ts` : sa tranche de textes (`about`, `contact`,
   `contactMenu`).
+- `services/copy-feedback.service.ts` `CopyFeedbackService`. But : copier un
+  texte et le dire pendant quelques secondes. Contrat : `copy(text)`,
+  `isCopied` (signal). Fourni par composant (`providers: [CopyFeedbackService]`),
+  une instance par usage ; `ContactMenuComponent` (téléphone) et
+  `ContactLinksComponent` (bureau, tablette) le consomment chacun pour leur
+  propre bouton.
 
 ### 4.7 `i18n/`
 
@@ -900,9 +920,10 @@ src/app/
   features/profile/components/about-window/    about-window.component
   features/profile/components/contact-links/   contact-links.component
   features/profile/components/contact-menu/    contact-menu.component
-  features/profile/data/                       contact.data
+  features/profile/data/                       contact.data · copy-icon.data
   features/profile/models/                     contact.model
   features/profile/ports/                      profile-texts.port
+  features/profile/services/                   copy-feedback.service
   features/projects/components/featured-bar/   featured-bar.component
   features/projects/components/project-chapter/ project-chapter.component
   features/projects/components/project-detail/ project-detail.component
@@ -961,7 +982,7 @@ src/app/
   shared/ui/components/social-links/           social-links.component
   shared/ui/data/                              social-icons.data
   shared/ui/directives/                        bottom-edge-variable.directive · hover-focus.directive · layout-anchor.directive · view-heading.directive
-  shared/ui/models/                            element-size.model · entrance.model · language-item.model · navigation-item.model · segmented.model · social-link.model
+  shared/ui/models/                            element-size.model · entrance.model · language-item.model · navigation-item.model · rail-action.model · segmented.model · social-link.model
   shared/ui/ports/                             shared-texts.port
   shared/ui/services/                          layout-anchors.service · view-focus.service
   shared/ui/signals/                           element-size.signal

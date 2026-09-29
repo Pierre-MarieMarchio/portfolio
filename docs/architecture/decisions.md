@@ -2093,3 +2093,27 @@ les vues. Décaler le cadrage de droite sans le refléter : la planète
 partirait vers le bord. Suivre la fenêtre agrandie : il n'y a plus de ciel à
 montrer. Déplacer la constellation de l'à-propos : hors du cadrage, à
 reprendre à part.
+
+## 2026-09-29 — Au téléphone, la vitre garde son flou quand la caméra voyage (D67, amende D46)
+
+**Décision.** La vitre du téléphone ne perd plus son flou pendant que la
+caméra voyage. Le drapeau `data-sky-travel` disparaît, avec tout ce qui ne
+servait qu'à le produire : l'annonce du voyage par la scène, son message du
+worker et `flagRoot`. Le flou du ciel au téléphone ne dépend donc plus que
+du cran de la feuille.
+
+**Raison.** Chaque changement de cran fait voyager la caméra. La vitre
+passait alors nette pendant environ deux secondes, puis redevenait floue en
+fondu, et faisait un aller-retour quand le drapeau rebasculait : le lecteur
+voyait le trou net, puis flou, lentement, par à-coups. Mesuré image par
+image sur la liste, l'à-propos et la fiche, du cran replié au plein, puis à
+la mi-hauteur et au repli : la vitre ne change plus de valeur, et le flou de
+la feuille va d'un cran à l'autre sans revenir en arrière. D46 retirait ce
+flou quand la scène se dessinait sur le fil principal ; elle se dessine
+depuis dans un worker (D47). Le bundle initial passe de 516,44 à
+516,04 kB ; le worker de 62,04 à 61,79 kB.
+
+**Écarté.** Ne garder le drapeau qu'au cran plein : un aller-retour restait
+possible aux autres crans. Garder le drapeau pour un usage futur : du code
+que rien ne lit. Une vitre sans flou au téléphone : elle change le verre au
+repos (déjà écarté par D46).

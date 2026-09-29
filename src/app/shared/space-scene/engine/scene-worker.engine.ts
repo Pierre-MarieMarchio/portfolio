@@ -81,9 +81,6 @@ export class SceneWorkerEngine {
           }),
         now: () => this.at ?? this.scope.now(),
         hidden: () => this.isHidden,
-        travel: (isTravelling) => {
-          this.scope.post({ kind: 'travel', isTravelling }, []);
-        },
       },
       { matter, sky },
       {

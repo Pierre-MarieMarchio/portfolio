@@ -54,7 +54,6 @@ export const pairedScene = () => {
   const made: ShownBitmap[] = [];
   const posted: FromSceneWorker[] = [];
   const mainFrames: ((time: number) => void)[] = [];
-  const travels: boolean[] = [];
   const { seed, ...look } = ENGINE_OPTIONS;
   const worker = new SceneWorkerEngine({
     timeOrigin: 0,
@@ -100,7 +99,6 @@ export const pairedScene = () => {
       },
       now: () => clock.host.now(),
       hidden: () => false,
-      travel: (isTravelling) => travels.push(isTravelling),
     },
     canvases,
     {
@@ -124,5 +122,5 @@ export const pairedScene = () => {
     clock.step(ms);
     await deliver();
   };
-  return { engine, log, run, shown, made, canvases, travels };
+  return { engine, log, run, shown, made, canvases };
 };

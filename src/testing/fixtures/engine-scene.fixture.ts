@@ -104,7 +104,7 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
   const { seed, ...look } = ENGINE_OPTIONS;
   const { width, height } = setup.layout.viewport;
   const log: string[] = [];
-  const { host, step, isScheduled, travels } = drivenHost();
+  const { host, step, isScheduled } = drivenHost();
   const engine = new SpaceSceneEngine(
     host,
     {
@@ -157,6 +157,5 @@ export const mountEngineScene = (overrides: Partial<SceneSetup> = {}) => {
     attributes,
     set,
     scheduled: isScheduled,
-    travels,
   };
 };

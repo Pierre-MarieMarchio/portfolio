@@ -61,14 +61,11 @@ export class SceneEngineService {
     }
   }
 
-  private host(): EngineHost & { travel(isTravelling: boolean): void } {
+  private host(): EngineHost {
     return {
       frame: (callback) => this.canvas.nextFrame(callback),
       now: () => this.canvas.now(),
       hidden: () => this.canvas.isHidden(),
-      travel: (isOn) => {
-        this.canvas.flagRoot('sky-travel', isOn);
-      },
     };
   }
 

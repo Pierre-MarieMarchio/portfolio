@@ -210,8 +210,7 @@ export const phoneFigures = (
   const sky = skyOf(frame, room);
   const labels = frame.state.figureNames;
   if (
-    last &&
-    last.labels === labels &&
+    last?.labels === labels &&
     last.sky.every((value, i) => value === sky[i])
   ) {
     return last;

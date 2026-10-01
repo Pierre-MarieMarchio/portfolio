@@ -2683,3 +2683,30 @@ viendront d'un travail d'ensemble, pas d'un composant à la fois.
 **Écarté.** Tenir 540 kB en retirant des fonctions du lot (points, vibration) :
 elles répondent au modèle d'interaction. Chercher des économies ailleurs
 avant la vague 2 : c'est l'objet du chantier qui suit, avec ses mesures.
+
+## 2026-10-01 — Au téléphone, ce qu'on touche répond, et une feuille vibre en se calant (D88)
+
+**Décision.** Au pointeur grossier, un bouton, un lien ou la barre d'une
+feuille s'estompe (`filter: opacity(0.55)`) dès qu'on le presse et revient en
+180 ms (`--t`) ; sous mouvement réduit, sans transition. Le rectangle natif
+de Chrome est retiré. La règle est commune (`_touch.scss`) ; seuls les
+composants qui déclarent leur propre liste de transitions y ajoutent
+`filter`. Une feuille que le geste de l'utilisateur pose sur un autre cran
+(glisser lâché, toucher de la poignée) vibre 10 ms, par `HapticsService`
+(`core/services/browser/haptics/`) et le port de la librairie ; rien au
+redimensionnement, au cran posé par le programme, au même cran, au
+prérendu, ni là où `navigator.vibrate` manque (iOS). La couche de retour de
+la feuille passe dans `BackClaimService`, pour que le composant tienne sous
+la limite de lignes.
+
+**Raison.** ETUDE N5 et modèle d'interaction : au téléphone, le retour tactile
+et visuel est l'état pressé et une vibration légère au calage. `filter` n'est
+employé nulle part ailleurs, il ne se mêle ni aux fonds ni à l'opacité des
+cartes non posées. Vibrer à chaque calage, même programmé, ferait vibrer
+l'arrivée et la navigation.
+
+**Écarté.** Un état pressé par composant : une règle commune couvre tout ce qui
+se touche sans grossir chaque feuille de style. À vérifier sur l'appareil :
+Chrome Android retarde `:active` de quelques dizaines de millisecondes pour
+ne pas clignoter pendant un défilement, et le headless ne pose pas `:active`
+au toucher.

@@ -5,11 +5,13 @@ describe('SessionHistoryService', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     Reflect.deleteProperty(window, 'CloseWatcher');
+    Reflect.deleteProperty(window, 'navigation');
   });
 
   it('is inert on the server: no state, no entry, no step back, no listening', () => {
     const pushState = vi.spyOn(history, 'pushState');
     const go = vi.spyOn(history, 'go');
+    const replaceState = vi.spyOn(history, 'replaceState');
     const heard = vi.fn();
     Object.defineProperty(window, 'CloseWatcher', {
       value: class {},
@@ -18,6 +20,7 @@ describe('SessionHistoryService', () => {
     const sessionHistory = injectOn(SessionHistoryService, 'server');
 
     sessionHistory.push({ layer: 1 });
+    sessionHistory.replace(location.href);
     sessionHistory.back(1);
     const stop = sessionHistory.onPop(heard);
     window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
@@ -26,6 +29,7 @@ describe('SessionHistoryService', () => {
     expect(sessionHistory.state()).toBeNull();
     expect(sessionHistory.hasCloseWatcher()).toBe(false);
     expect(pushState).not.toHaveBeenCalled();
+    expect(replaceState).not.toHaveBeenCalled();
     expect(go).not.toHaveBeenCalled();
     expect(heard).not.toHaveBeenCalled();
   });
@@ -119,5 +123,42 @@ describe('SessionHistoryService', () => {
       injectOn(SessionHistoryService, 'browser').watchClose(closed)();
     }).not.toThrow();
     expect(closed).not.toHaveBeenCalled();
+  });
+
+  it('adds an entry at a given address, or rewrites the current one, in the browser', () => {
+    const address = location.href;
+    const pushState = vi.spyOn(history, 'pushState');
+    const replaceState = vi.spyOn(history, 'replaceState');
+    const sessionHistory = injectOn(SessionHistoryService, 'browser');
+
+    sessionHistory.push({ layer: 1 }, address);
+    sessionHistory.replace(address);
+
+    expect(pushState).toHaveBeenCalledWith({ layer: 1 }, '', address);
+    expect(replaceState).toHaveBeenCalledWith(null, '', address);
+    expect(sessionHistory.state()).toBeNull();
+  });
+
+  it('says which entry of the site it stands on, or nothing without the navigation API', () => {
+    const sessionHistory = injectOn(SessionHistoryService, 'browser');
+
+    expect(sessionHistory.position()).toBeNull();
+
+    Object.defineProperty(window, 'navigation', {
+      value: { currentEntry: { index: 2 } },
+      configurable: true,
+    });
+
+    expect(sessionHistory.position()).toBe(2);
+  });
+
+  it('knows no position on the server', () => {
+    Object.defineProperty(window, 'navigation', {
+      value: { currentEntry: { index: 2 } },
+      configurable: true,
+    });
+    const sessionHistory = injectOn(SessionHistoryService, 'server');
+
+    expect(sessionHistory.position()).toBeNull();
   });
 });

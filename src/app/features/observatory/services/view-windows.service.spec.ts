@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
@@ -20,6 +20,21 @@ import { ViewWindowsService } from './view-windows.service';
   `,
 })
 class Views {}
+
+@Component({
+  imports: [ViewSlotDirective],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: `
+    <div appViewSlot="about">
+      <div class="rail">
+        <app-window>
+          <div class="body"><div class="page"></div></div>
+        </app-window>
+      </div>
+    </div>
+  `,
+})
+class Scrolling {}
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
@@ -52,6 +67,33 @@ const mount = async (isPhone = false) => {
     observatory,
     settle,
     focused: () => document.activeElement?.textContent,
+  };
+};
+
+const mountScrolling = async (isReduced: boolean) => {
+  stubMedia(
+    isReduced ? new Set(['(prefers-reduced-motion: reduce)']) : new Set(),
+  );
+  TestBed.configureTestingModule({
+    imports: [Scrolling],
+    providers: [provideStatewise(), WindowStackService, ViewWindowsService],
+  });
+  const windows = TestBed.inject(ViewWindowsService);
+  const fixture = TestBed.createComponent(Scrolling);
+  await fixture.whenStable();
+  const host = fixture.nativeElement as HTMLElement;
+  const part = (selector: string): HTMLElement =>
+    host.querySelector(selector) as HTMLElement;
+  const scrollTo = vi.fn();
+  for (const element of host.querySelectorAll('*')) {
+    Object.defineProperty(element, 'scrollTo', { value: scrollTo });
+  }
+  return {
+    windows,
+    scrollTo,
+    rail: part('.rail'),
+    body: part('.body'),
+    page: part('.page'),
   };
 };
 
@@ -128,6 +170,56 @@ describe('ViewWindowsService', () => {
       await settle();
 
       expect(focused()).toBe('Home');
+    });
+  });
+
+  describe('the scroll of a window', () => {
+    it('says a window was scrolled once any part of its content is below the top', async () => {
+      const { windows, body, page } = await mountScrolling(false);
+
+      expect(windows.scrollToTop('about')).toBe(false);
+
+      page.scrollTop = 40;
+      expect(windows.scrollToTop('about')).toBe(true);
+
+      page.scrollTop = 0;
+      body.scrollTop = 40;
+      expect(windows.scrollToTop('about')).toBe(true);
+    });
+
+    it('does not take the sheet around the window for the page being scrolled', async () => {
+      const { windows, rail, scrollTo } = await mountScrolling(false);
+
+      rail.scrollTop = 250;
+
+      expect(windows.scrollToTop('about')).toBe(false);
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('scrolls nothing for a window nobody has shown', async () => {
+      const { windows } = await mountScrolling(false);
+
+      expect(windows.scrollToTop('index')).toBe(false);
+      expect(windows.scrollToTop(null)).toBe(false);
+    });
+
+    it('brings what is scrolled back to the top smoothly, and leaves the rest', async () => {
+      const { windows, page, scrollTo } = await mountScrolling(false);
+      page.scrollTop = 40;
+
+      windows.scrollToTop('about');
+
+      expect(scrollTo).toHaveBeenCalledOnce();
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    });
+
+    it('brings it back to the top at once under reduced motion', async () => {
+      const { windows, page, scrollTo } = await mountScrolling(true);
+      page.scrollTop = 40;
+
+      windows.scrollToTop('about');
+
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'instant' });
     });
   });
 });

@@ -34,6 +34,7 @@ export class ObservatoryManager {
   public readonly preview = this.state.preview.asReadonly();
   public readonly lastPreview = this.state.lastPreview.asReadonly();
   public readonly lastSheet = this.state.lastSheet.asReadonly();
+  public readonly resume = this.state.resume.asReadonly();
   public readonly selected = this.state.selected.asReadonly();
   public readonly hovered = this.state.hovered.asReadonly();
   public readonly family = this.state.family.asReadonly();

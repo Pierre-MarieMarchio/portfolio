@@ -9,6 +9,9 @@ interface CloseWatcherInstance {
 
 type CloseWatcherClass = new () => CloseWatcherInstance;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
 const isCloseWatcherClass = (value: unknown): value is CloseWatcherClass =>
   typeof value === 'function';
 
@@ -22,12 +25,24 @@ export class SessionHistoryService {
     return this.view()?.history.state ?? null;
   }
 
-  public push(state: unknown): void {
-    this.view()?.history.pushState(state, '');
+  public push(state: unknown, address?: string): void {
+    this.view()?.history.pushState(state, '', address);
+  }
+
+  public replace(address: string): void {
+    this.view()?.history.replaceState(null, '', address);
   }
 
   public back(steps: number): void {
     this.view()?.history.go(-steps);
+  }
+
+  public position(): number | null {
+    const view = this.view();
+    const navigation: unknown = view ? Reflect.get(view, 'navigation') : null;
+    const entry = isRecord(navigation) ? navigation['currentEntry'] : null;
+    const index = isRecord(entry) ? entry['index'] : null;
+    return typeof index === 'number' ? index : null;
   }
 
   public onPop(fn: (state: unknown) => void): () => void {

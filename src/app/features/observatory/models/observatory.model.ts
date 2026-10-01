@@ -19,3 +19,8 @@ export interface Planet {
   readonly title: string;
   readonly short: string;
 }
+
+export interface ResumePoint {
+  readonly slug: string;
+  readonly chapter: number;
+}

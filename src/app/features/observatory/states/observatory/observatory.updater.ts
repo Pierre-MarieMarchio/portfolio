@@ -39,26 +39,50 @@ function isWhereTheReaderIs(
   );
 }
 
-export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
-  on(observatoryRouteSynced, (state, { view, slug }) => {
-    const previous = state.slug();
-    if (isWhereTheReaderIs(state, view, slug)) {
-      return;
-    }
-    state.view.set(view);
-    state.slug.set(view === 'sheet' ? slug : null);
-    state.chapter.set(0);
-    state.hovered.set(null);
-    see(state, windowOf(view));
-    if (!state.pins().preview) {
-      state.preview.set(null);
-    }
-    if (view === 'sheet' && slug) {
-      read(state, slug);
-    }
-    if (view === 'index' && previous) {
+function chapterOnArrival(
+  state: ObservatoryState,
+  view: ObservatoryView,
+  slug: string | null,
+): number {
+  const resumed = state.resume();
+  return view === 'sheet' && slug !== null && resumed?.slug === slug
+    ? resumed.chapter
+    : 0;
+}
+
+function syncRoute(
+  state: ObservatoryState,
+  view: ObservatoryView,
+  slug: string | null,
+): void {
+  const previous = state.slug();
+  if (isWhereTheReaderIs(state, view, slug)) {
+    return;
+  }
+  if (state.view() === 'sheet' && previous) {
+    state.resume.set({ slug: previous, chapter: state.chapter() });
+  }
+  state.view.set(view);
+  state.slug.set(view === 'sheet' ? slug : null);
+  state.chapter.set(chapterOnArrival(state, view, slug));
+  state.hovered.set(null);
+  see(state, windowOf(view));
+  if (!state.pins().preview) {
+    state.preview.set(null);
+  }
+  if (view === 'sheet' && slug) {
+    read(state, slug);
+  } else if (view === 'index') {
+    state.resume.set(null);
+    if (previous) {
       state.selected.set(previous);
     }
+  }
+}
+
+export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
+  on(observatoryRouteSynced, (state, { view, slug }) => {
+    syncRoute(state, view, slug);
   });
 
   on(observatoryWindowPrepared, (state, window) => {

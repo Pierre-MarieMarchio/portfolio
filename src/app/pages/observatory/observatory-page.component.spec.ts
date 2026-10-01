@@ -425,6 +425,49 @@ describe('ObservatoryPageComponent', () => {
     expect(host.querySelector('app-not-found-window')).toBeNull();
   });
 
+  it.each(['index', 'about', 'home'] as const)(
+    'keeps showing the project of a pinned sheet once the reader goes to %s, and back',
+    async (view) => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('sheet', KNOWN_SLUG);
+      station.togglePin('sheet');
+      await fixture.whenStable();
+
+      station.syncRoute(view);
+      await fixture.whenStable();
+      expect(host.querySelector('app-not-found-window')).toBeNull();
+      expect(host.querySelector('.slot--sheet h2')?.textContent).toContain(
+        'Known project',
+      );
+
+      station.syncRoute('sheet', KNOWN_SLUG);
+      await fixture.whenStable();
+      expect(host.querySelector('app-not-found-window')).toBeNull();
+      expect(host.querySelector('.slot--sheet h1')?.textContent).toContain(
+        'Known project',
+      );
+    },
+  );
+
+  it('keeps the pinned about and list windows filled once the reader goes elsewhere', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('about');
+    station.togglePin('about');
+    station.syncRoute('index');
+    station.togglePin('index');
+    await fixture.whenStable();
+    const about = host.querySelector('.slot--about h2')?.textContent;
+
+    station.syncRoute('home');
+    await fixture.whenStable();
+
+    expect(about).toBeTruthy();
+    expect(host.querySelector('.slot--about h2')?.textContent).toBe(about);
+    expect(host.querySelector('.slot--index')?.textContent).toContain(
+      'Known project',
+    );
+  });
+
   it('marks a pinned window the reader has left as docked, and brings it back', async () => {
     const { fixture, station, host } = await mount();
     const docked = () =>

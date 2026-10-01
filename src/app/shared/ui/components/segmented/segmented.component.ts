@@ -41,6 +41,10 @@ export class SegmentedComponent<T> {
     () => this.label() ?? this.texts().segmented.label,
   );
 
+  protected readonly activeIndex = computed(() =>
+    this.items().findIndex((item) => item.active),
+  );
+
   constructor() {
     const observer = inject(ElementObserverService);
     let isLaidOut = false;

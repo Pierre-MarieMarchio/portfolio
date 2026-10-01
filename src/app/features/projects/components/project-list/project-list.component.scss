@@ -142,6 +142,16 @@ $cards-below: 500px;
   }
 }
 
+@include formats.phone {
+  .rows {
+    min-height: 100%;
+    touch-action: pan-y;
+    translate: calc(var(--swipe-pane) * 100%);
+    opacity: calc(1 - var(--swipe-pane) * var(--swipe-pane) * 0.6);
+    transition: all var(--swipe-t) var(--ease);
+  }
+}
+
 @include motion.reduced {
   .row {
     transition: none;

@@ -37,19 +37,20 @@ button {
     color var(--t-duration),
     background var(--t-duration),
     filter var(--t-duration);
+  --gap: calc(var(--i) - var(--swipe-at, var(--at)));
+  --lit: max(0, 1 - max(var(--gap), var(--gap) * -1));
 
-  &[data-active='true'] {
-    @include controls.lit;
-  }
+  color: color-mix(in oklab, var(--ink) calc(var(--lit) * 100%), var(--ink-2));
+  background: color-mix(
+    in oklab,
+    var(--vitre-2) calc(var(--lit) * 100%),
+    transparent
+  );
 }
 
 .count {
   font-size: var(--m1);
-  color: var(--ink-2);
-
-  [data-active='true'] > & {
-    color: var(--sig);
-  }
+  color: color-mix(in oklab, var(--sig) calc(var(--lit) * 100%), var(--ink-2));
 }
 
 @include formats.handheld {

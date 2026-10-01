@@ -11,7 +11,7 @@ import { DisplayFormatService } from '@app/core/services';
 import { OBSERVATORY_TEXTS } from '../../ports/observatory-texts.port';
 import { Entrance } from '@shared/ui/models';
 import { ViewHeadingDirective } from '@shared/ui/directives';
-import { WindowGripComponent } from '@shared/windows/components/window-grip/window-grip.component';
+import { WindowGripComponent } from '@shared/windows/components';
 import { WINDOW_FOLD } from '@shared/windows/ports';
 import { OBSERVATORY_IDS } from '../../models/observatory-ids.model';
 

@@ -20,6 +20,7 @@ import {
   ObservatorySceneComponent,
 } from '@app/features/observatory/components';
 import {
+  ProjectSheetDirective,
   ViewSlotDirective,
   WindowSheetDirective,
 } from '@app/features/observatory/directives';
@@ -123,6 +124,7 @@ interface SheetOnShow {
     ProjectDetailComponent,
     ProjectListComponent,
     ProjectPreviewComponent,
+    ProjectSheetDirective,
     StackedWindowDirective,
     WindowCycleDirective,
     WindowFrameDirective,
@@ -274,9 +276,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     const windows = inject(ViewWindowsService);
     effect(() => {
       if (this.arrival() === 'shown') {
-        untracked(() => {
-          windows.prepareWhenIdle();
-        });
+        untracked(() => windows.prepareWhenIdle());
       }
     });
     afterNextRender(() => {

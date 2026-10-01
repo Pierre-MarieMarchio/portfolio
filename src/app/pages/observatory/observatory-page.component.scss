@@ -49,10 +49,6 @@ main {
   animation: rise 1100ms 200ms both;
 }
 
-.rule {
-  @include controls.divider;
-}
-
 .void {
   inset: 0;
   z-index: var(--z-scene);
@@ -119,7 +115,7 @@ $index-width: min(78ch, max(56vw, 320px));
 }
 
 $dock-reserve: calc(var(--target) + 2 * var(--s1));
-$contact-room: calc(3 * var(--target) + 3 * var(--s1));
+$contact-room: calc(3 * (var(--target) + var(--s1)));
 
 @include formats.phone {
   :host {
@@ -138,6 +134,7 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
     flex-wrap: nowrap;
     justify-content: flex-start;
     gap: var(--s1);
+    min-height: calc(var(--target) + var(--s2));
     padding: var(--s1);
     border: 0;
     background: linear-gradient(var(--paper), transparent);
@@ -174,10 +171,6 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
     right: 0;
     padding-right: #{$contact-room};
     animation-name: appear;
-  }
-
-  .rule {
-    display: none;
   }
 
   .slot {

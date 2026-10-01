@@ -5,7 +5,12 @@ import {
   HeldInertDirective,
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
-import { Entrance, RailAction, SocialLink } from '@shared/ui/models';
+import {
+  Entrance,
+  LanguageItem,
+  RailAction,
+  SocialLink,
+} from '@shared/ui/models';
 import { CONTACT_ADDRESSES, CONTACT_EMAIL, COPY_ICON } from '../../data';
 import { PROFILE_TEXTS } from '../../ports';
 import { CopyFeedbackService } from '../../services/copy-feedback.service';
@@ -25,6 +30,7 @@ import { ContactMenuComponent } from '../contact-menu/contact-menu.component';
 })
 export class ContactLinksComponent {
   public readonly arrival = input.required<Entrance>();
+  public readonly languages = input<readonly LanguageItem[]>([]);
 
   private readonly feedback = inject(CopyFeedbackService);
   protected readonly texts = inject(PROFILE_TEXTS);
@@ -36,6 +42,10 @@ export class ContactLinksComponent {
       ...address,
       label: this.texts().contact[address.icon],
     })),
+  );
+
+  protected readonly language = computed(
+    () => this.languages().find((language) => !language.current) ?? null,
   );
 
   protected readonly copyAction = computed<RailAction>(() => ({

@@ -2943,3 +2943,33 @@ la nouvelle clé et on met la variable à jour.
 **Écarté.** Accepter la clé au premier contact à chaque déploiement
 (`ssh-keyscan` dans le job) : un intermédiaire présent à ce moment serait
 accepté.
+
+## 2026-10-02 — Une branche `dev` déploie un staging protégé par mot de passe, sous `/staging/` (D98, étend D95 et D97)
+
+**Décision.** Les PR vont dans `dev` ; une PR générale `dev → main` publie.
+Un push sur `dev` déploie le staging, un push sur `main` la production ; un
+seul job `deploy`, paramétré par la cible, avec un groupe de concurrence par
+cible. Le staging vit sous un chemin de la production,
+`https://pm-marchio.fr/staging/` : construit avec la base `/staging/` et
+`STAGING_SITE_URL`, envoyé dans `www/staging`, et fermé par son propre
+`.htaccess` : authentification HTTP Basic (fichier htpasswd généré par la CI
+depuis les secrets `STAGING_USER` et `STAGING_PASSWORD`, déposé hors de
+`www`), `X-Robots-Tag: noindex, nofollow`, pages introuvables réécrites vers
+`/staging/404.html` et `/staging/en/404.html`, `robots.txt` qui interdit tout,
+pas de sitemap. Le miroir de la production exclut ce dossier de son
+`--delete`, jusqu'au premier dossier que le site n'a pas.
+
+**Raison.** L'opérateur veut voir et faire voir une version avant de la
+publier, sans que le public ni les moteurs y accèdent. L'hébergement gratuit
+d'OVH n'accepte qu'un seul site : un sous-domaine de staging n'a pas pu être
+ajouté. Sans l'exclusion, chaque déploiement de la production effacerait le
+staging. Vérifié avec un vrai serveur SFTP et `lftp` 4.9 dans Docker, en
+exécutant les blocs du workflow : le staging survit à la production, un
+fichier en trop à la racine part, la garde refuse tout dossier hors de la
+production ; et dans Apache 2.4 : 401 sans identifiants, 200 et
+`X-Robots-Tag` avec, 404 du staging en français et en anglais, production
+publique. Un build réel sous `/staging/` s'ouvre sans erreur, liens et
+canonical sous `/staging/`.
+
+**Écarté.** Un sous-domaine (offre gratuite) ou un second hébergement payant.
+Un staging seulement `noindex` : quiconque devine l'adresse le verrait.

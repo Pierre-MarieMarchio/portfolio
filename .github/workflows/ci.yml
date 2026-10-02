@@ -1,12 +1,14 @@
-# Every pull request and every push to main runs the same checks as a local
-# `npm run check`, split into jobs that run side by side. The site is built
-# once; the deploy job ships that very artifact to the OVH hosting over SFTP.
+# Every pull request and every push to main or dev runs the same checks as a
+# local `npm run check`, split into jobs that run side by side. The site is
+# built once; the deploy job ships that very artifact to the OVH hosting over
+# SFTP: a push to dev feeds the password-protected staging, a push to main the
+# production.
 name: CI
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
@@ -18,10 +20,12 @@ concurrency:
   cancel-in-progress: true
 
 # Where the site lives. Repository variables override them, so a new domain
-# or a VPS needs no change here.
+# or a VPS needs no change here. The free OVH plan hosts a single site, so the
+# staging has no host of its own: on dev the site is built for a path of the
+# production host.
 env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://pierre-mariemarchio.github.io/portfolio' }}
-  BASE_HREF: ${{ vars.BASE_HREF || '/portfolio/' }}
+  SITE_URL: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL || 'https://pierre-mariemarchio.github.io/portfolio' }}
+  BASE_HREF: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_BASE_HREF || '/staging/') || vars.BASE_HREF || '/portfolio/' }}
 
 jobs:
   lint:
@@ -99,29 +103,46 @@ jobs:
           args: -Dsonar.qualitygate.wait=true
 
   deploy:
-    name: Deploy to OVH
+    name: Deploy to OVH (${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }})
     needs: [lint, build, sonar]
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    # Two deployments racing would leave whichever finishes last.
+    # Shows the site in the repository's Deployments panel.
+    environment:
+      name: ${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }}
+      url: ${{ github.ref == 'refs/heads/dev' && format('{0}/', vars.STAGING_SITE_URL) || vars.SITE_URL }}
+    # Two deployments to the same target racing would leave whichever finishes
+    # last. Staging and production have their own group: neither waits for the
+    # other.
     concurrency:
-      group: deploy
+      group: deploy-${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }}
       cancel-in-progress: false
     env:
+      TARGET: ${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }}
       FTP_SERVER: ${{ secrets.FTP_SERVER }}
       FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
       FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || 'www' }}
+      PRODUCTION_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || 'www' }}
+      STAGING_REMOTE_DIR: ${{ vars.STAGING_REMOTE_DIR || 'www/staging' }}
+      FTP_REMOTE_DIR: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_REMOTE_DIR || 'www/staging') || vars.FTP_REMOTE_DIR || 'www' }}
       SFTP_KNOWN_HOSTS: ${{ vars.SFTP_KNOWN_HOSTS }}
     steps:
       # Without SITE_URL the build would ship the GitHub Pages address in its
       # canonical links and its sitemap, and a deploy would publish it.
       - name: Require the site address and the SFTP access
         env:
-          SITE_URL_VARIABLE: ${{ vars.SITE_URL }}
+          SITE_URL_VARIABLE: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL }}
+          STAGING_USER: ${{ github.ref == 'refs/heads/dev' && secrets.STAGING_USER || '' }}
+          STAGING_PASSWORD: ${{ github.ref == 'refs/heads/dev' && secrets.STAGING_PASSWORD || '' }}
         run: |
           missing=""
-          [ -n "$SITE_URL_VARIABLE" ] || missing="$missing variable:SITE_URL"
+          if [ "$TARGET" = "staging" ]; then
+            [ -n "$SITE_URL_VARIABLE" ] || missing="$missing variable:STAGING_SITE_URL"
+            [ -n "$STAGING_USER" ] || missing="$missing secret:STAGING_USER"
+            [ -n "$STAGING_PASSWORD" ] || missing="$missing secret:STAGING_PASSWORD"
+          else
+            [ -n "$SITE_URL_VARIABLE" ] || missing="$missing variable:SITE_URL"
+          fi
           [ -n "$FTP_SERVER" ] || missing="$missing secret:FTP_SERVER"
           [ -n "$FTP_USERNAME" ] || missing="$missing secret:FTP_USERNAME"
           [ -n "$FTP_PASSWORD" ] || missing="$missing secret:FTP_PASSWORD"
@@ -140,7 +161,74 @@ jobs:
             echo "::error::site/.htaccess is missing from the artifact: hidden files were not uploaded"
             exit 1
           fi
+      # The staging is for the operator only. Basic authentication goes first
+      # in the .htaccess, so nothing is served before it. AuthUserFile must be
+      # an absolute path on the host, and it lives outside the served folder:
+      # the password file is never reachable by URL. The noindex header and
+      # the closed robots.txt keep search engines out, and the sitemap, which
+      # would list the staging pages, is dropped.
+      # The staging is served from a folder of the production site, so the
+      # .htaccess of the build, written for a site at the root, is rewritten
+      # for that path: Apache resolves an ErrorDocument from the host root, and
+      # the English 404 condition tests the full request path. The other rules
+      # (HTTPS, host, cache) apply unchanged in the folder, which has its own
+      # .htaccess.
+      - name: Close the staging
+        if: env.TARGET == 'staging'
+        env:
+          STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH || '/home/pmmarcc/.htpasswd-staging' }}
+          STAGING_BASE_HREF: ${{ vars.STAGING_BASE_HREF || '/staging/' }}
+        run: |
+          if ! [[ "$STAGING_HTPASSWD_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+            echo "::error::STAGING_HTPASSWD_PATH must be an absolute path made of letters, digits, . _ - and /, got: $STAGING_HTPASSWD_PATH"
+            exit 1
+          fi
+          if ! [[ "$STAGING_BASE_HREF" =~ ^/[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*/$ ]]; then
+            echo "::error::STAGING_BASE_HREF must be a path under the host root, with a leading and a trailing slash, got: $STAGING_BASE_HREF"
+            exit 1
+          fi
+          sed -i \
+            -e "s|^ErrorDocument 404 /404.html\$|ErrorDocument 404 ${STAGING_BASE_HREF}404.html|" \
+            -e "s|^  ErrorDocument 404 /en/404.html\$|  ErrorDocument 404 ${STAGING_BASE_HREF}en/404.html|" \
+            -e "s|m#^/en/#|m#^${STAGING_BASE_HREF}en/#|" \
+            site/.htaccess
+          for expected in "ErrorDocument 404 ${STAGING_BASE_HREF}404.html" "ErrorDocument 404 ${STAGING_BASE_HREF}en/404.html" "m#^${STAGING_BASE_HREF}en/#"; do
+            if ! grep -qF -- "$expected" site/.htaccess; then
+              echo "::error::site/.htaccess no longer has the rule to rewrite for the staging path: $expected"
+              exit 1
+            fi
+          done
+          {
+            echo "AuthType Basic"
+            echo "AuthName \"Staging\""
+            echo "AuthUserFile $STAGING_HTPASSWD_PATH"
+            echo "Require valid-user"
+            echo
+            echo "<IfModule mod_headers.c>"
+            echo "  Header always set X-Robots-Tag \"noindex, nofollow\""
+            echo "</IfModule>"
+            echo
+            cat site/.htaccess
+          } > "$RUNNER_TEMP/htaccess-staging"
+          cat "$RUNNER_TEMP/htaccess-staging" > site/.htaccess
+          rm -f "$RUNNER_TEMP/htaccess-staging"
+          printf 'User-agent: *\nDisallow: /\n' > site/robots.txt
+          rm -f site/sitemap.xml
       - run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends lftp
+      - name: Install htpasswd
+        if: env.TARGET == 'staging'
+        run: sudo apt-get install --yes --no-install-recommends apache2-utils
+      # The password is read from the environment and piped in, never put on a
+      # command line. bcrypt hash; the file is readable by the web server,
+      # which runs as another user than the SFTP account.
+      - name: Generate the staging password file
+        if: env.TARGET == 'staging'
+        env:
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_PASSWORD: ${{ secrets.STAGING_PASSWORD }}
+        run: |
+          printf '%s' "$STAGING_PASSWORD" | htpasswd -niB "$STAGING_USER" > "$RUNNER_TEMP/htpasswd-staging"
+          chmod 644 "$RUNNER_TEMP/htpasswd-staging"
       # The mirror makes the remote folder the exact copy of the artifact,
       # deleting what it no longer holds. The remote folder is given without
       # a trailing slash: lftp puts the source folder inside a destination
@@ -153,7 +241,18 @@ jobs:
       # The user name is quoted in a file lftp reads; the password stays out of
       # it and out of the command line, lftp takes it from LFTP_PASSWORD
       # (--env-password).
+      # The free plan hosts a single site, so the staging folder lives inside
+      # the production folder. The production mirror --delete would wipe it as
+      # unknown content: it excludes the staging folder, relative to the
+      # production folder, so it neither deletes nor uploads it. A staging
+      # folder nested deeper is protected from its first folder that the site
+      # does not hold, since mirror deletes such a folder as a whole. In turn,
+      # the staging mirror must stay inside its own folder: that folder is a
+      # subfolder of the production one, never the production folder itself,
+      # which --delete would empty of the production site.
       - name: Mirror the site over SFTP
+        env:
+          STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH || '/home/pmmarcc/.htpasswd-staging' }}
         run: |
           umask 077
           known_hosts="$RUNNER_TEMP/known_hosts"
@@ -164,14 +263,38 @@ jobs:
             echo "::error::FTP_REMOTE_DIR must name a folder under the login directory, got: $FTP_REMOTE_DIR"
             exit 1
           fi
+          production_dir=$(printf '%s' "$PRODUCTION_REMOTE_DIR" | sed 's|/*$||')
+          staging_dir=$(printf '%s' "$STAGING_REMOTE_DIR" | sed 's|/*$||')
+          staging_inside=no
+          if [[ "$staging_dir" == "$production_dir"/* ]] && [[ "$staging_dir" != *..* ]] && [[ "${staging_dir#"$production_dir"/}" =~ ^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$ ]]; then
+            staging_inside=yes
+          fi
+          if [ "$TARGET" = "staging" ] && [ "$staging_inside" != "yes" ]; then
+            echo "::error::STAGING_REMOTE_DIR must be a folder inside the production folder $production_dir, got: $STAGING_REMOTE_DIR"
+            exit 1
+          fi
+          exclude=""
+          if [ "$TARGET" = "production" ] && [ "$staging_inside" = "yes" ]; then
+            staging_relative="${staging_dir#"$production_dir"/}"
+            protected=""
+            for part in ${staging_relative//\// }; do
+              protected="${protected:+$protected/}$part"
+              [ -e "site/$protected" ] || break
+            done
+            exclude="--exclude \"^$(printf '%s' "$protected" | sed 's/[.]/\\&/g')(/|\$)\""
+          fi
           quoted_user=$(printf '%s' "$FTP_USERNAME" | sed 's/[\\"]/\\&/g')
           {
             echo "set cmd:fail-exit yes"
             echo "set sftp:connect-program \"ssh -a -x -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$known_hosts\""
             echo "set net:max-retries 3"
             echo "open --env-password -u \"$quoted_user\" \"sftp://$FTP_SERVER\""
+            if [ "$TARGET" = "staging" ]; then
+              echo "put \"$RUNNER_TEMP/htpasswd-staging\" -o \"$STAGING_HTPASSWD_PATH\""
+              echo "chmod 644 \"$STAGING_HTPASSWD_PATH\""
+            fi
             echo "rm -f \"$remote_dir/index.html\""
-            echo "mirror --reverse --delete --verbose=1 site \"$remote_dir\""
+            echo "mirror --reverse --delete --verbose=1 $exclude site \"$remote_dir\""
           } > "$RUNNER_TEMP/lftp-script"
           LFTP_PASSWORD="$FTP_PASSWORD" lftp -f "$RUNNER_TEMP/lftp-script"
-          rm -f "$RUNNER_TEMP/lftp-script" "$known_hosts"
+          rm -f "$RUNNER_TEMP/lftp-script" "$known_hosts" "$RUNNER_TEMP/htpasswd-staging"

@@ -192,7 +192,7 @@ describe('ProjectListComponent', () => {
     const { host, texts } = await mount();
     const heading = host.querySelector('h1');
 
-    expect(heading?.getAttribute('tabindex')).toBe('-1');
+    expect(heading?.hasAttribute('tabindex')).toBe(false);
     expect(heading?.textContent?.trim()).toBe(texts.title('05'));
   });
 

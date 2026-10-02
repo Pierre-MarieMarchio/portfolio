@@ -2992,3 +2992,23 @@ place par défaut est déjà au-dessus du rail.
 
 **Écarté.** Garder le moindre recouvrement comme repli : c'est lui que
 l'opérateur a nommé.
+
+## 2026-10-03 — Après une navigation, le focus va au titre visible de la fenêtre (D100, complète D68)
+
+**Décision.** Les titres masqués de la liste des projets, de l'à-propos et de
+l'aperçu (`.landing`) ne réclament plus le focus. Après une navigation, le
+focus va au titre enregistré de la fenêtre s'il en a un (fiche, accueil, 404,
+tous visibles), sinon à son titre visible `[data-window-title]`, qui porte
+l'anneau `:focus-visible` du site. La page garde une seule `h1`, qui reste
+dans le document. Le premier chargement ne pose toujours pas de focus (D6).
+
+**Raison.** Relevé par la persona du lot C : le focus tombait sur un élément
+invisible, sans anneau, et la personne au clavier ne savait plus où elle
+était. Le titre de la fenêtre est ce qu'elle voit, et il est annoncé à
+l'arrivée. Toute fenêtre future sans titre enregistré reçoit le même repli.
+Au téléphone, le même mécanisme vise désormais le titre visible de la
+feuille ; rien ne change à l'écran hors du focus au clavier.
+
+**Écarté.** Montrer un anneau autour du titre masqué : il n'a pas de boîte à
+entourer. Un réglage par fenêtre dans la directive : il dépassait le budget
+du bundle initial (+0,06 à +0,31 kB) pour le même résultat.

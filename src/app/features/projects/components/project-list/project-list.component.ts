@@ -12,17 +12,13 @@ import { ProjectsManager } from '../../states';
 import { LINKS } from '@app/features/common';
 import { PROJECTS_TEXTS } from '../../ports';
 import { positionOf, rowLabel } from '../../rules/project-labels.rules';
-import {
-  HoverFocusDirective,
-  ViewHeadingDirective,
-} from '@shared/ui/directives';
+import { HoverFocusDirective } from '@shared/ui/directives';
 
 @Component({
   selector: 'app-project-list',
   imports: [
     HoverFocusDirective,
     NgTemplateOutlet,
-    ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,
     SwipeStepsDirective,

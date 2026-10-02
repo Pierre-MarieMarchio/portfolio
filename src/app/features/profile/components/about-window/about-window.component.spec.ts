@@ -112,12 +112,12 @@ describe('AboutWindowComponent', () => {
   });
 
   it.each([0, 1, 2, 3])(
-    'titles the focusable h1 after part %i',
+    'titles the h1, left to the window title for the focus, after part %i',
     async (part) => {
       const { host, about, parts } = await mount({ part });
       const h1 = host.querySelector('h1');
 
-      expect(h1?.getAttribute('tabindex')).toBe('-1');
+      expect(h1?.hasAttribute('tabindex')).toBe(false);
       expect(h1?.textContent?.trim()).toBe(
         about.title(parts[part]?.title ?? ''),
       );

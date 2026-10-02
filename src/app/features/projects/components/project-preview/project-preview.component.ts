@@ -2,7 +2,6 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisplayFormatService } from '@app/core/services';
-import { ViewHeadingDirective } from '@shared/ui/directives';
 import { WindowComponent } from '@shared/windows/components';
 import { RankedProject } from '../../models';
 import { ProjectsManager } from '../../states';
@@ -17,12 +16,7 @@ interface Neighbours {
 
 @Component({
   selector: 'app-project-preview',
-  imports: [
-    NgTemplateOutlet,
-    RouterLink,
-    ViewHeadingDirective,
-    WindowComponent,
-  ],
+  imports: [NgTemplateOutlet, RouterLink, WindowComponent],
   templateUrl: './project-preview.component.html',
   styleUrl: './project-preview.component.scss',
 })

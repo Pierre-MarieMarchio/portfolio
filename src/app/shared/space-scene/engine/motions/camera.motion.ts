@@ -50,27 +50,25 @@ interface CameraPose {
   readonly figures: number;
 }
 
+type MutablePose = { -readonly [K in keyof CameraPose]: number };
+
+const poseOf = (value: number): MutablePose => ({
+  roll: value,
+  scale: value,
+  camX: value,
+  camY: value,
+  elev: value,
+  azim: value,
+  marks: value,
+  figures: value,
+});
+
+const eased = (value: number, target: number, step: number): number =>
+  value + (target - value) * step;
+
 export class CameraMotion {
-  private readonly now: { -readonly [K in keyof CameraPose]: number } = {
-    roll: NaN,
-    scale: NaN,
-    camX: NaN,
-    camY: NaN,
-    elev: NaN,
-    azim: NaN,
-    marks: NaN,
-    figures: NaN,
-  };
-  private readonly was: { -readonly [K in keyof CameraPose]: number } = {
-    roll: 0,
-    scale: 0,
-    camX: 0,
-    camY: 0,
-    elev: 0,
-    azim: 0,
-    marks: 0,
-    figures: 0,
-  };
+  private readonly now = poseOf(NaN);
+  private readonly was = poseOf(0);
   private readonly lights: number[] = [];
   private readonly restFrame: { -readonly [K in keyof Frame]: Frame[K] } = {
     ...REST_FRAME,
@@ -155,27 +153,22 @@ export class CameraMotion {
   public update(dt: number, target: Frame, state: SceneState): void {
     const isReduced = state.reduced;
     const aim = this.aimed(target);
-    const marks = state.marksShown ? 1 : 0;
-    const lit = clamp(state.litFigure, 0, CONSTELLATIONS.length - 1);
-    const figures = state.figuresShown ? 1 : 0;
-    if (this.lights.length === 0) {
-      for (let k = 0; k < CONSTELLATIONS.length; k++) {
-        this.lights.push(k === lit ? 1 : 0);
-      }
-    }
-    this.startOn(aim, marks, figures);
+    const marksTarget = state.marksShown ? 1 : 0;
+    const figuresTarget = state.figuresShown ? 1 : 0;
+    const litIndex = clamp(state.litFigure, 0, CONSTELLATIONS.length - 1);
+    this.seedLights(litIndex);
+    this.startOn(aim, marksTarget, figuresTarget);
     this.left = this.distanceTo(aim);
     this.rememberPose();
-    const kc = isReduced ? 1 : halfLifeStep(dt, 0.55);
+    const easeStep = isReduced ? 1 : halfLifeStep(dt, 0.55);
     const hasRestMoved = this.easeRest(dt, isReduced);
     this.ease(
       aim,
-      turnPaceOf(aim.az - this.now.azim, kc, turnLimitOf(state, dt)),
+      turnPaceOf(aim.az - this.now.azim, easeStep, turnLimitOf(state, dt)),
     );
     this.isArrived = this.distanceTo(aim) < ARRIVED_WITHIN;
-    this.now.marks += (marks - this.now.marks) * kc;
-    this.now.figures += (figures - this.now.figures) * kc;
-    const lightTravel = this.light(lit, kc);
+    this.easeVisibility(marksTarget, figuresTarget, easeStep);
+    const lightTravel = this.light(litIndex, easeStep);
     this.isMoving =
       hasRestMoved || this.poseTravel() + lightTravel > STILL_WITHIN;
   }
@@ -203,6 +196,24 @@ export class CameraMotion {
     frame.lit = this.lights;
   }
 
+  private seedLights(litIndex: number): void {
+    if (this.lights.length > 0) {
+      return;
+    }
+    for (let k = 0; k < CONSTELLATIONS.length; k++) {
+      this.lights.push(k === litIndex ? 1 : 0);
+    }
+  }
+
+  private easeVisibility(
+    marksTarget: number,
+    figuresTarget: number,
+    easeStep: number,
+  ): void {
+    this.now.marks = eased(this.now.marks, marksTarget, easeStep);
+    this.now.figures = eased(this.now.figures, figuresTarget, easeStep);
+  }
+
   private aimed(target: Frame): Frame {
     const aim = isFiniteFrame(target) ? target : this.restFrame;
     return Number.isFinite(this.now.azim)
@@ -210,7 +221,11 @@ export class CameraMotion {
       : aim;
   }
 
-  private startOn(aim: Frame, marks: number, figures: number): void {
+  private startOn(
+    aim: Frame,
+    marksTarget: number,
+    figuresTarget: number,
+  ): void {
     const now = this.now;
     now.roll = finiteOr(now.roll, aim.i);
     now.scale = finiteOr(now.scale, aim.s);
@@ -218,8 +233,8 @@ export class CameraMotion {
     now.camY = finiteOr(now.camY, aim.y);
     now.elev = finiteOr(now.elev, aim.ev);
     now.azim = finiteOr(now.azim, aim.az);
-    now.marks = finiteOr(now.marks, marks);
-    now.figures = finiteOr(now.figures, figures);
+    now.marks = finiteOr(now.marks, marksTarget);
+    now.figures = finiteOr(now.figures, figuresTarget);
   }
 
   private distanceTo(aim: Frame): number {
@@ -239,42 +254,30 @@ export class CameraMotion {
     if (!measure) {
       return false;
     }
-    const km = isReduced ? 1 : halfLifeStep(dt, 0.75);
+    const easeStep = isReduced ? 1 : halfLifeStep(dt, 0.75);
     const rest = this.restFrame;
     let travelled = 0;
     for (const key of REST_KEYS) {
-      const step = (measure[key] - rest[key]) * km;
+      const step = (measure[key] - rest[key]) * easeStep;
       rest[key] += step;
       travelled += Math.abs(step);
     }
     return travelled > STILL_WITHIN;
   }
 
-  private ease(aim: Frame, kc: number): void {
+  private ease(aim: Frame, easeStep: number): void {
     const now = this.now;
     const dims = this.dims;
     const unit = dims ? unitRadiusOf(dims.w, dims.h) / dims.dpr : null;
     const radius = unit === null ? null : unit * finiteOr(now.scale, aim.s);
     const widthPx = dims ? dims.w / dims.dpr : null;
     const heightPx = dims ? dims.h / dims.dpr : null;
-    now.roll = this.settled(now.roll + (aim.i - now.roll) * kc, aim.i, radius);
-    now.scale = this.settled(now.scale + (aim.s - now.scale) * kc, aim.s, unit);
-    now.camX = this.settled(now.camX + (aim.x - now.camX) * kc, aim.x, widthPx);
-    now.camY = this.settled(
-      now.camY + (aim.y - now.camY) * kc,
-      aim.y,
-      heightPx,
-    );
-    now.elev = this.settled(
-      now.elev + (aim.ev - now.elev) * kc,
-      aim.ev,
-      radius,
-    );
-    now.azim = this.settled(
-      now.azim + (aim.az - now.azim) * kc,
-      aim.az,
-      radius,
-    );
+    now.roll = this.settled(eased(now.roll, aim.i, easeStep), aim.i, radius);
+    now.scale = this.settled(eased(now.scale, aim.s, easeStep), aim.s, unit);
+    now.camX = this.settled(eased(now.camX, aim.x, easeStep), aim.x, widthPx);
+    now.camY = this.settled(eased(now.camY, aim.y, easeStep), aim.y, heightPx);
+    now.elev = this.settled(eased(now.elev, aim.ev, easeStep), aim.ev, radius);
+    now.azim = this.settled(eased(now.azim, aim.az, easeStep), aim.az, radius);
   }
 
   private settled(
@@ -285,11 +288,11 @@ export class CameraMotion {
     return pxPerUnit === null ? eased : settledStep(eased, target, pxPerUnit);
   }
 
-  private light(lit: number, kc: number): number {
+  private light(litIndex: number, easeStep: number): number {
     const lights = this.lights;
     let travelled = 0;
     for (let k = 0; k < lights.length; k++) {
-      const step = ((k === lit ? 1 : 0) - (lights[k] ?? 0)) * kc;
+      const step = ((k === litIndex ? 1 : 0) - (lights[k] ?? 0)) * easeStep;
       lights[k] = (lights[k] ?? 0) + step;
       travelled += Math.abs(step);
     }

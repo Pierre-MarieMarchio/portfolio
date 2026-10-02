@@ -35,6 +35,7 @@ describe('sceneDirectionOf', () => {
       presence: 'held',
       labels: 'names',
       emphasised: null,
+      aimed: null,
       ringed: null,
       turnable: true,
       figuresShown: false,
@@ -80,6 +81,22 @@ describe('sceneDirectionOf', () => {
       sceneDirectionOf(scene('home', { designated: 'voice' })).emphasised,
     ).toBeNull();
     expect(sceneDirectionOf(scene('index', onPhone)).emphasised).toBeNull();
+  });
+
+  it('names the planet that is passed over on a phone without aiming the camera at it', () => {
+    const onPhone = { phone: true, designated: 'voice' };
+
+    expect(
+      sceneDirectionOf(scene('home', { ...onPhone, hovered: 'app' })),
+    ).toMatchObject({ emphasised: 'app', aimed: 'voice' });
+    expect(sceneDirectionOf(scene('home', onPhone)).aimed).toBe('voice');
+  });
+
+  it('aims the camera at the planet that is hovered, off a phone', () => {
+    expect(
+      sceneDirectionOf(scene('home', { hovered: 'app', designated: 'voice' }))
+        .aimed,
+    ).toBe('app');
   });
 
   it('closes up on the planet of the preview, on the home page only', () => {

@@ -27,6 +27,7 @@ import type {
   HoleFocus,
 } from '../../hole-focus.rules';
 import type { phoneFigures } from '../../figures/phone-figures.rules';
+import { isSameList } from '../../planets/same-nodes.rules';
 import { MirrorTurn, NO_ROOM, RoomMemo } from '../../rooms/window-room.rules';
 
 export interface HoleFocusRules {
@@ -77,12 +78,24 @@ export const framingScene = (
   nameOf,
 });
 
+const boxKey = (box: Box): string =>
+  `${String(box.left)},${String(box.top)},${String(box.right)},${String(box.bottom)}`;
+
 export const skyRoomsOf = (
   scene: FramingScene,
   rules: HoleFocusRules,
 ): readonly Box[] => {
   if (scene.sky.layout !== scene.layout) {
-    scene.sky = { layout: scene.layout, rooms: rules.skyRooms(scene.layout) };
+    const rooms = rules.skyRooms(scene.layout);
+    scene.sky = {
+      layout: scene.layout,
+      rooms: isSameList(
+        rooms.map((room) => boxKey(room)),
+        scene.sky.rooms.map((room) => boxKey(room)),
+      )
+        ? scene.sky.rooms
+        : rooms,
+    };
   }
   return scene.sky.rooms;
 };
@@ -93,7 +106,7 @@ const aimedRank = (state: SceneState): number => {
       return state.ringed;
     }
     case 'rest': {
-      return state.emphasised;
+      return state.aimed;
     }
     default: {
       return state.framed;

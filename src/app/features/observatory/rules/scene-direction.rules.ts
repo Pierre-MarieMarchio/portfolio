@@ -78,12 +78,14 @@ function homeDirection(
   shared: SceneDirection,
 ): SceneDirection {
   const isNamedByRule = scene.phone && scene.preview === null;
+  const designated = isNamedByRule ? scene.designated : null;
   return {
     ...shared,
     framing: homeFraming(scene.preview),
     presence: scene.revealed ? 'shown' : 'held',
     labels: isNamedByRule ? 'none' : 'names',
-    emphasised: scene.hovered ?? (isNamedByRule ? scene.designated : null),
+    emphasised: scene.hovered ?? designated,
+    aimed: designated ?? scene.hovered,
   };
 }
 

@@ -2571,3 +2571,35 @@ bundle initial passe de 532,08 à 532,47 kB.
 `app/`) : une zone de plus pour deux fichiers, que l'opérateur a refusée.
 Garder le provider à la racine de l'injection : la page est le seul arbre qui
 utilise la librairie.
+
+## 2026-09-29 — Au téléphone, une feuille se reconnaît, et le retour la baisse avant de quitter la page (D84, amende D57, D60 et D64)
+
+**Décision.** Le haut de chaque feuille du téléphone porte une poignée de
+36 × 5 px (contraste 5,07:1 contre la feuille), des coins supérieurs arrondis
+(16 px), une surface plus claire que le ciel et une ombre vers le haut ;
+toucher la poignée bascule la feuille, sous le nom « Baisser la fenêtre » /
+« Remonter la fenêtre » déjà au catalogue. La barre garde le titre à gauche et
+la croix : l'épingle, le chevron de repli et le compteur de la liste partent
+au téléphone (les textes devenus morts sortent des deux catalogues). Une
+feuille montée au plein prend une couche de retour : le retour la baisse à
+mi-hauteur sans changer d'adresse ; à mi-hauteur ou repliée, il suit
+l'historique. `BackLayersService.claim` crée un `CloseWatcher` par couche là
+où le navigateur en a un (Chrome Android), une entrée d'historique ailleurs ;
+une navigation du routeur relâche la couche dans les deux cas, pour qu'une
+feuille cachée par un changement d'onglet ne capte pas le retour suivant.
+`push` reste celui du `<dialog>`. Une feuille `transient` émet `dismissed`
+quand on la tire de 64 px vers le bas depuis son cran le plus bas.
+
+**Raison.** ETUDE P4 : un haut de feuille invisible (poignée 32 × 3 px en
+`--line`, coins à 3 px, pas d'ombre) ne dit pas qu'on peut le tirer, et trois
+boutons plus un compteur chargent la barre. Sur Chrome Android, `push` ne
+faisait rien puisque le navigateur ferme lui-même le `<dialog>` : aucune
+feuille ne répondait au retour, qui faisait quitter le site. Le `<dialog>`
+garde sa fermeture native ; un second chemin (`claim`) évite qu'un watcher du
+dépôt la concurrence. La barre de la feuille prend 14 px de plus pour loger la
+poignée ; la transition de couleur de la poignée est retirée pour tenir le
+budget de style du composant (4 kB).
+
+**Écarté.** Garder l'épingle au téléphone : le modèle d'interaction ne garde
+pas de fenêtres au téléphone, on tire ou on touche la poignée. Une poignée
+dessinée en image de fond : elle ne se touche pas et n'a pas de nom.

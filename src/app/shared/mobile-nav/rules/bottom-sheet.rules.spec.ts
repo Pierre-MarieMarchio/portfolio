@@ -1,5 +1,11 @@
 import type { SheetDetent, SheetStop } from '../models/bottom-sheet.model';
-import { detentAfter, speedOf, stopOf, stopsOf } from './bottom-sheet.rules';
+import {
+  detentAfter,
+  isDismissedBy,
+  speedOf,
+  stopOf,
+  stopsOf,
+} from './bottom-sheet.rules';
 
 const THREE: readonly SheetStop[] = [
   { detent: 'folded', at: 0 },
@@ -129,4 +135,30 @@ describe('speedOf', () => {
       expect(speedOf(samples, at)).toBeCloseTo(speed);
     },
   );
+});
+
+describe('isDismissedBy', () => {
+  it.each<[SheetDetent, number, number, boolean]>([
+    ['folded', 0, 64, true],
+    ['folded', 0, 200, true],
+    ['folded', 0, 63, false],
+    ['folded', 0, -100, false],
+    ['folded', 30, 100, false],
+    ['half', 260, 100, false],
+    ['full', 660, 100, false],
+  ])(
+    'three stops: from %s, at %d px, after a pull of %d px, is %s',
+    (origin, top, pull, dismissed) => {
+      expect(isDismissedBy(THREE, origin, top, pull)).toBe(dismissed);
+    },
+  );
+
+  it('never dismisses a sheet without stops', () => {
+    expect(isDismissedBy([], 'folded', 0, 200)).toBe(false);
+  });
+
+  it('takes the lowest of two stops for the one to dismiss from', () => {
+    expect(isDismissedBy(TWO, 'folded', 0, 80)).toBe(true);
+    expect(isDismissedBy(TWO, 'half', 300, 80)).toBe(false);
+  });
 });

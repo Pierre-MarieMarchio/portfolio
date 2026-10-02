@@ -30,9 +30,34 @@ export class BackLayersService {
   }
 
   public push(onBack: () => void): () => void {
-    if (this.platform.closesOnBack()) {
-      return ignore;
-    }
+    return this.platform.closesOnBack() ? ignore : this.stack(onBack);
+  }
+
+  public claim(onBack: () => void): () => void {
+    return this.platform.closesOnBack()
+      ? this.watch(onBack)
+      : this.stack(onBack);
+  }
+
+  private watch(onBack: () => void): () => void {
+    let stopWatching = ignore;
+    let stopLeaving = ignore;
+    const stop = (): void => {
+      stopWatching();
+      stopLeaving();
+      stopWatching = ignore;
+      stopLeaving = ignore;
+    };
+    const close = (): void => {
+      stop();
+      onBack();
+    };
+    stopWatching = this.platform.watchClose(close);
+    stopLeaving = this.platform.onLeave(close);
+    return stop;
+  }
+
+  private stack(onBack: () => void): () => void {
     this.listen();
     const layer = { depth: this.layers.length + 1, onBack };
     this.layers = [...this.layers, layer];

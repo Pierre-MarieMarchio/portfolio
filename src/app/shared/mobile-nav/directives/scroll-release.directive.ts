@@ -9,13 +9,13 @@ import {
   output,
   PLATFORM_ID,
 } from '@angular/core';
-import type { SheetSample } from '../models/bottom-sheet.model';
+import type { SheetRelease, SheetSample } from '../models/bottom-sheet.model';
 import { MOBILE_NAV_PLATFORM } from '../ports/mobile-nav-platform.port';
 import { speedOf } from '../rules/bottom-sheet.rules';
 
 const SETTLE_MS = 120;
 const KEPT_SAMPLES = 12;
-const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
+const TOUCHES = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const;
 
 @Directive({
   selector: '[appScrollRelease]',
@@ -32,12 +32,14 @@ export class ScrollReleaseDirective {
   public readonly appScrollRelease = input(false);
 
   public readonly pressed = output();
-  public readonly released = output<number>();
+  public readonly released = output<SheetRelease>();
   public readonly settled = output();
 
   public isTouching = false;
 
   private samples: SheetSample[] = [];
+  private startY = 0;
+  private lastY = 0;
   private stopTimer: () => void = () => {};
 
   constructor() {
@@ -91,10 +93,17 @@ export class ScrollReleaseDirective {
     if (event.type === 'touchstart') {
       this.isTouching = true;
       this.samples = [];
+      this.startY = event.touches[0]?.clientY ?? 0;
+      this.lastY = this.startY;
       this.pressed.emit();
+    } else if (event.type === 'touchmove') {
+      this.lastY = event.touches[0]?.clientY ?? this.lastY;
     } else if (this.isTouching && event.touches.length === 0) {
       this.isTouching = false;
-      this.released.emit(speedOf(this.samples, event.timeStamp));
+      this.released.emit({
+        speed: speedOf(this.samples, event.timeStamp),
+        pull: this.lastY - this.startY,
+      });
     }
   }
 }

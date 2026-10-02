@@ -65,6 +65,10 @@ export class MobileNavPlatformService implements MobileNavPlatform {
     return this.sessionHistory.hasCloseWatcher();
   }
 
+  public watchClose(fn: () => void): () => void {
+    return this.sessionHistory.watchClose(fn);
+  }
+
   public historyState(): unknown {
     return this.sessionHistory.state();
   }

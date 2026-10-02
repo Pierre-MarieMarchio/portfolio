@@ -73,4 +73,51 @@ describe('SessionHistoryService', () => {
 
     expect(sessionHistory.hasCloseWatcher()).toBe(true);
   });
+
+  it('opens one close watcher per call and destroys it on release, in the browser', () => {
+    const created: { onclose: (() => void) | null; destroy: () => void }[] = [];
+    Object.defineProperty(window, 'CloseWatcher', {
+      value: class {
+        public onclose: (() => void) | null = null;
+        public readonly destroy = vi.fn();
+        constructor() {
+          created.push(this);
+        }
+      },
+      configurable: true,
+    });
+    const sessionHistory = injectOn(SessionHistoryService, 'browser');
+    const closed = vi.fn();
+
+    const release = sessionHistory.watchClose(closed);
+    created[0]?.onclose?.();
+    release();
+
+    expect(created).toHaveLength(1);
+    expect(closed).toHaveBeenCalledOnce();
+    expect(created[0]?.destroy).toHaveBeenCalledOnce();
+    expect(created[0]?.onclose).toBeNull();
+  });
+
+  it('watches nothing on the server', () => {
+    Object.defineProperty(window, 'CloseWatcher', {
+      value: class {},
+      configurable: true,
+    });
+    const closed = vi.fn();
+
+    expect(() => {
+      injectOn(SessionHistoryService, 'server').watchClose(closed)();
+    }).not.toThrow();
+    expect(closed).not.toHaveBeenCalled();
+  });
+
+  it('watches nothing in a browser without a close watcher', () => {
+    const closed = vi.fn();
+
+    expect(() => {
+      injectOn(SessionHistoryService, 'browser').watchClose(closed)();
+    }).not.toThrow();
+    expect(closed).not.toHaveBeenCalled();
+  });
 });

@@ -2,8 +2,18 @@
   #frame
   class="window"
   [class.pane]="anchor() !== 'bottom'"
+  [class.sheet]="isHeld()"
   [attr.aria-label]="name()"
 >
+  @if (isHeld()) {
+    <button
+      type="button"
+      class="grip"
+      [attr.aria-label]="gripLabel()"
+      [attr.aria-expanded]="!folded()"
+      (click)="toggleFold()"
+    ></button>
+  }
   <div #bar class="titlebar" appDoublePress (doublePressed)="onDoublePress()">
     <ng-content select="[before]" />
     @if (isMenuActive()) {
@@ -34,13 +44,8 @@
     <span class="spacer"></span>
     <p class="meta">{{ meta() }}</p>
     <app-window-controls
-      [pinned]="pinned()"
-      [foldable]="isHeld()"
-      [folded]="folded()"
       [closable]="closable()"
       [closeLabel]="closeLabel()"
-      (pinToggled)="pinToggled.emit()"
-      (foldToggled)="toggleFold()"
       (closed)="closed.emit()"
     />
   </div>

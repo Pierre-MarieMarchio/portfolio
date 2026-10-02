@@ -9,6 +9,7 @@ import { FamilyFilter, ProjectEntry } from '@app/features/projects/models';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectListComponent } from './project-list.component';
 import { loadWindowMenu } from '@shared/windows/components/window/window.component';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
 
 const rows = (host: HTMLElement) => [
@@ -77,6 +78,10 @@ describe('ProjectListComponent', () => {
     };
   };
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('opens a window titled and labelled for the index', async () => {
     const { host, texts } = await mount();
     const window = host.querySelector('.window');
@@ -97,6 +102,18 @@ describe('ProjectListComponent', () => {
   it('shows a family / total fraction in the meta, once filtered', async () => {
     const { host } = await mount({ family: 'professional' });
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('02 / 05');
+  });
+
+  it('shows no count in the bar on the phone, whether filtered or not', async () => {
+    stubViewport(390, 844);
+    const all = await mount({ family: 'all' });
+
+    expect(all.host.querySelector('.meta')?.textContent?.trim()).toBe('');
+
+    all.fixture.componentRef.setInput('family', 'professional');
+    await all.fixture.whenStable();
+
+    expect(all.host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
 
   it('lists the three family choices with their counts, in order', async () => {

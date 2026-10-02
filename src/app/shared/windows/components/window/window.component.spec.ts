@@ -67,7 +67,7 @@ const bodyOf = (host: HTMLElement): HTMLElement => {
 };
 
 const titlebarButtons = (host: HTMLElement): HTMLButtonElement[] => [
-  ...host.querySelectorAll<HTMLButtonElement>('.titlebar button'),
+  ...host.querySelectorAll<HTMLButtonElement>('.grip, .titlebar button'),
 ];
 
 const control = (host: HTMLElement, name: Control): HTMLButtonElement => {
@@ -375,7 +375,7 @@ describe('WindowComponent', () => {
       expect(fold.handles).toEqual([]);
     });
 
-    it('asks the port to fold from its button, a double click and a double tap of its title bar, and keeps its content', async () => {
+    it('asks the port to fold from its grip, a double click and a double tap of its title bar, and keeps its content', async () => {
       const { fixture, host, fold, collapse } = await mountHeld();
       const heading = host.querySelector('.titlebar h2') as HTMLElement;
 

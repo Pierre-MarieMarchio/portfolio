@@ -32,6 +32,7 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   private pops: ((state: unknown) => void)[] = [];
   private leaves: (() => void)[] = [];
   private pendingPops: unknown[] = [];
+  private watchers: (() => void)[] = [];
 
   public readonly isCompact = (): boolean => this.compact();
 
@@ -79,6 +80,13 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   };
 
   public readonly closesOnBack = (): boolean => this.hasCloseWatcher;
+
+  public readonly watchClose = (fn: () => void): (() => void) => {
+    this.watchers.push(fn);
+    return () => {
+      this.watchers = this.watchers.filter((watcher) => watcher !== fn);
+    };
+  };
 
   public readonly historyState = (): unknown => this.entries[this.place];
 
@@ -143,6 +151,11 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   }
 
   public pressBack(): void {
+    const watcher = this.hasCloseWatcher ? this.watchers.pop() : undefined;
+    if (watcher) {
+      watcher();
+      return;
+    }
     this.place = Math.max(this.place - 1, 0);
     this.pop(this.entries[this.place]);
   }

@@ -2603,3 +2603,23 @@ l'opérateur veut l'hébergement OVH. Une action de déploiement FTP tierce :
 `lftp` est installé par le système, sans dépendance de plus dans la chaîne.
 Les liens `canonical` sans barre finale visent une adresse qu'Apache
 redirige : à aligner plus tard (`core/services/head/`).
+
+## 2026-10-02 — Le déploiement passe par SFTP, avec la clé du serveur épinglée (D97, amende D95)
+
+**Décision.** Le job `deploy` envoie le site à l'hébergement OVH par SFTP
+(`lftp`, `sftp://`, port 22), le mot de passe lu dans `LFTP_PASSWORD`. `ssh`
+vérifie la clé du serveur contre la variable `SFTP_KNOWN_HOSTS` (relevée par
+`ssh-keyscan` sur `ftp.cluster129.hosting.ovh.net` : ED25519
+`SHA256:xhieLplnoEvvl7+a8sq8wLCh/bvOQvQFIVewi+fK2og`) et refuse tout autre
+hôte. Le mode FTP et `FTP_INSECURE` disparaissent.
+
+**Raison.** Le premier déploiement a montré que le serveur refuse le FTPS ; le
+FTP en clair, accepté par l'opérateur en repli, faisait circuler le mot de
+passe sans chiffrement. L'hébergement accepte le SFTP : la session est
+chiffrée, et la clé épinglée empêche un intermédiaire de recueillir le mot de
+passe. Si OVH change la clé de son serveur, le déploiement échoue : on relève
+la nouvelle clé et on met la variable à jour.
+
+**Écarté.** Accepter la clé au premier contact à chaque déploiement
+(`ssh-keyscan` dans le job) : un intermédiaire présent à ce moment serait
+accepté.

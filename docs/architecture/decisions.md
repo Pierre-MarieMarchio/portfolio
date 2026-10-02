@@ -2624,28 +2624,32 @@ la nouvelle clé et on met la variable à jour.
 (`ssh-keyscan` dans le job) : un intermédiaire présent à ce moment serait
 accepté.
 
-## 2026-10-02 — Une branche `dev` déploie un staging protégé par mot de passe (D98, étend D95 et D97)
+## 2026-10-02 — Une branche `dev` déploie un staging protégé par mot de passe, sous `/staging/` (D98, étend D95 et D97)
 
 **Décision.** Les PR vont dans `dev` ; une PR générale `dev → main` publie.
-Un push sur `dev` déploie le staging, `https://staging.pm-marchio.fr`, un
-push sur `main` la production ; un seul job `deploy`, paramétré par la cible,
-avec un groupe de concurrence par cible. Le staging est construit avec
-`STAGING_SITE_URL`, servi depuis `/home/pmmarcc/staging`, à côté de `www` et
-jamais dedans, et fermé : authentification HTTP Basic en tête de son
-`.htaccess` (fichier htpasswd généré par la CI depuis les secrets
-`STAGING_USER` et `STAGING_PASSWORD`, déposé hors du dossier servi),
-`X-Robots-Tag: noindex, nofollow`, un `robots.txt` qui interdit tout, pas de
-sitemap.
+Un push sur `dev` déploie le staging, un push sur `main` la production ; un
+seul job `deploy`, paramétré par la cible, avec un groupe de concurrence par
+cible. Le staging vit sous un chemin de la production,
+`https://pm-marchio.fr/staging/` : construit avec la base `/staging/` et
+`STAGING_SITE_URL`, envoyé dans `www/staging`, et fermé par son propre
+`.htaccess` : authentification HTTP Basic (fichier htpasswd généré par la CI
+depuis les secrets `STAGING_USER` et `STAGING_PASSWORD`, déposé hors de
+`www`), `X-Robots-Tag: noindex, nofollow`, pages introuvables réécrites vers
+`/staging/404.html` et `/staging/en/404.html`, `robots.txt` qui interdit tout,
+pas de sitemap. Le miroir de la production exclut ce dossier de son
+`--delete`, jusqu'au premier dossier que le site n'a pas.
 
 **Raison.** L'opérateur veut voir et faire voir une version avant de la
-publier, sur le même hébergement, sans que le public ni les moteurs y
-accèdent. Le dossier du staging est hors de `www` parce que le miroir de la
-production supprime tout ce que `www` contient de plus que le build. Le
-chemin du htpasswd est absolu : Apache le lit tel quel dans `AuthUserFile`.
-Vérifié dans Apache 2.4 : 401 sans identifiants ou avec un mauvais mot de
-passe, 200 et `X-Robots-Tag` avec les bons, `robots.txt` fermé, sitemap
-absent, htpasswd non servi.
+publier, sans que le public ni les moteurs y accèdent. L'hébergement gratuit
+d'OVH n'accepte qu'un seul site : un sous-domaine de staging n'a pas pu être
+ajouté. Sans l'exclusion, chaque déploiement de la production effacerait le
+staging. Vérifié avec un vrai serveur SFTP et `lftp` 4.9 dans Docker, en
+exécutant les blocs du workflow : le staging survit à la production, un
+fichier en trop à la racine part, la garde refuse tout dossier hors de la
+production ; et dans Apache 2.4 : 401 sans identifiants, 200 et
+`X-Robots-Tag` avec, 404 du staging en français et en anglais, production
+publique. Un build réel sous `/staging/` s'ouvre sans erreur, liens et
+canonical sous `/staging/`.
 
-**Écarté.** Un second hébergement : l'offre gratuite n'en donne qu'un, et le
-staging tient dans ses 100 Mo. Un staging ouvert et seulement `noindex` :
-quiconque devine l'adresse le verrait.
+**Écarté.** Un sous-domaine (offre gratuite) ou un second hébergement payant.
+Un staging seulement `noindex` : quiconque devine l'adresse le verrait.

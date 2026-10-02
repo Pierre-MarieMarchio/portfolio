@@ -22,14 +22,14 @@ export interface SkyFrame extends SkyPan {
   readonly einsteinRadius: number;
   readonly deflectionMax: number;
   readonly scale: number;
-  readonly cx0: number;
-  readonly cy0: number;
+  readonly originX: number;
+  readonly originY: number;
   readonly bankCos: number;
   readonly bankSin: number;
   readonly run: number;
   readonly speed: number;
   readonly voyage: number;
-  readonly dtc: number;
+  readonly elapsed: number;
   readonly smooth: number;
   readonly drift: number;
 }
@@ -43,19 +43,30 @@ export interface StarPass {
   ty: number;
 }
 
+const FLIGHT_START = 3.5;
+const FLIGHT_SPAN = 4.4;
+const SETTLED_TIME = 99;
+
+const flightProgress = (cam: SkyCamera): number => {
+  const flightTime = cam.reduced ? SETTLED_TIME : cam.time;
+  return clamp((flightTime - FLIGHT_START) / FLIGHT_SPAN, 0, 1);
+};
+
+const flightSpeed = (cam: SkyCamera, run: number): number =>
+  6 * run * (1 - run) * (1 - run) + (cam.reduced ? 0 : COAST * cam.trv.coast);
+
 const skyFrame = (
   w: number,
   h: number,
   cam: SkyCamera,
-  dtc: number,
+  elapsed: number,
 ): SkyFrame => {
-  const { trv, dpr } = cam;
+  const { trv, dpr, hole } = cam;
   const turnEv = travelingElevation(cam.elev, trv.dEv);
   const turnX = -trv.dAz * 0.3 * w;
   const turnY = (turnEv - cam.elev) * 0.85 * h;
   const bank = trv.dRoll + BANK * trv.dAz;
-  const tt = cam.reduced ? 99 : cam.time;
-  const run = clamp((tt - 3.5) / 4.4, 0, 1);
+  const run = flightProgress(cam);
   return {
     cam,
     w,
@@ -67,16 +78,15 @@ const skyFrame = (
     scale: cam.scale * (1 + 0.55 * (1 - trv.grow)),
     panX: cam.camX - SKY_NEUTRAL.camX,
     panY: cam.camY - SKY_NEUTRAL.camY,
-    cx0: (cam.hole ? cam.hole.cx : w / 2) + turnX * LEAD,
-    cy0: (cam.hole ? cam.hole.cy : h / 2) + turnY * LEAD,
+    originX: (hole ? hole.cx : w / 2) + turnX * LEAD,
+    originY: (hole ? hole.cy : h / 2) + turnY * LEAD,
     bankCos: Math.cos(bank),
     bankSin: Math.sin(bank),
     run,
-    speed:
-      6 * run * (1 - run) * (1 - run) + (cam.reduced ? 0 : COAST * trv.coast),
+    speed: flightSpeed(cam, run),
     voyage: clamp(run / 0.04, 0, 1) * clamp((1 - run) / 0.04, 0, 1),
-    dtc,
-    smooth: dtc > 0 ? 1 - Math.pow(0.55, dtc * 60) : 0,
+    elapsed,
+    smooth: elapsed > 0 ? 1 - Math.pow(0.55, elapsed * 60) : 0,
     drift: cam.reduced ? 0 : cam.time * SKY_DRIFT,
   };
 };
@@ -115,9 +125,9 @@ export class StarFlowMotion {
     h: number,
     cam: SkyCamera,
   ): SkyFrame {
-    const dtc = clamp(cam.time - this.previousTime, 0, 0.08);
+    const elapsed = clamp(cam.time - this.previousTime, 0, 0.08);
     this.previousTime = cam.time;
-    const frame = skyFrame(w, h, cam, dtc);
+    const frame = skyFrame(w, h, cam, elapsed);
     if (!this.isFlattened && frame.run >= 1 && frame.speed <= 0) {
       this.isFlattened = true;
       this.flatten(stars, frame);
@@ -129,7 +139,7 @@ export class StarFlowMotion {
     const pass = this.pass;
     pass.depth = depthOf(star, frame.cam.dpr);
     if (frame.speed > 0.0001) {
-      star.ray *= 1 + frame.dtc * spreadRate(frame, pass.depth);
+      star.ray *= 1 + frame.elapsed * spreadRate(frame, pass.depth);
     }
     return this.locate(star, frame);
   }
@@ -140,29 +150,29 @@ export class StarFlowMotion {
   }
 
   private flatten(stars: readonly Star[], frame: SkyFrame): void {
-    const { cx0, cy0, drift } = frame;
+    const { originX, originY, drift } = frame;
     for (const star of stars) {
       if (star.ray > 1.0005) {
         const depth = depthOf(star, frame.cam.dpr);
         const ox = star.vx * drift + slideX(frame, depth);
         const oy = star.vy * drift + slideY(frame, depth);
-        star.x = cx0 + (star.x + ox - cx0) * star.ray - ox;
-        star.y = cy0 + (star.y + oy - cy0) * star.ray - oy;
+        star.x = originX + (star.x + ox - originX) * star.ray - ox;
+        star.y = originY + (star.y + oy - originY) * star.ray - oy;
       }
       forgetTrail(star);
     }
   }
 
   private locate(star: Star, frame: SkyFrame): boolean {
-    const { w, h, cx0, cy0, bankCos, bankSin, drift } = frame;
+    const { w, h, originX, originY, bankCos, bankSin, drift } = frame;
     const depth = this.pass.depth;
     const depthScale = 1 + (frame.scale - 1) * 0.72 * depth;
     const sx0 =
-      (star.x + star.vx * drift + slideX(frame, depth) - cx0) * depthScale;
+      (star.x + star.vx * drift + slideX(frame, depth) - originX) * depthScale;
     const sy0 =
-      (star.y + star.vy * drift + slideY(frame, depth) - cy0) * depthScale;
-    const bx = cx0 + sx0 * bankCos - sy0 * bankSin;
-    const by = cy0 + sx0 * bankSin + sy0 * bankCos;
+      (star.y + star.vy * drift + slideY(frame, depth) - originY) * depthScale;
+    const bx = originX + sx0 * bankCos - sy0 * bankSin;
+    const by = originY + sx0 * bankSin + sy0 * bankCos;
     if (star.ray > 1.0005) {
       return this.spreadOut(star, frame, bx, by);
     }
@@ -177,15 +187,15 @@ export class StarFlowMotion {
     bx: number,
     by: number,
   ): boolean {
-    const { w, h, cx0, cy0 } = frame;
-    const x = cx0 + (bx - cx0) * star.ray;
-    const y = cy0 + (by - cy0) * star.ray;
+    const { w, h, originX, originY } = frame;
+    const x = originX + (bx - originX) * star.ray;
+    const y = originY + (by - originY) * star.ray;
     const margin = 30 * frame.cam.dpr;
     if (x < -margin || x > w + margin || y < -margin || y > h + margin) {
       const angle = this.rnd() * TAU;
       const spread = 0.02 + this.rnd() * 0.26;
-      star.x = cx0 + Math.cos(angle) * w * spread;
-      star.y = cy0 + Math.sin(angle) * h * spread;
+      star.x = originX + Math.cos(angle) * w * spread;
+      star.y = originY + Math.sin(angle) * h * spread;
       forgetTrail(star);
       return false;
     }
@@ -196,25 +206,34 @@ export class StarFlowMotion {
 
   private track(star: Star, frame: SkyFrame): void {
     const { x, y } = this.pass;
-    const { dtc, w, h } = frame;
-    if (dtc > 0) {
-      let tdx = Number.isNaN(star.px) ? 0 : x - star.px;
-      let tdy = Number.isNaN(star.py) ? 0 : y - star.py;
-      if (Math.abs(tdx) > w / 2 || Math.abs(tdy) > h / 2) {
-        tdx = 0;
-        tdy = 0;
-      }
-      star.sdx += (tdx / dtc - star.sdx) * frame.smooth;
-      star.sdy += (tdy / dtc - star.sdy) * frame.smooth;
+    if (frame.elapsed > 0) {
+      this.smoothVelocity(star, frame, x, y);
     }
     star.px = x;
     star.py = y;
   }
 
+  private smoothVelocity(
+    star: Star,
+    frame: SkyFrame,
+    x: number,
+    y: number,
+  ): void {
+    const { elapsed, w, h } = frame;
+    let moveX = Number.isNaN(star.px) ? 0 : x - star.px;
+    let moveY = Number.isNaN(star.py) ? 0 : y - star.py;
+    if (Math.abs(moveX) > w / 2 || Math.abs(moveY) > h / 2) {
+      moveX = 0;
+      moveY = 0;
+    }
+    star.sdx += (moveX / elapsed - star.sdx) * frame.smooth;
+    star.sdy += (moveY / elapsed - star.sdy) * frame.smooth;
+  }
+
   private aimTrail(star: Star, frame: SkyFrame): void {
     const pass = this.pass;
-    const ox = pass.x - frame.cx0;
-    const oy = pass.y - frame.cy0;
+    const ox = pass.x - frame.originX;
+    const oy = pass.y - frame.originY;
     const distance = Math.hypot(ox, oy);
     let tx = star.sdx;
     let ty = star.sdy;

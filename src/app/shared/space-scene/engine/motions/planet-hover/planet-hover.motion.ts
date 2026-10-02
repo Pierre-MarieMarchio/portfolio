@@ -19,21 +19,23 @@ export class PlanetHoverMotion {
   }
 
   public step(dt: number, phase: number, hovered: number): void {
-    const dPhase = phase - this.lastPhase;
+    const phaseDelta = phase - this.lastPhase;
     this.lastPhase = phase;
     if (hovered >= 0 && !this.ramp.has(hovered)) {
       this.ramp.set(hovered, 0);
     }
     const step = dt / SLOW_SPAN;
     for (const i of this.ramp.keys()) {
-      const target = i === hovered ? 1 : 0;
-      const ramp = towards(this.ramp.get(i) ?? 0, target, step);
+      const ramp = towards(this.ramp.get(i) ?? 0, i === hovered ? 1 : 0, step);
       this.ramp.set(i, ramp);
-      const hold = smoothstep(ramp);
-      const lag = this.lag.get(i) ?? 0;
-      if (hold > 0 || lag !== 0) {
-        this.lag.set(i, lag + dPhase * hold);
-      }
+      this.holdBack(i, phaseDelta * smoothstep(ramp));
+    }
+  }
+
+  private holdBack(i: number, held: number): void {
+    const lag = this.lag.get(i) ?? 0;
+    if (held > 0 || lag !== 0) {
+      this.lag.set(i, lag + held);
     }
   }
 }

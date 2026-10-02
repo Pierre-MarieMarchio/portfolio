@@ -177,39 +177,54 @@ export class StarSkyRenderer {
     frame: SkyFrame,
   ): boolean {
     const pass = this.pass;
-    const velocity = Math.hypot(pass.tx, pass.ty);
-    const trailing =
+    const trailing = this.trailingShare(frame);
+    if (trailing <= 0.004) {
+      return true;
+    }
+    this.addTrailStroke(ctx, star, frame, trailing);
+    if (trailing >= 0.996) {
+      return false;
+    }
+    pass.near *= 1 - trailing;
+    return true;
+  }
+
+  private trailingShare(frame: SkyFrame): number {
+    const velocity = Math.hypot(this.pass.tx, this.pass.ty);
+    return (
       frame.voyage *
       smoothstep(
         clamp((velocity / (TRAIL_FROM * frame.cam.dpr) - 0.7) / 0.3, 0, 1),
-      );
-    if (trailing > 0.004) {
-      const stroke = this.stroke;
-      stroke.x = pass.x;
-      stroke.y = pass.y;
-      stroke.qx = pass.x - pass.tx * TRAIL_SECONDS;
-      stroke.qy = pass.y - pass.ty * TRAIL_SECONDS;
-      stroke.color = colorOf(star, frame.cam);
-      stroke.alpha =
-        Math.min(
-          0.8,
-          (0.06 + star.alpha) *
-            twinkleOf(star, frame.cam) *
-            pass.near *
-            (0.7 + 1.5 * frame.speed),
-        ) * trailing;
-      stroke.width = Math.max(0.7, this.drawnRadius(star, frame) * 0.8);
-      if (frame.cam.phone) {
-        this.batch.add(stroke, star.accent, frame.cam.dpr);
-      } else {
-        strokeTrail(ctx, stroke);
-      }
-      if (trailing >= 0.996) {
-        return false;
-      }
-      pass.near *= 1 - trailing;
+      )
+    );
+  }
+
+  private addTrailStroke(
+    ctx: CanvasRenderingContext2D,
+    star: Star,
+    frame: SkyFrame,
+    trailing: number,
+  ): void {
+    const { pass, stroke } = this;
+    stroke.x = pass.x;
+    stroke.y = pass.y;
+    stroke.qx = pass.x - pass.tx * TRAIL_SECONDS;
+    stroke.qy = pass.y - pass.ty * TRAIL_SECONDS;
+    stroke.color = colorOf(star, frame.cam);
+    stroke.alpha =
+      Math.min(
+        0.8,
+        (0.06 + star.alpha) *
+          twinkleOf(star, frame.cam) *
+          pass.near *
+          (0.7 + 1.5 * frame.speed),
+      ) * trailing;
+    stroke.width = Math.max(0.7, this.drawnRadius(star, frame) * 0.8);
+    if (frame.cam.phone) {
+      this.batch.add(stroke, star.accent, frame.cam.dpr);
+    } else {
+      strokeTrail(ctx, stroke);
     }
-    return true;
   }
 
   private drawDot(

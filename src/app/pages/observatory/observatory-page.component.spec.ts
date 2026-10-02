@@ -712,7 +712,7 @@ describe('ObservatoryPageComponent', () => {
     host.remove();
   });
 
-  it('moves the focus to the view heading after a navigation', async () => {
+  it('moves the focus to the window title, or to the view heading, after a navigation', async () => {
     const { fixture, station, host } = await mount();
     document.body.append(host);
 
@@ -723,7 +723,7 @@ describe('ObservatoryPageComponent', () => {
     expect(document.activeElement?.closest('.slot')).toBe(
       host.querySelector('.slot--about'),
     );
-    expect(document.activeElement?.tagName).toBe('H1');
+    expect(document.activeElement?.matches('h2[data-window-title]')).toBe(true);
 
     station.syncRoute('home');
     await fixture.whenStable();

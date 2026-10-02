@@ -19,14 +19,12 @@ import {
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
-import { ViewHeadingDirective } from '@shared/ui/directives';
 
 const PARTS = ['profile', 'skills', 'path', 'method'] as const;
 
 @Component({
   selector: 'app-about-window',
   imports: [
-    ViewHeadingDirective,
     PagerComponent,
     PagerPageComponent,
     RouterLink,

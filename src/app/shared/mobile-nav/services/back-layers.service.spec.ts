@@ -109,7 +109,7 @@ describe('BackLayersService', () => {
     const { platform, layers } = setup();
     const onBack = vi.fn();
 
-    layers.claim(onBack);
+    layers.claim(onBack, vi.fn());
     platform.pressBack();
 
     expect(platform.entries).toHaveLength(2);
@@ -120,7 +120,7 @@ describe('BackLayersService', () => {
     const { platform, layers } = setup({ hasCloseWatcher: true });
     const onBack = vi.fn();
 
-    layers.claim(onBack);
+    layers.claim(onBack, vi.fn());
     platform.pressBack();
 
     expect(platform.entries).toHaveLength(1);
@@ -131,8 +131,8 @@ describe('BackLayersService', () => {
   it('gives each claimed layer its own close watcher, the last one closing first', () => {
     const { platform, layers } = setup({ hasCloseWatcher: true });
     const closed: string[] = [];
-    layers.claim(() => closed.push('lower'));
-    layers.claim(() => closed.push('upper'));
+    layers.claim(() => closed.push('lower'), vi.fn());
+    layers.claim(() => closed.push('upper'), vi.fn());
 
     platform.pressBack();
     platform.pressBack();
@@ -146,7 +146,7 @@ describe('BackLayersService', () => {
       const { platform, layers } = setup({ hasCloseWatcher });
       const onBack = vi.fn();
 
-      layers.claim(onBack)();
+      layers.claim(onBack, vi.fn())();
       platform.deliverPops();
       platform.pressBack();
 
@@ -154,20 +154,23 @@ describe('BackLayersService', () => {
     }
   });
 
-  it('lets go of a claimed layer when the router leaves the view, with or without a close watcher', () => {
+  it('lets go of a claimed layer when the router leaves the view, without closing it, with or without a close watcher', () => {
     for (const hasCloseWatcher of [true, false]) {
       TestBed.resetTestingModule();
       const { platform, layers } = setup({ hasCloseWatcher });
       const onBack = vi.fn();
-      layers.claim(onBack);
+      const onLeave = vi.fn();
+      layers.claim(onBack, onLeave);
 
       platform.leave();
 
-      expect(onBack).toHaveBeenCalledOnce();
+      expect(onLeave).toHaveBeenCalledOnce();
+      expect(onBack).not.toHaveBeenCalled();
 
       platform.pressBack();
 
-      expect(onBack).toHaveBeenCalledOnce();
+      expect(onBack).not.toHaveBeenCalled();
+      expect(onLeave).toHaveBeenCalledOnce();
     }
   });
 });

@@ -17,6 +17,8 @@ export const serverRoutes: ServerRoute[] = [
       return projects.map(({ slug }) => ({ slug }));
     },
   })),
+  { path: '404', renderMode: RenderMode.Prerender },
+  { path: 'en/404', renderMode: RenderMode.Prerender },
   {
     path: '**',
     renderMode: RenderMode.Prerender,

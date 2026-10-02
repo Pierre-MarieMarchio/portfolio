@@ -2571,3 +2571,35 @@ bundle initial passe de 532,08 à 532,47 kB.
 `app/`) : une zone de plus pour deux fichiers, que l'opérateur a refusée.
 Garder le provider à la racine de l'injection : la page est le seul arbre qui
 utilise la librairie.
+
+## 2026-10-02 — Le site quitte GitHub Pages pour l'hébergement OVH de son domaine (D95)
+
+**Décision.** Le site est servi par l'hébergement gratuit d'OVH, sur le domaine
+de l'opérateur, à la racine (`BASE_HREF=/`). Le job `deploy` envoie
+l'artefact construit par `lftp`, en FTPS dont le certificat est vérifié, en
+miroir qui supprime ce que le build ne contient plus ; il lit les accès dans
+des secrets (`FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`), le dossier et
+l'adresse dans des variables (`FTP_REMOTE_DIR`, `SITE_URL`), et échoue en
+nommant ce qui manque. Le mot de passe ne passe que par `LFTP_PASSWORD`.
+Apache reçoit un `.htaccess` qui fait ce que Pages faisait seul : les pages
+« introuvable » prérendues en français et en anglais (`404.html`,
+`en/404.html`, `noindex`), HTTPS et l'hôte sans `www.`, la barre finale des
+dossiers, un cache d'un an pour les fichiers à empreinte et `no-cache` pour
+le HTML, la compression. `build:finish` place les 404 et écrit
+`sitemap.xml` et `robots.txt` à partir des liens `canonical` et `alternate`
+des pages, donc sans rien inventer.
+
+**Raison.** L'opérateur a pris un domaine chez OVH et choisi l'hébergement
+offert avec lui, qui a ses certificats SSL. Avant, une adresse inconnue
+recevait la coquille du client, sans contenu au prérendu ; elle reçoit
+maintenant une vraie page, avec le code 404. Vérifié dans Apache 2.4 avec
+`AllowOverride All` : 404 dans les deux langues, `/projets` → `/projets/`,
+HTTP → HTTPS, `www.` → hôte nu, en-têtes de cache et gzip, aucune erreur.
+`upload-artifact` exclut par défaut les fichiers cachés : l'envoi les
+inclut, et le déploiement vérifie que `.htaccess` est là.
+
+**Écarté.** Garder Pages avec le domaine (CNAME) : plus simple, mais
+l'opérateur veut l'hébergement OVH. Une action de déploiement FTP tierce :
+`lftp` est installé par le système, sans dépendance de plus dans la chaîne.
+Les liens `canonical` sans barre finale visent une adresse qu'Apache
+redirige : à aligner plus tard (`core/services/head/`).

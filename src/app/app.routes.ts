@@ -38,9 +38,9 @@ function routesIn(lang: Lang): Route[] {
   ];
 }
 
-function unknownIn(lang: Lang): Route {
+function unknownAt(path: string): Route {
   return {
-    path: lang === 'en' ? 'en/**' : '**',
+    path,
     component: ObservatoryRouteComponent,
     canActivate: [loadCatalog],
     title: viewTitle('notFound'),
@@ -51,6 +51,8 @@ function unknownIn(lang: Lang): Route {
 
 export const routes: Routes = [
   ...LANGS.flatMap((lang) => routesIn(lang)),
-  unknownIn('en'),
-  unknownIn('fr'),
+  unknownAt('en/404'),
+  unknownAt('404'),
+  unknownAt('en/**'),
+  unknownAt('**'),
 ];

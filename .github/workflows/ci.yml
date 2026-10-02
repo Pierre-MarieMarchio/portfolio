@@ -1,7 +1,6 @@
 # Every pull request and every push to main runs the same checks as a local
 # `npm run check`, split into jobs that run side by side. The site is built
-# once; the deploy job ships that very artifact, and is the only job to
-# change the day the site moves off GitHub Pages.
+# once; the deploy job ships that very artifact to the OVH hosting over FTP.
 name: CI
 
 on:
@@ -69,11 +68,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx ng build --base-href "$BASE_HREF" --define "SITE_URL=\"$SITE_URL\""
+      - run: npm run build:finish
       - run: npm run check:prerender
       - uses: actions/upload-artifact@v7
         with:
           name: site
           path: dist/portfolio/browser
+          include-hidden-files: true
           retention-days: 7
 
   sonar:
@@ -98,33 +99,67 @@ jobs:
           args: -Dsonar.qualitygate.wait=true
 
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy to OVH
     needs: [lint, build, sonar]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    # Two deployments racing would publish whichever finishes last.
+    # Two deployments racing would leave whichever finishes last.
     concurrency:
-      group: pages
+      group: deploy
       cancel-in-progress: false
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || 'www/' }}
+      FTP_INSECURE: ${{ vars.FTP_INSECURE }}
     steps:
+      # Without SITE_URL the build would ship the GitHub Pages address in its
+      # canonical links and its sitemap, and a deploy would publish it.
+      - name: Require the site address and the FTP access
+        env:
+          SITE_URL_VARIABLE: ${{ vars.SITE_URL }}
+        run: |
+          missing=""
+          [ -n "$SITE_URL_VARIABLE" ] || missing="$missing variable:SITE_URL"
+          [ -n "$FTP_SERVER" ] || missing="$missing secret:FTP_SERVER"
+          [ -n "$FTP_USERNAME" ] || missing="$missing secret:FTP_USERNAME"
+          [ -n "$FTP_PASSWORD" ] || missing="$missing secret:FTP_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing, to set in the repository settings:$missing"
+            exit 1
+          fi
       - uses: actions/download-artifact@v8
         with:
           name: site
           path: site
-      # Pages answers an unknown path with 404.html: serving the client shell
-      # there lets the router render its own not-found view. .nojekyll keeps
-      # Pages from filtering the output through Jekyll.
-      - run: |
-          cp site/index.csr.html site/404.html
-          touch site/.nojekyll
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: site
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Require the .htaccess in the artifact
+        run: |
+          if [ ! -f site/.htaccess ]; then
+            echo "::error::site/.htaccess is missing from the artifact: hidden files were not uploaded"
+            exit 1
+          fi
+      - run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends lftp
+      # The mirror makes the remote folder the exact copy of the artifact,
+      # deleting what it no longer holds. FTPS is required and its certificate
+      # checked, unless FTP_INSECURE=true allows plain FTP. The user name is
+      # quoted in a file lftp reads; the password stays out of it and out of the
+      # command line, lftp takes it from LFTP_PASSWORD (--env-password).
+      - name: Mirror the site over FTP
+        run: |
+          umask 077
+          if [ "$FTP_INSECURE" = "true" ]; then
+            security="set ftp:ssl-allow no"
+          else
+            security="set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate yes"
+          fi
+          quoted_user=$(printf '%s' "$FTP_USERNAME" | sed 's/[\\"]/\\&/g')
+          {
+            echo "set cmd:fail-exit yes"
+            echo "$security"
+            echo "set net:max-retries 3"
+            echo "open --env-password -u \"$quoted_user\" \"$FTP_SERVER\""
+            echo "mirror --reverse --delete --verbose=1 site \"$FTP_REMOTE_DIR\""
+          } > "$RUNNER_TEMP/lftp-script"
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp -f "$RUNNER_TEMP/lftp-script"
+          rm -f "$RUNNER_TEMP/lftp-script"

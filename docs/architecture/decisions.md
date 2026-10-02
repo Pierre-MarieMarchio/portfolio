@@ -2764,3 +2764,34 @@ remplacer dès le toucher tient en 2,47 kB.
 la simuler demandait de réécrire les entrées après chaque retour. Tant qu'aucun
 toucher n'a eu lieu après une arrivée directe, le retour quitte encore le site :
 c'est le prix de la règle « une entrée seulement pendant un geste ».
+
+## 2026-10-02 — Au téléphone, on passe d'un filtre de la liste à l'autre en balayant (D92, amende D57)
+
+**Décision.** Au téléphone, un balayage horizontal sur la liste des projets
+passe au filtre voisin (Tous, En entreprise, Personnels, dans l'ordre
+affiché), comme les onglets Android. Pendant le geste, la liste et l'état
+actif du segmenté suivent le doigt par des variables CSS écrites à chaque
+image (`--swipe-pane`, `--swipe-at`) ; au lâcher, la liste sort en 180 ms et
+la nouvelle entre de l'autre côté en 180 ms. Le geste passe à 25 % de la
+largeur, ou sur un coup de doigt (plus de 0,4 px/ms sur au moins 24 px) ; un
+geste plus vertical qu'horizontal reste un défilement ou un mouvement de
+feuille (`touch-action: pan-y`) ; aux extrémités, la liste se retient et
+revient. Sous mouvement réduit, le filtre change au lâcher, sans trajet. Le
+toucher d'un filtre marche toujours. Le suivi du geste
+(`SwipeStepsService`) se charge à part, sur un écran compact seulement.
+
+**Raison.** ETUDE P5 : balayer partout, et aucun geste sans son équivalent
+visible (le segmenté nommé). Une seule liste reste dans le DOM : trois
+listes côte à côte auraient mis chaque ligne trois fois dans la page, ce que
+D57 refusait déjà. Le service chargé à part tient le coût à 1,9 kB au lieu
+de 4,6 : contrairement à un composant (D87), il ne découpe pas le cœur
+d'Angular. À mi-hauteur, rien n'est tronqué : un glisser sur le contenu
+monte la feuille au plein, puis le contenu défile au geste suivant (D64,
+convention des feuilles Android) ; la dernière ligne est atteinte dans les
+quatre cas mesurés.
+
+**Écarté.** Voir la liste voisine arriver pendant le geste : il faudrait
+plusieurs listes dans le DOM. Continuer le défilement du contenu dans le même
+geste que la montée de la feuille : faisable en JavaScript, lourd pour un
+gain faible. Un passage à un écran compact après le premier rendu (rotation)
+ne charge le geste qu'au rechargement suivant.

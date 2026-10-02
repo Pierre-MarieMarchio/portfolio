@@ -53,6 +53,19 @@ describe('SegmentedComponent', () => {
     vi.unstubAllGlobals();
   });
 
+  it('tells its buttons their position and the active one, for the swipe to blend them', async () => {
+    const { host } = await mount([
+      { ...ITEMS[0], active: false } as SegmentedItem,
+      { ...ITEMS[1], active: true } as SegmentedItem,
+      ITEMS[2] as SegmentedItem,
+    ]);
+
+    expect(
+      buttonsOf(host).map((button) => button.style.getPropertyValue('--i')),
+    ).toEqual(['0', '1', '2']);
+    expect(host.querySelector('ul')?.style.getPropertyValue('--at')).toBe('1');
+  });
+
   it('lists one <li><button> per item inside a group, in order, its label as its text', async () => {
     const { host } = await mount();
 

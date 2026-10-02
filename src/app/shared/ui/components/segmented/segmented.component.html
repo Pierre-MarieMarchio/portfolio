@@ -1,8 +1,9 @@
-<ul #list role="group" [attr.aria-label]="name()">
+<ul #list role="group" [attr.aria-label]="name()" [style.--at]="activeIndex()">
   @for (item of items(); track item.value) {
     <li>
       <button
         type="button"
+        [style.--i]="$index"
         [attr.aria-pressed]="item.active"
         [attr.data-active]="item.active"
         [attr.aria-label]="item.aria ?? item.label"

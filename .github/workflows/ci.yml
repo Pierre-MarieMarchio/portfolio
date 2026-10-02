@@ -111,7 +111,7 @@ jobs:
       FTP_SERVER: ${{ secrets.FTP_SERVER }}
       FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
       FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || 'www/' }}
+      FTP_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || 'www' }}
       SFTP_KNOWN_HOSTS: ${{ vars.SFTP_KNOWN_HOSTS }}
     steps:
       # Without SITE_URL the build would ship the GitHub Pages address in its
@@ -142,9 +142,14 @@ jobs:
           fi
       - run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends lftp
       # The mirror makes the remote folder the exact copy of the artifact,
-      # deleting what it no longer holds. SFTP encrypts the whole session, and
-      # the host key is pinned: ssh refuses any host whose key is not in
-      # SFTP_KNOWN_HOSTS, so a man in the middle cannot collect the password.
+      # deleting what it no longer holds. The remote folder is given without
+      # a trailing slash: lftp puts the source folder inside a destination
+      # that ends with one (www/site/), instead of filling it. The host's
+      # default index.html may be a symbolic link, which lftp does not replace
+      # with a file, so it is removed first (rm -f: no failure if absent).
+      # SFTP encrypts the whole session, and the host key is pinned: ssh
+      # refuses any host whose key is not in SFTP_KNOWN_HOSTS, so a man in the
+      # middle cannot collect the password.
       # The user name is quoted in a file lftp reads; the password stays out of
       # it and out of the command line, lftp takes it from LFTP_PASSWORD
       # (--env-password).
@@ -153,13 +158,20 @@ jobs:
           umask 077
           known_hosts="$RUNNER_TEMP/known_hosts"
           printf '%s\n' "$SFTP_KNOWN_HOSTS" > "$known_hosts"
+          remote_dir=$(printf '%s' "$FTP_REMOTE_DIR" | sed 's|/*$||')
+          # A bare login directory would let mirror --delete wipe the whole host.
+          if [ -z "$remote_dir" ] || [ "$remote_dir" = "." ] || [ "$remote_dir" = ".." ] || [[ "$remote_dir" == *..* ]]; then
+            echo "::error::FTP_REMOTE_DIR must name a folder under the login directory, got: $FTP_REMOTE_DIR"
+            exit 1
+          fi
           quoted_user=$(printf '%s' "$FTP_USERNAME" | sed 's/[\\"]/\\&/g')
           {
             echo "set cmd:fail-exit yes"
             echo "set sftp:connect-program \"ssh -a -x -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$known_hosts\""
             echo "set net:max-retries 3"
             echo "open --env-password -u \"$quoted_user\" \"sftp://$FTP_SERVER\""
-            echo "mirror --reverse --delete --verbose=1 site \"$FTP_REMOTE_DIR\""
+            echo "rm -f \"$remote_dir/index.html\""
+            echo "mirror --reverse --delete --verbose=1 site \"$remote_dir\""
           } > "$RUNNER_TEMP/lftp-script"
           LFTP_PASSWORD="$FTP_PASSWORD" lftp -f "$RUNNER_TEMP/lftp-script"
           rm -f "$RUNNER_TEMP/lftp-script" "$known_hosts"

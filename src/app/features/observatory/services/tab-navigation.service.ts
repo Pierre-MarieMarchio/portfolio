@@ -1,5 +1,9 @@
 import { DestroyRef, effect, inject, Service, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import {
+  NavigationSkipped,
+  NavigationSkippedCode,
+  Router,
+} from '@angular/router';
 import {
   BrowserWindowService,
   SessionHistoryService,
@@ -46,7 +50,18 @@ export class TabNavigationService {
         });
       }
     });
-    inject(DestroyRef).onDestroy(stopClicks);
+    const skips = this.router.events.subscribe((event) => {
+      if (
+        event instanceof NavigationSkipped &&
+        event.code === NavigationSkippedCode.IgnoredSameUrlNavigation
+      ) {
+        this.restoreCurrentWindow();
+      }
+    });
+    inject(DestroyRef).onDestroy(() => {
+      stopClicks();
+      skips.unsubscribe();
+    });
   }
 
   public choose(address: string): void {
@@ -93,15 +108,32 @@ export class TabNavigationService {
       (window) => minimized[window],
     );
     if (restored.length > 0) {
-      this.observatory.restore(restored);
-      for (const window of restored) {
-        this.windows.bringToFront(window);
-      }
+      this.bringBack(restored);
       if (tab === tabOf(this.observatory.view())) {
         return;
       }
     }
     void this.router.navigateByUrl(address);
+  }
+
+  private restoreCurrentWindow(): void {
+    const window = windowOf(this.observatory.view());
+    if (
+      this.homeSheet.isPhone() ||
+      window === null ||
+      window === 'preview' ||
+      !this.observatory.minimized()[window]
+    ) {
+      return;
+    }
+    this.bringBack([window]);
+  }
+
+  private bringBack(windows: readonly MinimizableWindow[]): void {
+    this.observatory.restore(windows);
+    for (const window of windows) {
+      this.windows.bringToFront(window);
+    }
   }
 
   private open(address: string): void {

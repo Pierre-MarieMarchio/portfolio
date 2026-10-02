@@ -3025,7 +3025,10 @@ ouverte ». Réduire fait disparaître la fenêtre de l'écran et de l'arbre
 d'accessibilité sans la fermer : le point de son entrée dans la barre du
 haut (D73) reste, le focus va à cette entrée, et un clic ou Entrée sur
 l'entrée la rend devant, à son rectangle d'avant, même sur la page en
-cours ; « Projets » rend la liste et la fiche. L'état réduit vit dans
+cours ; « Projets » rend la liste et la fiche. Un lien vers l'adresse de la
+fenêtre réduite la rend aussi, même quand c'est la page en cours (le routeur
+ignore cette navigation : `NavigationSkipped` sert de signal, sans recharger
+la scène). L'état réduit vit dans
 l'état de l'observatoire, écrit par l'updater. Le téléphone ne change pas.
 
 **Raison.** Retour de l'opérateur (2026-10-01) : « on n'a jamais ce menu

@@ -1,6 +1,11 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import {
+  NavigationSkipped,
+  NavigationSkippedCode,
+  Router,
+} from '@angular/router';
+import { Subject } from 'rxjs';
 import { provideStatewise } from 'ngx-statewise';
 import {
   provideSessionHistoryDouble,
@@ -19,6 +24,7 @@ const mount = (
   const { scrolled = [], isPhone = true } = options;
   const navigateByUrl = vi.fn(() => Promise.resolve(true));
   const history = new SessionHistoryDouble();
+  const events = new Subject<unknown>();
   const windows = {
     bringToFront: vi.fn(),
     scrollToTop: vi.fn((window: ObservatoryWindow | null) =>
@@ -37,7 +43,7 @@ const mount = (
       provideSessionHistoryDouble(history),
       {
         provide: Router,
-        useValue: { navigateByUrl, url: '/projet/skyted' },
+        useValue: { navigateByUrl, events, url: '/projet/skyted' },
       },
       { provide: ViewWindowsService, useValue: windows },
       { provide: HomeSheetService, useValue: homeSheet },
@@ -50,6 +56,7 @@ const mount = (
     observatory,
     tabs,
     navigateByUrl,
+    events,
     history,
     windows,
     homeSheet,
@@ -209,6 +216,73 @@ describe('TabNavigationService', () => {
 
       expect(windows.bringToFront).not.toHaveBeenCalled();
       expect(navigateByUrl).toHaveBeenCalledWith('/projets');
+    });
+  });
+
+  describe('following a link to the page already open', () => {
+    const sameUrlSkipped = new NavigationSkipped(
+      1,
+      '/projet/skyted',
+      '',
+      NavigationSkippedCode.IgnoredSameUrlNavigation,
+    );
+
+    it('brings back the minimized window of the page, in front', () => {
+      const { events, observatory, windows } = mount({ isPhone: false });
+      observatory.syncRoute('sheet', 'skyted');
+      observatory.minimize('sheet');
+
+      events.next(sameUrlSkipped);
+
+      expect(observatory.minimized().sheet).toBe(false);
+      expect(windows.bringToFront.mock.calls).toEqual([['sheet']]);
+    });
+
+    it('leaves the other minimized windows alone', () => {
+      const { events, observatory } = mount({ isPhone: false });
+      observatory.syncRoute('index');
+      observatory.togglePin('about');
+      observatory.minimize('about');
+
+      events.next(sameUrlSkipped);
+
+      expect(observatory.minimized().about).toBe(true);
+    });
+
+    it('does nothing when no window of the page is minimized', () => {
+      const { events, observatory, windows } = mount({ isPhone: false });
+      observatory.syncRoute('index');
+
+      events.next(sameUrlSkipped);
+
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+    });
+
+    it('ignores a navigation skipped for another reason', () => {
+      const { events, observatory, windows } = mount({ isPhone: false });
+      observatory.syncRoute('index');
+      observatory.minimize('index');
+
+      events.next(
+        new NavigationSkipped(
+          1,
+          '/projets',
+          '',
+          NavigationSkippedCode.IgnoredByUrlHandlingStrategy,
+        ),
+      );
+
+      expect(observatory.minimized().index).toBe(true);
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on the phone', () => {
+      const { events, observatory, windows } = mount();
+      observatory.syncRoute('index');
+
+      events.next(sameUrlSkipped);
+
+      expect(windows.bringToFront).not.toHaveBeenCalled();
     });
   });
 

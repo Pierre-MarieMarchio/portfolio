@@ -43,7 +43,8 @@ li {
   transform: scale(0.96);
   transition:
     opacity var(--mnav-duration, 180ms) var(--mnav-ease, ease),
-    transform var(--mnav-duration, 180ms) var(--mnav-ease, ease);
+    transform var(--mnav-duration, 180ms) var(--mnav-ease, ease),
+    filter var(--mnav-duration, 180ms) var(--mnav-ease, ease);
 
   &:focus-visible {
     outline: 2px solid var(--mnav-accent, highlight);

@@ -35,7 +35,8 @@ button {
   white-space: nowrap;
   transition:
     color var(--t-duration),
-    background var(--t-duration);
+    background var(--t-duration),
+    filter var(--t-duration);
 
   &[data-active='true'] {
     @include controls.lit;

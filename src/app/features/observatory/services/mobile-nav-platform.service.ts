@@ -5,6 +5,7 @@ import {
   ClockService,
   DisplayFormatService,
   ElementObserverService,
+  HapticsService,
   MediaPreferencesService,
   SessionHistoryService,
 } from '@app/core/services';
@@ -18,6 +19,7 @@ export class MobileNavPlatformService implements MobileNavPlatform {
   private readonly browserWindow = inject(BrowserWindowService);
   private readonly observer = inject(ElementObserverService);
   private readonly sessionHistory = inject(SessionHistoryService);
+  private readonly haptics = inject(HapticsService);
   private readonly router = inject(Router);
 
   public isCompact(): boolean {
@@ -83,6 +85,10 @@ export class MobileNavPlatformService implements MobileNavPlatform {
 
   public onHistoryPop(fn: (state: unknown) => void): () => void {
     return this.sessionHistory.onPop(fn);
+  }
+
+  public vibrate(ms: number): void {
+    this.haptics.vibrate(ms);
   }
 
   public onLeave(fn: () => void): () => void {

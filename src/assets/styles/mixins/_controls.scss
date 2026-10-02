@@ -50,7 +50,8 @@
   line-height: 1;
   transition:
     color $duration,
-    background $duration;
+    background $duration,
+    filter $duration;
 
   @include touch-target;
 
@@ -85,7 +86,8 @@ $rail-labeled-from: 1280px;
   cursor: pointer;
   transition:
     color var(--t),
-    border-color var(--t);
+    border-color var(--t),
+    filter var(--t);
 
   @include formats.can-hover {
     &:hover {

@@ -356,6 +356,82 @@ describe('BottomSheetComponent', () => {
     expect(outside).toHaveBeenCalledOnce();
   });
 
+  describe('vibration', () => {
+    it('vibrates lightly once a drag lets it rest on another detent, and not before', async () => {
+      const { platform, lay, drag, rest } = await setup();
+      await lay();
+
+      await drag([
+        [260, 0],
+        [300, 100],
+        [340, 200],
+      ]);
+
+      expect(platform.vibrations).toEqual([]);
+
+      await rest(END);
+
+      expect(platform.vibrations).toEqual([10]);
+    });
+
+    it('vibrates once its handle is tapped to another detent', async () => {
+      const { platform, sheet, lay, rest } = await setup();
+      await lay();
+
+      sheet.toggle();
+      await rest(0);
+
+      expect(platform.vibrations).toEqual([10]);
+    });
+
+    it('vibrates when a reduced-motion drag or toggle is put there at once', async () => {
+      const { platform, sheet, lay, fixture } = await setup();
+      platform.isReduced = true;
+      await lay();
+
+      sheet.toggle();
+      await fixture.whenStable();
+
+      expect(platform.vibrations).toEqual([10]);
+    });
+
+    it('stays still when a drag lets it rest where it was', async () => {
+      const { platform, lay, drag, rest } = await setup();
+      await lay();
+
+      await drag([
+        [260, 0],
+        [240, 100],
+        [230, 200],
+      ]);
+      await rest(HALF - PEEK);
+
+      expect(platform.vibrations).toEqual([]);
+    });
+
+    it('stays still when the page sets the detent, and when it is resized', async () => {
+      const { fixture, platform, lay, rest, resize } = await setup();
+      await lay();
+
+      fixture.componentInstance.detent.set('full');
+      await fixture.whenStable();
+      platform.frame();
+      await rest(END);
+      await resize(600, 500);
+
+      expect(platform.vibrations).toEqual([]);
+    });
+
+    it('stays still on the first rest, and beyond the phone', async () => {
+      const { platform, sheet, lay } = await setup({ compact: false });
+      await lay();
+
+      sheet.toggle();
+
+      expect(platform.vibrations).toEqual([]);
+    });
+  });
+
   describe('transient', () => {
     it('says it is dismissed, and does not rise, on a pull down from its lowest detent', async () => {
       const { fixture, scrollTo, drag } = await foldedSheet(true);

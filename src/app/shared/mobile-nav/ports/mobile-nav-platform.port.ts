@@ -19,6 +19,7 @@ export interface MobileNavPlatform {
   readonly pushHistory: (state: unknown) => void;
   readonly historyBack: (steps: number) => void;
   readonly onHistoryPop: (fn: (state: unknown) => void) => () => void;
+  readonly vibrate: (ms: number) => void;
   readonly onLeave: (fn: () => void) => () => void;
 }
 

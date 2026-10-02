@@ -31,7 +31,13 @@ import {
   Planet,
 } from '@app/features/observatory/models';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
-import { closeTargetOf, viewAtAddress } from '@app/features/observatory/rules';
+import {
+  closeTargetOf,
+  sheetOnShowOf,
+  SheetFrom,
+  SheetOnShow,
+  viewAtAddress,
+} from '@app/features/observatory/rules';
 import {
   FeaturedTourService,
   HomeRevealService,
@@ -92,11 +98,6 @@ const boxOf = (rect: FrameRect): LayoutBox => ({
   right: rect.x + rect.width,
   bottom: rect.y + rect.height,
 });
-
-interface SheetOnShow {
-  readonly slug: string | null;
-  readonly chapter: number;
-}
 
 @Component({
   selector: 'app-observatory-page',
@@ -189,22 +190,14 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
       (this.observatory.view() === 'sheet' && this.sheetSlug() === null),
   );
 
-  protected readonly sheet = linkedSignal<
-    SheetOnShow & { readonly isShown: boolean },
-    SheetOnShow
-  >({
+  protected readonly sheet = linkedSignal<SheetFrom, SheetOnShow>({
     source: () => ({
       isShown: this.observatory.showsSheet(),
-      slug: this.isNotFound() ? null : this.sheetSlug(),
+      isNotFound: this.isNotFound(),
+      slug: this.sheetSlug(),
       chapter: this.observatory.chapter(),
     }),
-    computation: ({ isShown, slug, chapter }, previous) => {
-      if (!previous) {
-        return { slug, chapter };
-      }
-      const isElsewhere = slug === null && !this.isNotFound();
-      return isShown && !isElsewhere ? { slug, chapter } : previous.value;
-    },
+    computation: (from, previous) => sheetOnShowOf(from, previous?.value),
   });
 
   protected readonly sceneView = computed<ObservatoryView>(() =>

@@ -2735,6 +2735,28 @@ anglais sur un toucher mal placé (D85).
 **Écarté.** Garder « EN » dans la barre : un mot de plus en haut de chaque page
 pour un réglage qu'on change une fois.
 
+## 2026-10-01 — En gros plan, la scène tourne au plus à 0,8 rad/s, et les orbites s'arrêtent une fois le projet posé (D90, amende D41 et D66)
+
+**Décision.** Quand le gros plan amène un projet à sa place, la caméra garde
+l'amorti de demi-vie 0,55 s tant que le pas reste sous 0,8 rad/s de lacet
+(`closeUpTurnRate`) ; au-delà, tout le pas de la pose (lacet, panoramique,
+zoom, roulis, élévation) ralentit du même facteur, si bien que la trajectoire
+garde sa forme et que le projet arrive au même endroit. En gros plan,
+l'horloge des orbites s'arrête au lieu de tourner à 0,12. En sortant du gros
+plan, l'orbite reprend comme avant.
+
+**Raison.** Retour de l'opérateur : en cliquant un projet, la scène tournait
+trop vite pour que la rotation s'arrête quand le projet arrivait autour du
+trou noir. Mesuré : le premier pas d'un amorti exponentiel est proportionnel
+à l'écart, 3,86 rad/s pour un demi-tour ; puis l'orbite reprenait derrière.
+Plafonnée, la pointe du demi-tour passe de 1 502 à 429 px/s au bureau ; la
+scène se pose en 5,9 s au lieu de 5,6 s. Ralentir un seul axe faisait
+déraper le projet (le panoramique arrivait avant la rotation).
+
+**Écarté.** Accélérer l'amorti pour finir plus tôt : la demi-vie de 0,55 s est
+le rythme de la scène (modèle d'interaction). La sortie du gros plan n'est
+pas plafonnée : rien ne s'y est plaint ; à revoir si elle paraît brusque.
+
 ## 2026-10-02 — Au téléphone, chaque onglet garde sa place, et le retour mène à l'accueil avant de quitter le site (D91, amende D57 et D62)
 
 **Décision.** Au téléphone, l'onglet Projets reprend la fiche laissée ouverte,

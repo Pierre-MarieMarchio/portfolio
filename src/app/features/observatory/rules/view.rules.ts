@@ -124,3 +124,25 @@ export function viewAtAddress(
     ? { view: 'sheet', slug }
     : { view: 'not-found', slug: null };
 }
+
+export interface SheetOnShow {
+  readonly slug: string | null;
+  readonly chapter: number;
+}
+
+export interface SheetFrom extends SheetOnShow {
+  readonly isShown: boolean;
+  readonly isNotFound: boolean;
+}
+
+export function sheetOnShowOf(
+  { isShown, isNotFound, slug, chapter }: SheetFrom,
+  previous: SheetOnShow | undefined,
+): SheetOnShow {
+  const next = { slug: isNotFound ? null : slug, chapter };
+  if (!previous) {
+    return next;
+  }
+  const isElsewhere = slug === null && !isNotFound;
+  return isShown && !isElsewhere ? next : previous;
+}

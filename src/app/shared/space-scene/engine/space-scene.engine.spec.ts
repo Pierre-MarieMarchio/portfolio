@@ -314,6 +314,20 @@ describe('SpaceSceneEngine, fixed', () => {
     expect(hole().radius).toBeCloseTo(first.radius, 0);
   });
 
+  it('holds the orbits still once the close-up has settled', () => {
+    const scene = mountEngineScene();
+    scene.run(PAST_CROSSING_MS);
+    scene.set({
+      direction: { framing: { kind: 'close-up', body: bodyId(2) } },
+    });
+    scene.run(8000);
+    const placed = scene.styles();
+
+    scene.run(3000);
+
+    expect(scene.styles()).toEqual(placed);
+  });
+
   it('bounds the lit figure by the figures there are, whatever it is asked', () => {
     const { step, texts } = mountAt(
       {

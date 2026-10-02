@@ -198,8 +198,13 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
       slug: this.isNotFound() ? null : this.sheetSlug(),
       chapter: this.observatory.chapter(),
     }),
-    computation: ({ isShown, slug, chapter }, previous) =>
-      isShown || !previous ? { slug, chapter } : previous.value,
+    computation: ({ isShown, slug, chapter }, previous) => {
+      if (!previous) {
+        return { slug, chapter };
+      }
+      const isElsewhere = slug === null && !this.isNotFound();
+      return isShown && !isElsewhere ? { slug, chapter } : previous.value;
+    },
   });
 
   protected readonly sceneView = computed<ObservatoryView>(() =>

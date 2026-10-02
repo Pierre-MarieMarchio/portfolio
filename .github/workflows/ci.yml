@@ -107,6 +107,10 @@ jobs:
     needs: [lint, build, sonar]
     if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # Shows the site in the repository's Deployments panel.
+    environment:
+      name: ${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }}
+      url: ${{ github.ref == 'refs/heads/dev' && format('{0}/', vars.STAGING_SITE_URL) || vars.SITE_URL }}
     # Two deployments to the same target racing would leave whichever finishes
     # last. Staging and production have their own group: neither waits for the
     # other.

@@ -2795,3 +2795,24 @@ plusieurs listes dans le DOM. Continuer le défilement du contenu dans le même
 geste que la montée de la feuille : faisable en JavaScript, lourd pour un
 gain faible. Un passage à un écran compact après le premier rendu (rotation)
 ne charge le geste qu'au rechargement suivant.
+
+## 2026-10-02 — Au téléphone, une feuille a le même haut dans toutes les rubriques, et un projet s'ouvre au plein (D93, amende D64)
+
+**Décision.** Au téléphone, le contenu d'une feuille a une hauteur fixe, celle
+de l'écran moins le haut des feuilles : à un cran donné, toutes les rubriques
+ont le même haut (écart mesuré ≤ 0,6 px), et une rubrique courte laisse de la
+place en bas. Ouvrir un projet (depuis la liste, une carte, une planète,
+« Voir le projet », « Suivant : … → ») monte sa feuille au plein, quel que
+soit le cran où le projet précédent a été laissé ; retrouver le même projet
+par un autre onglet ne touche pas au cran. `ProjectSheetService` dit ce qui
+compte comme une ouverture, la directive `appProjectSheet` monte la feuille.
+
+**Raison.** Lot C, finitions : au plein, une feuille prenait la hauteur de son
+contenu entre la mi-hauteur et l'écran, si bien que son haut bougeait d'une
+rubrique à l'autre (mesuré jusqu'à 67 px, une fiche courte) ; et la fiche,
+une seule instance gardée pour tous les projets, rouvrait au cran du projet
+précédent, souvent la moitié basse de l'écran. Ouvrir un projet, c'est
+vouloir le lire.
+
+**Écarté.** Raccourcir la feuille d'une rubrique courte : le haut bougerait
+encore. Rouvrir au cran du projet précédent : c'était le défaut relevé.

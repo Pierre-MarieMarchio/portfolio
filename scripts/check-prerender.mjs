@@ -8,7 +8,7 @@
  * every page came out as the home page once. The specs run in jsdom and
  * cannot see it; this reads the files a reader without JavaScript gets.
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = 'dist/portfolio/browser';
@@ -155,6 +155,113 @@ if (sheets.length === 0) {
   failures.push('/projet/…: no sheet was prerendered');
 }
 
+/**
+ * The not-found pages, one per language, which the server's error document
+ * serves: a real page, kept out of the index.
+ * @type {{ file: string, lang: 'fr' | 'en' }[]}
+ */
+const NOT_FOUND_PAGES = [
+  { file: '404.html', lang: 'fr' },
+  { file: join('en', '404.html'), lang: 'en' },
+];
+
+for (const { file, lang } of NOT_FOUND_PAGES) {
+  const fail = (/** @type {string} */ why) => {
+    failures.push(`${file}: ${why}`);
+  };
+  if (!existsSync(join(ROOT, file))) {
+    fail('was not written');
+    continue;
+  }
+  const html = readFileSync(join(ROOT, file), 'utf8');
+  if (!html.includes('<app-not-found-window')) {
+    fail('<app-not-found-window> is missing');
+  }
+  if (!/<meta name="robots" content="noindex">/.test(html)) {
+    fail('is not marked noindex');
+  }
+  if (/rel="canonical"/.test(html)) {
+    fail('declares a canonical address');
+  }
+  const headings = html.match(/<h1[\s>]/g)?.length ?? 0;
+  if (headings !== 1) {
+    fail(`${String(headings)} <h1>, one expected`);
+  }
+  if (!/<html[^>]*\slang="([a-z]+)"/.exec(html)?.[1]?.startsWith(lang)) {
+    fail(`<html> does not say lang="${lang}"`);
+  }
+  if (existsSync(join(ROOT, file.replace(/\.html$/, '')))) {
+    fail('is also left as a directory');
+  }
+}
+
+/**
+ * @param {string} html
+ * @param {string} rel
+ * @returns {string[]}
+ */
+const linksOf = (html, rel) =>
+  [...html.matchAll(/<link\b[^>]*>/g)]
+    .map((match) => match[0])
+    .filter((tag) => tag.includes(`rel="${rel}"`))
+    .map((tag) => /\bhref="([^"]*)"/.exec(tag)?.[1] ?? '');
+
+const sitemap = existsSync(join(ROOT, 'sitemap.xml'))
+  ? readFileSync(join(ROOT, 'sitemap.xml'), 'utf8')
+  : '';
+if (!sitemap.startsWith('<?xml') || !sitemap.trimEnd().endsWith('</urlset>')) {
+  failures.push('/sitemap.xml: missing or not a <urlset> document');
+}
+const entries = sitemap.split('<url>').slice(1);
+if (entries.length !== PAGES.length) {
+  failures.push(
+    `/sitemap.xml: ${String(entries.length)} <url>, ${String(PAGES.length)} pages prerendered`,
+  );
+}
+for (const page of PAGES) {
+  const html = readFileSync(join(ROOT, page.file), 'utf8');
+  const canonical = linksOf(html, 'canonical')[0];
+  const entry = entries.find((candidate) =>
+    candidate.includes(`<loc>${canonical ?? ''}</loc>`),
+  );
+  if (canonical === undefined || entry === undefined) {
+    failures.push(`${page.path}: not in /sitemap.xml`);
+    continue;
+  }
+  for (const alternate of linksOf(html, 'alternate')) {
+    if (!entry.includes(`href="${alternate}"`)) {
+      failures.push(
+        `${page.path}: /sitemap.xml lacks the alternate ${alternate}`,
+      );
+    }
+  }
+  for (const hreflang of ['fr', 'en', 'x-default']) {
+    if (!entry.includes(`hreflang="${hreflang}"`)) {
+      failures.push(`${page.path}: /sitemap.xml lacks hreflang="${hreflang}"`);
+    }
+  }
+}
+if (/\/404</.test(sitemap)) {
+  failures.push('/sitemap.xml: lists a not-found page');
+}
+
+const robots = existsSync(join(ROOT, 'robots.txt'))
+  ? readFileSync(join(ROOT, 'robots.txt'), 'utf8')
+  : '';
+const homeCanonical = linksOf(
+  readFileSync(join(ROOT, 'index.html'), 'utf8'),
+  'canonical',
+)[0];
+if (!/^User-agent: \*$/m.test(robots) || !/^Allow: \/$/m.test(robots)) {
+  failures.push('/robots.txt: missing or does not allow everything');
+}
+if (
+  homeCanonical === undefined ||
+  !robots.includes(`Sitemap: ${homeCanonical.replace(/\/$/, '')}/sitemap.xml`)
+) {
+  failures.push('/robots.txt: does not give the sitemap address');
+}
+
 if (failures.length > 0) {
   console.error(`check-prerender: ${String(failures.length)} failure(s)`);
   failures.forEach((failure) => {
@@ -164,5 +271,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `check-prerender: ${String(PAGES.length)} pages hold what they should.`,
+  `check-prerender: ${String(PAGES.length)} pages, the not-found pages, the sitemap and robots.txt hold what they should.`,
 );

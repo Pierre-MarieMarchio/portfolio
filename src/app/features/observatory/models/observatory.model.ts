@@ -18,6 +18,13 @@ export type ObservatoryPins = Readonly<Record<ObservatoryWindow, boolean>>;
 
 export type ObservatoryMinimized = Readonly<Record<MinimizableWindow, boolean>>;
 
+export interface HeldSheet {
+  readonly key: number;
+  readonly slug: string;
+  readonly chapter: number;
+  readonly minimized: boolean;
+}
+
 export interface Planet {
   readonly slug: string;
   readonly title: string;

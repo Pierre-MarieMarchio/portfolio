@@ -1,5 +1,6 @@
 import { Service, signal } from '@angular/core';
 import {
+  HeldSheet,
   ObservatoryMinimized,
   ObservatoryPins,
   ObservatoryView,
@@ -29,6 +30,8 @@ export class ObservatoryState {
   public readonly visited = signal<readonly string[]>([]);
   public readonly pins = signal<ObservatoryPins>(NO_PINS);
   public readonly minimized = signal<ObservatoryMinimized>(NONE_MINIMIZED);
+  public readonly held = signal<readonly HeldSheet[]>([]);
+  public readonly sheetKey = signal(0);
   public readonly preview = signal<string | null>(null);
   public readonly lastPreview = signal<string | null>(null);
   public readonly lastSheet = signal<string | null>(null);

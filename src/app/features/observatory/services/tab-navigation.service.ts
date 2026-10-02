@@ -97,15 +97,22 @@ export class TabNavigationService {
     this.observatory.minimize(window);
   }
 
-  public ascendToIndex(): void {
-    void this.observatory.close('sheet');
+  public minimizeSheet(
+    key: number,
+    bar: { focusRoute(route: string): void },
+  ): void {
+    bar.focusRoute(this.links.index());
+    this.observatory.minimizeSheet(key);
   }
 
   private chooseOnDesktop(address: string): void {
     const tab = TABS.find((each) => this.links[each]() === address);
     const minimized = this.observatory.minimized();
     const restored = (tab ? windowsOfTab(tab) : []).filter(
-      (window) => minimized[window],
+      (window) =>
+        minimized[window] ||
+        (window === 'sheet' &&
+          this.observatory.held().some((sheet) => sheet.minimized)),
     );
     if (restored.length > 0) {
       this.bringBack(restored);

@@ -3125,3 +3125,33 @@ cache HTTP ou de `@defer`, on revient à `provideClientHydration()`.
 
 **Écarté.** Retirer aussi la relecture des gestes (−27 kB) : un toucher
 fait avant le démarrage serait perdu.
+
+## 2026-10-03 — Au bureau, chaque fiche épinglée garde son projet (D105, étend D101)
+
+**Décision.** Au bureau, une fiche épinglée reste ouverte avec son projet
+quand on en ouvre un autre : la fiche de l'adresse en cours s'ouvre à sa
+place habituelle, devant (D99), et les fiches épinglées restent derrière,
+chacune avec son chapitre, son rectangle, son épingle et son état réduit.
+Pas de limite de nombre. Rouvrir un projet dont la fiche est épinglée la
+ramène devant, sans doublon. Fermer une fiche épinglée qui n'est pas celle de
+l'adresse la retire sans changer de page. « Projets » rend toutes les fiches
+réduites ; F6 passe par toutes. La page garde une seule `h1`, sur la fiche de
+l'adresse. La scène cadre la fiche de l'adresse. Le téléphone garde une
+seule fiche.
+
+**Raison.** Décision de l'opérateur (2026-10-03) : « même fonctionnement
+dans la page Projets » qu'à l'accueil, où la nouvelle fenêtre se pose
+par-dessus l'épinglée. Le modèle est celui d'un programme : une liste de
+fenêtres, pas un emplacement unique. Chaque fiche a une clé, écrite par
+l'updater ; une fiche quittée alors qu'elle est épinglée est mise de côté
+avec sa clé, donc son DOM et sa place restent, et la nouvelle reçoit une
+clé neuve, donc sa place habituelle. Bundle initial +2,5 kB, payé par les
+polices (#170) et l'hydratation (D104) : 542,60 kB.
+
+**Écarté.** Une clé de DOM par projet : elle coupait l'animation et faisait
+perdre sa place à une fiche déplacée. Un composant chargé à part : coûte
+plus qu'il ne rapporte (D87).
+
+**Reste.** Une fiche ouverte à côté d'une épinglée ne recadre la scène
+qu'au lâcher d'un glisser (`SceneWindowDrag` ne suit que les cadres
+présents au démarrage).

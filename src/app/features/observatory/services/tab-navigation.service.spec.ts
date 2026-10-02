@@ -205,6 +205,24 @@ describe('TabNavigationService', () => {
       expect(navigateByUrl).toHaveBeenCalledWith('/projets');
     });
 
+    it('restores a reduced held sheet too, without leaving the page', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('sheet', 'a');
+      observatory.togglePin('sheet');
+      observatory.syncRoute('sheet', 'b');
+      observatory.minimizeSheet(0);
+
+      tabs.choose('/projets');
+
+      expect(observatory.held().map(({ minimized }) => minimized)).toEqual([
+        false,
+      ]);
+      expect(windows.bringToFront.mock.calls).toEqual([['sheet']]);
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    });
+
     it('goes to the tab plainly when none of its windows is minimized', () => {
       const { tabs, observatory, navigateByUrl, windows } = mount({
         isPhone: false,
@@ -299,6 +317,29 @@ describe('TabNavigationService', () => {
       expect(calls).toEqual(['/projets', '/a-propos']);
       expect(observatory.minimized().sheet).toBe(true);
       expect(observatory.minimized().about).toBe(true);
+    });
+  });
+
+  describe('minimizing a sheet window', () => {
+    it('hands the focus to the projects entry, then hides only that sheet', () => {
+      const { tabs, observatory } = mount({ isPhone: false });
+      observatory.syncRoute('sheet', 'a');
+      observatory.togglePin('sheet');
+      observatory.syncRoute('sheet', 'b');
+      const calls: string[] = [];
+      const bar = { focusRoute: (route: string) => calls.push(route) };
+
+      tabs.minimizeSheet(0, bar);
+
+      expect(calls).toEqual(['/projets']);
+      expect(observatory.held().map(({ minimized }) => minimized)).toEqual([
+        true,
+      ]);
+      expect(observatory.minimized().sheet).toBe(false);
+
+      tabs.minimizeSheet(observatory.sheetKey(), bar);
+
+      expect(observatory.minimized().sheet).toBe(true);
     });
   });
 
@@ -475,17 +516,6 @@ describe('TabNavigationService', () => {
       TestBed.tick();
 
       expect(observatory.preview()).toBeNull();
-    });
-  });
-
-  describe('going up to the list', () => {
-    it('closes the sheet window, which climbs through the history', () => {
-      const { tabs, observatory } = mount();
-      const close = vi.spyOn(observatory, 'close').mockResolvedValue();
-
-      tabs.ascendToIndex();
-
-      expect(close).toHaveBeenCalledWith('sheet');
     });
   });
 });

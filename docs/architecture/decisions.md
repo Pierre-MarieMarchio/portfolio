@@ -3044,3 +3044,33 @@ seul chemin sans glisser pour placer une fenêtre (D74), mais aucun contenu
 ne demande de déplacer une fenêtre, et Agrandir donne la place. Replier la
 fenêtre sur sa barre de titre au lieu de la réduire : ce n'est pas le geste
 qu'un programme fait.
+
+## 2026-10-03 — La traduction reste maison, avec deux règles écrites, et un texte bilingue se marque (D102, amende D3)
+
+**Décision.** Le mécanisme de traduction maison est gardé. Deux règles le
+partagent : les textes d'interface vivent dans un catalogue typé par langue,
+chargé à part ; les textes de contenu (les projets, les adresses) sont des
+valeurs bilingues construites par `bilingual(fr, en)`, les deux langues dans
+l'objet. `localize` ne résout que ces valeurs marquées : un
+`Record<Lang, string>` ordinaire (noms des langues, table `og:locale`) reste
+intact. La table « langue → préfixe d'adresse » n'est écrite qu'une fois
+(`core/models/lang.model.ts`) ; routes, adresses et `check-prerender` la
+suivent (le script lit les adresses anglaises dans le `hreflang` des pages
+françaises, faute de pouvoir importer le TypeScript). Le prérendu ne change
+pas.
+
+**Raison.** C'est la seule voie qui garde ensemble les clés typées (une clé
+oubliée ne compile pas), la scène montée pendant le changement de langue
+(testé) et le bundle initial sous l'avertissement de 550 kB (D87). La
+reconnaissance par la forme `{fr,en}` était une erreur latente : des tables
+ordinaires ont la même forme et auraient été réduites à une chaîne. La
+raison de D3 « GitHub Pages ne sert qu'un 404 » ne tient plus depuis D95 ;
+D3 tient sans elle, par le rechargement qu'impose `@angular/localize`.
+
+**Écarté.** Tous les textes en ligne : environ 14,6 kB de plus dans `main`.
+Tous les textes en catalogue : casse « un fichier par projet », et le futur
+JSON des projets « à un seul endroit ». Transloco : clés en chaînes non
+typées, coût non mesuré pour 1,4 kB de marge. `@angular/localize` :
+recharge l'application au changement de langue. Une lib `shared/i18n/` : le
+type `Catalog` importe les ports des features, ce qu'une lib partagée n'a
+pas le droit de faire ; `i18n` est la racine qui les compose.

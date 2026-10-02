@@ -1,3 +1,4 @@
+import { bilingual } from '@app/core/rules';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import {
@@ -102,10 +103,10 @@ describe('ProjectsManager', () => {
     state.projects.set([
       sampleProject({
         slug: 'p',
-        subject: { fr: 'Un module bancaire.', en: 'A banking module.' },
+        subject: bilingual('Un module bancaire.', 'A banking module.'),
       }),
     ]);
-    state.facts.set({ p: sampleFacts({ role: { fr: 'Seul', en: 'Alone' } }) });
+    state.facts.set({ p: sampleFacts({ role: bilingual('Seul', 'Alone') }) });
 
     expect(manager.find('p')?.subject).toBe('Un module bancaire.');
     expect(manager.find('p')?.facts.role).toBe('Seul');

@@ -27,57 +27,93 @@ const sheets = readdirSync(join(ROOT, 'projet'), { withFileTypes: true })
   .map((entry) => entry.name);
 
 /**
- * Every view, in both languages: French at the root, English under `/en`.
- * @param {'fr' | 'en'} lang
- * @param {{ home: string, index: string, about: string, sheet: string }} at
+ * @param {string} html
+ * @param {string} rel
+ * @returns {string[]}
+ */
+const linksOf = (html, rel) =>
+  [...html.matchAll(/<link\b[^>]*>/g)]
+    .map((match) => match[0])
+    .filter((tag) => tag.includes(`rel="${rel}"`))
+    .map((tag) => /\bhref="([^"]*)"/.exec(tag)?.[1] ?? '');
+
+const homeCanonical = linksOf(
+  readFileSync(join(ROOT, 'index.html'), 'utf8'),
+  'canonical',
+)[0];
+const siteAddress = (homeCanonical ?? '').replace(/\/$/, '');
+
+/**
+ * The address of a page's English twin, read from the hreflang link the page
+ * itself carries, so the English prefix is written once, in src/ (D4).
+ * @param {string} file The French page, under ROOT.
+ * @returns {string} The address under the site, leading slash included.
+ */
+const englishAddressOf = (file) => {
+  const html = readFileSync(join(ROOT, file), 'utf8');
+  const tag = [...html.matchAll(/<link\b[^>]*>/g)]
+    .map((match) => match[0])
+    .find((link) => link.includes('hreflang="en"'));
+  const href = /\bhref="([^"]*)"/.exec(tag ?? '')?.[1] ?? '';
+  return href.startsWith(siteAddress) ? href.slice(siteAddress.length) : '';
+};
+
+/**
+ * Every view in French, the language at the root of the site.
  * @returns {Page[]}
  */
-const pagesIn = (lang, at) => [
+const frenchPages = () => [
   {
-    path: `/${at.home}`,
-    file: join(at.home, 'index.html'),
-    lang,
+    path: '/',
+    file: 'index.html',
+    lang: /** @type {const} */ ('fr'),
     holds: ['<app-home-title', '<app-featured-bar', '<app-intro-card'],
     lacks: ['<app-window'],
   },
   {
-    path: `/${at.index}`,
-    file: join(at.index, 'index.html'),
-    lang,
+    path: '/projets',
+    file: join('projets', 'index.html'),
+    lang: /** @type {const} */ ('fr'),
     holds: ['<app-project-list', '<app-window'],
     lacks: ['<app-home-title', '<app-intro-card'],
   },
   {
-    path: `/${at.about}`,
-    file: join(at.about, 'index.html'),
-    lang,
+    path: '/a-propos',
+    file: join('a-propos', 'index.html'),
+    lang: /** @type {const} */ ('fr'),
     holds: ['<app-about-window', '<app-window'],
     lacks: ['<app-home-title', '<app-intro-card'],
   },
   ...sheets.map((slug) => ({
-    path: `/${at.sheet}/${slug}`,
-    file: join(at.sheet, slug, 'index.html'),
-    lang,
+    path: `/projet/${slug}`,
+    file: join('projet', slug, 'index.html'),
+    lang: /** @type {const} */ ('fr'),
     holds: ['<app-project-detail', '<app-window'],
     lacks: ['<app-home-title', '<app-not-found-window', '<app-intro-card'],
   })),
 ];
 
+const FRENCH_PAGES = frenchPages();
+
+/**
+ * Each French page has an English twin with the same expectations, at the
+ * address the French page links to.
+ * @type {Page[]}
+ */
+const ENGLISH_PAGES = FRENCH_PAGES.map((page) => {
+  const path = englishAddressOf(page.file);
+  return {
+    ...page,
+    path: path || '/',
+    file: join(path.replace(/^\//, ''), 'index.html'),
+    lang: 'en',
+  };
+});
+
 /** @type {Page[]} */
-const PAGES = [
-  ...pagesIn('fr', {
-    home: '',
-    index: 'projets',
-    about: 'a-propos',
-    sheet: 'projet',
-  }),
-  ...pagesIn('en', {
-    home: 'en',
-    index: 'en/projects',
-    about: 'en/about',
-    sheet: 'en/project',
-  }),
-];
+const PAGES = [...FRENCH_PAGES, ...ENGLISH_PAGES];
+
+const englishPrefix = ENGLISH_PAGES[0]?.path.replace(/^\//, '') ?? '';
 
 /**
  * The visible words of a page, and its accessible names: what a reader of
@@ -162,7 +198,7 @@ if (sheets.length === 0) {
  */
 const NOT_FOUND_PAGES = [
   { file: '404.html', lang: 'fr' },
-  { file: join('en', '404.html'), lang: 'en' },
+  { file: join(englishPrefix, '404.html'), lang: 'en' },
 ];
 
 for (const { file, lang } of NOT_FOUND_PAGES) {
@@ -194,17 +230,6 @@ for (const { file, lang } of NOT_FOUND_PAGES) {
     fail('is also left as a directory');
   }
 }
-
-/**
- * @param {string} html
- * @param {string} rel
- * @returns {string[]}
- */
-const linksOf = (html, rel) =>
-  [...html.matchAll(/<link\b[^>]*>/g)]
-    .map((match) => match[0])
-    .filter((tag) => tag.includes(`rel="${rel}"`))
-    .map((tag) => /\bhref="([^"]*)"/.exec(tag)?.[1] ?? '');
 
 const sitemap = existsSync(join(ROOT, 'sitemap.xml'))
   ? readFileSync(join(ROOT, 'sitemap.xml'), 'utf8')
@@ -248,10 +273,6 @@ if (/\/404</.test(sitemap)) {
 const robots = existsSync(join(ROOT, 'robots.txt'))
   ? readFileSync(join(ROOT, 'robots.txt'), 'utf8')
   : '';
-const homeCanonical = linksOf(
-  readFileSync(join(ROOT, 'index.html'), 'utf8'),
-  'canonical',
-)[0];
 if (!/^User-agent: \*$/m.test(robots) || !/^Allow: \/$/m.test(robots)) {
   failures.push('/robots.txt: missing or does not allow everything');
 }

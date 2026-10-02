@@ -1,5 +1,5 @@
 export { draft, draftsLeft } from './draft.rules';
-export { localize } from './localize.rules';
+export { bilingual, localize } from './localize.rules';
 export type { Localized, Resolved, Text } from './localize.rules';
 export {
   displayFormatOf,

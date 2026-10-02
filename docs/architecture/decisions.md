@@ -2816,3 +2816,29 @@ vouloir le lire.
 
 **Écarté.** Raccourcir la feuille d'une rubrique courte : le haut bougerait
 encore. Rouvrir au cran du projet précédent : c'était le défaut relevé.
+
+## 2026-10-02 — Au téléphone, une navigation relâche la couche de retour d'une feuille sans la baisser (D94, amende D84)
+
+**Décision.** Une feuille au plein garde sa couche de retour tant qu'elle est
+visible. Une navigation du routeur relâche la couche, avec ou sans
+`CloseWatcher`, **sans changer le cran** ; la feuille reprend une couche
+quand elle redevient visible au plein, si bien que le retour la baisse
+d'abord. Une feuille cachée (hauteur nulle sous `content-visibility`) n'en
+reprend jamais. `BackLayersService.claim` prend un second rappel, pour la
+navigation ; `BackClaimService.follow` suit le cran et la visibilité de la
+feuille.
+
+**Raison.** D84 relâchait la couche en appelant son retour, ce qui baissait la
+feuille à mi-hauteur à chaque navigation : une fiche quittée au plein
+revenait à mi-hauteur, contre D91 (chaque onglet garde sa place), et une
+arrivée directe sur une fiche, ouverte au plein (D93), retombait aussitôt.
+Le but de D84 reste tenu : une feuille cachée par un changement d'onglet ne
+capte pas le retour.
+
+**Écarté.** Garder la couche à travers la navigation : une feuille cachée la
+capterait. Limite connue : une feuille qui reste visible pendant une
+navigation (« Suivant » d'une fiche à l'autre) ne reprend sa couche qu'au
+prochain changement de taille ; le port n'expose que le départ d'une
+navigation, pas son arrivée. La carte de l'accueil reste mise de côté par
+`TabNavigationService` : l'état efface l'aperçu en quittant l'accueil, et la
+feuille d'accueil n'est pas gardée montée.

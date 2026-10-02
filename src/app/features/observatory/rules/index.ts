@@ -1,3 +1,9 @@
-export { closeTargetOf, viewAtAddress } from './view.rules';
+export {
+  closeTargetOf,
+  sheetOnShowOf,
+  viewAtAddress,
+  type SheetFrom,
+  type SheetOnShow,
+} from './view.rules';
 export { homeDetentAfter, posedSlugOf } from './home-sheet.rules';
 export { tabOf, type Tab } from './tabs.rules';

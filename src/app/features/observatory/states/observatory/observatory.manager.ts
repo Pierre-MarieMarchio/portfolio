@@ -1,6 +1,12 @@
 import { computed, inject, Service } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
-import { ObservatoryView, ObservatoryWindow } from '../../models';
+import { DisplayFormatService } from '@app/core/services';
+import {
+  MinimizableWindow,
+  ObservatoryMinimized,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../../models';
 import {
   observatoryChapterChosen,
   observatoryEscaped,
@@ -14,15 +20,18 @@ import {
   observatorySelected,
   observatorySteppedBack,
   observatoryWindowClosed,
+  observatoryWindowMinimized,
   observatoryWindowPrepared,
+  observatoryWindowsRestored,
 } from './observatory.action';
-import { ObservatoryState } from './observatory.state';
+import { NONE_MINIMIZED, ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
 import { dockedOf, keptOf, stepBack, windowOf } from '../../rules/view.rules';
 
 @Service()
 export class ObservatoryManager {
   private readonly state = inject(ObservatoryState);
+  private readonly display = inject(DisplayFormatService);
   private readonly statewise = injectStatewise(observatoryUpdater);
 
   public readonly view = this.state.view.asReadonly();
@@ -39,14 +48,27 @@ export class ObservatoryManager {
   public readonly hovered = this.state.hovered.asReadonly();
   public readonly family = this.state.family.asReadonly();
 
-  public readonly showsList = computed(
+  public readonly minimized = computed<ObservatoryMinimized>(() =>
+    this.display.format() === 'phone' ? NONE_MINIMIZED : this.state.minimized(),
+  );
+
+  public readonly opensList = computed(
     () => this.view() === 'index' || this.pins().index,
   );
-  public readonly showsAbout = computed(
+  public readonly opensAbout = computed(
     () => this.view() === 'about' || this.pins().about,
   );
-  public readonly showsSheet = computed(
+  public readonly opensSheet = computed(
     () => windowOf(this.view()) === 'sheet' || this.pins().sheet,
+  );
+  public readonly showsList = computed(
+    () => this.opensList() && !this.minimized().index,
+  );
+  public readonly showsAbout = computed(
+    () => this.opensAbout() && !this.minimized().about,
+  );
+  public readonly showsSheet = computed(
+    () => this.opensSheet() && !this.minimized().sheet,
   );
   public readonly kept = computed(() =>
     keptOf({
@@ -90,6 +112,14 @@ export class ObservatoryManager {
 
   public togglePin(window: ObservatoryWindow): void {
     this.statewise.dispatch(observatoryPinToggled(window));
+  }
+
+  public minimize(window: MinimizableWindow): void {
+    this.statewise.dispatch(observatoryWindowMinimized(window));
+  }
+
+  public restore(windows: readonly MinimizableWindow[]): void {
+    this.statewise.dispatch(observatoryWindowsRestored(windows));
   }
 
   public close(window: ObservatoryWindow): Promise<void> {

@@ -40,6 +40,7 @@ export class AboutWindowComponent {
   public readonly closeLabel = input('');
   public readonly part = input(0);
 
+  public readonly minimized = output();
   public readonly pinToggled = output();
   public readonly closed = output();
   public readonly partChange = output<number>();

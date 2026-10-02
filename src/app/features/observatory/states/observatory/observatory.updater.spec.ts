@@ -12,9 +12,11 @@ import {
   observatorySectionChosen,
   observatorySelected,
   observatoryWindowClosed,
+  observatoryWindowMinimized,
   observatoryWindowPrepared,
+  observatoryWindowsRestored,
 } from './observatory.action';
-import { NO_PINS, ObservatoryState } from './observatory.state';
+import { NO_PINS, NONE_MINIMIZED, ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
 
 describe('observatoryUpdater', () => {
@@ -179,6 +181,67 @@ describe('observatoryUpdater', () => {
       statewise.dispatch(observatoryPinToggled('index'));
 
       expect(state.pins()).toEqual(NO_PINS);
+    });
+  });
+
+  describe('observatoryWindowMinimized', () => {
+    it('starts with no window minimized', () => {
+      expect(state.minimized()).toEqual(NONE_MINIMIZED);
+    });
+
+    it('minimizes only the given window, leaving its pin alone', () => {
+      statewise.dispatch(observatoryPinToggled('index'));
+
+      statewise.dispatch(observatoryWindowMinimized('index'));
+
+      expect(state.minimized()).toEqual({ ...NONE_MINIMIZED, index: true });
+      expect(state.pins().index).toBe(true);
+    });
+  });
+
+  describe('observatoryWindowsRestored', () => {
+    it('restores the given windows and no other', () => {
+      statewise.dispatch(observatoryWindowMinimized('index'));
+      statewise.dispatch(observatoryWindowMinimized('sheet'));
+      statewise.dispatch(observatoryWindowMinimized('about'));
+
+      statewise.dispatch(observatoryWindowsRestored(['index', 'sheet']));
+
+      expect(state.minimized()).toEqual({ ...NONE_MINIMIZED, about: true });
+    });
+  });
+
+  describe('a minimized window and the route', () => {
+    it('is restored when the reader arrives on its view', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+      statewise.dispatch(observatoryPinToggled('index'));
+      statewise.dispatch(observatoryWindowMinimized('index'));
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      expect(state.minimized().index).toBe(true);
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+
+      expect(state.minimized().index).toBe(false);
+    });
+
+    it('stays minimized while pinned, and is forgotten once the reader leaves an unpinned window', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+      statewise.dispatch(observatoryWindowMinimized('about'));
+      statewise.dispatch(observatoryPinToggled('about'));
+      statewise.dispatch(observatoryWindowMinimized('sheet'));
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'home', slug: null }));
+
+      expect(state.minimized()).toEqual({ ...NONE_MINIMIZED, about: true });
+    });
+
+    it('is restored by the window closing', () => {
+      statewise.dispatch(observatoryWindowMinimized('sheet'));
+
+      statewise.dispatch(observatoryWindowClosed('sheet'));
+
+      expect(state.minimized().sheet).toBe(false);
     });
   });
 

@@ -47,6 +47,34 @@ describe('WindowControlsComponent', () => {
     expect(names()).toEqual([texts().close]);
   });
 
+  it('offers minimize, then pin, then close when asked, each emitting its own output', async () => {
+    const { fixture, named, names } = await mount({
+      minimizable: true,
+      pinned: false,
+    });
+    const minimized = recordOutput(fixture.componentInstance.minimized);
+    const pins = recordOutput(fixture.componentInstance.pinToggled);
+
+    expect(names()).toEqual([texts().minimize, texts().pin, texts().close]);
+
+    named(texts().minimize).click();
+    named(texts().pin).click();
+
+    expect(minimized).toHaveLength(1);
+    expect(pins).toHaveLength(1);
+  });
+
+  it('tells a pinned window from an unpinned one by aria-pressed, never by its name', async () => {
+    const { fixture, named } = await mount({ pinned: false });
+
+    expect(named(texts().pin).getAttribute('aria-pressed')).toBe('false');
+
+    fixture.componentRef.setInput('pinned', true);
+    await fixture.whenStable();
+
+    expect(named(texts().pin).getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('offers neither pin nor fold on the phone, only the close', async () => {
     stubViewport(390, 844);
     const { fixture, named, names } = await mount();

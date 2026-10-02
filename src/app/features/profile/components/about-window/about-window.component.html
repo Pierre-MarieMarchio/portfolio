@@ -6,7 +6,9 @@
   scrollKey="about"
   [scrollResetOn]="part()"
   [pinned]="pinned()"
+  [minimizable]="true"
   (pinToggled)="pinToggled.emit()"
+  (minimized)="minimized.emit()"
   [closeLabel]="closeLabel()"
   (closed)="closed.emit()"
 >

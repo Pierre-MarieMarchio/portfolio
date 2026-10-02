@@ -149,10 +149,6 @@ export class WindowFrameDirective {
     };
   }
 
-  public snapTo(zone: 'left' | 'right'): void {
-    this.tracker?.snapTo(zone);
-  }
-
   public toggleMaximize(): void {
     this.tracker?.toggleMaximize();
     this.animate();

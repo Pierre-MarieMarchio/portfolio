@@ -76,11 +76,6 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     ];
   }
 
-  public snapTo(zone: 'left' | 'right'): void {
-    this.settle();
-    this.snap(zone);
-  }
-
   public toggleMaximize(): void {
     this.settle();
     if (this.framed.mode() !== 'full') {

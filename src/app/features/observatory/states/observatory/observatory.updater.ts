@@ -10,9 +10,15 @@ import {
   observatorySectionChosen,
   observatorySelected,
   observatoryWindowClosed,
+  observatoryWindowMinimized,
   observatoryWindowPrepared,
+  observatoryWindowsRestored,
 } from './observatory.action';
-import { ObservatoryView, ObservatoryWindow } from '../../models';
+import {
+  MinimizableWindow,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../../models';
 import { ObservatoryState } from './observatory.state';
 import { windowOf } from '../../rules/view.rules';
 
@@ -50,6 +56,17 @@ function chapterOnArrival(
     : 0;
 }
 
+function keepMinimizedPinned(state: ObservatoryState): void {
+  const open = windowOf(state.view());
+  const isStillMinimized = (window: MinimizableWindow): boolean =>
+    state.minimized()[window] && state.pins()[window] && open !== window;
+  state.minimized.set({
+    index: isStillMinimized('index'),
+    sheet: isStillMinimized('sheet'),
+    about: isStillMinimized('about'),
+  });
+}
+
 function syncRoute(
   state: ObservatoryState,
   view: ObservatoryView,
@@ -66,6 +83,7 @@ function syncRoute(
   state.slug.set(view === 'sheet' ? slug : null);
   state.chapter.set(chapterOnArrival(state, view, slug));
   state.hovered.set(null);
+  keepMinimizedPinned(state);
   see(state, windowOf(view));
   if (!state.pins().preview) {
     state.preview.set(null);
@@ -93,8 +111,26 @@ export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
     state.pins.update((pins) => ({ ...pins, [window]: !pins[window] }));
   });
 
+  on(observatoryWindowMinimized, (state, window) => {
+    state.minimized.update((minimized) => ({ ...minimized, [window]: true }));
+  });
+
+  on(observatoryWindowsRestored, (state, windows) => {
+    state.minimized.update((minimized) => ({
+      index: minimized.index && !windows.includes('index'),
+      sheet: minimized.sheet && !windows.includes('sheet'),
+      about: minimized.about && !windows.includes('about'),
+    }));
+  });
+
   on(observatoryWindowClosed, (state, window) => {
     state.pins.update((pins) => ({ ...pins, [window]: false }));
+    if (window !== 'preview') {
+      state.minimized.update((minimized) => ({
+        ...minimized,
+        [window]: false,
+      }));
+    }
     if (window === 'preview') {
       state.preview.set(null);
     }

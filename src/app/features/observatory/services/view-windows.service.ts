@@ -63,6 +63,10 @@ export class ViewWindowsService {
     };
   }
 
+  public bringToFront(window: ObservatoryWindow): void {
+    this.stack.bringToFront(window);
+  }
+
   public scrollToTop(window: ObservatoryWindow | null): boolean {
     const behavior = this.media.reducedMotion() ? 'instant' : 'smooth';
     let isScrolled = false;

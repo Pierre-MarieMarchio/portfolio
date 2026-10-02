@@ -1,6 +1,11 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import {
+  NavigationSkipped,
+  NavigationSkippedCode,
+  Router,
+} from '@angular/router';
+import { Subject } from 'rxjs';
 import { provideStatewise } from 'ngx-statewise';
 import {
   provideSessionHistoryDouble,
@@ -19,7 +24,9 @@ const mount = (
   const { scrolled = [], isPhone = true } = options;
   const navigateByUrl = vi.fn(() => Promise.resolve(true));
   const history = new SessionHistoryDouble();
+  const events = new Subject<unknown>();
   const windows = {
+    bringToFront: vi.fn(),
     scrollToTop: vi.fn((window: ObservatoryWindow | null) =>
       scrolled.includes(window as ObservatoryWindow),
     ),
@@ -36,7 +43,7 @@ const mount = (
       provideSessionHistoryDouble(history),
       {
         provide: Router,
-        useValue: { navigateByUrl, url: '/projet/skyted' },
+        useValue: { navigateByUrl, events, url: '/projet/skyted' },
       },
       { provide: ViewWindowsService, useValue: windows },
       { provide: HomeSheetService, useValue: homeSheet },
@@ -49,6 +56,7 @@ const mount = (
     observatory,
     tabs,
     navigateByUrl,
+    events,
     history,
     windows,
     homeSheet,
@@ -162,6 +170,135 @@ describe('TabNavigationService', () => {
       expect(navigateByUrl.mock.calls).toEqual([['/a-propos'], ['/projets']]);
       expect(windows.scrollToTop).not.toHaveBeenCalled();
       expect(homeSheet.settle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('touching the tab of a minimized window outside the phone', () => {
+    it('restores the list and the sheet, in front, without leaving the page', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('sheet', 'skyted');
+      observatory.togglePin('sheet');
+      observatory.minimize('sheet');
+
+      tabs.choose('/projets');
+
+      expect(observatory.minimized().sheet).toBe(false);
+      expect(windows.bringToFront.mock.calls).toEqual([['sheet']]);
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('restores a pinned window of the other tab, then goes to the tab', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('index');
+      observatory.togglePin('index');
+      observatory.minimize('index');
+      observatory.syncRoute('about');
+
+      tabs.choose('/projets');
+
+      expect(observatory.minimized().index).toBe(false);
+      expect(windows.bringToFront.mock.calls).toEqual([['index']]);
+      expect(navigateByUrl).toHaveBeenCalledWith('/projets');
+    });
+
+    it('goes to the tab plainly when none of its windows is minimized', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('about');
+      observatory.minimize('about');
+
+      tabs.choose('/projets');
+
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+      expect(navigateByUrl).toHaveBeenCalledWith('/projets');
+    });
+  });
+
+  describe('following a link to the page already open', () => {
+    const sameUrlSkipped = new NavigationSkipped(
+      1,
+      '/projet/skyted',
+      '',
+      NavigationSkippedCode.IgnoredSameUrlNavigation,
+    );
+
+    it('brings back the minimized window of the page, in front', () => {
+      const { events, observatory, windows } = mount({ isPhone: false });
+      observatory.syncRoute('sheet', 'skyted');
+      observatory.minimize('sheet');
+
+      events.next(sameUrlSkipped);
+
+      expect(observatory.minimized().sheet).toBe(false);
+      expect(windows.bringToFront.mock.calls).toEqual([['sheet']]);
+    });
+
+    it('leaves the other minimized windows alone', () => {
+      const { events, observatory } = mount({ isPhone: false });
+      observatory.syncRoute('index');
+      observatory.togglePin('about');
+      observatory.minimize('about');
+
+      events.next(sameUrlSkipped);
+
+      expect(observatory.minimized().about).toBe(true);
+    });
+
+    it('does nothing when no window of the page is minimized', () => {
+      const { events, observatory, windows } = mount({ isPhone: false });
+      observatory.syncRoute('index');
+
+      events.next(sameUrlSkipped);
+
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+    });
+
+    it('ignores a navigation skipped for another reason', () => {
+      const { events, observatory, windows } = mount({ isPhone: false });
+      observatory.syncRoute('index');
+      observatory.minimize('index');
+
+      events.next(
+        new NavigationSkipped(
+          1,
+          '/projets',
+          '',
+          NavigationSkippedCode.IgnoredByUrlHandlingStrategy,
+        ),
+      );
+
+      expect(observatory.minimized().index).toBe(true);
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on the phone', () => {
+      const { events, observatory, windows } = mount();
+      observatory.syncRoute('index');
+
+      events.next(sameUrlSkipped);
+
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('minimizing a window', () => {
+    it('hands the focus to the entry of its tab, then hides it', () => {
+      const { tabs, observatory } = mount({ isPhone: false });
+      observatory.syncRoute('sheet', 'skyted');
+      const calls: string[] = [];
+      const bar = { focusRoute: (route: string) => calls.push(route) };
+
+      tabs.minimize('sheet', bar);
+      tabs.minimize('about', bar);
+
+      expect(calls).toEqual(['/projets', '/a-propos']);
+      expect(observatory.minimized().sheet).toBe(true);
+      expect(observatory.minimized().about).toBe(true);
     });
   });
 

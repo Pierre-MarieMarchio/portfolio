@@ -10,25 +10,7 @@
   }
   <div #bar class="titlebar" appDoublePress (doublePressed)="onDoublePress()">
     <ng-content select="[before]" />
-    @if (isMenuActive()) {
-      <button
-        type="button"
-        class="menu-opener"
-        [attr.aria-label]="texts().menu"
-        aria-haspopup="menu"
-        aria-expanded="false"
-        (click)="onMenuClick($event)"
-        (keydown)="onMenuKeydown($event)"
-      >
-        <span class="square" aria-hidden="true"></span>
-        <svg class="chevron" aria-hidden="true" viewBox="2 2 20 20">
-          <path [attr.d]="chevron" />
-        </svg>
-        <span class="tip" aria-hidden="true">{{ texts().menu }}</span>
-      </button>
-    } @else {
-      <span class="square" aria-hidden="true"></span>
-    }
+    <span class="square" aria-hidden="true"></span>
     <h2 tabindex="-1" data-window-title>{{ heading() }}</h2>
     @if (isKeptOpen()) {
       <svg class="kept" aria-hidden="true" viewBox="2 2 20 20">
@@ -38,8 +20,12 @@
     <span class="spacer"></span>
     <p class="meta">{{ meta() }}</p>
     <app-window-controls
+      [minimizable]="isFramed() && minimizable()"
+      [pinned]="isFramed() ? pinned() : null"
       [closable]="closable()"
       [closeLabel]="closeLabel()"
+      (minimized)="minimized.emit()"
+      (pinToggled)="pinToggled.emit()"
       (closed)="closed.emit()"
     />
   </div>

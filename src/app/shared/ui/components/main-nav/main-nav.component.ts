@@ -1,4 +1,11 @@
-import { Component, inject, input, output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  input,
+  output,
+  viewChildren,
+} from '@angular/core';
 import { SHARED_TEXTS } from '../../ports';
 import { Entrance } from '../../models/entrance.model';
 import { NavigationItem } from '../../models/navigation-item.model';
@@ -17,6 +24,14 @@ export class MainNavComponent {
   public readonly chosen = output<string>();
 
   protected readonly texts = inject(SHARED_TEXTS);
+  private readonly entries =
+    viewChildren<ElementRef<HTMLAnchorElement>>('entry');
+
+  public focusRoute(route: string): void {
+    this.entries()
+      .find((entry) => entry.nativeElement.getAttribute('href') === route)
+      ?.nativeElement.focus();
+  }
 
   protected onTap(event: MouseEvent, item: NavigationItem): void {
     if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {

@@ -1,12 +1,17 @@
 import { DestroyRef, effect, inject, Service, untracked } from '@angular/core';
-import { Router } from '@angular/router';
+import {
+  NavigationSkipped,
+  NavigationSkippedCode,
+  Router,
+} from '@angular/router';
 import {
   BrowserWindowService,
   SessionHistoryService,
 } from '@app/core/services';
+import type { MinimizableWindow } from '../models';
 import { LINKS } from '@app/features/common';
 import { ObservatoryManager } from '@app/features/observatory/states';
-import { tabOf } from '../rules';
+import { TABS, tabOf, tabOfWindow, windowsOfTab } from '../rules';
 import { parentOf, windowOf } from '../rules/view.rules';
 import { HomeSheetService } from './home-sheet.service';
 import { ViewWindowsService } from './view-windows.service';
@@ -45,12 +50,23 @@ export class TabNavigationService {
         });
       }
     });
-    inject(DestroyRef).onDestroy(stopClicks);
+    const skips = this.router.events.subscribe((event) => {
+      if (
+        event instanceof NavigationSkipped &&
+        event.code === NavigationSkippedCode.IgnoredSameUrlNavigation
+      ) {
+        this.restoreCurrentWindow();
+      }
+    });
+    inject(DestroyRef).onDestroy(() => {
+      stopClicks();
+      skips.unsubscribe();
+    });
   }
 
   public choose(address: string): void {
     if (!this.homeSheet.isPhone()) {
-      void this.router.navigateByUrl(address);
+      this.chooseOnDesktop(address);
       return;
     }
     const view = this.observatory.view();
@@ -73,8 +89,51 @@ export class TabNavigationService {
     }
   }
 
+  public minimize(
+    window: MinimizableWindow,
+    bar: { focusRoute(route: string): void },
+  ): void {
+    bar.focusRoute(this.links[tabOfWindow(window)]());
+    this.observatory.minimize(window);
+  }
+
   public ascendToIndex(): void {
     void this.observatory.close('sheet');
+  }
+
+  private chooseOnDesktop(address: string): void {
+    const tab = TABS.find((each) => this.links[each]() === address);
+    const minimized = this.observatory.minimized();
+    const restored = (tab ? windowsOfTab(tab) : []).filter(
+      (window) => minimized[window],
+    );
+    if (restored.length > 0) {
+      this.bringBack(restored);
+      if (tab === tabOf(this.observatory.view())) {
+        return;
+      }
+    }
+    void this.router.navigateByUrl(address);
+  }
+
+  private restoreCurrentWindow(): void {
+    const window = windowOf(this.observatory.view());
+    if (
+      this.homeSheet.isPhone() ||
+      window === null ||
+      window === 'preview' ||
+      !this.observatory.minimized()[window]
+    ) {
+      return;
+    }
+    this.bringBack([window]);
+  }
+
+  private bringBack(windows: readonly MinimizableWindow[]): void {
+    this.observatory.restore(windows);
+    for (const window of windows) {
+      this.windows.bringToFront(window);
+    }
   }
 
   private open(address: string): void {

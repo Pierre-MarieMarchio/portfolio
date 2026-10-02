@@ -11,7 +11,6 @@ import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
-import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { stubViewport } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
@@ -357,19 +356,17 @@ describe('ProjectDetailComponent', () => {
     expect(next?.getAttribute('href')).toBe('/projet/proj-c');
   });
 
-  it('re-emits the window pin and close as its own outputs', async () => {
+  it('re-emits the window minimize, pin and close as its own outputs', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b', pinned: true });
+    const minimized = recordOutput(fixture.componentInstance.minimized);
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    await loadWindowMenu();
-    await new Promise((resolve) => setTimeout(resolve));
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
+    host.querySelector<HTMLButtonElement>('button.minimize')?.click();
+    host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
+    expect(minimized).toHaveLength(1);
     expect(pinToggled).toHaveLength(1);
     expect(closed).toHaveLength(1);
   });

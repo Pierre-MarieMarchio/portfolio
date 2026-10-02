@@ -38,6 +38,7 @@ export class ProjectListComponent {
   public readonly visited = input<readonly string[]>([]);
   public readonly family = input<FamilyFilter>('all');
 
+  public readonly minimized = output();
   public readonly pinToggled = output();
   public readonly closed = output();
   public readonly hoveredChange = output<string | null>();

@@ -20,6 +20,7 @@ const mount = (
   const navigateByUrl = vi.fn(() => Promise.resolve(true));
   const history = new SessionHistoryDouble();
   const windows = {
+    bringToFront: vi.fn(),
     scrollToTop: vi.fn((window: ObservatoryWindow | null) =>
       scrolled.includes(window as ObservatoryWindow),
     ),
@@ -162,6 +163,68 @@ describe('TabNavigationService', () => {
       expect(navigateByUrl.mock.calls).toEqual([['/a-propos'], ['/projets']]);
       expect(windows.scrollToTop).not.toHaveBeenCalled();
       expect(homeSheet.settle).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('touching the tab of a minimized window outside the phone', () => {
+    it('restores the list and the sheet, in front, without leaving the page', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('sheet', 'skyted');
+      observatory.togglePin('sheet');
+      observatory.minimize('sheet');
+
+      tabs.choose('/projets');
+
+      expect(observatory.minimized().sheet).toBe(false);
+      expect(windows.bringToFront.mock.calls).toEqual([['sheet']]);
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('restores a pinned window of the other tab, then goes to the tab', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('index');
+      observatory.togglePin('index');
+      observatory.minimize('index');
+      observatory.syncRoute('about');
+
+      tabs.choose('/projets');
+
+      expect(observatory.minimized().index).toBe(false);
+      expect(windows.bringToFront.mock.calls).toEqual([['index']]);
+      expect(navigateByUrl).toHaveBeenCalledWith('/projets');
+    });
+
+    it('goes to the tab plainly when none of its windows is minimized', () => {
+      const { tabs, observatory, navigateByUrl, windows } = mount({
+        isPhone: false,
+      });
+      observatory.syncRoute('about');
+      observatory.minimize('about');
+
+      tabs.choose('/projets');
+
+      expect(windows.bringToFront).not.toHaveBeenCalled();
+      expect(navigateByUrl).toHaveBeenCalledWith('/projets');
+    });
+  });
+
+  describe('minimizing a window', () => {
+    it('hands the focus to the entry of its tab, then hides it', () => {
+      const { tabs, observatory } = mount({ isPhone: false });
+      observatory.syncRoute('sheet', 'skyted');
+      const calls: string[] = [];
+      const bar = { focusRoute: (route: string) => calls.push(route) };
+
+      tabs.minimize('sheet', bar);
+      tabs.minimize('about', bar);
+
+      expect(calls).toEqual(['/projets', '/a-propos']);
+      expect(observatory.minimized().sheet).toBe(true);
+      expect(observatory.minimized().about).toBe(true);
     });
   });
 

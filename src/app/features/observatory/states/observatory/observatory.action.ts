@@ -1,5 +1,9 @@
 import { defineSingleAction, emptyPayload, payload } from 'ngx-statewise';
-import { ObservatoryView, ObservatoryWindow } from '../../models';
+import {
+  MinimizableWindow,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../../models';
 
 export const observatoryRouteSynced = defineSingleAction(
   'OBSERVATORY_ROUTE_SYNCED',
@@ -9,6 +13,16 @@ export const observatoryRouteSynced = defineSingleAction(
 export const observatoryPinToggled = defineSingleAction(
   'OBSERVATORY_PIN_TOGGLED',
   payload<ObservatoryWindow>(),
+);
+
+export const observatoryWindowMinimized = defineSingleAction(
+  'OBSERVATORY_WINDOW_MINIMIZED',
+  payload<MinimizableWindow>(),
+);
+
+export const observatoryWindowsRestored = defineSingleAction(
+  'OBSERVATORY_WINDOWS_RESTORED',
+  payload<readonly MinimizableWindow[]>(),
 );
 
 export const observatoryWindowClosed = defineSingleAction(

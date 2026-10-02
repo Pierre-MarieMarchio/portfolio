@@ -49,6 +49,22 @@ describe('MainNavComponent', () => {
     expect(current[0]?.textContent?.trim()).toBe('Projets');
   });
 
+  it('moves the focus to the entry of a route, and to no other', async () => {
+    const { fixture, host } = await mount();
+
+    fixture.componentInstance.focusRoute('/projets');
+
+    expect(document.activeElement).toBe(
+      host.querySelector('a[href="/projets"]'),
+    );
+
+    fixture.componentInstance.focusRoute('/nowhere');
+
+    expect(document.activeElement).toBe(
+      host.querySelector('a[href="/projets"]'),
+    );
+  });
+
   it('names its navigation in the reader language', async () => {
     const { host } = await mount();
 

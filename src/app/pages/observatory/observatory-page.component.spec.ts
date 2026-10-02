@@ -68,6 +68,17 @@ const rankOf =
         ?.style.getPropertyValue('--stack'),
     );
 
+const minimizeFrom = async (
+  fixture: { whenStable: () => Promise<unknown> },
+  host: HTMLElement,
+  slot: string,
+): Promise<void> => {
+  host
+    .querySelector<HTMLButtonElement>(`.slot--${slot} button.minimize`)
+    ?.click();
+  await fixture.whenStable();
+};
+
 const openOf = (host: HTMLElement): boolean[] =>
   [...host.querySelectorAll<HTMLElement>('app-main-nav a')].map(
     (a) => a.dataset['open'] !== undefined,
@@ -889,6 +900,82 @@ describe('ObservatoryPageComponent', () => {
       await fixture.whenStable();
 
       expect(rank('about')).toBeGreaterThan(rank('index'));
+    });
+  });
+
+  describe('minimizing a window from its bar', () => {
+    it('hides the window without closing it, and keeps its mark in the page bar', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('index');
+      await shownAfterFrames(fixture);
+      const slot = host.querySelector<HTMLElement>('.slot--index');
+
+      await minimizeFrom(fixture, host, 'index');
+
+      expect(slot?.dataset['shown']).toBe('false');
+      expect(slot?.hasAttribute('inert')).toBe(true);
+      expect(openOf(host)).toEqual([false, true, false]);
+      expect(station.view()).toBe('index');
+      expect(TestBed.inject(LayoutAnchorsService).list('panel')).not.toContain(
+        slot,
+      );
+    });
+
+    it('hands the focus to its entry in the page bar', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('about');
+      await shownAfterFrames(fixture);
+
+      await minimizeFrom(fixture, host, 'about');
+
+      expect(document.activeElement).toBe(
+        host.querySelector('app-main-nav a[href="/a-propos"]'),
+      );
+    });
+
+    it('brings it back in front from its entry, though the reader is on its page already', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('about');
+      station.togglePin('about');
+      station.syncRoute('index');
+      await shownAfterFrames(fixture);
+      const rank = rankOf(host);
+      await minimizeFrom(fixture, host, 'about');
+      const slot = host.querySelector<HTMLElement>('.slot--about');
+      expect(slot?.dataset['shown']).toBe('false');
+
+      host
+        .querySelector<HTMLElement>('app-main-nav a[href="/a-propos"]')
+        ?.click();
+      await shownAfterFrames(fixture);
+
+      expect(slot?.dataset['shown']).toBe('true');
+      expect(rank('about')).toBeGreaterThan(rank('index'));
+    });
+
+    it('finds the minimized sheet again from the Projets entry', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('sheet', KNOWN_SLUG);
+      await shownAfterFrames(fixture);
+      await minimizeFrom(fixture, host, 'sheet');
+      const slot = host.querySelector<HTMLElement>('.slot--sheet');
+      expect(slot?.dataset['shown']).toBe('false');
+
+      host
+        .querySelector<HTMLElement>('app-main-nav a[href="/projets"]')
+        ?.click();
+      await shownAfterFrames(fixture);
+
+      expect(slot?.dataset['shown']).toBe('true');
+      expect(station.view()).toBe('sheet');
+    });
+
+    it('offers no minimize on the preview', async () => {
+      const { fixture, station, host } = await mount();
+      station.openPreview('known-project');
+      await fixture.whenStable();
+
+      expect(host.querySelector('.slot--preview button.minimize')).toBeNull();
     });
   });
 

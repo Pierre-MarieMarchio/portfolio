@@ -86,7 +86,6 @@ export interface FramedWindow {
 
 export interface FrameTracking {
   toggleMaximize(): void;
-  snapTo(zone: 'left' | 'right'): void;
   fit(): void;
   fitHeight(): void;
   stop(): void;

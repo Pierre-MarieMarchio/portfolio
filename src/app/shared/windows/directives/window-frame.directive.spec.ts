@@ -531,14 +531,14 @@ describe('WindowFrameDirective', () => {
   });
 
   describe('at the keyboard', () => {
-    it('offers no arrow move or resize control any more, the menu being the alternative to dragging', async () => {
+    it('offers no arrow move or resize control, only maximize and close', async () => {
       const { host } = await mount();
 
       expect(
         [...host.querySelectorAll('.titlebar button')].map((button) =>
           button.getAttribute('aria-label'),
         ),
-      ).toEqual([texts().menu, texts().maximize, texts().close]);
+      ).toEqual([texts().maximize, texts().close]);
     });
   });
 

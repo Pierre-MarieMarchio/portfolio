@@ -6,11 +6,9 @@ export interface WindowPhoneTexts {
 }
 
 export interface WindowTexts {
-  readonly menu: string;
-  readonly keepOpen: string;
   readonly keptOpen: string;
-  readonly snapLeft: string;
-  readonly snapRight: string;
+  readonly minimize: string;
+  readonly pin: string;
   readonly maximize: string;
   readonly restore: string;
   readonly close: string;

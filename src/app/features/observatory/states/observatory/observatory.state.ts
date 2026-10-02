@@ -1,5 +1,6 @@
 import { Service, signal } from '@angular/core';
 import {
+  ObservatoryMinimized,
   ObservatoryPins,
   ObservatoryView,
   ObservatoryWindow,
@@ -13,6 +14,12 @@ export const NO_PINS: ObservatoryPins = {
   preview: false,
 };
 
+export const NONE_MINIMIZED: ObservatoryMinimized = {
+  index: false,
+  sheet: false,
+  about: false,
+};
+
 @Service()
 export class ObservatoryState {
   public readonly view = signal<ObservatoryView>('home');
@@ -21,6 +28,7 @@ export class ObservatoryState {
   public readonly section = signal(0);
   public readonly visited = signal<readonly string[]>([]);
   public readonly pins = signal<ObservatoryPins>(NO_PINS);
+  public readonly minimized = signal<ObservatoryMinimized>(NONE_MINIMIZED);
   public readonly preview = signal<string | null>(null);
   public readonly lastPreview = signal<string | null>(null);
   public readonly lastSheet = signal<string | null>(null);

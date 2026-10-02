@@ -8,7 +8,6 @@ import {
 import { FEATURED } from '@app/features/projects/states';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectPreviewComponent } from './project-preview.component';
-import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { recordOutput } from '@testing/fixtures/testbed.fixture';
 import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
 
@@ -231,17 +230,13 @@ describe('ProjectPreviewComponent', () => {
     expect(link?.getAttribute('href')).toBe('/projet/proj-6');
   });
 
-  it('re-emits the window pin and close as its own outputs', async () => {
+  it('re-emits the window pin and close as its own outputs, with no minimize', async () => {
     const { fixture, host } = await mount({ slug: 'proj-2', pinned: true });
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    await loadWindowMenu();
-    await new Promise((resolve) => setTimeout(resolve));
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
+    expect(host.querySelector('button.minimize')).toBeNull();
+    host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
     expect(pinToggled).toHaveLength(1);

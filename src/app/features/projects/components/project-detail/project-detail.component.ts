@@ -59,6 +59,7 @@ export class ProjectDetailComponent {
   public readonly closeLabel = input('');
   public readonly chapter = input(0);
 
+  public readonly minimized = output();
   public readonly pinToggled = output();
   public readonly closed = output();
   public readonly indexRequested = output();

@@ -1,4 +1,6 @@
 export type {
+  MinimizableWindow,
+  ObservatoryMinimized,
   ObservatoryPins,
   ObservatoryView,
   ObservatoryWindow,

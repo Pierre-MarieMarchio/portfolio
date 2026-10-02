@@ -16,11 +16,9 @@ export const FR: Catalog = {
   },
 
   windows: {
-    menu: 'Menu de la fenêtre',
-    keepOpen: 'Garder ouverte en changeant de page',
     keptOpen: 'gardée ouverte',
-    snapLeft: 'Moitié gauche',
-    snapRight: 'Moitié droite',
+    minimize: 'Réduire la fenêtre',
+    pin: 'Épingler la fenêtre',
     maximize: 'Agrandir la fenêtre',
     restore: 'Remettre la fenêtre à sa taille',
     close: 'Fermer la fenêtre',

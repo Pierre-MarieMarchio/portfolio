@@ -223,10 +223,10 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
 
   protected readonly openRoutes = computed<readonly string[]>(() => {
     const routes: string[] = [];
-    if (this.observatory.showsAbout()) {
+    if (this.observatory.opensAbout()) {
       routes.push(this.links.routeOf('about'));
     }
-    if (this.observatory.showsList() || this.observatory.showsSheet()) {
+    if (this.observatory.opensList() || this.observatory.opensSheet()) {
       routes.push(this.links.routeOf('index'));
     }
     return routes;

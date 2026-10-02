@@ -17,11 +17,9 @@ export const EN: Catalog = {
   },
 
   windows: {
-    menu: draft('Window menu'),
-    keepOpen: draft('Keep open when changing page'),
     keptOpen: draft('kept open'),
-    snapLeft: draft('Left half'),
-    snapRight: draft('Right half'),
+    minimize: draft('Minimize the window'),
+    pin: draft('Pin the window'),
     maximize: draft('Maximize the window'),
     restore: draft('Put the window back to its size'),
     close: draft('Close the window'),

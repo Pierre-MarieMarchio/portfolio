@@ -19,6 +19,7 @@
       <app-language-switch [languages]="links.languages()" />
       <app-main-nav
         [appLayoutAnchor]="anchor.chrome"
+        #nav
         [items]="links.navigation()"
         [current]="currentRoute()"
         [openRoutes]="openRoutes()"
@@ -55,6 +56,7 @@
             [part]="observatory.section()"
             (partChange)="observatory.chooseSection($event)"
             (pinToggled)="observatory.togglePin('about')"
+            (minimized)="tabs.minimize('about', nav)"
             [closeLabel]="closeLabels().about"
             (closed)="observatory.close('about')"
           />
@@ -83,6 +85,7 @@
             (familyChange)="observatory.filter($event)"
             (hoveredChange)="observatory.hover($event)"
             (pinToggled)="observatory.togglePin('index')"
+            (minimized)="tabs.minimize('index', nav)"
             [closeLabel]="closeLabels().index"
             (closed)="observatory.close('index')"
           />
@@ -105,19 +108,20 @@
           @let shown = sheet();
           @if (shown.slug === null) {
             <app-not-found-window
-              [current]="observatory.showsSheet()"
+              [current]="observatory.opensSheet()"
               [total]="projects.ranked().length"
               [closeLabel]="closeLabels().sheet"
               (closed)="observatory.close('sheet')"
             />
           } @else {
             <app-project-detail
-              [current]="observatory.showsSheet()"
+              [current]="observatory.opensSheet()"
               [slug]="shown.slug"
               [pinned]="observatory.pins().sheet"
               [chapter]="shown.chapter"
               (chapterChange)="observatory.chooseChapter($event)"
               (pinToggled)="observatory.togglePin('sheet')"
+              (minimized)="tabs.minimize('sheet', nav)"
               [closeLabel]="closeLabels().sheet"
               (closed)="observatory.close('sheet')"
               (indexRequested)="tabs.ascendToIndex()"

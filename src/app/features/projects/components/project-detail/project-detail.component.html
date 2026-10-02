@@ -7,7 +7,9 @@
     [scrollKey]="scrollKey()"
     [scrollResetOn]="chapter()"
     [pinned]="pinned()"
+    [minimizable]="true"
     (pinToggled)="pinToggled.emit()"
+    (minimized)="minimized.emit()"
     [closeLabel]="closeLabel()"
     (closed)="closed.emit()"
   >

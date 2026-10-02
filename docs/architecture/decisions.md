@@ -3012,3 +3012,32 @@ feuille ; rien ne change à l'écran hors du focus au clavier.
 **Écarté.** Montrer un anneau autour du titre masqué : il n'a pas de boîte à
 entourer. Un réglage par fenêtre dans la directive : il dépassait le budget
 du bundle initial (+0,06 à +0,31 kB) pour le même résultat.
+
+## 2026-10-03 — Au bureau, la barre d'une fenêtre est celle d'un programme : Réduire, Épingler, Agrandir, Fermer (D101, amende D74 et D81)
+
+**Décision.** Au bureau, la liste des projets, l'à-propos et la fiche portent
+à droite de leur en-tête quatre boutons visibles, dans l'ordre : Réduire,
+Épingler (`aria-pressed`, épingle pleine ou en creux), Agrandir, Fermer.
+L'aperçu de l'accueil n'a qu'Épingler et Fermer. Le menu de fenêtre (D74,
+D81) disparaît avec son code, ses textes et Moitié gauche / droite ;
+l'aimantation au glisser reste. Épingler reprend l'état de « garder
+ouverte ». Réduire fait disparaître la fenêtre de l'écran et de l'arbre
+d'accessibilité sans la fermer : le point de son entrée dans la barre du
+haut (D73) reste, le focus va à cette entrée, et un clic ou Entrée sur
+l'entrée la rend devant, à son rectangle d'avant, même sur la page en
+cours ; « Projets » rend la liste et la fiche. L'état réduit vit dans
+l'état de l'observatoire, écrit par l'updater. Le téléphone ne change pas.
+
+**Raison.** Retour de l'opérateur (2026-10-01) : « on n'a jamais ce menu
+sur un programme PC ». Le lecteur se sert de ce qu'il sait d'une fenêtre ;
+quatre boutons visibles ne demandent ni découverte ni survol. Réduire se
+comprend comme la barre des tâches, et la barre du haut en tient déjà le
+rôle (D73). L'aperçu n'a pas d'entrée où se retrouver une fois réduit, et
+ne s'agrandit pas (B6). Retirer le menu paie les boutons : le bundle
+initial passe de 549,24 à 548,19 kB.
+
+**Écarté.** Garder Moitié gauche / droite dans un autre bouton : c'était le
+seul chemin sans glisser pour placer une fenêtre (D74), mais aucun contenu
+ne demande de déplacer une fenêtre, et Agrandir donne la place. Replier la
+fenêtre sur sa barre de titre au lieu de la réduire : ce n'est pas le geste
+qu'un programme fait.

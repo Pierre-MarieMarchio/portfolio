@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { ObservatoryEffect } from './observatory.effect';
 import { ObservatoryManager } from './observatory.manager';
+import { resizeTo } from '@testing/doubles/browser.double';
 import { provideRecordingRouter } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -55,6 +56,47 @@ describe('ObservatoryManager', () => {
 
     expect(manager.docked()).toEqual(['sheet']);
     expect(manager.lastSheet()).toBe('a');
+  });
+
+  describe('minimizing', () => {
+    it('hides the window without closing it: it stays open, pinned and kept', () => {
+      manager.syncRoute('index');
+      manager.togglePin('index');
+
+      manager.minimize('index');
+
+      expect(manager.showsList()).toBe(false);
+      expect(manager.opensList()).toBe(true);
+      expect(manager.pins().index).toBe(true);
+      expect(manager.kept()).toEqual(['index']);
+      expect(manager.view()).toBe('index');
+    });
+
+    it('shows it again once restored', () => {
+      manager.syncRoute('sheet', 'a');
+      manager.minimize('sheet');
+
+      expect(manager.showsSheet()).toBe(false);
+      expect(manager.opensSheet()).toBe(true);
+
+      manager.restore(['sheet']);
+
+      expect(manager.showsSheet()).toBe(true);
+    });
+
+    it('does nothing on the phone, where no window is minimized', () => {
+      resizeTo(390, 844);
+      manager.syncRoute('about');
+      manager.minimize('about');
+
+      expect(manager.minimized().about).toBe(false);
+      expect(manager.showsAbout()).toBe(true);
+      vi.unstubAllGlobals();
+    });
+
+    it('exposes its state read-only', () => {
+      expect('set' in manager.minimized).toBe(false);
+    });
   });
 
   it('keeps the windows the reader has seen, and shows only those of the view or pinned', () => {

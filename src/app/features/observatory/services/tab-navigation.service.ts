@@ -4,9 +4,10 @@ import {
   BrowserWindowService,
   SessionHistoryService,
 } from '@app/core/services';
+import type { MinimizableWindow } from '../models';
 import { LINKS } from '@app/features/common';
 import { ObservatoryManager } from '@app/features/observatory/states';
-import { tabOf } from '../rules';
+import { TABS, tabOf, tabOfWindow, windowsOfTab } from '../rules';
 import { parentOf, windowOf } from '../rules/view.rules';
 import { HomeSheetService } from './home-sheet.service';
 import { ViewWindowsService } from './view-windows.service';
@@ -50,7 +51,7 @@ export class TabNavigationService {
 
   public choose(address: string): void {
     if (!this.homeSheet.isPhone()) {
-      void this.router.navigateByUrl(address);
+      this.chooseOnDesktop(address);
       return;
     }
     const view = this.observatory.view();
@@ -73,8 +74,34 @@ export class TabNavigationService {
     }
   }
 
+  public minimize(
+    window: MinimizableWindow,
+    bar: { focusRoute(route: string): void },
+  ): void {
+    bar.focusRoute(this.links[tabOfWindow(window)]());
+    this.observatory.minimize(window);
+  }
+
   public ascendToIndex(): void {
     void this.observatory.close('sheet');
+  }
+
+  private chooseOnDesktop(address: string): void {
+    const tab = TABS.find((each) => this.links[each]() === address);
+    const minimized = this.observatory.minimized();
+    const restored = (tab ? windowsOfTab(tab) : []).filter(
+      (window) => minimized[window],
+    );
+    if (restored.length > 0) {
+      this.observatory.restore(restored);
+      for (const window of restored) {
+        this.windows.bringToFront(window);
+      }
+      if (tab === tabOf(this.observatory.view())) {
+        return;
+      }
+    }
+    void this.router.navigateByUrl(address);
   }
 
   private open(address: string): void {

@@ -2842,3 +2842,30 @@ prochain changement de taille ; le port n'expose que le départ d'une
 navigation, pas son arrivée. La carte de l'accueil reste mise de côté par
 `TabNavigationService` : l'état efface l'aperçu en quittant l'accueil, et la
 feuille d'accueil n'est pas gardée montée.
+
+## 2026-10-02 — Au téléphone, fermer remonte d'un cran sans ajouter d'entrée, et une feuille rétablie au plein redescend au retour (D96, amende D70, D91 et D94)
+
+**Décision.** Fermer une fiche (la croix, « ‹ Projets ») ou une page vers
+l'accueil remonte d'un cran sans ajouter d'entrée d'historique :
+`SessionHistoryService.backTo` lit les entrées par l'API Navigation et, si
+l'entrée la plus proche d'une autre adresse est le parent, revient dessus ;
+sinon, ou sans l'API, l'entrée courante est remplacée par le parent. Au
+bureau, la même règle vaut. Une feuille qui redevient visible au plein
+reprend sa couche de retour dès qu'elle est visible (`onVisible` du port,
+par `IntersectionObserver`), et plus seulement à un changement de taille.
+L'accueil garde la carte posée à mi-hauteur comme au plein en changeant
+d'onglet.
+
+**Raison.** Validation du lot C (persona, revérifiée) : la croix et
+« ‹ Projets » empilaient une entrée, si bien que le retour rouvrait la fiche
+qu'on venait de fermer ; une liste rétablie au plein partait à l'accueil au
+retour sans redescendre, parce que depuis D93 sa hauteur ne change plus au
+réaffichage ; la carte de l'accueil à mi-hauteur n'était que survolée, et
+l'état l'effaçait en quittant l'accueil. Lire les entrées du navigateur
+plutôt que tenir une trace des adresses visitées est plus juste et coûte
+0,57 kB de moins.
+
+**Écarté.** Une trace des adresses tenue à chaque fin de navigation : elle
+ignore les entrées qu'elle n'a pas vues et coûtait 0,75 kB. La comparaison
+porte sur le chemin seul : deux entrées qui ne diffèrent que par la requête
+comptent comme la même page.

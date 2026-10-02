@@ -34,7 +34,10 @@ const mount = (
       provideTexts(),
       provideStatewise(),
       provideSessionHistoryDouble(history),
-      { provide: Router, useValue: { navigateByUrl, url: '/projet/skyted' } },
+      {
+        provide: Router,
+        useValue: { navigateByUrl, url: '/projet/skyted' },
+      },
       { provide: ViewWindowsService, useValue: windows },
       { provide: HomeSheetService, useValue: homeSheet },
       TabNavigationService,
@@ -42,7 +45,14 @@ const mount = (
   });
   const observatory = TestBed.inject(ObservatoryManager);
   const tabs = TestBed.inject(TabNavigationService);
-  return { observatory, tabs, navigateByUrl, history, windows, homeSheet };
+  return {
+    observatory,
+    tabs,
+    navigateByUrl,
+    history,
+    windows,
+    homeSheet,
+  };
 };
 
 const touch = (): void => {
@@ -297,6 +307,24 @@ describe('TabNavigationService', () => {
       expect(observatory.preview()).toBeNull();
     });
 
+    it('poses again the card shown at half, which only the hover held', () => {
+      const { observatory, homeSheet } = mount();
+      TestBed.tick();
+      observatory.hover('skyted');
+      touch();
+      observatory.syncRoute('index');
+      homeSheet.isShown.set(false);
+      TestBed.tick();
+      expect(observatory.hovered()).toBeNull();
+
+      observatory.syncRoute('home');
+      homeSheet.isShown.set(true);
+      TestBed.tick();
+
+      expect(observatory.hovered()).toBe('skyted');
+      expect(observatory.preview()).toBeNull();
+    });
+
     it('parks nothing outside the phone', () => {
       const { observatory, homeSheet } = mount({ isPhone: false });
       TestBed.tick();
@@ -310,6 +338,17 @@ describe('TabNavigationService', () => {
       TestBed.tick();
 
       expect(observatory.preview()).toBeNull();
+    });
+  });
+
+  describe('going up to the list', () => {
+    it('closes the sheet window, which climbs through the history', () => {
+      const { tabs, observatory } = mount();
+      const close = vi.spyOn(observatory, 'close').mockResolvedValue();
+
+      tabs.ascendToIndex();
+
+      expect(close).toHaveBeenCalledWith('sheet');
     });
   });
 });

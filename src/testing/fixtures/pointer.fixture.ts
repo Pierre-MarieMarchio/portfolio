@@ -85,3 +85,56 @@ export const heardClicks = (): HeardClicks => {
     },
   };
 };
+
+export interface FingerAt {
+  readonly x?: number;
+  readonly y?: number;
+}
+
+export interface TouchAt {
+  readonly fingers?: readonly FingerAt[];
+  readonly at?: number;
+}
+
+const listOf = (fingers: readonly FingerAt[]): TouchList => {
+  const touches = fingers.map(
+    ({ x = 0, y = 0 }) => ({ clientX: x, clientY: y }) as Touch,
+  );
+  return {
+    length: touches.length,
+    item: (index: number) => touches[index] ?? null,
+  } as TouchList;
+};
+
+export const touch = (
+  type: string,
+  { fingers = [{}], at = 0 }: TouchAt = {},
+): TouchEvent => {
+  const event = new TouchEvent(type, { bubbles: true, cancelable: true });
+  const list = listOf(fingers);
+  const none = listOf([]);
+  const isEnding = type === 'touchend' || type === 'touchcancel';
+  Object.defineProperty(event, 'touches', { value: isEnding ? none : list });
+  Object.defineProperty(event, 'changedTouches', { value: list });
+  Object.defineProperty(event, 'timeStamp', { value: at });
+  return event;
+};
+
+export const fireTouch = (
+  target: EventTarget,
+  type: string,
+  at: TouchAt = {},
+): void => {
+  target.dispatchEvent(touch(type, at));
+};
+
+export const swipe = (
+  on: EventTarget,
+  { dx = 0, dy = 0, ms = 100 }: { dx?: number; dy?: number; ms?: number } = {},
+): void => {
+  fireTouch(on, 'touchstart', { fingers: [{ x: 200, y: 200 }], at: 0 });
+  fireTouch(on, 'touchend', {
+    fingers: [{ x: 200 + dx, y: 200 + dy }],
+    at: ms,
+  });
+};

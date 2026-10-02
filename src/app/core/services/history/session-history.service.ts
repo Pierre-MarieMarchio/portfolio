@@ -9,9 +9,6 @@ interface CloseWatcherInstance {
 
 type CloseWatcherClass = new () => CloseWatcherInstance;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
 const isCloseWatcherClass = (value: unknown): value is CloseWatcherClass =>
   typeof value === 'function';
 
@@ -38,11 +35,29 @@ export class SessionHistoryService {
   }
 
   public position(): number | null {
-    const view = this.view();
-    const navigation: unknown = view ? Reflect.get(view, 'navigation') : null;
-    const entry = isRecord(navigation) ? navigation['currentEntry'] : null;
-    const index = isRecord(entry) ? entry['index'] : null;
-    return typeof index === 'number' ? index : null;
+    return this.view()?.navigation?.currentEntry?.index ?? null;
+  }
+
+  public backTo(parent: string): boolean {
+    const position = this.position() ?? 0;
+    const current = this.addressAt(position);
+    let at = position;
+    while (at-- > 0) {
+      const address = this.addressAt(at);
+      if (address !== current) {
+        if (address !== parent) {
+          return false;
+        }
+        this.back(position - at);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public addressAt(position: number): string | null {
+    const url = this.view()?.navigation?.entries()[position]?.url;
+    return url ? new URL(url).pathname : null;
   }
 
   public onPop(fn: (state: unknown) => void): () => void {

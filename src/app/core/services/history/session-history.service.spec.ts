@@ -1,6 +1,24 @@
 import { SessionHistoryService } from './session-history.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
+const entriesOf = (...addresses: (string | null)[]) => ({
+  currentEntry: { index: addresses.length - 1 },
+  entries: () =>
+    addresses.map((address) => ({
+      url: address && `${location.origin}${address}`,
+    })),
+});
+
+const climb = (parent: string, ...addresses: string[]) => {
+  const go = vi.spyOn(history, 'go').mockImplementation(() => {});
+  Object.defineProperty(window, 'navigation', {
+    value: entriesOf(...addresses),
+    configurable: true,
+  });
+  const isBack = injectOn(SessionHistoryService, 'browser').backTo(parent);
+  return { isBack, go };
+};
+
 describe('SessionHistoryService', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -160,5 +178,68 @@ describe('SessionHistoryService', () => {
     const sessionHistory = injectOn(SessionHistoryService, 'server');
 
     expect(sessionHistory.position()).toBeNull();
+  });
+
+  it('reads the address of an entry by its position, or nothing without the navigation API', () => {
+    const sessionHistory = injectOn(SessionHistoryService, 'browser');
+
+    expect(sessionHistory.addressAt(0)).toBeNull();
+
+    Object.defineProperty(window, 'navigation', {
+      value: entriesOf('/projets?a=1#top', null),
+      configurable: true,
+    });
+
+    expect(sessionHistory.addressAt(0)).toBe('/projets');
+    expect(sessionHistory.addressAt(1)).toBeNull();
+    expect(sessionHistory.addressAt(5)).toBeNull();
+  });
+
+  it('reads no address on the server', () => {
+    Object.defineProperty(window, 'navigation', {
+      value: entriesOf('/projets'),
+      configurable: true,
+    });
+
+    expect(injectOn(SessionHistoryService, 'server').addressAt(0)).toBeNull();
+  });
+
+  describe('backTo', () => {
+    it('steps back when the entry just below is the parent', () => {
+      const { isBack, go } = climb('/projets', '/', '/projets', '/projet/a');
+
+      expect(isBack).toBe(true);
+      expect(go).toHaveBeenCalledWith(-1);
+    });
+
+    it('steps over the entries of the current page', () => {
+      const { isBack, go } = climb(
+        '/projets',
+        '/',
+        '/projets',
+        '/projet/a',
+        '/projet/a',
+      );
+
+      expect(isBack).toBe(true);
+      expect(go).toHaveBeenCalledWith(-2);
+    });
+
+    it('does not step when the nearest other page is not the parent', () => {
+      const { isBack, go } = climb('/projets', '/', '/a-propos', '/projet/a');
+
+      expect(isBack).toBe(false);
+      expect(go).not.toHaveBeenCalled();
+    });
+
+    it('does not step when nothing lies below', () => {
+      expect(climb('/projets', '/projet/a').isBack).toBe(false);
+    });
+
+    it('does not step without the navigation API', () => {
+      expect(injectOn(SessionHistoryService, 'browser').backTo('/')).toBe(
+        false,
+      );
+    });
   });
 });

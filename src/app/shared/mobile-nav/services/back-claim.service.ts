@@ -51,6 +51,12 @@ export class BackClaimService {
     }
   }
 
+  public seen(isVisible: boolean): void {
+    if (isVisible) {
+      this.retake();
+    }
+  }
+
   private claim(): void {
     if (this.release === ignore) {
       this.release = this.layers.claim(

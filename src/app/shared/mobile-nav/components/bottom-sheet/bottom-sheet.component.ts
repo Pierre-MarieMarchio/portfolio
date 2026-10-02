@@ -188,6 +188,9 @@ export class BottomSheetComponent {
       this.platform.onResize(this.content().nativeElement, () => {
         this.measureSoon();
       }),
+      this.platform.onVisible(this.rail().nativeElement, (isVisible) => {
+        this.back.seen(isVisible);
+      }),
     );
     this.isLanded = true;
   }

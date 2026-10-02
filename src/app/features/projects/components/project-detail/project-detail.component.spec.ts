@@ -151,6 +151,35 @@ describe('ProjectDetailComponent', () => {
     expect(titlebarChildren.indexOf(link as Element)).toBe(0);
   });
 
+  it('asks to go up to the list from its link, without following the link', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b' });
+    const requested = vi.fn();
+    fixture.componentInstance.indexRequested.subscribe(requested);
+    const link = host.querySelector<HTMLAnchorElement>('a.to-index');
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    link?.dispatchEvent(click);
+
+    expect(requested).toHaveBeenCalledOnce();
+    expect(click.defaultPrevented).toBe(true);
+  });
+
+  it('leaves the link to the browser for a click that opens it elsewhere', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b' });
+    const requested = vi.fn();
+    fixture.componentInstance.indexRequested.subscribe(requested);
+    const click = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+
+    host.querySelector('a.to-index')?.dispatchEvent(click);
+
+    expect(requested).not.toHaveBeenCalled();
+    expect(click.defaultPrevented).toBe(false);
+  });
+
   it('asks its window for a stable height, so a chapter change does not resize it', async () => {
     const { fixture } = await mount({ slug: 'proj-b' });
 

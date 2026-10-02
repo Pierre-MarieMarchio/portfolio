@@ -120,6 +120,7 @@
               (pinToggled)="observatory.togglePin('sheet')"
               [closeLabel]="closeLabels().sheet"
               (closed)="observatory.close('sheet')"
+              (indexRequested)="tabs.ascendToIndex()"
             />
           }
         </app-bottom-sheet>

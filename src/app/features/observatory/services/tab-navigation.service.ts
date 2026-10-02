@@ -21,6 +21,7 @@ export class TabNavigationService {
   private readonly router = inject(Router);
 
   private parked: string | null = null;
+  private isParkedPosed = false;
 
   constructor() {
     const stopClicks = inject(BrowserWindowService).on(
@@ -34,7 +35,11 @@ export class TabNavigationService {
       if (this.homeSheet.isShown()) {
         untracked(() => {
           if (this.parked !== null) {
-            this.observatory.openPreview(this.parked);
+            if (this.isParkedPosed) {
+              this.observatory.openPreview(this.parked);
+            } else {
+              this.observatory.hover(this.parked);
+            }
             this.parked = null;
           }
         });
@@ -68,6 +73,10 @@ export class TabNavigationService {
     }
   }
 
+  public ascendToIndex(): void {
+    void this.observatory.close('sheet');
+  }
+
   private open(address: string): void {
     void this.router.navigateByUrl(address, {
       replaceUrl: this.observatory.view() !== 'home',
@@ -80,7 +89,8 @@ export class TabNavigationService {
       return;
     }
     if (view === 'home') {
-      this.parked = this.observatory.preview();
+      this.isParkedPosed = this.observatory.preview() !== null;
+      this.parked = this.observatory.preview() ?? this.observatory.hovered();
     } else if (this.history.position() === 0) {
       const state = this.history.state();
       this.history.replace(this.links.home());

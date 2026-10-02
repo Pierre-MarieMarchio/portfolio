@@ -532,6 +532,44 @@ describe('BottomSheetComponent', () => {
       }
     });
 
+    it('takes a layer again when it is seen again at full with no change of size, so that back lowers it first, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host } = await risen(hasCloseWatcher);
+
+        platform.leave();
+        platform.pushHistory({ navigationId: 2 });
+        platform.sight(false);
+        platform.sight(true);
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+      }
+    });
+
+    it('takes no layer while it is out of sight, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host } = await risen(hasCloseWatcher);
+
+        platform.leave();
+        platform.sight(false);
+        await fixture.whenStable();
+
+        const backs = platform.backs.length;
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+        expect(platform.backs).toHaveLength(backs);
+      }
+    });
+
     it('leaves the back to the page once the sheet is not full, and takes its entry back', async () => {
       const { fixture, platform } = await risen(false);
 

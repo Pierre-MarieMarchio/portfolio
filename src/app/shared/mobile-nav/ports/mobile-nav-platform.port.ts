@@ -8,6 +8,10 @@ export interface MobileNavPlatform {
   readonly hasScrollEnd: () => boolean;
   readonly hasSnapChanging: () => boolean;
   readonly onResize: (element: Element, fn: () => void) => () => void;
+  readonly onVisible: (
+    element: Element,
+    fn: (isVisible: boolean) => void,
+  ) => () => void;
   readonly onSnapChanging: (
     element: Element,
     fn: (target: Element | null) => void,

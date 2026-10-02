@@ -25,6 +25,7 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   private frames: (() => void)[] = [];
   private waiting: Waiting[] = [];
   private readonly resized: (() => void)[] = [];
+  private readonly sightings: ((isVisible: boolean) => void)[] = [];
   private readonly snapping = new Map<
     Element,
     (target: Element | null) => void
@@ -60,6 +61,14 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
 
   public readonly onResize = (_element: Element, fn: () => void) => {
     this.resized.push(fn);
+    return ignore;
+  };
+
+  public readonly onVisible = (
+    _element: Element,
+    fn: (isVisible: boolean) => void,
+  ) => {
+    this.sightings.push(fn);
     return ignore;
   };
 
@@ -139,6 +148,12 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   public resize(): void {
     for (const fn of this.resized) {
       fn();
+    }
+  }
+
+  public sight(isVisible: boolean): void {
+    for (const fn of this.sightings) {
+      fn(isVisible);
     }
   }
 

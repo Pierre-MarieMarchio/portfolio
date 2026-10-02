@@ -52,6 +52,13 @@ export class MobileNavPlatformService implements MobileNavPlatform {
     return this.observer.onResize(element, fn);
   }
 
+  public onVisible(
+    element: Element,
+    fn: (isVisible: boolean) => void,
+  ): () => void {
+    return this.observer.onVisible(element, 0, fn);
+  }
+
   public onSnapChanging(
     element: Element,
     fn: (target: Element | null) => void,

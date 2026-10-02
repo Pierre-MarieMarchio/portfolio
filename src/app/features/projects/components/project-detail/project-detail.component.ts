@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
+import { DisplayFormatService } from '@app/core/services';
 import {
   PagerComponent,
   PagerPageComponent,
@@ -47,6 +48,10 @@ export class ProjectDetailComponent {
   private readonly manager = inject(ProjectsManager);
   protected readonly texts = inject(PROJECTS_TEXTS);
   protected readonly links = inject(LINKS);
+  private readonly display = inject(DisplayFormatService);
+  protected readonly isPhone = computed(
+    () => this.display.format() === 'phone',
+  );
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);

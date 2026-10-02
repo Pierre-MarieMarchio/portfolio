@@ -17,7 +17,6 @@
       [appLayoutAnchor]="anchor.head"
     >
       <app-language-switch [languages]="links.languages()" />
-      <span aria-hidden="true" class="rule"></span>
       <app-main-nav
         [appLayoutAnchor]="anchor.chrome"
         [items]="links.navigation()"
@@ -252,7 +251,7 @@
   </section>
 </main>
 
-<app-contact-links [arrival]="arrival()">
+<app-contact-links [arrival]="arrival()" [languages]="links.languages()">
   @if (object.animated()) {
     <app-animation-toggle />
   }

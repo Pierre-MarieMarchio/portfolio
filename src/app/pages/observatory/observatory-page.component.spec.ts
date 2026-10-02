@@ -25,7 +25,7 @@ import { FeaturedBarComponent } from '@app/features/projects/components';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
 import { MobileNavPlatformService } from '@app/features/observatory/services';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
-import { PAGES_TEXTS } from '@app/i18n';
+import { PAGES_TEXTS, ViewLinksService } from '@app/i18n';
 import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import { SHARED_TEXTS } from '@shared/ui/ports';
@@ -302,6 +302,26 @@ describe('ObservatoryPageComponent', () => {
       host.querySelector('app-social-links app-contact-menu dialog'),
     ).not.toBeNull();
     expect(host.querySelector('app-animation-toggle')).toBeNull();
+  });
+
+  it('keeps the language switch in the page bar away from the phone', async () => {
+    const { host } = await mount();
+
+    expect(host.querySelectorAll('.bar app-language-switch a')).toHaveLength(1);
+  });
+
+  it('moves the language out of the page bar and into the last row of the contact menu on the phone', async () => {
+    const { host } = await mount({ phone: true });
+    const other = TestBed.inject(ViewLinksService)
+      .languages()
+      .find((language) => !language.current);
+    const rows = [...host.querySelectorAll('app-contact-menu .action-row')];
+    const last = rows.at(-1);
+
+    expect(host.querySelector('.bar a[hreflang]')).toBeNull();
+    expect(last?.getAttribute('href')).toBe(other?.route);
+    expect(last?.getAttribute('hreflang')).toBe(other?.lang);
+    expect(last?.textContent).toContain(other?.name);
   });
 
   it.each([

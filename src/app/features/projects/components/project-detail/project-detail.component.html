@@ -86,9 +86,11 @@
     <ng-container footer>
       <p class="position">{{ shownChapter()?.heading }}</p>
       @if (nextChapter(); as label) {
-        <button type="button" class="next" (click)="advance()">
-          {{ label }}
-        </button>
+        @if (!isPhone()) {
+          <button type="button" class="next" (click)="advance()">
+            {{ label }}
+          </button>
+        }
       } @else if (nextProject(); as next) {
         <a class="next" [routerLink]="links.sheet(next.slug)">{{
           next.label

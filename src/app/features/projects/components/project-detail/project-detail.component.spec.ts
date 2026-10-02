@@ -13,6 +13,7 @@ import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
 import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
 const currentPage = (host: HTMLElement): HTMLElement =>
@@ -288,6 +289,34 @@ describe('ProjectDetailComponent', () => {
 
     next?.click();
     expect(emitted).toEqual([1]);
+  });
+
+  describe('on the phone', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('drops the next-chapter button and keeps the chapter title in the footer', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b', chapter: 0 });
+
+      expect(host.querySelector('.position')?.textContent?.trim()).toBe(
+        'Pourquoi',
+      );
+      expect(host.querySelector('button.next')).toBeNull();
+      expect(host.querySelector('.footer')?.textContent).not.toContain(
+        texts.sheet.nextApproach('Comment'),
+      );
+    });
+
+    it('still links to the next project at the last chapter', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b', chapter: 2 });
+
+      expect(host.querySelector('a.next')?.textContent?.trim()).toBe(
+        texts.sheet.nextProject('C'),
+      );
+    });
   });
 
   it('links to the next project at the last chapter', async () => {

@@ -2710,3 +2710,27 @@ se touche sans grossir chaque feuille de style. À vérifier sur l'appareil :
 Chrome Android retarde `:active` de quelques dizaines de millisecondes pour
 ne pas clignoter pendant un défilement, et le headless ne pose pas `:active`
 au toucher.
+
+## 2026-10-01 — Au téléphone, la barre du haut ne garde que Contact, et la langue passe dans la feuille Contact (D89, amende D60)
+
+**Décision.** Au téléphone, la barre du haut montre « Contact », et la pause à
+côté pendant que la scène tourne ; le lien de langue n'y est plus
+(`LanguageSwitchComponent` ne se rend pas au téléphone). La langue devient la
+dernière rangée de la feuille Contact : le nom de l'autre langue, déjà au
+catalogue (« English », « Français »), qui mène à la même page dans cette
+langue. La page la passe en entrée à `ContactLinksComponent`, qui la donne à
+`ContactMenuComponent` : `features/profile` n'importe pas `i18n`. La barre
+garde sa hauteur de 56 px, pour que le haut des feuilles et l'ancre `head` de
+la scène ne bougent pas. Le pied « Suite : … » de la fiche et de l'à-propos
+part au téléphone ; le titre du chapitre, « Suivant : … → » en fin de fiche
+(N3) et le retour de l'à-propos restent. Au bureau, rien ne change.
+
+**Raison.** ETUDE P7 : retrouver le minimalisme du téléphone, où le balayage et
+les onglets nommés disent déjà la suite. Une rangée en entrée plutôt que
+projetée : `ActionMenuComponent` ferme la feuille au toucher de ses rangées,
+une rangée projetée de l'extérieur perdait ce lien. Le lien de langue en haut
+à gauche était aussi la seule cible qui pouvait faire basculer le site en
+anglais sur un toucher mal placé (D85).
+
+**Écarté.** Garder « EN » dans la barre : un mot de plus en haut de chaque page
+pour un réglage qu'on change une fois.

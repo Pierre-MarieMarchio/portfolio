@@ -8,7 +8,7 @@
   (actioned)="copy()"
 >
   <ng-content />
-  <app-contact-menu [links]="links()" />
+  <app-contact-menu [links]="links()" [language]="language()" />
 </app-social-links>
 <output class="visually-hidden copy-said">
   @if (isCopied()) {

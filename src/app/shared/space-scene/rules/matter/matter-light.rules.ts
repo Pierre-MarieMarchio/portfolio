@@ -54,20 +54,49 @@ const litByFamily = (alpha: number, grain: Grain, spot: GrainSpot): number => {
     : litDisk(alpha, grain, spot);
 };
 
-const litDisk = (alpha: number, grain: Grain, spot: GrainSpot): number => {
-  let lit = alpha * (0.52 + 0.9 * Math.exp(-grain.u * 2.8));
-  lit *= spot.ry < 0 ? 1.34 : 0.78;
-  if (grain.fam === 3) {
-    lit *= 1.95;
+const DISK_BASE = 0.52;
+const DISK_GLOW = 0.9;
+const DISK_GLOW_FALLOFF = 2.8;
+const UPPER_HALF_BOOST = 1.34;
+const LOWER_HALF_DIM = 0.78;
+const SHADOW_FAMILY_BOOST = 1.95;
+const CENTRE_DIM_RADIUS = 0.9;
+const CENTRE_DIM_FLOOR = 0.08;
+const CENTRE_DIM_SLOPE = 0.3;
+const ARC_DIM_RADIUS = 0.99;
+const ARC_DIM_FLOOR = 0.04;
+const ARC_DIM_SLOPE = 0.5;
+const ARC_DIM_POWER = 6;
+
+const dimmedNearCentre = (
+  alpha: number,
+  grain: Grain,
+  spot: GrainSpot,
+): number => {
+  const distance = Math.hypot(spot.rx, spot.ry);
+  let lit = alpha;
+  if (
+    distance < CENTRE_DIM_RADIUS &&
+    (grain.fam === 4 || (grain.fam === 3 && grain.behind))
+  ) {
+    lit *= CENTRE_DIM_FLOOR + CENTRE_DIM_SLOPE * (distance / CENTRE_DIM_RADIUS);
   }
-  const d2c = Math.hypot(spot.rx, spot.ry);
-  if (d2c < 0.9 && (grain.fam === 4 || (grain.fam === 3 && grain.behind))) {
-    lit *= 0.08 + 0.3 * (d2c / 0.9);
-  }
-  if (isLensedArc(grain) && d2c < 0.99) {
-    lit *= 0.04 + 0.5 * Math.pow(d2c / 0.99, 6);
+  if (isLensedArc(grain) && distance < ARC_DIM_RADIUS) {
+    lit *=
+      ARC_DIM_FLOOR +
+      ARC_DIM_SLOPE * Math.pow(distance / ARC_DIM_RADIUS, ARC_DIM_POWER);
   }
   return lit;
+};
+
+const litDisk = (alpha: number, grain: Grain, spot: GrainSpot): number => {
+  let lit =
+    alpha * (DISK_BASE + DISK_GLOW * Math.exp(-grain.u * DISK_GLOW_FALLOFF));
+  lit *= spot.ry < 0 ? UPPER_HALF_BOOST : LOWER_HALF_DIM;
+  if (grain.fam === 3) {
+    lit *= SHADOW_FAMILY_BOOST;
+  }
+  return dimmedNearCentre(lit, grain, spot);
 };
 
 export const isCoreGrain = (grain: Grain): boolean => {

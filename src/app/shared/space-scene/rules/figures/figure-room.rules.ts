@@ -145,45 +145,59 @@ export const nameInRoom = (
   };
 };
 
+interface FigureSetting {
+  readonly room: SkyRoom;
+  readonly disc: DrawnDisc | null;
+  readonly name: NameSize;
+  readonly dpr: number;
+}
+
+const fitBeside = (
+  whole: SkyRoom,
+  aside: { readonly dx: number; readonly dy: number },
+  room: SkyRoom,
+  name: FigureName,
+): FigureFit => ({
+  dx:
+    aside.dx + intoRoom(whole.l + aside.dx, whole.r + aside.dx, room.l, room.r),
+  dy:
+    aside.dy + intoRoom(whole.t + aside.dy, whole.b + aside.dy, room.t, room.b),
+  name,
+});
+
+const candidateFits = (
+  points: readonly (readonly [number, number])[],
+  { room, disc, name: size, dpr }: FigureSetting,
+): FigureFit[] => {
+  const figure = spanOf(points, dpr);
+  return namesOf(points, size.gap).flatMap((name) => {
+    const whole = unionOf(figure, nameBoxOf(name, size));
+    return asidesOf(disc, whole).map((aside) =>
+      fitBeside(whole, aside, room, name),
+    );
+  });
+};
+
+const shiftedNameBox = (fit: FigureFit, size: NameSize): SkyRoom => {
+  const label = nameBoxOf(fit.name, size);
+  return {
+    l: label.l + fit.dx,
+    r: label.r + fit.dx,
+    t: label.t + fit.dy,
+    b: label.b + fit.dy,
+  };
+};
+
 export const figureInRoom = (
   points: readonly (readonly [number, number])[],
-  {
-    room,
-    disc,
-    name: size,
-    dpr,
-  }: {
-    readonly room: SkyRoom;
-    readonly disc: DrawnDisc | null;
-    readonly name: NameSize;
-    readonly dpr: number;
-  },
+  setting: FigureSetting,
 ): FigureFit => {
-  const figure = spanOf(points, dpr);
-  const names = namesOf(points, size.gap);
-  let fallback: FigureFit | null = null;
-  for (const name of names) {
-    const label = nameBoxOf(name, size);
-    const whole = unionOf(figure, label);
-    for (const aside of asidesOf(disc, whole)) {
-      const dx =
-        aside.dx +
-        intoRoom(whole.l + aside.dx, whole.r + aside.dx, room.l, room.r);
-      const dy =
-        aside.dy +
-        intoRoom(whole.t + aside.dy, whole.b + aside.dy, room.t, room.b);
-      const fit = { dx, dy, name };
-      fallback ??= fit;
-      const shifted = {
-        l: label.l + dx,
-        r: label.r + dx,
-        t: label.t + dy,
-        b: label.b + dy,
-      };
-      if (isOffDisc(shifted, disc)) {
-        return fit;
-      }
-    }
-  }
-  return fallback ?? { dx: 0, dy: 0, name: { x: 0, y: 0, baseline: 'bottom' } };
+  const fits = candidateFits(points, setting);
+  const clear = fits.find((fit) =>
+    isOffDisc(shiftedNameBox(fit, setting.name), setting.disc),
+  );
+  return (
+    clear ??
+    fits[0] ?? { dx: 0, dy: 0, name: { x: 0, y: 0, baseline: 'bottom' } }
+  );
 };

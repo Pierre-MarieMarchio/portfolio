@@ -214,10 +214,11 @@ export class BottomSheetComponent {
 
   private ask(detent: SheetDetent): void {
     this.origin = detent;
-    if (!this.isLanded || [null, detent].includes(this.committed)) {
+    this.stopFrame();
+    const isAlready = [null, detent].includes(this.committed);
+    if (!this.isLanded || (isAlready && !this.isHeading)) {
       return;
     }
-    this.stopFrame();
     this.stopFrame = this.platform.nextFrame(() => {
       const stop = stopOf(this.stopsNow(), detent);
       if (stop) {
@@ -229,7 +230,7 @@ export class BottomSheetComponent {
   private head(stop: SheetStop): void {
     const rail = this.rail().nativeElement;
     this.origin = stop.detent;
-    const isThere = isAtStop(rail.scrollTop, stop.at);
+    const isThere = !this.isHeading && isAtStop(rail.scrollTop, stop.at);
     const isInstant = this.platform.reducedMotion();
     this.isHeading = !isThere && !isInstant;
     if (!isThere) {

@@ -542,6 +542,35 @@ describe('BottomSheetComponent', () => {
     expect(host.dataset['detent']).toBe('full');
   });
 
+  it('drops a move toward a detent it is asked to leave before the next frame', async () => {
+    const { fixture, platform, scrollTo, host } = await risen(false);
+    scrollTo.mockClear();
+
+    fixture.componentInstance.detent.set('half');
+    await fixture.whenStable();
+    fixture.componentInstance.detent.set('full');
+    await fixture.whenStable();
+    platform.frame();
+
+    expect(scrollTo).not.toHaveBeenCalled();
+    expect(host.dataset['detent']).toBe('full');
+  });
+
+  it('turns back toward the detent it rests on when asked for it again on the way to another', async () => {
+    const { fixture, platform, scrollTo, rail } = await risen(false);
+
+    fixture.componentInstance.detent.set('half');
+    await fixture.whenStable();
+    platform.frame();
+    rail.scrollTop = END - 0.5;
+    scrollTo.mockClear();
+    fixture.componentInstance.detent.set('full');
+    await fixture.whenStable();
+    platform.frame();
+
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: END, behavior: 'smooth' });
+  });
+
   it('is shown again at the detent it was left at, and follows its content there', async () => {
     const { host, scrollTo, lay, drag, rest, resize, top } = await setup();
     await lay();

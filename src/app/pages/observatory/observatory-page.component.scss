@@ -179,16 +179,11 @@ $contact-room: calc(3 * (var(--target) + var(--s1)));
 
     --mnav-sheet-top: calc(var(--head-bottom, 0px) + var(--s1));
     --mnav-sheet-half: calc((1 - var(--glass-lowered)) * 100svh - var(--floor));
-    --mnav-sheet-fill: var(--mnav-sheet-half);
     --mnav-sheet-shade: var(--glass-shade-raised);
   }
 
   .slot:not(:has(> [data-detent='full'])) {
     --window-body-overflow: hidden;
-  }
-
-  .slot--home {
-    --mnav-sheet-fill: calc(100% - var(--mnav-sheet-top));
   }
 
   :host:has(app-observatory-dock li)
@@ -216,7 +211,6 @@ $glass-landscape-min: 324px;
     left: calc(100% - var(--glass-width));
 
     --mnav-sheet-half: 100%;
-    --mnav-sheet-fill: 100%;
   }
 
   .slot--home {

@@ -88,6 +88,29 @@ describe('stopsOf', () => {
       expect(stopsOf(detents, { peek: 40, half: 300, end })).toEqual(stops);
     },
   );
+
+  it.each([200, 300, 480])(
+    'puts the full stop at the end of the scroll whatever the half height (%d px)',
+    (half) => {
+      const stops = stopsOf(['folded', 'half', 'full'], {
+        peek: 40,
+        half,
+        end: 660,
+      });
+
+      expect(stopOf(stops, 'full')).toEqual({ detent: 'full', at: 660 });
+    },
+  );
+
+  it('never puts the full stop above the folded one when the content is shorter than the handle', () => {
+    const stops = stopsOf(['folded', 'half', 'full'], {
+      peek: 40,
+      half: 300,
+      end: -25,
+    });
+
+    expect(stops).toEqual([{ detent: 'full', at: 0 }]);
+  });
 });
 
 describe('stopOf', () => {

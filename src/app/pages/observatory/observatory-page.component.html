@@ -101,7 +101,7 @@
       [appLayoutAnchor]="observatory.showsSheet() ? anchor.detail : null"
     >
       @if (observatory.kept().includes('sheet')) {
-        <app-bottom-sheet appWindowSheet>
+        <app-bottom-sheet appWindowSheet appProjectSheet>
           @let shown = sheet();
           @if (shown.slug === null) {
             <app-not-found-window

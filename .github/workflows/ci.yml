@@ -20,11 +20,12 @@ concurrency:
   cancel-in-progress: true
 
 # Where the site lives. Repository variables override them, so a new domain
-# or a VPS needs no change here. On dev the site lives at the root of the
-# staging host.
+# or a VPS needs no change here. The free OVH plan hosts a single site, so the
+# staging has no host of its own: on dev the site is built for a path of the
+# production host.
 env:
   SITE_URL: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL || 'https://pierre-mariemarchio.github.io/portfolio' }}
-  BASE_HREF: ${{ github.ref == 'refs/heads/dev' && '/' || vars.BASE_HREF || '/portfolio/' }}
+  BASE_HREF: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_BASE_HREF || '/staging/') || vars.BASE_HREF || '/portfolio/' }}
 
 jobs:
   lint:
@@ -118,7 +119,8 @@ jobs:
       FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
       FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
       PRODUCTION_REMOTE_DIR: ${{ vars.FTP_REMOTE_DIR || 'www' }}
-      FTP_REMOTE_DIR: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_REMOTE_DIR || 'staging') || vars.FTP_REMOTE_DIR || 'www' }}
+      STAGING_REMOTE_DIR: ${{ vars.STAGING_REMOTE_DIR || 'www/staging' }}
+      FTP_REMOTE_DIR: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_REMOTE_DIR || 'www/staging') || vars.FTP_REMOTE_DIR || 'www' }}
       SFTP_KNOWN_HOSTS: ${{ vars.SFTP_KNOWN_HOSTS }}
     steps:
       # Without SITE_URL the build would ship the GitHub Pages address in its
@@ -161,15 +163,37 @@ jobs:
       # the password file is never reachable by URL. The noindex header and
       # the closed robots.txt keep search engines out, and the sitemap, which
       # would list the staging pages, is dropped.
+      # The staging is served from a folder of the production site, so the
+      # .htaccess of the build, written for a site at the root, is rewritten
+      # for that path: Apache resolves an ErrorDocument from the host root, and
+      # the English 404 condition tests the full request path. The other rules
+      # (HTTPS, host, cache) apply unchanged in the folder, which has its own
+      # .htaccess.
       - name: Close the staging
         if: env.TARGET == 'staging'
         env:
           STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH || '/home/pmmarcc/.htpasswd-staging' }}
+          STAGING_BASE_HREF: ${{ vars.STAGING_BASE_HREF || '/staging/' }}
         run: |
           if ! [[ "$STAGING_HTPASSWD_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
             echo "::error::STAGING_HTPASSWD_PATH must be an absolute path made of letters, digits, . _ - and /, got: $STAGING_HTPASSWD_PATH"
             exit 1
           fi
+          if ! [[ "$STAGING_BASE_HREF" =~ ^/[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*/$ ]]; then
+            echo "::error::STAGING_BASE_HREF must be a path under the host root, with a leading and a trailing slash, got: $STAGING_BASE_HREF"
+            exit 1
+          fi
+          sed -i \
+            -e "s|^ErrorDocument 404 /404.html\$|ErrorDocument 404 ${STAGING_BASE_HREF}404.html|" \
+            -e "s|^  ErrorDocument 404 /en/404.html\$|  ErrorDocument 404 ${STAGING_BASE_HREF}en/404.html|" \
+            -e "s|m#^/en/#|m#^${STAGING_BASE_HREF}en/#|" \
+            site/.htaccess
+          for expected in "ErrorDocument 404 ${STAGING_BASE_HREF}404.html" "ErrorDocument 404 ${STAGING_BASE_HREF}en/404.html" "m#^${STAGING_BASE_HREF}en/#"; do
+            if ! grep -qF -- "$expected" site/.htaccess; then
+              echo "::error::site/.htaccess no longer has the rule to rewrite for the staging path: $expected"
+              exit 1
+            fi
+          done
           {
             echo "AuthType Basic"
             echo "AuthName \"Staging\""
@@ -213,10 +237,15 @@ jobs:
       # The user name is quoted in a file lftp reads; the password stays out of
       # it and out of the command line, lftp takes it from LFTP_PASSWORD
       # (--env-password).
-      # The staging sits beside the production folder, never inside it:
-      # a production mirror --delete would wipe a staging folder placed inside
-      # www, and a staging mirror aimed at www would wipe the production site:
-      # the staging folder is neither the production folder nor inside it.
+      # The free plan hosts a single site, so the staging folder lives inside
+      # the production folder. The production mirror --delete would wipe it as
+      # unknown content: it excludes the staging folder, relative to the
+      # production folder, so it neither deletes nor uploads it. A staging
+      # folder nested deeper is protected from its first folder that the site
+      # does not hold, since mirror deletes such a folder as a whole. In turn,
+      # the staging mirror must stay inside its own folder: that folder is a
+      # subfolder of the production one, never the production folder itself,
+      # which --delete would empty of the production site.
       - name: Mirror the site over SFTP
         env:
           STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH || '/home/pmmarcc/.htpasswd-staging' }}
@@ -230,12 +259,25 @@ jobs:
             echo "::error::FTP_REMOTE_DIR must name a folder under the login directory, got: $FTP_REMOTE_DIR"
             exit 1
           fi
-          if [ "$TARGET" = "staging" ]; then
-            production_dir=$(printf '%s' "$PRODUCTION_REMOTE_DIR" | sed 's|/*$||')
-            if [ "$remote_dir" = "www" ] || [ "$remote_dir" = "$production_dir" ] || [[ "$remote_dir" == www/* ]] || [[ "$remote_dir" == "$production_dir"/* ]]; then
-              echo "::error::STAGING_REMOTE_DIR must not be the production folder, got: $FTP_REMOTE_DIR"
-              exit 1
-            fi
+          production_dir=$(printf '%s' "$PRODUCTION_REMOTE_DIR" | sed 's|/*$||')
+          staging_dir=$(printf '%s' "$STAGING_REMOTE_DIR" | sed 's|/*$||')
+          staging_inside=no
+          if [[ "$staging_dir" == "$production_dir"/* ]] && [[ "$staging_dir" != *..* ]] && [[ "${staging_dir#"$production_dir"/}" =~ ^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$ ]]; then
+            staging_inside=yes
+          fi
+          if [ "$TARGET" = "staging" ] && [ "$staging_inside" != "yes" ]; then
+            echo "::error::STAGING_REMOTE_DIR must be a folder inside the production folder $production_dir, got: $STAGING_REMOTE_DIR"
+            exit 1
+          fi
+          exclude=""
+          if [ "$TARGET" = "production" ] && [ "$staging_inside" = "yes" ]; then
+            staging_relative="${staging_dir#"$production_dir"/}"
+            protected=""
+            for part in ${staging_relative//\// }; do
+              protected="${protected:+$protected/}$part"
+              [ -e "site/$protected" ] || break
+            done
+            exclude="--exclude \"^$(printf '%s' "$protected" | sed 's/[.]/\\&/g')(/|\$)\""
           fi
           quoted_user=$(printf '%s' "$FTP_USERNAME" | sed 's/[\\"]/\\&/g')
           {
@@ -244,11 +286,11 @@ jobs:
             echo "set net:max-retries 3"
             echo "open --env-password -u \"$quoted_user\" \"sftp://$FTP_SERVER\""
             if [ "$TARGET" = "staging" ]; then
-              echo "put -o \"$STAGING_HTPASSWD_PATH\" \"$RUNNER_TEMP/htpasswd-staging\""
+              echo "put \"$RUNNER_TEMP/htpasswd-staging\" -o \"$STAGING_HTPASSWD_PATH\""
               echo "chmod 644 \"$STAGING_HTPASSWD_PATH\""
             fi
             echo "rm -f \"$remote_dir/index.html\""
-            echo "mirror --reverse --delete --verbose=1 site \"$remote_dir\""
+            echo "mirror --reverse --delete --verbose=1 $exclude site \"$remote_dir\""
           } > "$RUNNER_TEMP/lftp-script"
           LFTP_PASSWORD="$FTP_PASSWORD" lftp -f "$RUNNER_TEMP/lftp-script"
           rm -f "$RUNNER_TEMP/lftp-script" "$known_hosts" "$RUNNER_TEMP/htpasswd-staging"

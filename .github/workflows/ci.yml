@@ -83,6 +83,9 @@ jobs:
 
   sonar:
     name: SonarQube Cloud
+    # The free plan analyses the main branch and pull requests only: what dev
+    # receives was already analysed in its pull request.
+    if: github.event_name == 'pull_request' || github.ref != 'refs/heads/dev'
     needs: test
     runs-on: ubuntu-latest
     env:
@@ -104,8 +107,15 @@ jobs:
 
   deploy:
     name: Deploy to OVH (${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }})
-    needs: [lint, build, sonar]
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && github.event_name != 'pull_request'
+    needs: [lint, test, build, sonar]
+    if: >-
+      !cancelled()
+      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+      && github.event_name != 'pull_request'
+      && needs.lint.result == 'success'
+      && needs.test.result == 'success'
+      && needs.build.result == 'success'
+      && (needs.sonar.result == 'success' || (github.ref == 'refs/heads/dev' && needs.sonar.result == 'skipped'))
     runs-on: ubuntu-latest
     # Shows the site in the repository's Deployments panel.
     environment:

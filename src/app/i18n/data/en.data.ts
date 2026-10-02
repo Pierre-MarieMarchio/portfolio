@@ -77,10 +77,6 @@ export const EN: Catalog = {
     },
     preview: {
       label: draft('Project preview'),
-      bodies: draft('Featured projects'),
-      body: draft(
-        (number: string, title: string) => `Project ${number}: ${title}`,
-      ),
       previous: draft((title: string) => `Previous project: ${title}`),
       next: draft((title: string) => `Next project: ${title}`),
       terms: {

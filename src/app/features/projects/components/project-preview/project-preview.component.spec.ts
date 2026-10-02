@@ -59,6 +59,12 @@ describe('ProjectPreviewComponent', () => {
     };
   };
 
+  const mountOnPhone = async (slug: string) => {
+    stubMedia(TOUCH);
+    resizeTo(390, 844);
+    return mount({ slug });
+  };
+
   it('renders nothing for a project the home page does not feature', async () => {
     const { host } = await mount({ slug: 'proj-5' });
 
@@ -79,47 +85,57 @@ describe('ProjectPreviewComponent', () => {
     );
   });
 
-  it('lists one toolbar button per featured project only, labelled and pressed on the shown one, on the phone', async () => {
-    stubMedia(TOUCH);
-    resizeTo(390, 844);
-    const { host, texts } = await mount({ slug: 'proj-2' });
-    const toolbar = host.querySelector(`[aria-label="${texts.bodies}"]`);
-    const buttons = [
-      ...(toolbar?.querySelectorAll<HTMLButtonElement>('button') ?? []),
-    ];
+  describe('on the phone, where the home sheet gives it a page to itself', () => {
+    it('draws the project as a page, with no window around it', async () => {
+      const { host } = await mountOnPhone('proj-2');
 
-    const featuredCount = TestBed.inject(FEATURED);
-    const featured = NAMES.slice(0, featuredCount);
-    expect(buttons).toHaveLength(featuredCount);
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual(
-      featured.map((_, index) => `0${String(index + 1)}`),
-    );
-    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual(
-      featured.map((name, index) =>
-        texts.body(`0${String(index + 1)}`, `Project ${name}`),
-      ),
-    );
-    expect(
-      buttons.map((button) => button.getAttribute('aria-pressed')),
-    ).toEqual(featured.map((_, index) => String(index === 1)));
-  });
+      expect(host.querySelector('.window')).toBeNull();
+      expect(host.querySelector('app-window')).toBeNull();
+      expect(host.querySelector('.page h2')?.textContent?.trim()).toBe(
+        'Project Two',
+      );
+      expect(host.querySelector('.page')?.textContent).toContain('Summary two');
+    });
 
-  it('emits chosen with the clicked project slug, without changing the shown project by itself, on the phone', async () => {
-    stubMedia(TOUCH);
-    resizeTo(390, 844);
-    const { fixture, host, texts } = await mount({ slug: 'proj-2' });
-    const emitted = recordOutput(fixture.componentInstance.chosen);
+    it('draws no pin, no numbered segments and no position counter', async () => {
+      const { host } = await mountOnPhone('proj-2');
 
-    host
-      .querySelector(`[aria-label="${texts.bodies}"]`)
-      ?.querySelectorAll<HTMLButtonElement>('button')[2]
-      ?.click();
-    await fixture.whenStable();
+      expect(host.querySelector('app-segmented')).toBeNull();
+      expect(host.querySelector('.meta')).toBeNull();
+      expect(host.querySelector('button')).toBeNull();
+      expect(host.textContent).not.toContain(
+        `02 / 0${String(TestBed.inject(FEATURED))}`,
+      );
+    });
 
-    expect(emitted).toEqual(['proj-3']);
-    expect(host.querySelector('.window h2')?.textContent?.trim()).toBe(
-      'Project Two',
-    );
+    it('keeps the facts, the tag and the link to the sheet', async () => {
+      const { host, texts } = await mountOnPhone('proj-2');
+
+      expect(
+        [...host.querySelectorAll('dl dd')].map((dd) => dd.textContent?.trim()),
+      ).toEqual(['Proof 2', 'Role 2', 'Stack 2']);
+      expect(host.querySelector('.tag')?.textContent?.trim()).toBe('live');
+      const link = [...host.querySelectorAll('a')].find(
+        (anchor) => anchor.textContent?.trim() === texts.openSheet,
+      );
+      expect(link?.getAttribute('href')).toBe('/projet/proj-2');
+    });
+
+    it('takes no heading for the focus: the home line keeps it', async () => {
+      const { host } = await mountOnPhone('proj-2');
+
+      expect(host.querySelector('h1')).toBeNull();
+      expect(host.querySelector('.landing')).toBeNull();
+    });
+
+    it('draws nothing once no slug is given', async () => {
+      const { fixture, host } = await mountOnPhone('proj-2');
+
+      fixture.componentRef.setInput('slug', null);
+      await fixture.whenStable();
+
+      expect(host.querySelector('.page')).toBeNull();
+    });
   });
 
   it('offers a named link to the previous and the next featured project, on the desktop', async () => {

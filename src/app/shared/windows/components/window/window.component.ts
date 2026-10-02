@@ -34,6 +34,7 @@ import {
 import { WINDOW_FOLD } from '../../ports/window-fold.port';
 import { WINDOW_TEXTS } from '../../ports/window-texts.port';
 import { WindowControlsComponent } from '../window-controls/window-controls.component';
+import { WindowGripComponent } from '../window-grip/window-grip.component';
 
 const NOTHING = (): void => {};
 
@@ -48,6 +49,7 @@ export const loadWindowMenu = (): Promise<WindowMenuCode> =>
     DoublePressDirective,
     RememberScrollDirective,
     WindowControlsComponent,
+    WindowGripComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.scss',
@@ -88,10 +90,6 @@ export class WindowComponent {
   protected readonly folded = computed(
     () => this.isHeld() && (this.fold?.isFolded() ?? false),
   );
-  protected readonly gripLabel = computed(() => {
-    const words = this.texts().phone;
-    return this.folded() ? words.unfold : words.fold;
-  });
   protected readonly maximizable = computed(() => !this.preview());
   protected readonly isMenuActive = computed(
     () => this.display.format() !== 'phone',

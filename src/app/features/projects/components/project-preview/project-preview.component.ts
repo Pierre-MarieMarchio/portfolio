@@ -1,9 +1,8 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DisplayFormatService } from '@app/core/services';
-import { SegmentedComponent } from '@shared/ui/components';
 import { ViewHeadingDirective } from '@shared/ui/directives';
-import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
 import { RankedProject } from '../../models';
 import { ProjectsManager } from '../../states';
@@ -19,8 +18,8 @@ interface Neighbours {
 @Component({
   selector: 'app-project-preview',
   imports: [
+    NgTemplateOutlet,
     RouterLink,
-    SegmentedComponent,
     ViewHeadingDirective,
     WindowComponent,
   ],
@@ -33,7 +32,7 @@ export class ProjectPreviewComponent {
   protected readonly links = inject(LINKS);
   protected readonly display = inject(DisplayFormatService);
 
-  public readonly slug = input.required<string>();
+  public readonly slug = input.required<string | null>();
   public readonly pinned = input(false);
 
   public readonly pinToggled = output();
@@ -41,7 +40,8 @@ export class ProjectPreviewComponent {
   public readonly chosen = output<string>();
 
   protected readonly project = computed(() => {
-    const project = this.manager.find(this.slug());
+    const slug = this.slug();
+    const project = slug === null ? undefined : this.manager.find(slug);
     return project?.featured ? project : null;
   });
 
@@ -51,15 +51,6 @@ export class ProjectPreviewComponent {
       ? positionOf(project.rank + 1, this.manager.featured().length)
       : '';
   });
-
-  protected readonly choices = computed<readonly SegmentedItem[]>(() =>
-    this.manager.featured().map((project) => ({
-      value: project.slug,
-      label: project.number,
-      active: project.slug === this.slug(),
-      aria: this.texts().preview.body(project.number, project.title),
-    })),
-  );
 
   protected readonly neighbours = computed<Neighbours | null>(() => {
     const featured = this.manager.featured();

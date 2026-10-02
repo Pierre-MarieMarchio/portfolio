@@ -28,7 +28,7 @@
       />
     </div>
 
-    @if (observatory.view() === 'home') {
+    @if (homeSheet.showsTitle()) {
       <app-home-title
         appViewSlot="home"
         [appLayoutAnchor]="anchor.chrome"
@@ -126,29 +126,80 @@
       }
     </div>
 
-    <div
-      appViewSlot="preview"
-      class="slot slot--preview"
-      appStackedWindow="preview"
-      appWindowFrame
-      [attr.data-docked]="observatory.docked().includes('preview')"
-      [appLayoutAnchor]="anchor.preview"
-      [id]="ids.previewPanel"
-    >
-      @if (observatory.showsPreview()) {
-        @if (observatory.preview(); as slug) {
-          <app-bottom-sheet appWindowSheet [detents]="previewDetents">
-            <app-project-preview
-              [slug]="slug"
-              [pinned]="observatory.pins().preview"
-              (chosen)="observatory.openPreview($event)"
-              (pinToggled)="observatory.togglePin('preview')"
-              (closed)="observatory.close('preview')"
-            />
-          </app-bottom-sheet>
-        }
-      }
-    </div>
+    @if (!homeSheet.isPhone()) {
+      <div
+        appViewSlot="preview"
+        class="slot slot--preview"
+        appStackedWindow="preview"
+        appWindowFrame
+        [attr.data-docked]="observatory.docked().includes('preview')"
+        [appLayoutAnchor]="anchor.preview"
+        [id]="ids.previewPanel"
+      >
+        <app-project-preview
+          [slug]="observatory.shownPreview()"
+          [pinned]="observatory.pins().preview"
+          (chosen)="observatory.openPreview($event)"
+          (pinToggled)="observatory.togglePin('preview')"
+          (closed)="observatory.close('preview')"
+        />
+      </div>
+    } @else if (homeSheet.isShown()) {
+      <div
+        appViewSlot="home"
+        class="slot slot--home"
+        [appLayoutAnchor]="anchor[homeSheet.anchor()]"
+      >
+        <app-bottom-sheet
+          appWindowSheet
+          [detent]="homeSheet.detent()"
+          (detentChange)="homeSheet.settle($event)"
+        >
+          <div
+            class="home"
+            [attr.data-arrival]="arrival()"
+            [appHeldInert]="arrival()"
+          >
+            <app-home-title />
+            <div class="stage">
+              <div class="layer" [inert]="homeSheet.detent() === 'full'">
+                <app-featured-bar
+                  [bodies]="projects.featured()"
+                  [controls]="ids.previewPanel"
+                  [hovered]="observatory.hovered()"
+                  [reading]="observatory.lastPreview()"
+                  [arrival]="arrival()"
+                  (chosen)="observatory.openPreview($event)"
+                  (hoveredChange)="onReaderHovered($event)"
+                />
+              </div>
+              <div
+                class="layer"
+                [inert]="homeSheet.detent() !== 'full'"
+                [id]="ids.previewPanel"
+              >
+                <app-pager
+                  [index]="homeSheet.posedIndex()"
+                  (indexChange)="homeSheet.turnTo($event)"
+                  (shownChange)="homeSheet.showIndex($event)"
+                >
+                  @for (project of projects.featured(); track project.slug) {
+                    <app-pager-page>
+                      <app-project-preview [slug]="project.slug" />
+                    </app-pager-page>
+                  }
+                </app-pager>
+                <app-pager-dots
+                  [count]="projects.featured().length"
+                  [current]="homeSheet.shownIndex()"
+                  (chosen)="homeSheet.turnTo($event)"
+                />
+              </div>
+            </div>
+          </div>
+        </app-bottom-sheet>
+      </div>
+    }
 
     @if (observatory.canStepBack()) {
       <button
@@ -160,7 +211,7 @@
       ></button>
     }
 
-    @if (canDeselect()) {
+    @if (canDeselect() && !homeSheet.isPhone()) {
       <button type="button" class="overview" (click)="onVoid()">
         {{ observatoryTexts().stepBack.overview }}
       </button>

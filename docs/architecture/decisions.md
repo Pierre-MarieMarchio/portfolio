@@ -2632,3 +2632,54 @@ Le toucher sur la ligne 02 qui a basculé une fois le site en anglais n'est
 pas reproduit (touchers aux trois crans, liste défilée ou non : chaque
 toucher mène à la fiche, en français ; aucune ligne ne passe sous le lien de
 langue). Il reste à observer sur l'appareil.
+
+## 2026-09-29 — Au téléphone, l'accueil est une feuille, et l'aperçu en est le plein (D86, amende D57, D58, D64 et D71)
+
+**Décision.** Au téléphone, l'accueil est une feuille à trois crans, du même
+composant que les autres pages et avec la même poignée
+(`WindowGripComponent`, extraite de la fenêtre). Replié : une ligne
+« Pierre-Marie Marchio · Développeur .NET et Angular », faite du nom et du
+métier du titre, qui est le seul `h1`. Mi-hauteur, cran d'arrivée : la ligne
+et les cartes. Plein : l'aperçu du projet posé dans un pager, un balayage
+par voisin, et des points sous l'aperçu (ceux du carrousel, extraits en
+`PagerDotsComponent`) qui suivent le doigt et mènent au projet touché.
+L'état porte `preview` au plein seulement : la caméra passe en gros plan, la
+carte et la planète suivent le balayage, et redescendre efface `preview`.
+Toucher une carte ou une planète monte la feuille au plein ; toucher le ciel,
+Échap ou le retour la ramène à mi-hauteur. `HomeSheetService`, fourni par la
+page, porte le cran, le projet posé et les gestes ; `homeDetentAfter` et
+`posedSlugOf` sont ses règles pures. L'aperçu séparé du téléphone, son
+épingle, son segmenté 01–04, son compteur et le titre en deux lignes
+disparaissent, avec leurs textes. Au bureau et à la tablette, l'aperçu reste
+une fenêtre (D71).
+
+**Raison.** Décision de l'opérateur (ETUDE P3) : le titre prenait beaucoup de
+place, l'accueil n'avait ni feuille ni flou, et trois modèles de navigation
+entre projets coexistaient (cartes, segmenté, liste). Une feuille de plus,
+identique aux autres, donne un seul geste pour avoir plus ou moins d'espace ;
+les points sont l'équivalent visible du balayage. Le carrousel reste dans le
+bundle initial : le charger à part coûtait plus qu'il ne rapportait (D87).
+
+**Écarté.** Un composant de plus pour la ligne : `check-structure` veut un
+composant par dossier, et la ligne est la présentation téléphone du titre.
+Garder l'aperçu séparé en le corrigeant : il aurait été jeté par cette
+décision même (ETUDE, suite de la validation du lot B).
+
+## 2026-10-01 — Le bundle initial peut aller jusqu'à 550 kB, jusqu'à la fin des lots C et D (D87, amende D77)
+
+**Décision.** L'avertissement du budget `initial` passe de 540 à 550 kB,
+jusqu'à la fin des lots C et D du chantier « fenêtres v2 ». Le chantier
+suivant ramène le bundle initial à 520 kB, mesures au téléphone ralenti
+avant et après.
+
+**Raison.** Décision de l'opérateur. La feuille d'accueil du téléphone, sa
+poignée et ses points portent la pile du lot C à 541 kB, et la vague 2
+(onglets, filtres, barre du haut) ajoutera quelques kilo-octets. Sortir le
+carrousel du bundle initial a été mesuré et coûte plus qu'il ne rapporte :
+543,94 kB au lieu de 541,07, le découpage en morceaux ajoutant ~9,5 kB du
+cœur d'Angular pour ~7 kB retirés (`@defer` : ~11 kB). Les économies
+viendront d'un travail d'ensemble, pas d'un composant à la fois.
+
+**Écarté.** Tenir 540 kB en retirant des fonctions du lot (points, vibration) :
+elles répondent au modèle d'interaction. Chercher des économies ailleurs
+avant la vague 2 : c'est l'objet du chantier qui suit, avec ses mesures.

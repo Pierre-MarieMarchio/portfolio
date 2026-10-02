@@ -198,13 +198,14 @@ li button {
   display: none;
 }
 
-@include formats.phone-portrait {
-  :host {
-    bottom: calc(var(--tabs-reserve) + var(--dock-reserve, 0px) + var(--s1));
-  }
-}
-
 @include formats.phone {
+  :host {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    pointer-events: auto;
+  }
+
   .head,
   .track,
   .reading,
@@ -218,7 +219,6 @@ li button {
 
   .cards {
     display: block;
-    margin-inline: calc(-1 * var(--gutter));
   }
 
   .card-title {

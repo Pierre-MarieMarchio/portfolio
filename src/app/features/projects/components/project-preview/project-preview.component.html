@@ -1,72 +1,85 @@
 @if (project(); as project) {
-  <app-window
-    [label]="texts().preview.label"
-    size="m"
-    anchor="bottom"
-    [preview]="true"
-    [heading]="project.title"
-    [meta]="meta()"
-    [pinned]="pinned()"
-    (pinToggled)="pinToggled.emit()"
-    (closed)="closed.emit()"
-  >
-    @if (display.format() === 'phone') {
-      <app-segmented
-        toolbar
-        [label]="texts().preview.bodies"
-        [items]="choices()"
-        (valueChange)="chosen.emit($event)"
-      />
-    } @else if (neighbours(); as neighbours) {
-      <nav toolbar class="neighbours">
-        <button
-          type="button"
-          class="previous"
-          [attr.aria-label]="
-            texts().preview.previous(neighbours.previous.title)
-          "
-          (click)="chosen.emit(neighbours.previous.slug)"
-        >
-          <span aria-hidden="true">‹</span>
-          {{ neighbours.previous.short }}
-        </button>
-        <span aria-hidden="true" class="separator">·</span>
-        <button
-          type="button"
-          class="next"
-          [attr.aria-label]="texts().preview.next(neighbours.next.title)"
-          (click)="chosen.emit(neighbours.next.slug)"
-        >
-          {{ neighbours.next.short }}
-          <span aria-hidden="true">›</span>
-        </button>
-      </nav>
+  <ng-template #details>
+    <p class="summary">{{ project.summary }}</p>
+    <dl>
+      <div>
+        <dt>{{ texts().preview.terms.proof }}</dt>
+        <dd class="data">{{ project.facts.proof }}</dd>
+      </div>
+      <div>
+        <dt>{{ texts().preview.terms.role }}</dt>
+        <dd class="data">{{ project.facts.role }}</dd>
+      </div>
+      <div>
+        <dt>{{ texts().preview.terms.stack }}</dt>
+        <dd class="data quiet">{{ project.facts.stack }}</dd>
+      </div>
+    </dl>
+  </ng-template>
+
+  <ng-template #ending>
+    @if (project.tag; as tag) {
+      <p class="tag">{{ tag }}</p>
     }
-    <div body>
-      <h2 tabindex="-1" class="landing" appViewHeading>{{ project.title }}</h2>
-      <p class="summary">{{ project.summary }}</p>
-      <dl>
-        <div>
-          <dt>{{ texts().preview.terms.proof }}</dt>
-          <dd class="data">{{ project.facts.proof }}</dd>
-        </div>
-        <div>
-          <dt>{{ texts().preview.terms.role }}</dt>
-          <dd class="data">{{ project.facts.role }}</dd>
-        </div>
-        <div>
-          <dt>{{ texts().preview.terms.stack }}</dt>
-          <dd class="data quiet">{{ project.facts.stack }}</dd>
-        </div>
-      </dl>
-    </div>
-    <ng-container footer>
-      @if (project.tag; as tag) {
-        <p class="tag">{{ tag }}</p>
+    <a class="to-sheet" [routerLink]="links.sheet(project.slug)">{{
+      texts().preview.openSheet
+    }}</a>
+  </ng-template>
+
+  @if (display.format() === 'phone') {
+    <article class="page">
+      <h2>{{ project.title }}</h2>
+      <ng-container [ngTemplateOutlet]="details" />
+      <div class="ending">
+        <ng-container [ngTemplateOutlet]="ending" />
+      </div>
+    </article>
+  } @else {
+    <app-window
+      [label]="texts().preview.label"
+      size="m"
+      anchor="bottom"
+      [preview]="true"
+      [heading]="project.title"
+      [meta]="meta()"
+      [pinned]="pinned()"
+      (pinToggled)="pinToggled.emit()"
+      (closed)="closed.emit()"
+    >
+      @if (neighbours(); as neighbours) {
+        <nav toolbar class="neighbours">
+          <button
+            type="button"
+            class="previous"
+            [attr.aria-label]="
+              texts().preview.previous(neighbours.previous.title)
+            "
+            (click)="chosen.emit(neighbours.previous.slug)"
+          >
+            <span aria-hidden="true">‹</span>
+            {{ neighbours.previous.short }}
+          </button>
+          <span aria-hidden="true" class="separator">·</span>
+          <button
+            type="button"
+            class="next"
+            [attr.aria-label]="texts().preview.next(neighbours.next.title)"
+            (click)="chosen.emit(neighbours.next.slug)"
+          >
+            {{ neighbours.next.short }}
+            <span aria-hidden="true">›</span>
+          </button>
+        </nav>
       }
-      <a class="to-sheet" [routerLink]="links.sheet(project.slug)">{{
-        texts().preview.openSheet
-      }}</a>
-    </ng-container>
-  </app-window>
+      <div body>
+        <h2 tabindex="-1" class="landing" appViewHeading>
+          {{ project.title }}
+        </h2>
+        <ng-container [ngTemplateOutlet]="details" />
+      </div>
+      <ng-container footer>
+        <ng-container [ngTemplateOutlet]="ending" />
+      </ng-container>
+    </app-window>
+  }
 }

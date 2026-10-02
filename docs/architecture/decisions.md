@@ -3074,3 +3074,26 @@ typées, coût non mesuré pour 1,4 kB de marge. `@angular/localize` :
 recharge l'application au changement de langue. Une lib `shared/i18n/` : le
 type `Catalog` importe les ports des features, ce qu'une lib partagée n'a
 pas le droit de faire ; `i18n` est la racine qui les compose.
+
+## 2026-10-03 — Au téléphone, la visite des planètes nomme sans viser, et la scène se cale sur la place finale d'un panneau qui entre (D103, complète D80)
+
+**Décision.** La scène distingue la planète mise en avant (son nom, sa
+lumière) de la planète visée (ce que la caméra cadre au repos). Au téléphone,
+la visite automatique des planètes ne fait que mettre en avant : la caméra ne
+bouge plus pour elle ; une vraie sélection (toucher, navigation) cadre comme
+avant. Au bureau, rien ne change. Un panneau qui s'anime en entrant (le
+bouton Contact qui monte) est mesuré à la place où son animation le
+laissera, et des pièces identiques ne relancent plus le recadrage.
+
+**Raison.** Mesuré au téléphone (390×844) : la caméra bougeait encore 11 s
+après l'intro, contre 1,2 s voulu par D80. La visite est un ornement, pas un
+geste du visiteur : la scène suit le visiteur (principe 2 du modèle
+d'interaction). Après : 0,25 s quand l'intro va au bout. Quand on la passe,
+2,11 s : il ne reste que deux pas d'arrêt de 1,2 et 0,5 px, la fin de
+l'amorti, qui est plus longue au téléphone. On ne touche ni au seuil d'arrêt
+ni à la demi-vie : ils règlent aussi le bureau, et le rythme calme de la
+scène est un choix de l'opérateur.
+
+**Écarté.** Supprimer la visite au téléphone : elle montre les projets mis
+en avant. Supprimer l'animation d'entrée du panneau : c'est l'interface, pas
+la scène, qui a raison de bouger.

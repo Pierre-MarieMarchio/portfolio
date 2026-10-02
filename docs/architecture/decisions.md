@@ -2623,3 +2623,29 @@ la nouvelle clé et on met la variable à jour.
 **Écarté.** Accepter la clé au premier contact à chaque déploiement
 (`ssh-keyscan` dans le job) : un intermédiaire présent à ce moment serait
 accepté.
+
+## 2026-10-02 — Une branche `dev` déploie un staging protégé par mot de passe (D98, étend D95 et D97)
+
+**Décision.** Les PR vont dans `dev` ; une PR générale `dev → main` publie.
+Un push sur `dev` déploie le staging, `https://staging.pm-marchio.fr`, un
+push sur `main` la production ; un seul job `deploy`, paramétré par la cible,
+avec un groupe de concurrence par cible. Le staging est construit avec
+`STAGING_SITE_URL`, servi depuis `/home/pmmarcc/staging`, à côté de `www` et
+jamais dedans, et fermé : authentification HTTP Basic en tête de son
+`.htaccess` (fichier htpasswd généré par la CI depuis les secrets
+`STAGING_USER` et `STAGING_PASSWORD`, déposé hors du dossier servi),
+`X-Robots-Tag: noindex, nofollow`, un `robots.txt` qui interdit tout, pas de
+sitemap.
+
+**Raison.** L'opérateur veut voir et faire voir une version avant de la
+publier, sur le même hébergement, sans que le public ni les moteurs y
+accèdent. Le dossier du staging est hors de `www` parce que le miroir de la
+production supprime tout ce que `www` contient de plus que le build. Le
+chemin du htpasswd est absolu : Apache le lit tel quel dans `AuthUserFile`.
+Vérifié dans Apache 2.4 : 401 sans identifiants ou avec un mauvais mot de
+passe, 200 et `X-Robots-Tag` avec les bons, `robots.txt` fermé, sitemap
+absent, htpasswd non servi.
+
+**Écarté.** Un second hébergement : l'offre gratuite n'en donne qu'un, et le
+staging tient dans ses 100 Mo. Un staging ouvert et seulement `noindex` :
+quiconque devine l'adresse le verrait.

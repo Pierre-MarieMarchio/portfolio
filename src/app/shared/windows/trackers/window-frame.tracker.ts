@@ -9,7 +9,6 @@ import {
   type FramePlace,
   type FrameRect,
   type FrameTracking,
-  type FrameViewport,
   type FrameZone,
   type FramedWindow,
 } from '../models/window-frame.model';
@@ -17,10 +16,8 @@ import {
   areaOf,
   clampMove,
   clearanceOf,
-  fitBelowFloor,
   frameOfZone,
   isZone,
-  leastOverlapPlaceOf,
   unsnapAt,
 } from '../rules/window-frame.rules';
 import { WindowDragTracker } from './window-drag.tracker';
@@ -84,27 +81,6 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     this.snap(zone);
   }
 
-  public cascadeFrom(shown: readonly HTMLElement[]): void {
-    if (shown.length === 0) {
-      this.painted = NOWHERE;
-      this.framed.paint(null);
-      this.framed.commit(null, null);
-      return;
-    }
-    const viewport = this.framed.viewport();
-    if (!viewport) {
-      return;
-    }
-    const rect = this.rect();
-    const bounds = { ...this.clearance(), floor: this.area(rect).bottom };
-    const others = shown.map((element) => rectOf(element));
-    const place = leastOverlapPlaceOf(rect, others, viewport, bounds);
-    if (!place) {
-      return;
-    }
-    this.framed.commit(this.paintPlace(place), null);
-  }
-
   public toggleMaximize(): void {
     this.settle();
     if (this.framed.mode() !== 'full') {
@@ -121,19 +97,11 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
     this.height.fit();
     const mode = this.framed.mode();
     const viewport = this.framed.viewport();
-    if (
-      this.drag ||
-      !viewport ||
-      (mode === null && this.framed.place() === null)
-    ) {
+    if (this.drag || !viewport || mode === null) {
       return;
     }
     this.painted = this.framed.place() ?? NOWHERE;
     const rect = this.rect();
-    if (mode === null) {
-      this.settleFree(rect, viewport);
-      return;
-    }
     const place = isZone(mode)
       ? this.placeAt(frameOfZone(mode, this.area(rect)))
       : this.moveTo(clampMove(rect, viewport, this.clearance()));
@@ -245,26 +213,6 @@ export class WindowFrameTracker implements FrameTracking, DraggedFrame {
       x: event.clientX,
       y: event.clientY,
     });
-  }
-
-  private settleFree(rect: FrameRect, viewport: FrameViewport): void {
-    const moved = clampMove(rect, viewport, this.clearance());
-    const fitted = fitBelowFloor(moved, this.area(rect).bottom);
-    if (!fitted) {
-      this.painted = NOWHERE;
-      this.framed.paint(null);
-      this.framed.commit(null, null);
-      return;
-    }
-    const place = this.moveTo(fitted);
-    if (fitted.height === moved.height) {
-      this.framed.commit(place, null);
-      return;
-    }
-    this.framed.commit(
-      this.paintPlace({ ...place, height: fitted.height }),
-      null,
-    );
   }
 
   private snap(zone: FrameZone): void {

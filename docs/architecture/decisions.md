@@ -2973,3 +2973,22 @@ canonical sous `/staging/`.
 
 **Écarté.** Un sous-domaine (offre gratuite) ou un second hébergement payant.
 Un staging seulement `noindex` : quiconque devine l'adresse le verrait.
+
+## 2026-10-03 — Au bureau, une fenêtre se pose à sa place habituelle, même par-dessus une autre (D99, amende D76, D78 et D81)
+
+**Décision.** Une fenêtre que le lecteur n'a ni déplacée ni redimensionnée
+s'affiche toujours à son rectangle par défaut, quelles que soient les autres
+fenêtres ouvertes : elle peut en couvrir une. Une fenêtre déplacée garde sa
+place. La cascade (D76), le placement « là où elle couvre le moins » et son
+miroir (D81), et le recalage au-dessus du rail des places ainsi calculées
+(D78) disparaissent avec leur code. L'ordre de superposition, l'aimantation,
+l'agrandissement et F6 ne changent pas.
+
+**Raison.** Retour de l'opérateur sur le site en ligne (2026-10-01) : une
+fenêtre de programme s'ouvre à sa place, et l'on sait déjà la déplacer si
+elle en couvre une autre. Une place qui change selon ce qui est ouvert ne se
+retient pas. Le recalage de D78 ne servait qu'aux places de la cascade : une
+place par défaut est déjà au-dessus du rail.
+
+**Écarté.** Garder le moindre recouvrement comme repli : c'est lui que
+l'opérateur a nommé.

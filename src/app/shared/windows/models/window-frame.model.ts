@@ -35,10 +35,6 @@ export interface FrameClearance {
   readonly bottom: number;
 }
 
-export interface CascadeBounds extends FrameClearance {
-  readonly floor: number;
-}
-
 export type FrameZone = 'left' | 'right' | 'full';
 
 export type FrameMode = 'free' | FrameZone;
@@ -91,7 +87,6 @@ export interface FramedWindow {
 export interface FrameTracking {
   toggleMaximize(): void;
   snapTo(zone: 'left' | 'right'): void;
-  cascadeFrom(shown: readonly HTMLElement[]): void;
   fit(): void;
   fitHeight(): void;
   stop(): void;

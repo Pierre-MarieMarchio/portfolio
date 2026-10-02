@@ -36,6 +36,15 @@ describe('ObservatoryManager', () => {
     expect('set' in manager.section).toBe(false);
     expect('set' in manager.hovered).toBe(false);
     expect('set' in manager.lastSheet).toBe(false);
+    expect('set' in manager.resume).toBe(false);
+  });
+
+  it('says which sheet to resume', () => {
+    manager.syncRoute('sheet', 'skyted');
+    manager.chooseChapter(1);
+    manager.syncRoute('home');
+
+    expect(manager.resume()).toEqual({ slug: 'skyted', chapter: 1 });
   });
 
   it('docks the pinned sheet it last showed once the reader opens another view', () => {

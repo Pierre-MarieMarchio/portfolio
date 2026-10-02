@@ -2734,3 +2734,33 @@ anglais sur un toucher mal placé (D85).
 
 **Écarté.** Garder « EN » dans la barre : un mot de plus en haut de chaque page
 pour un réglage qu'on change une fois.
+
+## 2026-10-02 — Au téléphone, chaque onglet garde sa place, et le retour mène à l'accueil avant de quitter le site (D91, amende D57 et D62)
+
+**Décision.** Au téléphone, l'onglet Projets reprend la fiche laissée ouverte,
+à son chapitre et à sa position ; l'accueil garde son cran et sa carte.
+Retoucher l'onglet courant remonte en haut ce qui défile, puis ramène à la
+racine de l'onglet (la liste), et baisse un accueil au plein à mi-hauteur.
+Le retour Android remonte dans l'onglet (fiche → liste), puis d'un onglet
+racine ramène à l'accueil, et ne quitte le site que depuis l'accueil.
+L'historique a une seule règle : un toucher d'onglet remplace l'entrée
+courante, sauf s'il quitte l'accueil ; revenir à l'accueil remonte
+l'historique jusqu'à lui. Après une arrivée directe, le premier toucher,
+qui porte l'activation de l'utilisateur, pose l'accueil (et la liste sous
+une fiche) sous la page. `TabNavigationService`, fourni par la page, porte
+ces choix ; les onglets émettent l'adresse choisie au lieu d'un lien du
+routeur, et le bureau suit cette adresse telle quelle.
+
+**Raison.** ETUDE N2, Android d'abord : c'est le comportement des piles par
+onglet de Jetpack Navigation et des applis Google, iOS fait de même.
+Auparavant chaque toucher d'onglet empilait une entrée, et une arrivée
+directe sur /projets faisait quitter le site au premier retour. Chrome saute
+au retour les entrées ajoutées sans activation : n'en ajouter qu'au cours
+d'un toucher garantit qu'elles comptent. Une première version corrigeait
+l'historique après coup (`popstate`, puis remplacement) et coûtait 5,47 kB ;
+remplacer dès le toucher tient en 2,47 kB.
+
+**Écarté.** Une pile d'historique par onglet : le navigateur n'en a qu'une, et
+la simuler demandait de réécrire les entrées après chaque retour. Tant qu'aucun
+toucher n'a eu lieu après une arrivée directe, le retour quitte encore le site :
+c'est le prix de la règle « une entrée seulement pendant un geste ».

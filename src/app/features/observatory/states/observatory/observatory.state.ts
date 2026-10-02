@@ -3,6 +3,7 @@ import {
   ObservatoryPins,
   ObservatoryView,
   ObservatoryWindow,
+  ResumePoint,
 } from '../../models';
 
 export const NO_PINS: ObservatoryPins = {
@@ -23,6 +24,7 @@ export class ObservatoryState {
   public readonly preview = signal<string | null>(null);
   public readonly lastPreview = signal<string | null>(null);
   public readonly lastSheet = signal<string | null>(null);
+  public readonly resume = signal<ResumePoint | null>(null);
   public readonly selected = signal<string | null>(null);
   public readonly hovered = signal<string | null>(null);
   public readonly family = signal('all');

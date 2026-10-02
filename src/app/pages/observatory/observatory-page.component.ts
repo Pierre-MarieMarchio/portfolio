@@ -36,6 +36,7 @@ import {
   HomeRevealService,
   HomeSheetService,
   MobileNavPlatformService,
+  TabNavigationService,
   ViewWindowsService,
 } from '@app/features/observatory/services';
 import {
@@ -132,15 +133,14 @@ interface SheetOnShow {
     HomeRevealService,
     HomeSheetService,
     FeaturedTourService,
+    TabNavigationService,
     WindowStackService,
     ViewWindowsService,
     { provide: SCENE_WINDOW_DRAG, useExisting: ObservatoryPageComponent },
     { provide: MOBILE_NAV_PLATFORM, useClass: MobileNavPlatformService },
     BackLayersService,
   ],
-  host: {
-    '(document:keydown.escape)': 'onEscape()',
-  },
+  host: { '(document:keydown.escape)': 'onEscape()' },
   templateUrl: './observatory-page.component.html',
   styleUrl: './observatory-page.component.scss',
 })
@@ -155,6 +155,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
   protected readonly observatoryTexts = inject(OBSERVATORY_TEXTS);
   protected readonly ids = OBSERVATORY_IDS;
   protected readonly homeSheet = inject(HomeSheetService);
+  protected readonly tabs = inject(TabNavigationService);
   protected readonly anchor: {
     readonly [K in Exclude<SceneAnchorKind, 'line'>]: K;
   } = {

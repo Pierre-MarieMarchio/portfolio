@@ -6,6 +6,7 @@ import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { WindowComponent } from '@shared/windows/components';
+import { ScrollMemoryService } from '@shared/windows/services/scroll-memory.service';
 import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
@@ -335,5 +336,18 @@ describe('AboutWindowComponent', () => {
         ?.querySelectorAll('button')[0]
         ?.getAttribute('aria-pressed'),
     ).toBe('true');
+  });
+
+  it('remembers where its body was scrolled, under its own key', async () => {
+    const { host } = await mount();
+    const body = host.querySelector<HTMLElement>('.body');
+    if (!body) {
+      throw new Error('expected a body');
+    }
+
+    body.scrollTop = 90;
+    body.dispatchEvent(new Event('scroll'));
+
+    expect(TestBed.inject(ScrollMemoryService).read('about')).toBe(90);
   });
 });

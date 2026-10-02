@@ -3,13 +3,14 @@
     @for (item of items(); track item.route) {
       <li>
         <a
-          [routerLink]="item.route"
+          [href]="item.route"
           [attr.aria-current]="item.route === current() ? 'page' : null"
           [attr.data-active]="item.route === current()"
           [attr.data-open]="isOpen(item) ? '' : null"
           [attr.aria-label]="
             isOpen(item) ? item.label + ', ' + texts().pageBar.openWindow : null
           "
+          (click)="onTap($event, item)"
           >{{ item.label }}</a
         >
       </li>

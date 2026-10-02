@@ -22,6 +22,7 @@
         [items]="links.navigation()"
         [current]="currentRoute()"
         [openRoutes]="openRoutes()"
+        (chosen)="tabs.choose($event)"
         [arrival]="arrival()"
         [appHeldInert]="arrival()"
       />

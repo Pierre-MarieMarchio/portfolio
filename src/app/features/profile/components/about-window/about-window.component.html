@@ -3,6 +3,7 @@
   [heading]="about().heading"
   [label]="about().label"
   [stableHeight]="true"
+  scrollKey="about"
   [scrollResetOn]="part()"
   [pinned]="pinned()"
   (pinToggled)="pinToggled.emit()"
@@ -97,9 +98,11 @@
   <ng-container footer>
     <p class="position">{{ section().title }}</p>
     @if (next(); as next) {
-      <button type="button" class="next" (click)="advance()">
-        {{ about().next(next.label) }}
-      </button>
+      @if (!isPhone()) {
+        <button type="button" class="next" (click)="advance()">
+          {{ about().next(next.label) }}
+        </button>
+      }
     } @else {
       <a class="next" [routerLink]="links.index()">{{ about().back }}</a>
     }

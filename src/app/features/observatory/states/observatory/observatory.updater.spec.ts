@@ -286,4 +286,56 @@ describe('observatoryUpdater', () => {
     expect(state.preview()).toBeNull();
     expect(state.lastPreview()).toBe('b');
   });
+
+  describe('the place kept for the projects tab', () => {
+    it('keeps the sheet being read, with its chapter, once the reader leaves it', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryChapterChosen(2));
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      expect(state.resume()).toEqual({ slug: 'a', chapter: 2 });
+    });
+
+    it('reopens the sheet on the chapter it was left at', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryChapterChosen(2));
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+
+      expect(state.chapter()).toBe(2);
+    });
+
+    it('opens another sheet on its first chapter', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryChapterChosen(2));
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'b' }));
+
+      expect(state.chapter()).toBe(0);
+    });
+
+    it('forgets the sheet once the reader is back on the list', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryChapterChosen(2));
+
+      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+
+      expect(state.resume()).toBeNull();
+      expect(state.chapter()).toBe(0);
+    });
+
+    it('follows the chapters chosen on the sheet being read, and no other view', () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      statewise.dispatch(observatoryRouteSynced({ view: 'about', slug: null }));
+
+      statewise.dispatch(observatoryChapterChosen(3));
+
+      expect(state.resume()).toEqual({ slug: 'a', chapter: 0 });
+    });
+  });
 });

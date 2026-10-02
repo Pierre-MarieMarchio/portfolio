@@ -6,9 +6,11 @@ import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { WindowComponent } from '@shared/windows/components';
+import { ScrollMemoryService } from '@shared/windows/services/scroll-memory.service';
 import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
 const mount = async (inputs: { pinned?: boolean; part?: number } = {}) => {
@@ -228,6 +230,31 @@ describe('AboutWindowComponent', () => {
     },
   );
 
+  describe('on the phone', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('drops the next-part button and keeps the part title in the footer', async () => {
+      stubViewport(390, 844);
+      const { host, parts } = await mount({ part: 1 });
+      const footer = host.querySelector('.footer');
+
+      expect(footer?.textContent).toContain(parts[1]?.title);
+      expect(footer?.querySelector('button.next')).toBeNull();
+      expect(footer?.querySelector('a.next')).toBeNull();
+    });
+
+    it('still links to every project on the last part', async () => {
+      stubViewport(390, 844);
+      const { host, about } = await mount({ part: 3 });
+
+      expect(host.querySelector('.footer a.next')?.textContent?.trim()).toBe(
+        about.back,
+      );
+    });
+  });
+
   it('links to every project instead of a next button, on the last part', async () => {
     const { host, about } = await mount({ part: 3 });
     const footer = host.querySelector('.footer');
@@ -309,5 +336,18 @@ describe('AboutWindowComponent', () => {
         ?.querySelectorAll('button')[0]
         ?.getAttribute('aria-pressed'),
     ).toBe('true');
+  });
+
+  it('remembers where its body was scrolled, under its own key', async () => {
+    const { host } = await mount();
+    const body = host.querySelector<HTMLElement>('.body');
+    if (!body) {
+      throw new Error('expected a body');
+    }
+
+    body.scrollTop = 90;
+    body.dispatchEvent(new Event('scroll'));
+
+    expect(TestBed.inject(ScrollMemoryService).read('about')).toBe(90);
   });
 });

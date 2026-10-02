@@ -26,13 +26,9 @@ export const EN: Catalog = {
     restore: draft('Put the window back to its size'),
     close: draft('Close the window'),
     phone: {
-      pin: draft('Keep this window open when changing tab'),
-      unpin: draft('Let this window close when changing tab'),
       fold: draft('Lower the window'),
       unfold: draft('Raise the window'),
     },
-    kept: draft('Window kept'),
-    released: draft('Window released'),
   },
 
   mobileNav: {
@@ -81,10 +77,6 @@ export const EN: Catalog = {
     },
     preview: {
       label: draft('Project preview'),
-      bodies: draft('Featured projects'),
-      body: draft(
-        (number: string, title: string) => `Project ${number}: ${title}`,
-      ),
       previous: draft((title: string) => `Previous project: ${title}`),
       next: draft((title: string) => `Next project: ${title}`),
       terms: {

@@ -659,7 +659,7 @@ describe('WindowFrameDirective', () => {
         [...host.querySelectorAll('button')].map((button) =>
           button.getAttribute('aria-label'),
         ),
-      ).toEqual([texts().phone.pin, texts().close]);
+      ).toEqual([texts().close]);
     });
 
     it('does not move', async () => {

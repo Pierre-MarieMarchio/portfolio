@@ -31,6 +31,16 @@
       ><span>{{ link.label }}</span></a
     >
   }
+  @if (language(); as other) {
+    <a
+      appActionRow
+      [routerLink]="other.route"
+      [attr.hreflang]="other.lang"
+      [attr.lang]="other.lang"
+      ><span aria-hidden="true" class="code">{{ other.code }}</span
+      ><span>{{ other.name }}</span></a
+    >
+  }
   <output class="said">
     @if (isCopied()) {
       {{ texts().contactMenu.copied }}

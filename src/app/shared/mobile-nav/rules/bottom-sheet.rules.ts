@@ -14,6 +14,12 @@ const SLACK = 1;
 export const isAtStop = (top: number, at: number): boolean =>
   Math.abs(top - at) < SLACK;
 
+export const isFelt = (
+  isByUser: boolean,
+  from: SheetDetent | null,
+  to: SheetDetent,
+): boolean => isByUser && from !== null && from !== to;
+
 export const stopsOf = (
   detents: readonly SheetDetent[],
   { peek, half, end }: SheetRoom,
@@ -106,4 +112,19 @@ export const shadeFromOf = (stops: readonly SheetStop[]): number | null => {
   const full = stops.findIndex((stop) => stop.detent === 'full');
   const below = stops[full - 1];
   return full > 0 && below?.detent === 'half' ? below.at : null;
+};
+
+export const isDismissedBy = (
+  stops: readonly SheetStop[],
+  origin: SheetDetent,
+  top: number,
+  pull: number,
+): boolean => {
+  const lowest = stops[0];
+  return (
+    lowest !== undefined &&
+    lowest.detent === origin &&
+    isAtStop(top, lowest.at) &&
+    pull >= FOLD_REACH
+  );
 };

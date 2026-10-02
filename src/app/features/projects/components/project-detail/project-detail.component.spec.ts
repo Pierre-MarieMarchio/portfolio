@@ -13,6 +13,7 @@ import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
 import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
 const currentPage = (host: HTMLElement): HTMLElement =>
@@ -148,6 +149,35 @@ describe('ProjectDetailComponent', () => {
     expect(link?.getAttribute('aria-label')).toBe(texts.sheet.toIndexLabel);
     expect(link?.getAttribute('href')).toBe('/projets');
     expect(titlebarChildren.indexOf(link as Element)).toBe(0);
+  });
+
+  it('asks to go up to the list from its link, without following the link', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b' });
+    const requested = vi.fn();
+    fixture.componentInstance.indexRequested.subscribe(requested);
+    const link = host.querySelector<HTMLAnchorElement>('a.to-index');
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    link?.dispatchEvent(click);
+
+    expect(requested).toHaveBeenCalledOnce();
+    expect(click.defaultPrevented).toBe(true);
+  });
+
+  it('leaves the link to the browser for a click that opens it elsewhere', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b' });
+    const requested = vi.fn();
+    fixture.componentInstance.indexRequested.subscribe(requested);
+    const click = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+
+    host.querySelector('a.to-index')?.dispatchEvent(click);
+
+    expect(requested).not.toHaveBeenCalled();
+    expect(click.defaultPrevented).toBe(false);
   });
 
   it('asks its window for a stable height, so a chapter change does not resize it', async () => {
@@ -288,6 +318,34 @@ describe('ProjectDetailComponent', () => {
 
     next?.click();
     expect(emitted).toEqual([1]);
+  });
+
+  describe('on the phone', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('drops the next-chapter button and keeps the chapter title in the footer', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b', chapter: 0 });
+
+      expect(host.querySelector('.position')?.textContent?.trim()).toBe(
+        'Pourquoi',
+      );
+      expect(host.querySelector('button.next')).toBeNull();
+      expect(host.querySelector('.footer')?.textContent).not.toContain(
+        texts.sheet.nextApproach('Comment'),
+      );
+    });
+
+    it('still links to the next project at the last chapter', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b', chapter: 2 });
+
+      expect(host.querySelector('a.next')?.textContent?.trim()).toBe(
+        texts.sheet.nextProject('C'),
+      );
+    });
   });
 
   it('links to the next project at the last chapter', async () => {

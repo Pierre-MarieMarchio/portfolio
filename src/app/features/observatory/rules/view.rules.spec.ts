@@ -7,6 +7,8 @@ import {
   dockedOf,
   keptOf,
   parentOf,
+  sheetOnShowOf,
+  SheetFrom,
   stepBack,
   StepBackFrom,
   windowOf,
@@ -220,5 +222,43 @@ describe('viewAtAddress', () => {
       view: 'not-found',
       slug: null,
     });
+  });
+});
+
+describe('sheetOnShowOf', () => {
+  const base: SheetFrom = {
+    isShown: true,
+    isNotFound: false,
+    slug: 'alpha',
+    chapter: 2,
+  };
+  const previous = { slug: 'beta', chapter: 1 };
+
+  it('takes the first value as it comes', () => {
+    expect(sheetOnShowOf(base, undefined)).toEqual({
+      slug: 'alpha',
+      chapter: 2,
+    });
+  });
+
+  it('follows the sheet while it is shown', () => {
+    expect(sheetOnShowOf(base, previous)).toEqual({
+      slug: 'alpha',
+      chapter: 2,
+    });
+  });
+
+  it('keeps the previous value once the sheet is hidden', () => {
+    expect(sheetOnShowOf({ ...base, isShown: false }, previous)).toBe(previous);
+  });
+
+  it('keeps the previous value when the slug is null away from a 404', () => {
+    expect(sheetOnShowOf({ ...base, slug: null }, previous)).toBe(previous);
+  });
+
+  it('shows a null slug on a real 404', () => {
+    expect(
+      sheetOnShowOf({ ...base, slug: 'ghost', isNotFound: true }, previous),
+    ).toEqual({ slug: null, chapter: 2 });
   });
 });

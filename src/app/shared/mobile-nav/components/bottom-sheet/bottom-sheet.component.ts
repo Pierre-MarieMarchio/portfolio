@@ -88,15 +88,9 @@ export class BottomSheetComponent {
         if (isActive) {
           this.ask(detent);
         }
-        if (isActive && detent === 'full') {
-          this.back.claim(() => {
-            this.detent.set('half');
-          });
-        } else {
-          this.back.letGo();
-        }
       });
     });
+    this.back.follow(this.isActive, this.detent);
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
       afterNextRender(() => {
         this.land();
@@ -247,6 +241,9 @@ export class BottomSheetComponent {
   private measureSoon(): void {
     this.stopMeasure();
     this.stopMeasure = this.platform.nextFrame(() => {
+      if (this.rail().nativeElement.clientHeight > 0) {
+        this.back.retake();
+      }
       this.measure();
     });
   }

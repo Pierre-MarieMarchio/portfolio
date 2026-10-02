@@ -492,7 +492,7 @@ describe('BottomSheetComponent', () => {
       expect(host.dataset['detent']).toBe('half');
     });
 
-    it('lowers a full sheet to half when the router leaves, and leaves the next back alone, with or without a close watcher', async () => {
+    it('keeps its detent when the router leaves, and leaves the next back alone while it is hidden, with or without a close watcher', async () => {
       for (const hasCloseWatcher of [true, false]) {
         TestBed.resetTestingModule();
         const { fixture, platform, host } = await risen(hasCloseWatcher);
@@ -500,14 +500,35 @@ describe('BottomSheetComponent', () => {
         platform.leave();
         await fixture.whenStable();
 
-        expect(host.dataset['detent']).toBe('half');
+        expect(host.dataset['detent']).toBe('full');
 
         const backs = platform.backs.length;
         platform.pressBack();
         await fixture.whenStable();
 
-        expect(host.dataset['detent']).toBe('half');
+        expect(host.dataset['detent']).toBe('full');
         expect(platform.backs).toHaveLength(backs);
+      }
+    });
+
+    it('takes a layer again when it is shown again at full after the router left, so that back lowers it first, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host, resize } =
+          await risen(hasCloseWatcher);
+
+        platform.leave();
+        platform.pushHistory({ navigationId: 2 });
+        await resize(0);
+        await resize(ROOM);
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
       }
     });
 

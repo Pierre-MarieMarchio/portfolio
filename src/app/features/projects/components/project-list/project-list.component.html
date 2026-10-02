@@ -1,4 +1,6 @@
 <app-window
+  [appSwipeSteps]="swipeStops()"
+  (stepped)="swipeFamily($event)"
   [heading]="texts().index.heading"
   [label]="texts().index.label"
   size="l"

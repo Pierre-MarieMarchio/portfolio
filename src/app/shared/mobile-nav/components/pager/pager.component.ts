@@ -20,11 +20,19 @@ import {
   indexOfChild,
   isAt,
   offsetOfPage,
+  pageAfterSwipe,
   pageAt,
 } from '../../rules/pager.rules';
 import { PagerPageComponent } from '../pager-page/pager-page.component';
 
 const SETTLE_MS = 120;
+interface TouchStart {
+  readonly x: number;
+  readonly y: number;
+  readonly at: number;
+  readonly page: number;
+}
+
 const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
 
 @Component({
@@ -64,6 +72,7 @@ export class PagerComponent {
   private isScrolling = false;
   private pendingTarget: number | null = null;
   private width = 0;
+  private touchStart: TouchStart | null = null;
 
   constructor() {
     effect(() => {
@@ -158,11 +167,62 @@ export class PagerComponent {
       this.stopFrame();
       this.isHeading = false;
       this.headingTo.set(null);
+      this.touchStart = this.startOf(event);
       return;
     }
     this.isTouching = false;
+    const start = this.touchStart;
+    this.touchStart = null;
+    if (event.type === 'touchend' && start) {
+      this.followSwipe(event, start);
+    }
     this.resumePending();
   };
+
+  private startOf(event: Event): TouchStart | null {
+    const touch = this.singleTouch(event, 'touches');
+    const { scrollLeft, clientWidth } = this.element;
+    return touch && clientWidth > 0
+      ? {
+          x: touch.clientX,
+          y: touch.clientY,
+          at: event.timeStamp,
+          page: pageAt(scrollLeft, clientWidth, this.pages().length),
+        }
+      : null;
+  }
+
+  private singleTouch(
+    event: Event,
+    list: 'touches' | 'changedTouches',
+  ): Touch | null {
+    return typeof TouchEvent !== 'undefined' &&
+      event instanceof TouchEvent &&
+      event[list].length === 1
+      ? (event[list].item(0) ?? null)
+      : null;
+  }
+
+  private followSwipe(event: Event, start: TouchStart): void {
+    const touch = this.singleTouch(event, 'changedTouches');
+    const target = touch
+      ? pageAfterSwipe(
+          start.page,
+          {
+            dx: touch.clientX - start.x,
+            dy: touch.clientY - start.y,
+            ms: event.timeStamp - start.at,
+          },
+          this.pages().length,
+        )
+      : start.page;
+    if (target !== start.page && !this.isShowing(target)) {
+      this.element.scrollTo({
+        left: this.offsetOf(target),
+        behavior: this.platform.reducedMotion() ? 'instant' : 'smooth',
+      });
+    }
+  }
 
   private resumePending(): void {
     if (this.isGestureActive()) {

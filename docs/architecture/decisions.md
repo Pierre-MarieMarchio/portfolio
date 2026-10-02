@@ -2572,6 +2572,299 @@ bundle initial passe de 532,08 à 532,47 kB.
 Garder le provider à la racine de l'injection : la page est le seul arbre qui
 utilise la librairie.
 
+## 2026-09-29 — Au téléphone, une feuille se reconnaît, et le retour la baisse avant de quitter la page (D84, amende D57, D60 et D64)
+
+**Décision.** Le haut de chaque feuille du téléphone porte une poignée de
+36 × 5 px (contraste 5,07:1 contre la feuille), des coins supérieurs arrondis
+(16 px), une surface plus claire que le ciel et une ombre vers le haut ;
+toucher la poignée bascule la feuille, sous le nom « Baisser la fenêtre » /
+« Remonter la fenêtre » déjà au catalogue. La barre garde le titre à gauche et
+la croix : l'épingle, le chevron de repli et le compteur de la liste partent
+au téléphone (les textes devenus morts sortent des deux catalogues). Une
+feuille montée au plein prend une couche de retour : le retour la baisse à
+mi-hauteur sans changer d'adresse ; à mi-hauteur ou repliée, il suit
+l'historique. `BackLayersService.claim` crée un `CloseWatcher` par couche là
+où le navigateur en a un (Chrome Android), une entrée d'historique ailleurs ;
+une navigation du routeur relâche la couche dans les deux cas, pour qu'une
+feuille cachée par un changement d'onglet ne capte pas le retour suivant.
+`push` reste celui du `<dialog>`. Une feuille `transient` émet `dismissed`
+quand on la tire de 64 px vers le bas depuis son cran le plus bas.
+
+**Raison.** ETUDE P4 : un haut de feuille invisible (poignée 32 × 3 px en
+`--line`, coins à 3 px, pas d'ombre) ne dit pas qu'on peut le tirer, et trois
+boutons plus un compteur chargent la barre. Sur Chrome Android, `push` ne
+faisait rien puisque le navigateur ferme lui-même le `<dialog>` : aucune
+feuille ne répondait au retour, qui faisait quitter le site. Le `<dialog>`
+garde sa fermeture native ; un second chemin (`claim`) évite qu'un watcher du
+dépôt la concurrence. La barre de la feuille prend 14 px de plus pour loger la
+poignée ; la transition de couleur de la poignée est retirée pour tenir le
+budget de style du composant (4 kB).
+
+**Écarté.** Garder l'épingle au téléphone : le modèle d'interaction ne garde
+pas de fenêtres au téléphone, on tire ou on touche la poignée. Une poignée
+dessinée en image de fond : elle ne se touche pas et n'a pas de nom.
+
+## 2026-09-29 — Au téléphone, le bord d'une page qui défile s'estompe, et un balayage court tourne la page (D85, amende D57)
+
+**Décision.** Au téléphone, une page du pager défilée sous l'en-tête d'une
+fenêtre estompe ses 8 px du haut (masque dont la hauteur suit le défilement
+par `animation-timeline: scroll(self y)`, complet à 12 px) : en haut, le
+premier texte reste net ; sans `animation-timeline`, pas de fondu. Au lâcher
+d'un doigt, `pageAfterSwipe` avance d'une page dans le sens du geste quand il
+fait au moins 24 px, plus horizontal que vertical, à au moins 0,1 px/ms de
+moyenne ; sinon le pager laisse faire l'aimantation native.
+
+**Raison.** ETUDE, téléphone 7 et lot C : sous le titre de la fiche, la ligne
+coupée par le bord laissait des pixels de ses caractères. Un balayage court
+revenait à la page de départ : mesuré, `scroll-snap-type: x mandatory` garde
+la page la plus proche quand le lâcher est trop lent pour un élan et que le
+geste fait moins d'une demi-page ; ni le rail de la feuille ni un `index`
+réinjecté n'y sont pour quelque chose. Le fondu tient en CSS, comme l'ombre
+de la feuille. Le seuil se juge sur la vitesse moyenne plutôt que sur une
+durée maximale : un geste lent mais net est une intention de tourner la page.
+À confirmer au téléphone de l'opérateur.
+
+**Écarté.** Un fondu fixe, présent même en haut de page : il estompe le
+premier texte sans raison. Désactiver `scroll-snap-stop: always` : il empêche
+un élan de sauter plusieurs pages.
+
+Le toucher sur la ligne 02 qui a basculé une fois le site en anglais n'est
+pas reproduit (touchers aux trois crans, liste défilée ou non : chaque
+toucher mène à la fiche, en français ; aucune ligne ne passe sous le lien de
+langue). Il reste à observer sur l'appareil.
+
+## 2026-09-29 — Au téléphone, l'accueil est une feuille, et l'aperçu en est le plein (D86, amende D57, D58, D64 et D71)
+
+**Décision.** Au téléphone, l'accueil est une feuille à trois crans, du même
+composant que les autres pages et avec la même poignée
+(`WindowGripComponent`, extraite de la fenêtre). Replié : une ligne
+« Pierre-Marie Marchio · Développeur .NET et Angular », faite du nom et du
+métier du titre, qui est le seul `h1`. Mi-hauteur, cran d'arrivée : la ligne
+et les cartes. Plein : l'aperçu du projet posé dans un pager, un balayage
+par voisin, et des points sous l'aperçu (ceux du carrousel, extraits en
+`PagerDotsComponent`) qui suivent le doigt et mènent au projet touché.
+L'état porte `preview` au plein seulement : la caméra passe en gros plan, la
+carte et la planète suivent le balayage, et redescendre efface `preview`.
+Toucher une carte ou une planète monte la feuille au plein ; toucher le ciel,
+Échap ou le retour la ramène à mi-hauteur. `HomeSheetService`, fourni par la
+page, porte le cran, le projet posé et les gestes ; `homeDetentAfter` et
+`posedSlugOf` sont ses règles pures. L'aperçu séparé du téléphone, son
+épingle, son segmenté 01–04, son compteur et le titre en deux lignes
+disparaissent, avec leurs textes. Au bureau et à la tablette, l'aperçu reste
+une fenêtre (D71).
+
+**Raison.** Décision de l'opérateur (ETUDE P3) : le titre prenait beaucoup de
+place, l'accueil n'avait ni feuille ni flou, et trois modèles de navigation
+entre projets coexistaient (cartes, segmenté, liste). Une feuille de plus,
+identique aux autres, donne un seul geste pour avoir plus ou moins d'espace ;
+les points sont l'équivalent visible du balayage. Le carrousel reste dans le
+bundle initial : le charger à part coûtait plus qu'il ne rapportait (D87).
+
+**Écarté.** Un composant de plus pour la ligne : `check-structure` veut un
+composant par dossier, et la ligne est la présentation téléphone du titre.
+Garder l'aperçu séparé en le corrigeant : il aurait été jeté par cette
+décision même (ETUDE, suite de la validation du lot B).
+
+## 2026-10-01 — Le bundle initial peut aller jusqu'à 550 kB, jusqu'à la fin des lots C et D (D87, amende D77)
+
+**Décision.** L'avertissement du budget `initial` passe de 540 à 550 kB,
+jusqu'à la fin des lots C et D du chantier « fenêtres v2 ». Le chantier
+suivant ramène le bundle initial à 520 kB, mesures au téléphone ralenti
+avant et après.
+
+**Raison.** Décision de l'opérateur. La feuille d'accueil du téléphone, sa
+poignée et ses points portent la pile du lot C à 541 kB, et la vague 2
+(onglets, filtres, barre du haut) ajoutera quelques kilo-octets. Sortir le
+carrousel du bundle initial a été mesuré et coûte plus qu'il ne rapporte :
+543,94 kB au lieu de 541,07, le découpage en morceaux ajoutant ~9,5 kB du
+cœur d'Angular pour ~7 kB retirés (`@defer` : ~11 kB). Les économies
+viendront d'un travail d'ensemble, pas d'un composant à la fois.
+
+**Écarté.** Tenir 540 kB en retirant des fonctions du lot (points, vibration) :
+elles répondent au modèle d'interaction. Chercher des économies ailleurs
+avant la vague 2 : c'est l'objet du chantier qui suit, avec ses mesures.
+
+## 2026-10-01 — Au téléphone, ce qu'on touche répond, et une feuille vibre en se calant (D88)
+
+**Décision.** Au pointeur grossier, un bouton, un lien ou la barre d'une
+feuille s'estompe (`filter: opacity(0.55)`) dès qu'on le presse et revient en
+180 ms (`--t`) ; sous mouvement réduit, sans transition. Le rectangle natif
+de Chrome est retiré. La règle est commune (`_touch.scss`) ; seuls les
+composants qui déclarent leur propre liste de transitions y ajoutent
+`filter`. Une feuille que le geste de l'utilisateur pose sur un autre cran
+(glisser lâché, toucher de la poignée) vibre 10 ms, par `HapticsService`
+(`core/services/browser/haptics/`) et le port de la librairie ; rien au
+redimensionnement, au cran posé par le programme, au même cran, au
+prérendu, ni là où `navigator.vibrate` manque (iOS). La couche de retour de
+la feuille passe dans `BackClaimService`, pour que le composant tienne sous
+la limite de lignes.
+
+**Raison.** ETUDE N5 et modèle d'interaction : au téléphone, le retour tactile
+et visuel est l'état pressé et une vibration légère au calage. `filter` n'est
+employé nulle part ailleurs, il ne se mêle ni aux fonds ni à l'opacité des
+cartes non posées. Vibrer à chaque calage, même programmé, ferait vibrer
+l'arrivée et la navigation.
+
+**Écarté.** Un état pressé par composant : une règle commune couvre tout ce qui
+se touche sans grossir chaque feuille de style. À vérifier sur l'appareil :
+Chrome Android retarde `:active` de quelques dizaines de millisecondes pour
+ne pas clignoter pendant un défilement, et le headless ne pose pas `:active`
+au toucher.
+
+## 2026-10-01 — Au téléphone, la barre du haut ne garde que Contact, et la langue passe dans la feuille Contact (D89, amende D60)
+
+**Décision.** Au téléphone, la barre du haut montre « Contact », et la pause à
+côté pendant que la scène tourne ; le lien de langue n'y est plus
+(`LanguageSwitchComponent` ne se rend pas au téléphone). La langue devient la
+dernière rangée de la feuille Contact : le nom de l'autre langue, déjà au
+catalogue (« English », « Français »), qui mène à la même page dans cette
+langue. La page la passe en entrée à `ContactLinksComponent`, qui la donne à
+`ContactMenuComponent` : `features/profile` n'importe pas `i18n`. La barre
+garde sa hauteur de 56 px, pour que le haut des feuilles et l'ancre `head` de
+la scène ne bougent pas. Le pied « Suite : … » de la fiche et de l'à-propos
+part au téléphone ; le titre du chapitre, « Suivant : … → » en fin de fiche
+(N3) et le retour de l'à-propos restent. Au bureau, rien ne change.
+
+**Raison.** ETUDE P7 : retrouver le minimalisme du téléphone, où le balayage et
+les onglets nommés disent déjà la suite. Une rangée en entrée plutôt que
+projetée : `ActionMenuComponent` ferme la feuille au toucher de ses rangées,
+une rangée projetée de l'extérieur perdait ce lien. Le lien de langue en haut
+à gauche était aussi la seule cible qui pouvait faire basculer le site en
+anglais sur un toucher mal placé (D85).
+
+**Écarté.** Garder « EN » dans la barre : un mot de plus en haut de chaque page
+pour un réglage qu'on change une fois.
+
+## 2026-10-01 — En gros plan, la scène tourne au plus à 0,8 rad/s, et les orbites s'arrêtent une fois le projet posé (D90, amende D41 et D66)
+
+**Décision.** Quand le gros plan amène un projet à sa place, la caméra garde
+l'amorti de demi-vie 0,55 s tant que le pas reste sous 0,8 rad/s de lacet
+(`closeUpTurnRate`) ; au-delà, tout le pas de la pose (lacet, panoramique,
+zoom, roulis, élévation) ralentit du même facteur, si bien que la trajectoire
+garde sa forme et que le projet arrive au même endroit. En gros plan,
+l'horloge des orbites s'arrête au lieu de tourner à 0,12. En sortant du gros
+plan, l'orbite reprend comme avant.
+
+**Raison.** Retour de l'opérateur : en cliquant un projet, la scène tournait
+trop vite pour que la rotation s'arrête quand le projet arrivait autour du
+trou noir. Mesuré : le premier pas d'un amorti exponentiel est proportionnel
+à l'écart, 3,86 rad/s pour un demi-tour ; puis l'orbite reprenait derrière.
+Plafonnée, la pointe du demi-tour passe de 1 502 à 429 px/s au bureau ; la
+scène se pose en 5,9 s au lieu de 5,6 s. Ralentir un seul axe faisait
+déraper le projet (le panoramique arrivait avant la rotation).
+
+**Écarté.** Accélérer l'amorti pour finir plus tôt : la demi-vie de 0,55 s est
+le rythme de la scène (modèle d'interaction). La sortie du gros plan n'est
+pas plafonnée : rien ne s'y est plaint ; à revoir si elle paraît brusque.
+
+## 2026-10-02 — Au téléphone, chaque onglet garde sa place, et le retour mène à l'accueil avant de quitter le site (D91, amende D57 et D62)
+
+**Décision.** Au téléphone, l'onglet Projets reprend la fiche laissée ouverte,
+à son chapitre et à sa position ; l'accueil garde son cran et sa carte.
+Retoucher l'onglet courant remonte en haut ce qui défile, puis ramène à la
+racine de l'onglet (la liste), et baisse un accueil au plein à mi-hauteur.
+Le retour Android remonte dans l'onglet (fiche → liste), puis d'un onglet
+racine ramène à l'accueil, et ne quitte le site que depuis l'accueil.
+L'historique a une seule règle : un toucher d'onglet remplace l'entrée
+courante, sauf s'il quitte l'accueil ; revenir à l'accueil remonte
+l'historique jusqu'à lui. Après une arrivée directe, le premier toucher,
+qui porte l'activation de l'utilisateur, pose l'accueil (et la liste sous
+une fiche) sous la page. `TabNavigationService`, fourni par la page, porte
+ces choix ; les onglets émettent l'adresse choisie au lieu d'un lien du
+routeur, et le bureau suit cette adresse telle quelle.
+
+**Raison.** ETUDE N2, Android d'abord : c'est le comportement des piles par
+onglet de Jetpack Navigation et des applis Google, iOS fait de même.
+Auparavant chaque toucher d'onglet empilait une entrée, et une arrivée
+directe sur /projets faisait quitter le site au premier retour. Chrome saute
+au retour les entrées ajoutées sans activation : n'en ajouter qu'au cours
+d'un toucher garantit qu'elles comptent. Une première version corrigeait
+l'historique après coup (`popstate`, puis remplacement) et coûtait 5,47 kB ;
+remplacer dès le toucher tient en 2,47 kB.
+
+**Écarté.** Une pile d'historique par onglet : le navigateur n'en a qu'une, et
+la simuler demandait de réécrire les entrées après chaque retour. Tant qu'aucun
+toucher n'a eu lieu après une arrivée directe, le retour quitte encore le site :
+c'est le prix de la règle « une entrée seulement pendant un geste ».
+
+## 2026-10-02 — Au téléphone, on passe d'un filtre de la liste à l'autre en balayant (D92, amende D57)
+
+**Décision.** Au téléphone, un balayage horizontal sur la liste des projets
+passe au filtre voisin (Tous, En entreprise, Personnels, dans l'ordre
+affiché), comme les onglets Android. Pendant le geste, la liste et l'état
+actif du segmenté suivent le doigt par des variables CSS écrites à chaque
+image (`--swipe-pane`, `--swipe-at`) ; au lâcher, la liste sort en 180 ms et
+la nouvelle entre de l'autre côté en 180 ms. Le geste passe à 25 % de la
+largeur, ou sur un coup de doigt (plus de 0,4 px/ms sur au moins 24 px) ; un
+geste plus vertical qu'horizontal reste un défilement ou un mouvement de
+feuille (`touch-action: pan-y`) ; aux extrémités, la liste se retient et
+revient. Sous mouvement réduit, le filtre change au lâcher, sans trajet. Le
+toucher d'un filtre marche toujours. Le suivi du geste
+(`SwipeStepsService`) se charge à part, sur un écran compact seulement.
+
+**Raison.** ETUDE P5 : balayer partout, et aucun geste sans son équivalent
+visible (le segmenté nommé). Une seule liste reste dans le DOM : trois
+listes côte à côte auraient mis chaque ligne trois fois dans la page, ce que
+D57 refusait déjà. Le service chargé à part tient le coût à 1,9 kB au lieu
+de 4,6 : contrairement à un composant (D87), il ne découpe pas le cœur
+d'Angular. À mi-hauteur, rien n'est tronqué : un glisser sur le contenu
+monte la feuille au plein, puis le contenu défile au geste suivant (D64,
+convention des feuilles Android) ; la dernière ligne est atteinte dans les
+quatre cas mesurés.
+
+**Écarté.** Voir la liste voisine arriver pendant le geste : il faudrait
+plusieurs listes dans le DOM. Continuer le défilement du contenu dans le même
+geste que la montée de la feuille : faisable en JavaScript, lourd pour un
+gain faible. Un passage à un écran compact après le premier rendu (rotation)
+ne charge le geste qu'au rechargement suivant.
+
+## 2026-10-02 — Au téléphone, une feuille a le même haut dans toutes les rubriques, et un projet s'ouvre au plein (D93, amende D64)
+
+**Décision.** Au téléphone, le contenu d'une feuille a une hauteur fixe, celle
+de l'écran moins le haut des feuilles : à un cran donné, toutes les rubriques
+ont le même haut (écart mesuré ≤ 0,6 px), et une rubrique courte laisse de la
+place en bas. Ouvrir un projet (depuis la liste, une carte, une planète,
+« Voir le projet », « Suivant : … → ») monte sa feuille au plein, quel que
+soit le cran où le projet précédent a été laissé ; retrouver le même projet
+par un autre onglet ne touche pas au cran. `ProjectSheetService` dit ce qui
+compte comme une ouverture, la directive `appProjectSheet` monte la feuille.
+
+**Raison.** Lot C, finitions : au plein, une feuille prenait la hauteur de son
+contenu entre la mi-hauteur et l'écran, si bien que son haut bougeait d'une
+rubrique à l'autre (mesuré jusqu'à 67 px, une fiche courte) ; et la fiche,
+une seule instance gardée pour tous les projets, rouvrait au cran du projet
+précédent, souvent la moitié basse de l'écran. Ouvrir un projet, c'est
+vouloir le lire.
+
+**Écarté.** Raccourcir la feuille d'une rubrique courte : le haut bougerait
+encore. Rouvrir au cran du projet précédent : c'était le défaut relevé.
+
+## 2026-10-02 — Au téléphone, une navigation relâche la couche de retour d'une feuille sans la baisser (D94, amende D84)
+
+**Décision.** Une feuille au plein garde sa couche de retour tant qu'elle est
+visible. Une navigation du routeur relâche la couche, avec ou sans
+`CloseWatcher`, **sans changer le cran** ; la feuille reprend une couche
+quand elle redevient visible au plein, si bien que le retour la baisse
+d'abord. Une feuille cachée (hauteur nulle sous `content-visibility`) n'en
+reprend jamais. `BackLayersService.claim` prend un second rappel, pour la
+navigation ; `BackClaimService.follow` suit le cran et la visibilité de la
+feuille.
+
+**Raison.** D84 relâchait la couche en appelant son retour, ce qui baissait la
+feuille à mi-hauteur à chaque navigation : une fiche quittée au plein
+revenait à mi-hauteur, contre D91 (chaque onglet garde sa place), et une
+arrivée directe sur une fiche, ouverte au plein (D93), retombait aussitôt.
+Le but de D84 reste tenu : une feuille cachée par un changement d'onglet ne
+capte pas le retour.
+
+**Écarté.** Garder la couche à travers la navigation : une feuille cachée la
+capterait. Limite connue : une feuille qui reste visible pendant une
+navigation (« Suivant » d'une fiche à l'autre) ne reprend sa couche qu'au
+prochain changement de taille ; le port n'expose que le départ d'une
+navigation, pas son arrivée. La carte de l'accueil reste mise de côté par
+`TabNavigationService` : l'état efface l'aperçu en quittant l'accueil, et la
+feuille d'accueil n'est pas gardée montée.
+
 ## 2026-10-02 — Le site quitte GitHub Pages pour l'hébergement OVH de son domaine (D95)
 
 **Décision.** Le site est servi par l'hébergement gratuit d'OVH, sur le domaine
@@ -2603,6 +2896,33 @@ l'opérateur veut l'hébergement OVH. Une action de déploiement FTP tierce :
 `lftp` est installé par le système, sans dépendance de plus dans la chaîne.
 Les liens `canonical` sans barre finale visent une adresse qu'Apache
 redirige : à aligner plus tard (`core/services/head/`).
+
+## 2026-10-02 — Au téléphone, fermer remonte d'un cran sans ajouter d'entrée, et une feuille rétablie au plein redescend au retour (D96, amende D70, D91 et D94)
+
+**Décision.** Fermer une fiche (la croix, « ‹ Projets ») ou une page vers
+l'accueil remonte d'un cran sans ajouter d'entrée d'historique :
+`SessionHistoryService.backTo` lit les entrées par l'API Navigation et, si
+l'entrée la plus proche d'une autre adresse est le parent, revient dessus ;
+sinon, ou sans l'API, l'entrée courante est remplacée par le parent. Au
+bureau, la même règle vaut. Une feuille qui redevient visible au plein
+reprend sa couche de retour dès qu'elle est visible (`onVisible` du port,
+par `IntersectionObserver`), et plus seulement à un changement de taille.
+L'accueil garde la carte posée à mi-hauteur comme au plein en changeant
+d'onglet.
+
+**Raison.** Validation du lot C (persona, revérifiée) : la croix et
+« ‹ Projets » empilaient une entrée, si bien que le retour rouvrait la fiche
+qu'on venait de fermer ; une liste rétablie au plein partait à l'accueil au
+retour sans redescendre, parce que depuis D93 sa hauteur ne change plus au
+réaffichage ; la carte de l'accueil à mi-hauteur n'était que survolée, et
+l'état l'effaçait en quittant l'accueil. Lire les entrées du navigateur
+plutôt que tenir une trace des adresses visitées est plus juste et coûte
+0,57 kB de moins.
+
+**Écarté.** Une trace des adresses tenue à chaque fin de navigation : elle
+ignore les entrées qu'elle n'a pas vues et coûtait 0,75 kB. La comparaison
+porte sur le chemin seul : deux entrées qui ne diffèrent que par la requête
+comptent comme la même page.
 
 ## 2026-10-02 — Le déploiement passe par SFTP, avec la clé du serveur épinglée (D97, amende D95)
 

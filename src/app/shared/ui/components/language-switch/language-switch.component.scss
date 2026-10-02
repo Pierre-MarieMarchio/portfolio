@@ -15,16 +15,8 @@
   padding: 0 var(--s1) 0 var(--s2);
 }
 
-@include formats.phone {
-  .language {
-    padding: 0;
-    white-space: nowrap;
-  }
-
-  .here,
-  .slash {
-    display: none;
-  }
+.rule {
+  @include controls.divider;
 }
 
 .here {

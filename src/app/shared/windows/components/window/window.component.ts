@@ -34,6 +34,7 @@ import {
 import { WINDOW_FOLD } from '../../ports/window-fold.port';
 import { WINDOW_TEXTS } from '../../ports/window-texts.port';
 import { WindowControlsComponent } from '../window-controls/window-controls.component';
+import { WindowGripComponent } from '../window-grip/window-grip.component';
 
 const NOTHING = (): void => {};
 
@@ -48,6 +49,7 @@ export const loadWindowMenu = (): Promise<WindowMenuCode> =>
     DoublePressDirective,
     RememberScrollDirective,
     WindowControlsComponent,
+    WindowGripComponent,
   ],
   templateUrl: './window.component.html',
   styleUrl: './window.component.scss',

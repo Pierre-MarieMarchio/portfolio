@@ -24,7 +24,9 @@ const END = 660;
     <app-bottom-sheet
       [detents]="detents()"
       [detent]="detent()"
+      [transient]="transient()"
       (detentChange)="note($event)"
+      (dismissed)="dismissals = dismissals + 1"
     >
       <section class="window">
         <div class="bar">
@@ -43,7 +45,9 @@ class SheetHost {
     'full',
   ]);
   public readonly detent = signal<SheetDetent>('half');
+  public readonly transient = signal(false);
   public readonly changes: SheetDetent[] = [];
+  public dismissals = 0;
 
   public note(detent: SheetDetent): void {
     this.changes.push(detent);
@@ -118,9 +122,11 @@ const setup = async ({
     top = to;
     rail.dispatchEvent(stamped(new Event('scroll'), at));
   };
-  const touch = (type: string, at: number): void => {
+  const touch = (type: string, at: number, y = 0): void => {
     const event = stamped(new Event(type), at);
-    Object.defineProperty(event, 'touches', { value: [] });
+    Object.defineProperty(event, 'touches', {
+      value: type === 'touchend' ? [] : [{ clientY: y }],
+    });
     rail.dispatchEvent(event);
   };
   return {
@@ -147,12 +153,13 @@ const setup = async ({
       platform.frame();
       await settle();
     },
-    drag: async (moves: readonly (readonly [number, number])[]) => {
+    drag: async (moves: readonly (readonly [number, number])[], pull = 0) => {
       const first = moves[0]?.[1] ?? 0;
-      touch('touchstart', first);
+      touch('touchstart', first, 300);
       for (const [to, at] of moves) {
         scrollBy(to, at);
       }
+      touch('touchmove', moves.at(-1)?.[1] ?? first, 300 + pull);
       touch('touchend', moves.at(-1)?.[1] ?? first);
       await settle();
     },
@@ -164,6 +171,26 @@ const setup = async ({
       await settle();
     },
   };
+};
+
+const foldedSheet = async (isTransient: boolean) => {
+  const setups = await setup();
+  setups.fixture.componentInstance.transient.set(isTransient);
+  await setups.lay();
+  setups.sheet.toggle();
+  await setups.rest(0);
+  return setups;
+};
+
+const risen = async (hasCloseWatcher: boolean) => {
+  const setups = await setup();
+  setups.platform.hasCloseWatcher = hasCloseWatcher;
+  await setups.lay();
+  setups.fixture.componentInstance.detent.set('full');
+  await setups.fixture.whenStable();
+  setups.platform.frame();
+  await setups.rest(END);
+  return setups;
 };
 
 describe('BottomSheetComponent', () => {
@@ -329,6 +356,230 @@ describe('BottomSheetComponent', () => {
     expect(outside).toHaveBeenCalledOnce();
   });
 
+  describe('vibration', () => {
+    it('vibrates lightly once a drag lets it rest on another detent, and not before', async () => {
+      const { platform, lay, drag, rest } = await setup();
+      await lay();
+
+      await drag([
+        [260, 0],
+        [300, 100],
+        [340, 200],
+      ]);
+
+      expect(platform.vibrations).toEqual([]);
+
+      await rest(END);
+
+      expect(platform.vibrations).toEqual([10]);
+    });
+
+    it('vibrates once its handle is tapped to another detent', async () => {
+      const { platform, sheet, lay, rest } = await setup();
+      await lay();
+
+      sheet.toggle();
+      await rest(0);
+
+      expect(platform.vibrations).toEqual([10]);
+    });
+
+    it('vibrates when a reduced-motion drag or toggle is put there at once', async () => {
+      const { platform, sheet, lay, fixture } = await setup();
+      platform.isReduced = true;
+      await lay();
+
+      sheet.toggle();
+      await fixture.whenStable();
+
+      expect(platform.vibrations).toEqual([10]);
+    });
+
+    it('stays still when a drag lets it rest where it was', async () => {
+      const { platform, lay, drag, rest } = await setup();
+      await lay();
+
+      await drag([
+        [260, 0],
+        [240, 100],
+        [230, 200],
+      ]);
+      await rest(HALF - PEEK);
+
+      expect(platform.vibrations).toEqual([]);
+    });
+
+    it('stays still when the page sets the detent, and when it is resized', async () => {
+      const { fixture, platform, lay, rest, resize } = await setup();
+      await lay();
+
+      fixture.componentInstance.detent.set('full');
+      await fixture.whenStable();
+      platform.frame();
+      await rest(END);
+      await resize(600, 500);
+
+      expect(platform.vibrations).toEqual([]);
+    });
+
+    it('stays still on the first rest, and beyond the phone', async () => {
+      const { platform, sheet, lay } = await setup({ compact: false });
+      await lay();
+
+      sheet.toggle();
+
+      expect(platform.vibrations).toEqual([]);
+    });
+  });
+
+  describe('transient', () => {
+    it('says it is dismissed, and does not rise, on a pull down from its lowest detent', async () => {
+      const { fixture, scrollTo, drag } = await foldedSheet(true);
+      scrollTo.mockClear();
+
+      await drag([[0, 0]], 90);
+
+      expect(fixture.componentInstance.dismissals).toBe(1);
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('stays where it was on a short pull, a pull up, or from another detent', async () => {
+      const { fixture, drag, rest } = await foldedSheet(true);
+
+      await drag([[0, 0]], 30);
+      await drag([[0, 200]], -90);
+
+      expect(fixture.componentInstance.dismissals).toBe(0);
+
+      fixture.componentInstance.detent.set('half');
+      fixture.detectChanges();
+      await rest(HALF - PEEK);
+      await drag([[HALF - PEEK, 300]], 90);
+
+      expect(fixture.componentInstance.dismissals).toBe(0);
+    });
+
+    it('never says it is dismissed unless asked to be transient', async () => {
+      const { fixture, drag } = await foldedSheet(false);
+
+      await drag([[0, 0]], 90);
+
+      expect(fixture.componentInstance.dismissals).toBe(0);
+    });
+  });
+
+  describe('back', () => {
+    it('lowers a full sheet to half on back, through the history where the browser has no close watcher', async () => {
+      const { fixture, platform, host } = await risen(false);
+
+      expect(platform.entries).toHaveLength(2);
+
+      platform.pressBack();
+      await fixture.whenStable();
+
+      expect(host.dataset['detent']).toBe('half');
+      expect(platform.place).toBe(0);
+    });
+
+    it('lowers a full sheet to half on back through a close watcher where the browser has one', async () => {
+      const { fixture, platform, host } = await risen(true);
+
+      expect(platform.entries).toHaveLength(1);
+
+      platform.pressBack();
+      await fixture.whenStable();
+
+      expect(host.dataset['detent']).toBe('half');
+    });
+
+    it('keeps its detent when the router leaves, and leaves the next back alone while it is hidden, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host } = await risen(hasCloseWatcher);
+
+        platform.leave();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+
+        const backs = platform.backs.length;
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+        expect(platform.backs).toHaveLength(backs);
+      }
+    });
+
+    it('takes a layer again when it is shown again at full after the router left, so that back lowers it first, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host, resize } =
+          await risen(hasCloseWatcher);
+
+        platform.leave();
+        platform.pushHistory({ navigationId: 2 });
+        await resize(0);
+        await resize(ROOM);
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+      }
+    });
+
+    it('takes a layer again when it is seen again at full with no change of size, so that back lowers it first, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host } = await risen(hasCloseWatcher);
+
+        platform.leave();
+        platform.pushHistory({ navigationId: 2 });
+        platform.sight(false);
+        platform.sight(true);
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+      }
+    });
+
+    it('takes no layer while it is out of sight, with or without a close watcher', async () => {
+      for (const hasCloseWatcher of [true, false]) {
+        TestBed.resetTestingModule();
+        const { fixture, platform, host } = await risen(hasCloseWatcher);
+
+        platform.leave();
+        platform.sight(false);
+        await fixture.whenStable();
+
+        const backs = platform.backs.length;
+        platform.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+        expect(platform.backs).toHaveLength(backs);
+      }
+    });
+
+    it('leaves the back to the page once the sheet is not full, and takes its entry back', async () => {
+      const { fixture, platform } = await risen(false);
+
+      fixture.componentInstance.detent.set('half');
+      await fixture.whenStable();
+
+      expect(platform.backs).toEqual([1]);
+    });
+  });
+
   it('goes after the next frame to a detent set from outside', async () => {
     const { fixture, platform, scrollTo, host, lay, rest } = await setup();
     await lay();
@@ -348,6 +599,35 @@ describe('BottomSheetComponent', () => {
     await rest(END);
 
     expect(host.dataset['detent']).toBe('full');
+  });
+
+  it('drops a move toward a detent it is asked to leave before the next frame', async () => {
+    const { fixture, platform, scrollTo, host } = await risen(false);
+    scrollTo.mockClear();
+
+    fixture.componentInstance.detent.set('half');
+    await fixture.whenStable();
+    fixture.componentInstance.detent.set('full');
+    await fixture.whenStable();
+    platform.frame();
+
+    expect(scrollTo).not.toHaveBeenCalled();
+    expect(host.dataset['detent']).toBe('full');
+  });
+
+  it('turns back toward the detent it rests on when asked for it again on the way to another', async () => {
+    const { fixture, platform, scrollTo, rail } = await risen(false);
+
+    fixture.componentInstance.detent.set('half');
+    await fixture.whenStable();
+    platform.frame();
+    rail.scrollTop = END - 0.5;
+    scrollTo.mockClear();
+    fixture.componentInstance.detent.set('full');
+    await fixture.whenStable();
+    platform.frame();
+
+    expect(scrollTo).toHaveBeenLastCalledWith({ top: END, behavior: 'smooth' });
   });
 
   it('is shown again at the detent it was left at, and follows its content there', async () => {

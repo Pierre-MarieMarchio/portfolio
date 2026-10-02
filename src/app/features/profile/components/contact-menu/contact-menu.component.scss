@@ -32,6 +32,14 @@
   }
 }
 
+.code {
+  @include type.mono(var(--m2));
+
+  flex: 0 0 22px;
+  text-align: center;
+  color: var(--accent);
+}
+
 .said {
   @include type.mono(var(--m2));
 

@@ -14,7 +14,8 @@
     <a
       before
       class="to-index"
-      [routerLink]="links.index()"
+      [attr.href]="links.index()"
+      (click)="toIndex($event)"
       [attr.aria-label]="texts().sheet.toIndexLabel"
       >{{ texts().sheet.toIndex }}</a
     >
@@ -86,9 +87,11 @@
     <ng-container footer>
       <p class="position">{{ shownChapter()?.heading }}</p>
       @if (nextChapter(); as label) {
-        <button type="button" class="next" (click)="advance()">
-          {{ label }}
-        </button>
+        @if (!isPhone()) {
+          <button type="button" class="next" (click)="advance()">
+            {{ label }}
+          </button>
+        }
       } @else if (nextProject(); as next) {
         <a class="next" [routerLink]="links.sheet(next.slug)">{{
           next.label

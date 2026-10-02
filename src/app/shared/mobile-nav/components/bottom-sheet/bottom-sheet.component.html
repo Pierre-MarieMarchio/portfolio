@@ -3,7 +3,7 @@
   class="rail"
   [appScrollRelease]="isActive()"
   (pressed)="press()"
-  (released)="letGo($event)"
+  (released)="letGo($event.speed, $event.pull)"
   (settled)="settle()"
 >
   <div #half class="half" aria-hidden="true"></div>

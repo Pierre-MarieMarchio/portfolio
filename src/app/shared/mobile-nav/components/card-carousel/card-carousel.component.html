@@ -22,15 +22,8 @@
     </li>
   }
 </ul>
-<div class="dots">
-  @for (dot of items(); track $index) {
-    <button
-      type="button"
-      class="dot"
-      tabindex="-1"
-      [attr.aria-label]="texts().pageOf($index + 1, items().length)"
-      [attr.aria-current]="$index === current() || null"
-      (click)="show($index)"
-    ></button>
-  }
-</div>
+<app-pager-dots
+  [count]="items().length"
+  [current]="current()"
+  (chosen)="show($event)"
+/>

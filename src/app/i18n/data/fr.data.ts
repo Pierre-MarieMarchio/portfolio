@@ -25,13 +25,9 @@ export const FR: Catalog = {
     restore: 'Remettre la fenêtre à sa taille',
     close: 'Fermer la fenêtre',
     phone: {
-      pin: 'Garder cette fenêtre ouverte en changeant d’onglet',
-      unpin: 'Laisser cette fenêtre se fermer en changeant d’onglet',
       fold: 'Baisser la fenêtre',
       unfold: 'Remonter la fenêtre',
     },
-    kept: 'Fenêtre gardée',
-    released: 'Fenêtre libérée',
   },
 
   mobileNav: {
@@ -70,8 +66,6 @@ export const FR: Catalog = {
     },
     preview: {
       label: 'Aperçu du projet',
-      bodies: 'Projets mis en avant',
-      body: (number, title) => `Projet ${number} : ${title}`,
       previous: (title) => `Projet précédent : ${title}`,
       next: (title) => `Projet suivant : ${title}`,
       terms: { proof: 'Statut', role: 'Rôle', stack: 'Stack' },

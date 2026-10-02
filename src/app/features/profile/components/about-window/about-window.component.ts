@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
+import { DisplayFormatService } from '@app/core/services';
 import { LINKS } from '@app/features/common';
 import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
@@ -47,6 +48,10 @@ export class AboutWindowComponent {
 
   protected readonly texts = inject(PROFILE_TEXTS);
   protected readonly links = inject(LINKS);
+  private readonly display = inject(DisplayFormatService);
+  protected readonly isPhone = computed(
+    () => this.display.format() === 'phone',
+  );
   protected readonly email = CONTACT_EMAIL;
   protected readonly mailto = `mailto:${CONTACT_EMAIL}`;
 

@@ -23,6 +23,7 @@ import {
 import { fitOrbits, Orbit } from '../../rules/scene-bodies.rules';
 import { Traveling } from '../../rules/camera/traveling.rules';
 import type { SceneFrame } from '../../rules/scene-frame.rules';
+import { turnLimitOf, turnPaceOf } from '../../rules/camera/turning.rules';
 
 const ARRIVED_WITHIN = 0.05;
 const STILL_WITHIN = 0.0002;
@@ -167,7 +168,10 @@ export class CameraMotion {
     this.rememberPose();
     const kc = isReduced ? 1 : halfLifeStep(dt, 0.55);
     const hasRestMoved = this.easeRest(dt, isReduced);
-    this.ease(aim, kc);
+    this.ease(
+      aim,
+      turnPaceOf(aim.az - this.now.azim, kc, turnLimitOf(state, dt)),
+    );
     this.isArrived = this.distanceTo(aim) < ARRIVED_WITHIN;
     this.now.marks += (marks - this.now.marks) * kc;
     this.now.figures += (figures - this.now.figures) * kc;

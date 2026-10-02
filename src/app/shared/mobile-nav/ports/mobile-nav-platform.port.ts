@@ -8,16 +8,22 @@ export interface MobileNavPlatform {
   readonly hasScrollEnd: () => boolean;
   readonly hasSnapChanging: () => boolean;
   readonly onResize: (element: Element, fn: () => void) => () => void;
+  readonly onVisible: (
+    element: Element,
+    fn: (isVisible: boolean) => void,
+  ) => () => void;
   readonly onSnapChanging: (
     element: Element,
     fn: (target: Element | null) => void,
   ) => () => void;
   readonly whenStill: (element: Element) => Promise<void>;
   readonly closesOnBack: () => boolean;
+  readonly watchClose: (fn: () => void) => () => void;
   readonly historyState: () => unknown;
   readonly pushHistory: (state: unknown) => void;
   readonly historyBack: (steps: number) => void;
   readonly onHistoryPop: (fn: (state: unknown) => void) => () => void;
+  readonly vibrate: (ms: number) => void;
   readonly onLeave: (fn: () => void) => () => void;
 }
 

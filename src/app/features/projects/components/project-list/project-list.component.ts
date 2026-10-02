@@ -2,6 +2,8 @@ import { Component, computed, inject, input, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
+import { DisplayFormatService } from '@app/core/services';
+import { SwipeStepsDirective } from '@shared/mobile-nav/directives';
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
@@ -23,6 +25,7 @@ import {
     ViewHeadingDirective,
     RouterLink,
     SegmentedComponent,
+    SwipeStepsDirective,
     WindowComponent,
   ],
   templateUrl: './project-list.component.html',
@@ -30,6 +33,7 @@ import {
 })
 export class ProjectListComponent {
   private readonly manager = inject(ProjectsManager);
+  private readonly display = inject(DisplayFormatService);
 
   public readonly pinned = input(false);
   public readonly current = input(true);
@@ -46,6 +50,12 @@ export class ProjectListComponent {
   protected readonly texts = inject(PROJECTS_TEXTS);
   protected readonly links = inject(LINKS);
 
+  protected readonly swipeStops = computed(() => ({
+    area: '.rows',
+    index: FAMILIES.indexOf(this.family()),
+    count: FAMILIES.length,
+  }));
+
   private readonly total = computed(() => this.manager.ranked().length);
 
   protected readonly heading = computed(() =>
@@ -53,6 +63,9 @@ export class ProjectListComponent {
   );
 
   protected readonly meta = computed(() => {
+    if (this.display.format() === 'phone') {
+      return '';
+    }
     const family = this.family();
     return family === 'all'
       ? this.texts().index.count(twoDigits(this.total()))
@@ -95,4 +108,11 @@ export class ProjectListComponent {
         isVisited: visited.has(project.slug),
       }));
   });
+
+  protected swipeFamily(step: number): void {
+    const next = FAMILIES[this.swipeStops().index + step];
+    if (next) {
+      this.familyChange.emit(next);
+    }
+  }
 }

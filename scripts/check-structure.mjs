@@ -1,133 +1,17 @@
 // @ts-check
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, posix, relative, sep } from 'node:path';
+import {
+  CLASS_SUFFIXES,
+  ENGINE_ZONES,
+  ROLES_IN,
+  ROLE_OF,
+} from './structure-tables.mjs';
 
 const APP = 'src/app';
 const TESTING = 'src/testing';
 const MAX_SOURCES = 8;
 const STRICT = process.argv.includes('--strict');
-
-/** @type {Record<string, string>} */
-const ROLE_OF = {
-  component: 'components',
-  directive: 'directives',
-  pipe: 'pipes',
-  service: 'services',
-  manager: 'states',
-  state: 'states',
-  action: 'states',
-  updater: 'states',
-  effect: 'states',
-  port: 'ports',
-  provider: 'providers',
-  guard: 'guards',
-  resolver: 'resolvers',
-  interceptor: 'interceptors',
-  validator: 'validators',
-  strategy: 'strategies',
-  rules: 'rules',
-  helper: 'helpers',
-  signal: 'signals',
-  model: 'models',
-  data: 'data',
-  engine: 'engine',
-  motion: 'motions',
-  renderer: 'renderers',
-  tracker: 'trackers',
-  worker: 'engine',
-};
-
-const CLASS_SUFFIXES = new Set([
-  'component',
-  'directive',
-  'pipe',
-  'service',
-  'manager',
-  'state',
-  'effect',
-  'strategy',
-  'engine',
-  'motion',
-  'renderer',
-  'tracker',
-]);
-
-/** @type {Record<string, string[]>} */
-const ROLES_IN = {
-  core: [
-    'services',
-    'ports',
-    'strategies',
-    'interceptors',
-    'models',
-    'rules',
-    'helpers',
-    'signals',
-  ],
-  'shared/ui': [
-    'components',
-    'directives',
-    'pipes',
-    'services',
-    'validators',
-    'signals',
-    'ports',
-    'models',
-    'data',
-  ],
-  feature: [
-    'components',
-    'directives',
-    'pipes',
-    'services',
-    'states',
-    'ports',
-    'validators',
-    'rules',
-    'models',
-    'data',
-  ],
-  'shared/windows': [
-    'components',
-    'directives',
-    'services',
-    'rules',
-    'trackers',
-    'models',
-    'ports',
-  ],
-  'shared/mobile-nav': [
-    'components',
-    'directives',
-    'services',
-    'rules',
-    'models',
-    'ports',
-  ],
-  'shared/space-scene': [
-    'components',
-    'directives',
-    'services',
-    'engine',
-    'rules',
-    'trackers',
-    'models',
-    'ports',
-  ],
-  'features/common': ['ports', 'models'],
-  i18n: [
-    'services',
-    'providers',
-    'guards',
-    'resolvers',
-    'models',
-    'rules',
-    'data',
-  ],
-  pages: [],
-};
-
-const ENGINE_ZONES = new Set(['shared/space-scene']);
 
 const FILE =
   /^(?<name>[a-z0-9-]+)\.(?<suffix>[a-z]+)(?:\.golden)?(?<spec>\.spec)?\.(?<ext>ts|html|scss)$/;
@@ -153,38 +37,27 @@ const emptyDirsUnder = (dir) =>
     .map((entry) => join(entry.parentPath, entry.name))
     .filter((path) => readdirSync(path).length === 0);
 
+const SINGLE_ZONES = new Set(['core', 'i18n', 'pages']);
+
 /**
  * @param {string} inApp
  * @returns {{ zone: string, kind: string, rest: string[] } | null}
  */
 const zoneOf = (inApp) => {
   const parts = inApp.split('/');
-  const [first, second] = parts;
-  if (first === 'core' || first === 'i18n' || first === 'pages') {
+  const [first = '', second = ''] = parts;
+  if (SINGLE_ZONES.has(first)) {
     return { zone: first, kind: first, rest: parts.slice(1) };
   }
-  if (first === 'shared' && second) {
-    return {
-      zone: `shared/${second}`,
-      kind: `shared/${second}`,
-      rest: parts.slice(2),
-    };
+  const zone = `${first}/${second}`;
+  const rest = parts.slice(2);
+  if (!second) {
+    return null;
   }
-  if (first === 'features' && second === 'common') {
-    return {
-      zone: 'features/common',
-      kind: 'features/common',
-      rest: parts.slice(2),
-    };
+  if (first === 'shared' || zone === 'features/common') {
+    return { zone, kind: zone, rest };
   }
-  if (first === 'features' && second) {
-    return {
-      zone: `features/${second}`,
-      kind: 'feature',
-      rest: parts.slice(2),
-    };
-  }
-  return null;
+  return first === 'features' ? { zone, kind: 'feature', rest } : null;
 };
 
 /**
@@ -244,22 +117,49 @@ const engineRoleErrors = (suffix, role, first, second) => {
 
 /**
  * @param {string} suffix
- * @param {string} role
- * @param {string[]} rest
- * @param {string} second
  * @param {string} name
+ * @param {string[]} rest
  * @returns {string[]}
  */
-const extraRoleErrors = (suffix, role, rest, second, name) => {
-  const errors = [];
-  if (suffix === 'component' && (rest.length !== 3 || second !== name)) {
-    errors.push(`a component lives alone in components/${name}/`);
-  }
-  if (role === 'states' && rest.length !== 3) {
-    errors.push('a state lives in states/<state>/');
-  }
-  return errors;
+const componentFolderErrors = (suffix, name, rest) =>
+  suffix === 'component' && (rest.length !== 3 || rest[1] !== name)
+    ? [`a component lives alone in components/${name}/`]
+    : [];
+
+/**
+ * @param {string} role
+ * @param {string[]} rest
+ * @returns {string[]}
+ */
+const stateFolderErrors = (role, rest) =>
+  role === 'states' && rest.length !== 3
+    ? ['a state lives in states/<state>/']
+    : [];
+
+/**
+ * @param {{ kind: string, zone: string }} where
+ * @param {string} role
+ * @returns {string[]}
+ */
+const roleAllowanceErrors = ({ kind, zone }, role) => {
+  const engineHere = role === 'engine' && ENGINE_ZONES.has(zone);
+  return (ROLES_IN[kind] ?? []).includes(role) || engineHere
+    ? []
+    : [`${zone}/ has no ${role}/ role`];
 };
+
+/**
+ * @param {{ kind: string, zone: string, rest: string[] }} where
+ * @param {string} suffix
+ * @param {string} name
+ * @param {string} role
+ * @returns {string[]}
+ */
+const roleErrors = (where, suffix, name, role) => [
+  ...roleAllowanceErrors(where, role),
+  ...componentFolderErrors(suffix, name, where.rest),
+  ...stateFolderErrors(role, where.rest),
+];
 
 /**
  * @param {{ kind: string, zone: string, rest: string[] }} where
@@ -267,29 +167,65 @@ const extraRoleErrors = (suffix, role, rest, second, name) => {
  * @param {string} name
  * @returns {string[]}
  */
-const misplaced = ({ kind, zone, rest }, suffix, name) => {
+const misplaced = (where, suffix, name) => {
   const role = ROLE_OF[suffix] ?? '';
-  const [first = '', second = ''] = rest;
-  const pageErrors = pageComponentErrors(kind, suffix, name, rest);
-  if (pageErrors) {
-    return pageErrors;
-  }
-  const engineErrors = engineRoleErrors(suffix, role, first, second);
-  if (engineErrors) {
-    return engineErrors;
-  }
-  if (first !== role) {
-    return [`belongs in ${role}/`];
-  }
-  const allowed = ROLES_IN[kind] ?? [];
-  const engineHere = role === 'engine' && ENGINE_ZONES.has(zone);
-  const errors =
-    allowed.includes(role) || engineHere
-      ? []
-      : [`${zone}/ has no ${role}/ role`];
-  errors.push(...extraRoleErrors(suffix, role, rest, second, name));
-  return errors;
+  const [first = '', second = ''] = where.rest;
+  return (
+    pageComponentErrors(where.kind, suffix, name, where.rest) ??
+    engineRoleErrors(suffix, role, first, second) ??
+    (first === role
+      ? roleErrors(where, suffix, name, role)
+      : [`belongs in ${role}/`])
+  );
 };
+
+/**
+ * @param {string} file
+ * @returns {{ name: string, suffix: string, spec: boolean, ext: string } | null}
+ */
+const parsedFileName = (file) => {
+  const groups = FILE.exec(file)?.groups;
+  if (!groups?.suffix || !(groups.suffix in ROLE_OF)) {
+    return null;
+  }
+  return {
+    name: groups.name ?? '',
+    suffix: groups.suffix,
+    spec: Boolean(groups.spec),
+    ext: groups.ext ?? '',
+  };
+};
+
+/**
+ * @param {string} path
+ * @param {string} file
+ * @param {{ kind: string, zone: string, rest: string[] }} where
+ * @returns {string[]}
+ */
+const namedFileErrors = (path, file, where) => {
+  const parsed = parsedFileName(file);
+  if (!parsed) {
+    return ['has no suffix from the list (organisation.md §3.2)'];
+  }
+  const { name, suffix, spec, ext } = parsed;
+  if (ext !== 'ts' && suffix !== 'component') {
+    return ['only a component has a template or a stylesheet'];
+  }
+  const checksClassNames = !spec && ext === 'ts' && CLASS_SUFFIXES.has(suffix);
+  return [
+    ...misplaced(where, suffix, name),
+    ...(checksClassNames ? misnamedClasses(path, suffix) : []),
+  ];
+};
+
+/**
+ * @param {string} file
+ * @returns {string[]}
+ */
+const rootFileErrors = (file) =>
+  /^app\.[a-z.]+\.ts$|^app\.component\.(html|scss)$/.test(file)
+    ? []
+    : ['the root holds only the app.*.ts files'];
 
 /**
  * @param {string} path
@@ -299,30 +235,13 @@ const appFileErrors = (path) => {
   const inApp = posix.relative(APP, path);
   const file = basename(path);
   if (!inApp.includes('/')) {
-    return /^app\.[a-z.]+\.ts$|^app\.component\.(html|scss)$/.test(file)
-      ? []
-      : ['the root holds only the app.*.ts files'];
+    return rootFileErrors(file);
   }
   const where = zoneOf(inApp);
   if (!where) {
     return ['outside every zone'];
   }
-  if (file === 'index.ts') {
-    return [];
-  }
-  const parsed = FILE.exec(file)?.groups;
-  if (!parsed?.suffix || !(parsed.suffix in ROLE_OF)) {
-    return ['has no suffix from the list (organisation.md §3.2)'];
-  }
-  const { name = '', suffix, spec, ext } = parsed;
-  if (ext !== 'ts' && suffix !== 'component') {
-    return ['only a component has a template or a stylesheet'];
-  }
-  const errors = misplaced(where, suffix, name);
-  if (!spec && ext === 'ts' && CLASS_SUFFIXES.has(suffix)) {
-    errors.push(...misnamedClasses(path, suffix));
-  }
-  return errors;
+  return file === 'index.ts' ? [] : namedFileErrors(path, file, where);
 };
 
 /** @type {Record<string, string>} */

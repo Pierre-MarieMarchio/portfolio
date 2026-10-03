@@ -98,12 +98,19 @@ export class ScrollReleaseDirective {
       this.pressed.emit();
     } else if (event.type === 'touchmove') {
       this.lastY = event.touches[0]?.clientY ?? this.lastY;
-    } else if (this.isTouching && event.touches.length === 0) {
-      this.isTouching = false;
-      this.released.emit({
-        speed: speedOf(this.samples, event.timeStamp),
-        pull: this.lastY - this.startY,
-      });
+    } else {
+      this.liftOff(event);
     }
+  }
+
+  private liftOff(event: TouchEvent): void {
+    if (!this.isTouching || event.touches.length > 0) {
+      return;
+    }
+    this.isTouching = false;
+    this.released.emit({
+      speed: speedOf(this.samples, event.timeStamp),
+      pull: this.lastY - this.startY,
+    });
   }
 }

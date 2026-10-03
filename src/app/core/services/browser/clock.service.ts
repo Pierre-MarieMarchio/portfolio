@@ -13,36 +13,36 @@ export class ClockService {
     return this.view()?.performance.now() ?? 0;
   }
 
-  public nextFrame(fn: (time: number) => void): () => void {
+  public nextFrame(callback: (time: number) => void): () => void {
     const view = this.view();
     if (!view || typeof view.requestAnimationFrame !== 'function') {
       return () => {};
     }
-    const id = view.requestAnimationFrame(fn);
+    const id = view.requestAnimationFrame(callback);
     return () => {
       view.cancelAnimationFrame(id);
     };
   }
 
-  public after(ms: number, fn: () => void): () => void {
+  public after(ms: number, callback: () => void): () => void {
     if (!this.isBrowser) {
       return () => {};
     }
-    const timer = setTimeout(fn, ms);
+    const timer = setTimeout(callback, ms);
     return () => {
       clearTimeout(timer);
     };
   }
 
-  public whenIdle(fn: () => void): () => void {
+  public whenIdle(callback: () => void): () => void {
     const view = this.view();
     if (!view) {
       return () => {};
     }
     if (typeof view.requestIdleCallback !== 'function') {
-      return this.after(IDLE_FALLBACK_MS, fn);
+      return this.after(IDLE_FALLBACK_MS, callback);
     }
-    const id = view.requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS });
+    const id = view.requestIdleCallback(callback, { timeout: IDLE_TIMEOUT_MS });
     return () => {
       view.cancelIdleCallback(id);
     };

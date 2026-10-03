@@ -44,13 +44,14 @@ export class SessionHistoryService {
     let at = position;
     while (at-- > 0) {
       const address = this.addressAt(at);
-      if (address !== current) {
-        if (address !== parent) {
-          return false;
-        }
-        this.back(position - at);
-        return true;
+      if (address === current) {
+        continue;
       }
+      if (address !== parent) {
+        return false;
+      }
+      this.back(position - at);
+      return true;
     }
     return false;
   }
@@ -60,9 +61,9 @@ export class SessionHistoryService {
     return url ? new URL(url).pathname : null;
   }
 
-  public onPop(fn: (state: unknown) => void): () => void {
+  public onPop(callback: (state: unknown) => void): () => void {
     return this.browserWindow.on('popstate', (event) => {
-      fn(event.state);
+      callback(event.state);
     });
   }
 
@@ -71,14 +72,14 @@ export class SessionHistoryService {
     return view ? 'CloseWatcher' in view : false;
   }
 
-  public watchClose(fn: () => void): () => void {
+  public watchClose(callback: () => void): () => void {
     const view = this.view();
     const watcher: unknown = view ? Reflect.get(view, 'CloseWatcher') : null;
     if (!isCloseWatcherClass(watcher)) {
       return () => {};
     }
     const watching = new watcher();
-    watching.onclose = fn;
+    watching.onclose = callback;
     return () => {
       watching.onclose = null;
       watching.destroy();

@@ -102,7 +102,7 @@
         appKeptWindow
         [shown]="window.isShown"
         [attr.data-docked]="observatory.docked().includes('sheet')"
-        [appLayoutAnchor]="window.isShown ? anchor.detail : null"
+        [appLayoutAnchor]="window.isFraming ? anchor.detail : null"
       >
         @if (window.content === 'not-found') {
           <app-bottom-sheet appWindowSheet appProjectSheet>
@@ -127,6 +127,7 @@
               (minimized)="tabs.minimizeSheet(window.key, nav)"
               [closeLabel]="window.closeLabel"
               (closed)="observatory.closeSheet(window.key)"
+              (listChosen)="tabs.choose(links.routeOf('index'))"
             />
           </app-bottom-sheet>
         }

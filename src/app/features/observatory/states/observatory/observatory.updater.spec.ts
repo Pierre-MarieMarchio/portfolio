@@ -437,6 +437,19 @@ describe('observatoryUpdater', () => {
       expect(state.chapter()).toBe(0);
     });
 
+    it('keeps the chapter of the pinned sheet when the reader comes back to it from the list', () => {
+      arrive('a');
+      statewise.dispatch(observatoryChapterChosen(2));
+      statewise.dispatch(observatoryPinToggled('sheet'));
+      leave('index');
+
+      arrive('a');
+
+      expect(state.chapter()).toBe(2);
+      expect(state.held()).toEqual([]);
+      expect(state.pins().sheet).toBe(true);
+    });
+
     it('opens the new project unpinned and unminimized, in a window of its own', () => {
       arrive('a');
       statewise.dispatch(observatoryPinToggled('sheet'));

@@ -10,6 +10,7 @@ export interface SheetWindow {
   readonly chapter: number;
   readonly isPinned: boolean;
   readonly isShown: boolean;
+  readonly isFraming: boolean;
   readonly content: SheetContent;
   readonly isCurrent: boolean;
   readonly closeLabel: string;
@@ -57,6 +58,9 @@ export function handOverSheet(from: HandOverFrom, arriving: string): HandOver {
       chapter: pulled.chapter,
     };
   }
+  if (!parked && slug === arriving && isPinned) {
+    return { key, held, chapter };
+  }
   return {
     key: parked
       ? Math.max(key, ...from.held.map((sheet) => sheet.key)) + 1
@@ -86,6 +90,7 @@ export function sheetWindowsOf(
     chapter: sheet.chapter,
     isPinned: true,
     isShown: !sheet.minimized,
+    isFraming: false,
     content: 'detail',
     isCurrent: false,
     closeLabel: '',
@@ -97,6 +102,13 @@ export function sheetWindowsOf(
     key,
     id: sheetIdOf(key),
     slot: 'sheet',
+    isFraming: address.isShown,
   };
-  return [...parked, current].sort((a, b) => a.key - b.key);
+  const sorted = [...parked, current].sort((a, b) => a.key - b.key);
+  const framing = address.isShown
+    ? null
+    : [...sorted].reverse().find((window) => window.isShown);
+  return sorted.map((window) =>
+    window === framing ? { ...window, isFraming: true } : window,
+  );
 }

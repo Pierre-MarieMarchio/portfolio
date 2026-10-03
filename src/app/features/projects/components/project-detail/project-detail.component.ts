@@ -62,6 +62,7 @@ export class ProjectDetailComponent {
   public readonly minimized = output();
   public readonly pinToggled = output();
   public readonly closed = output();
+  public readonly listChosen = output();
   public readonly chapterChange = output<number>();
 
   protected readonly scrollKey = computed(() => `sheet:${this.slug()}`);
@@ -169,7 +170,11 @@ export class ProjectDetailComponent {
   protected toIndex(event: MouseEvent): void {
     if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
       event.preventDefault();
-      this.closed.emit();
+      if (this.current()) {
+        this.closed.emit();
+      } else {
+        this.listChosen.emit();
+      }
     }
   }
 

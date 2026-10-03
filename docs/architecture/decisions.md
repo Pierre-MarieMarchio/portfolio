@@ -3136,8 +3136,11 @@ Pas de limite de nombre. Rouvrir un projet dont la fiche est épinglée la
 ramène devant, sans doublon. Fermer une fiche épinglée qui n'est pas celle de
 l'adresse la retire sans changer de page. « Projets » rend toutes les fiches
 réduites ; F6 passe par toutes. La page garde une seule `h1`, sur la fiche de
-l'adresse. La scène cadre la fiche de l'adresse. Le téléphone garde une
-seule fiche.
+l'adresse. La scène cadre la fiche de l'adresse, ou, sans elle, la dernière fiche
+épinglée affichée. Une fiche garde son chapitre quand on y revient.
+« ‹ Projets » mène toujours à la liste : sur une fiche épinglée qui n'est
+pas celle de l'adresse, elle reste à l'écran ; seule la croix ferme. Le
+téléphone garde une seule fiche.
 
 **Raison.** Décision de l'opérateur (2026-10-03) : « même fonctionnement
 dans la page Projets » qu'à l'accueil, où la nouvelle fenêtre se pose

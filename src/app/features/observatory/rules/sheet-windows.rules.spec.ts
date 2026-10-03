@@ -25,10 +25,10 @@ const from = (overrides: Partial<HandOverFrom> = {}): HandOverFrom => ({
 });
 
 describe('handOverSheet', () => {
-  it('changes nothing while the arriving sheet is the one already shown', () => {
+  it('keeps the chapter while the arriving sheet is the pinned one already shown', () => {
     const next = handOverSheet(from({ isPinned: true }), 'a');
 
-    expect(next).toEqual({ key: 0, held: [], chapter: null });
+    expect(next).toEqual({ key: 0, held: [], chapter: 2 });
   });
 
   it('changes nothing when the shown sheet is not pinned: it is reused in place', () => {
@@ -133,6 +133,29 @@ describe('sheetWindowsOf', () => {
       closeLabel: '',
     });
     expect(reduced?.isShown).toBe(false);
+  });
+
+  it('frames the sheet of the address, whatever the order the sheets were opened in', () => {
+    const windows = sheetWindowsOf([held(1, 'b')], 0, {
+      ...address,
+      slug: 'a',
+    });
+
+    expect(windows.map((window) => window.key)).toEqual([0, 1]);
+    expect(windows.map((window) => window.isFraming)).toEqual([true, false]);
+  });
+
+  it('frames the last parked sheet shown when the sheet of the address is not shown', () => {
+    const windows = sheetWindowsOf([held(0, 'a'), held(1, 'c', true)], 2, {
+      ...address,
+      isShown: false,
+    });
+
+    expect(windows.map((window) => window.isFraming)).toEqual([
+      true,
+      false,
+      false,
+    ]);
   });
 
   it('carries the address of the shown sheet as it is', () => {

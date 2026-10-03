@@ -73,6 +73,7 @@ describe('ProjectDetailComponent', () => {
       slug: string;
       pinned?: boolean;
       chapter?: number;
+      current?: boolean;
     },
     entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
@@ -90,6 +91,7 @@ describe('ProjectDetailComponent', () => {
     fixture.componentRef.setInput('slug', inputs.slug);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
     fixture.componentRef.setInput('chapter', inputs.chapter ?? 0);
+    fixture.componentRef.setInput('current', inputs.current ?? true);
     await fixture.whenStable();
 
     return {
@@ -160,6 +162,21 @@ describe('ProjectDetailComponent', () => {
     link?.dispatchEvent(click);
 
     expect(requested).toHaveBeenCalledOnce();
+    expect(click.defaultPrevented).toBe(true);
+  });
+
+  it('asks for the list instead of closing when its sheet is not the one of the address', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b', current: false });
+    const closed = vi.fn();
+    const listed = vi.fn();
+    fixture.componentInstance.closed.subscribe(closed);
+    fixture.componentInstance.listChosen.subscribe(listed);
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    host.querySelector('a.to-index')?.dispatchEvent(click);
+
+    expect(listed).toHaveBeenCalledOnce();
+    expect(closed).not.toHaveBeenCalled();
     expect(click.defaultPrevented).toBe(true);
   });
 

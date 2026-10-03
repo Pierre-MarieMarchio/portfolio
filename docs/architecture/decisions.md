@@ -3222,3 +3222,28 @@ valide plus rien, et le fichier n'a pas d'empreinte. Un fichier par langue :
 changer de langue rechargerait des données. Écrire `kind` dans le JSON :
 +1,6 kB, et un oubli s'affiche « [object Object] » sans que rien n'échoue.
 Une assertion de type, une dépendance de schéma (zod, ajv).
+
+## 2026-10-03 — Les projets restent dans le bundle initial, et la fabrique refuse un champ inconnu (D108, amende D106)
+
+**Décision.** Le JSON des projets et sa fabrique restent dans `main` : le
+chargement à part prévu par D106 est écarté. La fabrique refuse désormais
+aussi un champ inconnu, à tous les niveaux d'une entrée, en nommant le slug
+et le chemin du champ. `drafts.spec.ts` n'écrit plus le total des
+brouillons : il garde le seul compte des catalogues d'interface et compte les
+`enDraft` du JSON, si bien que relire l'anglais d'un projet ne touche que le
+JSON.
+
+**Raison.** Mesuré au téléphone ralenti (protocole de D104, 7 chargements à
+froid, rejoué) : le chargement à part fait passer le bundle initial de
+546,57 à 521,93 kB, mais la fin d'hydratation recule de 150 à 190 ms
+(2 120 → 2 269 ms), même avec un `modulepreload` (+152 ms), pour le même JS
+transféré (175,0 contre 175,4 kB). Le visiteur paie les mêmes octets avant
+l'hydratation, plus un aller-retour : le budget « initial » baissait sans
+que rien ne s'allège pour lui. Revenir vers 520 kB demande de retirer des
+octets transférés, pas de les déplacer. Le refus d'un champ inconnu coûte
++0,32 kB et attrape une faute de frappe au build.
+
+**Écarté.** Garder le chargement à part pour tenir le chiffre de 520 kB :
+il rend le site plus lent à répondre. Faire porter le chunk par une route
+chargée à part pour obtenir un `modulepreload` : l'essai à la main donne
+encore +152 ms.

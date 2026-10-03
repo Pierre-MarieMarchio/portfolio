@@ -229,6 +229,39 @@ describe('shipped project content', () => {
     );
   });
 
+  it('refuses a field the model does not know, at any depth, naming its path', () => {
+    const chapters = [{ paragraphs: ['a'], figur: {} }];
+
+    expect(() => readProjectEntries(projectWith({ sumary: 'typo' }))).toThrow(
+      'sample: project.sumary: unexpected field',
+    );
+    expect(() =>
+      readProjectEntries([{ ...MINIMAL, facts: { ...MINIMAL.facts, x: 1 } }]),
+    ).toThrow('sample: facts.x: unexpected field');
+    expect(() =>
+      readProjectEntries([
+        { ...MINIMAL, detail: { ...MINIMAL.detail, chapters } },
+      ]),
+    ).toThrow('sample: detail.chapters[0].figur: unexpected field');
+    expect(() => readProjectEntries([{ ...MINIMAL, extra: 1 }])).toThrow(
+      'sample: extra: unexpected field',
+    );
+    expect(() =>
+      readProjectEntries(projectWith({ title: { fr: 'T', en: 'T', es: 'T' } })),
+    ).toThrow('sample: project.title.es: unexpected field');
+  });
+
+  it('refuses a field the figure of its kind does not know', () => {
+    const figure = { kind: 'flow', steps: [], loop: 'l', caption: 'c', x: 1 };
+    const chapters = [{ paragraphs: ['a'], figure }];
+
+    expect(() =>
+      readProjectEntries([
+        { ...MINIMAL, detail: { ...MINIMAL.detail, chapters } },
+      ]),
+    ).toThrow('sample: detail.chapters[0].figure.x: unexpected field');
+  });
+
   it('names an entry without a readable slug by its position', () => {
     expect(() => readProjectEntries([MINIMAL, 'nope'])).toThrow(
       '#1: entry: expected an object, found "nope"',

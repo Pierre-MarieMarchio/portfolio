@@ -3097,3 +3097,31 @@ scène est un choix de l'opérateur.
 **Écarté.** Supprimer la visite au téléphone : elle montre les projets mis
 en avant. Supprimer l'animation d'entrée du panneau : c'est l'interface, pas
 la scène, qui a raison de bouger.
+
+## 2026-10-03 — L'hydratation ne charge que ce dont le site se sert (D104, complète D87)
+
+**Décision.** `provideClientHydration()` est remplacé par les deux
+fournisseurs de `@angular/core` qu'il active pour ce site :
+`ɵwithDomHydration()` et `ɵwithEventReplay()`. Le transfert de cache HTTP et
+l'hydratation incrémentale, que le site n'utilise pas (aucun `HttpClient`,
+aucun `@defer`), ne sont plus dans le bundle initial. Un spec vérifie que les
+deux fournisseurs sont posés et ce qu'ils fournissent.
+
+**Raison.** `@angular/platform-browser` importe ces deux fonctions de façon
+statique et ne les écarte qu'à l'exécution : leurs options publiques
+(`withNoHttpTransferCache`, `withNoIncrementalHydration`) n'ôtent aucun
+octet. Avec le `node_modules` du lockfile (Angular 22.2.0), le bundle initial
+dépassait l'avertissement de 550 kB (550,71). Après : 542,09 kB, −8,62 kB.
+Mesuré : prérendu identique ; DOM prérendu gardé à l'hydratation, sans
+message NG05xx, aux deux formats ; un lien cliqué avant le démarrage est
+rejoué ; au téléphone ralenti (CPU ×4, 150 ms, 1,6 Mbit/s, 7 chargements à
+froid), mêmes médianes à quelques millisecondes près (fin d'hydratation
+2 092 → 2 073 ms), 3,5 kB de JS transféré en moins.
+
+**Le prix.** Ce sont des API privées (`ɵ`). Si une mise à jour d'Angular les
+retire ou les renomme, la compilation échoue et `npm run check` aussi ; si
+elles changent de forme, le spec échoue. Le jour où le site a besoin du
+cache HTTP ou de `@defer`, on revient à `provideClientHydration()`.
+
+**Écarté.** Retirer aussi la relecture des gestes (−27 kB) : un toucher
+fait avant le démarrage serait perdu.

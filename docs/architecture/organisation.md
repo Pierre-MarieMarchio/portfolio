@@ -374,15 +374,18 @@ services pour un seul besoin appelle une façade propre à ce besoin.
 
 #### La langue : `core/services/i18n/`, `core/models/`, `core/rules/`
 
-- **`lang.model.ts`** : `Lang`, `LANGS`, `DEFAULT_LANG`, `langOfUrl`. La seule
-  règle URL → langue.
+- **`lang.model.ts`** : `Lang`, `LANGS`, `DEFAULT_LANG`, `langOfUrl`,
+  `prefixedPath`, `unprefixedSegments`. La seule règle URL → langue, et la
+  seule table « langue → préfixe d'adresse » (D102).
 - **`LocaleService`**. But : la langue de la page affichée. Contrat : `lang`
   (signal). Elle se dérive de `Router.lastSuccessfulNavigation`, avec repli
   sur `Location.path()` avant la première navigation ; un effet écrit
   `<html lang>`. Plus d'abonnement RxJS, plus de second écrivain : la garde
   de route ne fait que charger le catalogue.
-- **`localize.rules.ts`** : `Localized<T>`, `localize(value, lang)`
-  (ex-`resolve`, un nom qui ne disait pas quoi).
+- **`localize.rules.ts`** : `Localized<T>`, `bilingual(fr, en)`,
+  `localize(value, lang)` (ex-`resolve`, un nom qui ne disait pas quoi). Seules
+  les valeurs construites par `bilingual` sont résolues ; un
+  `Record<Lang, string>` ordinaire reste intact (D102).
 - **`draft.rules.ts`** : `draft(text)`, `draftsLeft()`. Marque un texte
   anglais à relire.
 
@@ -402,24 +405,23 @@ contenait remonte dans une feature ou devient générique.
 
 `WindowComponent` portait cinq responsabilités.
 
-| Unité                                                    | But                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Contrat                                                                                                                                            |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, zones ; porte lui-même le bouton de menu (nom accessible, bulle, `aria-haspopup`/`aria-expanded`, un chevron à côté du carré), relaie ses autres boutons à `WindowControlsComponent`, donne sa section et sa barre au cadre ; au bureau et à la tablette, une fenêtre gardée (`pinned`) porte une marque à côté du titre et le dit dans son nom accessible (`keptOpen`) ; son titre porte `data-window-title` et `tabindex="-1"`, visé par `WindowCycleDirective` | `heading`, `meta`, `size`, `anchor`, `preview`, `pinned`, `closable`, `closeLabel`, `label`, `scrollKey`, `scrollResetOn` ; `pinToggled`, `closed` |
-| `window-menu.tracker.ts` `WindowMenuTracker`             | chargé à part (`FormatCodeService`, desktop/tablet) : construit le panneau du menu en DOM pur (garder ouverte, moitié gauche, moitié droite, agrandir/restaurer sauf pour l'aperçu), roving focus au clavier, popover natif, se ferme au clic dehors, sa propre feuille de style injectée une fois                                                                                                                                                                                           | créé par `WindowComponent` au premier besoin (clic ou Entrée sur le bouton, attend le code s'il n'est pas encore là)                               |
-| `window-menu.rules.ts`                                   | `menuActionsOf` : les items du menu selon l'épingle, si la fenêtre peut s'agrandir et son mode courant                                                                                                                                                                                                                                                                                                                                                                                       | pure, chargée à part avec le tracker                                                                                                               |
-| `window-controls.component.ts` `WindowControlsComponent` | les boutons de la barre (D63) : icônes SVG, bulle CSS, mots du format, note `role="status"` quand l'épingle change ; au téléphone l'épingle et le repli, au bureau et à la tablette seulement agrandir/restaurer (le reste vit dans le menu de `WindowComponent`)                                                                                                                                                                                                                            | `pinned`, `foldable`, `folded`, `closable`, `closeLabel` ; `pinToggled`, `foldToggled`, `closed`                                                   |
-| `window-frame.directive.ts` `WindowFrameDirective`       | la place d'une fenêtre au bureau et à la tablette (D65) : posée sur l'emplacement, écrit `transform`, `width`, `height`, `data-frame`, `data-frame-animating` ; quand une fenêtre sans place choisie s'affiche à côté d'autres déjà montrées, elle choisit la place la moins recouvrante (`WindowStackService.shownFrontToBack`) ; charge son code à part                                                                                                                                    | `appWindowFrame` ; `hold(parts)`, `mode`, `isActive`, `controls`, `snapTo`, `toggleMaximize`                                                       |
-| `window-frame.tracker.ts` `WindowFrameTracker`           | chargé à part : poignées des bords, agrandir, aimanter à une moitié depuis le menu (`snapTo`), pose la fenêtre là où elle recouvre le moins les fenêtres affichées ou revient à la place par défaut (`cascadeFrom`, reçoit les fenêtres affichées devant-derrière), garde la barre de titre atteignable (`clearance`), recaler quand l'écran change ; crée son `WindowHeightTracker`                                                                                                         | créé par `WindowFrameDirective`                                                                                                                    |
-| `window-height.tracker.ts` `WindowHeightTracker`         | chargé à part : hauteur bornée à l'écran moins `--window-reserve`, ou fixe si la fenêtre le demande (`stable`), recalée à l'animation, à son redimensionnement et à celui de l'écran                                                                                                                                                                                                                                                                                                         | créé par `WindowFrameTracker`                                                                                                                      |
-| `window-drag.tracker.ts` `WindowDragTracker`             | chargé à part : un glisser du pointeur, par la barre (déplacer, aimanter aux bords, contour) ou par un bord (redimensionner)                                                                                                                                                                                                                                                                                                                                                                 | créé par `WindowFrameTracker` à chaque appui                                                                                                       |
-| `window-frame.rules.ts`, `window-controls.rules.ts`      | `clampMove`, `clampResize`, `snapZoneOf`, `frameOfZone`, `areaOf`, `unsnapAt`, `clearanceOf`, `fittedHeight`, `cascadePlaceOf`, `leastOverlapPlaceOf` (compare la place par défaut, la même ancrée à gauche et la cascade, garde celle qui recouvre le moins les fenêtres affichées ; à égalité, la place par défaut puis la cascade), `fitBelowFloor` (réduit une hauteur pour rester au-dessus d'un plancher, ou abandonne sous la hauteur minimale) ; `frameControlsOf`                   | pures, chargées à part                                                                                                                             |
-| `window-icons.model.ts` `WINDOW_ICONS`                   | les tracés SVG des icônes de la fenêtre (épingle, chevron, fermer), partagés par `WindowComponent` et `WindowControlsComponent`                                                                                                                                                                                                                                                                                                                                                              | -                                                                                                                                                  |
-| `window-cycle.rules.ts`                                  | `cycleTarget` (la fenêtre suivante ou précédente d'une liste devant-derrière, en bouclant), `isTypingTarget` (le focus est-il dans un champ de saisie)                                                                                                                                                                                                                                                                                                                                       | pures, lues par `WindowCycleDirective`                                                                                                             |
-| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                                                                                                                                                                                                                                                                                                                                                                                                           | `appDoublePress` ; `doublePressed`                                                                                                                 |
-| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                                                                                                                                                                                                                                                                                                                                                                                             | `appRememberScroll` (clé), `resetOn`                                                                                                               |
-| `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après                                                                                                                                                                                                                                                                                                                                                                              | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                                                       |
-| `window-fold.port.ts` `WINDOW_FOLD`                      | facultatif : qui replie la fenêtre à sa place (D64) ; sans lui, elle se replie seule                                                                                                                                                                                                                                                                                                                                                                                                         | `isActive`, `isFolded`, `toggle`, `hold(handle)`                                                                                                   |
-| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `save(key, top)`, `read(key)`                                                                                                                      |
+| Unité                                                    | But                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Contrat                                                                                                                                                                                        |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `window.component.ts` `WindowComponent`                  | le cadre : barre de titre, zones ; relaie ses boutons à `WindowControlsComponent` (Réduire et Épingler seulement au bureau et à la tablette), donne sa section et sa barre au cadre, et pose `WindowGripComponent` quand `WINDOW_FOLD` est actif ; au bureau et à la tablette, une fenêtre gardée (`pinned`) porte une marque à côté du titre et le dit dans son nom accessible (`keptOpen`) ; son titre porte `data-window-title` et `tabindex="-1"`, visé par `WindowCycleDirective` | `heading`, `meta`, `size`, `anchor`, `preview`, `pinned`, `minimizable`, `closable`, `closeLabel`, `label`, `scrollKey`, `scrollResetOn`, `stableHeight` ; `minimized`, `pinToggled`, `closed` |
+| `window-grip.component.ts` `WindowGripComponent`         | au téléphone, la poignée de la feuille : bascule le repli par `WINDOW_FOLD`, nommée « Baisser la fenêtre » ou « Remonter la fenêtre »                                                                                                                                                                                                                                                                                                                                                  | aucune entrée ni sortie ; lit `WINDOW_FOLD` et `WINDOW_TEXTS`                                                                                                                                  |
+| `window-controls.component.ts` `WindowControlsComponent` | les boutons de la barre (D63, D101) : Réduire (si `minimizable`), Épingler (si `pinned` n'est pas nul), Agrandir ou Restaurer (donné par `WindowFrameDirective.controls`, sauf pour l'aperçu), Fermer (si `closable`) ; icônes SVG, bulle CSS, mots du format ; au téléphone, `WindowComponent` ne lui passe ni Réduire ni Épingler                                                                                                                                                    | `minimizable`, `pinned`, `closable`, `closeLabel` ; `minimized`, `pinToggled`, `closed`                                                                                                        |
+| `window-frame.directive.ts` `WindowFrameDirective`       | la place d'une fenêtre au bureau et à la tablette (D65) : posée sur l'emplacement, écrit `transform`, `width`, `height`, `data-frame`, `data-frame-animating` ; une fenêtre qu'on n'a ni déplacée ni redimensionnée garde sa place par défaut, quelles que soient les autres (D99) ; charge son code à part                                                                                                                                                                            | `appWindowFrame` ; `hold(parts)`, `mode`, `isActive`, `controls`, `toggleMaximize`, `onLive`                                                                                                   |
+| `window-frame.tracker.ts` `WindowFrameTracker`           | chargé à part : poignées des bords, agrandir et rendre la taille (`toggleMaximize`), garde la barre de titre atteignable (`clearance`), recaler quand l'écran change (`fit`) ; crée son `WindowHeightTracker`                                                                                                                                                                                                                                                                          | créé par `WindowFrameDirective`                                                                                                                                                                |
+| `window-height.tracker.ts` `WindowHeightTracker`         | chargé à part : hauteur bornée à l'écran moins `--window-reserve`, ou fixe si la fenêtre le demande (`stable`), recalée à l'animation, à son redimensionnement et à celui de l'écran                                                                                                                                                                                                                                                                                                   | créé par `WindowFrameTracker`                                                                                                                                                                  |
+| `window-drag.tracker.ts` `WindowDragTracker`             | chargé à part : un glisser du pointeur, par la barre (déplacer, aimanter aux bords, contour) ou par un bord (redimensionner)                                                                                                                                                                                                                                                                                                                                                           | créé par `WindowFrameTracker` à chaque appui                                                                                                                                                   |
+| `window-frame.rules.ts`, `window-controls.rules.ts`      | `clampMove`, `clampResize`, `areaOf`, `isZone`, `snapZoneOf`, `frameOfZone`, `unsnapAt`, `clearanceOf`, `fittedHeight` ; `frameControlsOf` (le seul bouton du cadre : Agrandir ou Restaurer)                                                                                                                                                                                                                                                                                           | pures, chargées à part                                                                                                                                                                         |
+| `window-icons.model.ts` `WINDOW_ICONS`                   | les tracés SVG des icônes de la fenêtre (épingle pleine et en creux, réduire, fermer), partagés par `WindowComponent` et `WindowControlsComponent`                                                                                                                                                                                                                                                                                                                                     | -                                                                                                                                                                                              |
+| `window-cycle.rules.ts`                                  | `cycleTarget` (la fenêtre suivante ou précédente d'une liste devant-derrière, en bouclant), `isTypingTarget` (le focus est-il dans un champ de saisie)                                                                                                                                                                                                                                                                                                                                 | pures, lues par `WindowCycleDirective`                                                                                                                                                         |
+| `double-press.directive.ts` `DoublePressDirective`       | dire qu'un élément a été pressé deux fois de suite : double-clic ou double toucher                                                                                                                                                                                                                                                                                                                                                                                                     | `appDoublePress` ; `doublePressed`                                                                                                                                                             |
+| `remember-scroll.directive.ts` `RememberScrollDirective` | garder la position de défilement d'une zone, revenir en haut quand sa clé change                                                                                                                                                                                                                                                                                                                                                                                                       | `appRememberScroll` (clé), `resetOn`                                                                                                                                                           |
+| `kept-window.directive.ts` `KeptWindowDirective`         | garder montée une fenêtre qu'on ne montre plus : `inert`, `content-visibility: hidden`, montrée une image après                                                                                                                                                                                                                                                                                                                                                                        | `shown` ; `isShown` (ce qui est montré) ; écrit `data-shown`                                                                                                                                   |
+| `window-fold.port.ts` `WINDOW_FOLD`                      | facultatif : qui replie la fenêtre à sa place (D64) ; sans lui, elle se replie seule                                                                                                                                                                                                                                                                                                                                                                                                   | `isActive`, `isFolded`, `toggle`, `hold(handle)`                                                                                                                                               |
+| `scroll-memory.service.ts` `ScrollMemoryService`         | la mémoire des positions pendant la visite                                                                                                                                                                                                                                                                                                                                                                                                                                             | `save(key, top)`, `read(key)`                                                                                                                                                                  |
 
 - La hauteur se calcule depuis la **position de mise en page** (la chaîne
   des `offsetTop`), que le glissement ne change pas, puisqu'il passe par un
@@ -514,9 +516,7 @@ par deux ports, auxquels la composition répond.
   `shownFrontToBack()` (les éléments dont `data-shown` vaut `"true"`, du
   devant vers le derrière). Générique (des `id` et leurs éléments) ; le
   bureau garde sa liste de fenêtres et `windowOf(view)`. `shownFrontToBack`
-  sert le même ordre à `WindowCycleDirective` et à `WindowFrameDirective`,
-  qui écarte la fenêtre qui s'ouvre et compare la place la moins recouvrante
-  aux autres fenêtres affichées.
+  sert l'ordre de `WindowCycleDirective`.
 - **`StackedWindowDirective`** (ex-`WindowSlotDirective`). But : inscrire un
   élément dans la pile, écrire sa profondeur, le mettre devant quand on le
   touche ou que le focus y entre (`focusin`). Écoute sur son propre élément :
@@ -546,7 +546,7 @@ par deux ports, auxquels la composition répond.
   en variable CSS jusqu'où descend l'élément qui la porte. Le nom de la
   variable est son entrée.
 
-#### Une animation d'entrée : `shared/ui/models/entrance`
+#### Une animation d'entrée : `shared/ui/models/entrance.model.ts`
 
 - **`entrance.model.ts`** : `Entrance = 'timed' | 'held' | 'shown'`, l'état
   d'un élément qui entre en scène (ex-`Arrival`). Le vocabulaire d'une
@@ -628,7 +628,7 @@ par deux ports, auxquels la composition répond.
 | `models/project-family.model.ts`              | `ProjectFamily`, `FAMILIES`, `FamilyFilter`                                                                                               | sorti d'un composant, typé partout                                  |
 | `models/project-detail.model.ts`              | la fiche et ses chapitres                                                                                                                 | ex-`project-sheet.model` ; « approach » devient « chapter » partout |
 | `rules/ranking.rules.ts`                      | `rank(projects, featuredCount)` : rang, numéro, vedette                                                                                   | sorti du manager ; les tests l'utilisent au lieu de le recopier     |
-| `rules/project-labels.rules.ts`               | les libellés tirés d'un projet : ligne, position, niveau de preuve, titre de chapitre                                                     | reçoit `proofLevelLabel` et `chapterTitle` du manager               |
+| `rules/project-labels.rules.ts`               | les libellés tirés d'un projet : `rowLabel` (la ligne), `positionOf` (la position), `chapterTitle` (le titre d'un chapitre)               | `chapterTitle` reçoit les titres par défaut en paramètre            |
 | `services/projects-repository.service.ts`     | lire le catalogue                                                                                                                         | inchangé                                                            |
 | `states/projects/*`                           | le catalogue dans la langue courante                                                                                                      | sans la chaîne `reset`                                              |
 | `components/featured-bar/`                    | la barre des projets vedettes sous l'accueil ; au téléphone, un carrousel de cartes                                                       | ex-`orbit-rule` ; sans la rangée ‹ › (D58)                          |
@@ -655,20 +655,28 @@ sur une vue change à la fois la vue, la fiche, le chapitre, les fiches lues,
 l'aperçu (selon les épingles) et le survol : ces signaux forment un seul
 état, sinon une règle métier se disperse en chaînes d'effets.
 
-| État          | Signaux                                                                                                                         | But                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `observatory` | `view`, `slug`, `chapter`, `section`, `visited`, `pins`, `preview`, `lastPreview`, `lastSheet`, `selected`, `hovered`, `family` | ce que le lecteur regarde, ouvre et désigne |
-| `animation`   | `paused`                                                                                                                        | la scène en mouvement ou en pause           |
+| État          | Signaux                                                                                                                                                        | But                                         |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `observatory` | `view`, `slug`, `chapter`, `section`, `visited`, `pins`, `minimized`, `preview`, `lastPreview`, `lastSheet`, `resume`, `selected`, `hovered`, `family`, `seen` | ce que le lecteur regarde, ouvre et désigne |
+| `animation`   | `paused`                                                                                                                                                       | la scène en mouvement ou en pause           |
 
 `ObservatoryManager` expose l'état et ses commandes ; ses dérivés sont ceux dont
 un écran a besoin (`showsList`, `showsAbout`, `showsPreview`, `canStepBack`,
-`docked`), et plus aucun relais inutile.
+`docked`), et plus aucun relais inutile. L'état réduit d'une fenêtre (D101)
+est dans `minimized`, écrit par l'updater sur `minimize(window)` et
+`restore(windows)` ; le manager le tient vide au téléphone, et `showsList`,
+`showsAbout` et `showsSheet` valent faux pour une fenêtre réduite (l'aperçu
+ne se réduit pas).
 
 - `rules/view.rules.ts` : `parentOf`, `stepBack`, **`windowOf(view)`**,
   la table vue → fenêtre écrite une seule fois (deux copies aujourd'hui), et
   **`dockedOf`** : les fenêtres épinglées que le lecteur a quittées et qu'un
   toucher peut rouvrir, dans l'ordre de `OBSERVATORY_WINDOWS`.
-- `models/observatory.model.ts` : `ObservatoryView`, `ObservatoryWindow`, `Planet`,
+- `rules/tabs.rules.ts` : `tabOf`, `tabOfWindow`, `windowsOfTab` : l'entrée
+  de la barre du haut d'une fenêtre, et les fenêtres qu'une entrée rend
+  (D101).
+- `models/observatory.model.ts` : `ObservatoryView`, `ObservatoryWindow`,
+  `MinimizableWindow` (toutes sauf l'aperçu), `ObservatoryMinimized`, `Planet`,
   les ids DOM (ex-`station.ids`). Une seule union de vues : celle du moteur
   (`ObjectView`) et celle de la pile (`WindowSlot`) disparaissent.
 
@@ -932,6 +940,7 @@ src/app/
   core/ports/                                  site-name.port
   core/rules/                                  display-format.rules · draft.rules · localize.rules
   core/services/browser/                       browser-window.service · canvas-contexts.service · clock.service · cursor.service · document-styles.service · element-observer.service · media-preferences.service · page-visibility.service
+  core/services/browser/haptics/               haptics.service
   core/services/clipboard/                     clipboard.service
   core/services/device/                        display-format.service · format-code.service
   core/services/errors/                        console-error-handler.service
@@ -950,11 +959,11 @@ src/app/
   features/observatory/components/observatory-dock/ observatory-dock.component
   features/observatory/components/observatory-scene/ observatory-scene.component
   features/observatory/components/planet-buttons/ planet-buttons.component
-  features/observatory/directives/             view-slot.directive · window-sheet.directive
+  features/observatory/directives/             project-sheet.directive · view-slot.directive · window-sheet.directive
   features/observatory/models/                 observatory-ids.model · observatory.model
   features/observatory/ports/                  observatory-texts.port
-  features/observatory/rules/                  scene-direction.rules · view.rules
-  features/observatory/services/               featured-tour.service · home-reveal.service · mobile-nav-platform.service · scene-surroundings.service · view-windows.service
+  features/observatory/rules/                  home-sheet.rules · scene-direction.rules · tabs.rules · view.rules
+  features/observatory/services/               featured-tour.service · home-reveal.service · home-sheet.service · mobile-nav-platform.service · project-sheet.service · scene-surroundings.service · tab-navigation.service · view-windows.service
   features/observatory/states/animation/       animation.action · animation.manager · animation.state · animation.updater
   features/observatory/states/observatory/     observatory.action · observatory.effect · observatory.manager · observatory.state · observatory.updater
   features/profile/components/about-window/    about-window.component
@@ -988,12 +997,13 @@ src/app/
   shared/mobile-nav/components/bottom-sheet/   bottom-sheet.component
   shared/mobile-nav/components/card-carousel/  card-carousel.component
   shared/mobile-nav/components/pager/          pager.component
+  shared/mobile-nav/components/pager-dots/     pager-dots.component
   shared/mobile-nav/components/pager-page/     pager-page.component
-  shared/mobile-nav/directives/                action-row.directive
-  shared/mobile-nav/models/                    bottom-sheet.model
+  shared/mobile-nav/directives/                action-row.directive · scroll-release.directive · swipe-steps.directive
+  shared/mobile-nav/models/                    bottom-sheet.model · swipe.model
   shared/mobile-nav/ports/                     mobile-nav-platform.port · mobile-nav-texts.port
-  shared/mobile-nav/rules/                     back-layers.rules · bottom-sheet.rules · carousel.rules · pager.rules
-  shared/mobile-nav/services/                  back-layers.service
+  shared/mobile-nav/rules/                     back-layers.rules · bottom-sheet.rules · carousel.rules · pager.rules · swipe-steps.rules
+  shared/mobile-nav/services/                  back-claim.service · back-layers.service · swipe-steps.service
   shared/space-scene/components/space-scene/   space-scene.component
   shared/space-scene/directives/               scene-target.directive · turn-gesture.directive
   shared/space-scene/engine/                   frame-loop.engine · node-recorder.engine · remote-scene.engine · scene-worker.engine · scene.worker · space-scene.engine
@@ -1004,12 +1014,13 @@ src/app/
   shared/space-scene/models/                   scene-config.model · scene-constants.model · scene-engine.model · scene-layout.model · scene-look.model · scene-node.model · scene-worker.model · scene.model
   shared/space-scene/ports/                    scene-surroundings.port · scene-window-drag.port
   shared/space-scene/rules/                    canvas-resolution.rules · hole-focus.rules · layout-change.rules · panel-veil.rules · scene-bodies.rules · scene-frame.rules · scene-layout.rules · scene-state.rules
-  shared/space-scene/rules/camera/             camera-frames.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · zoom.rules
+  shared/space-scene/rules/camera/             camera-frames.rules · free-sky.rules · pointer.rules · projection.rules · rest-frame.rules · traveling.rules · turning.rules · zoom.rules
   shared/space-scene/rules/camera/framing/     body-framing.rules · framing.rules
+  shared/space-scene/rules/focus/              focus-choices.rules · focus-rows.rules
   shared/space-scene/rules/gestures/           sky-look.rules · sky-touch.rules
-  shared/space-scene/rules/matter/             grain-reserve.rules · matter-light.rules
-  shared/space-scene/rules/planets/            label-placement.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
-  shared/space-scene/rules/rooms/              window-room.rules
+  shared/space-scene/rules/matter/             grain-reserve.rules · matter-entry.rules · matter-light.rules
+  shared/space-scene/rules/planets/            label-placement.rules · name-rows.rules · planet-focus.rules · planet-spacing.rules · same-nodes.rules
+  shared/space-scene/rules/rooms/              settled-rect.rules · window-room.rules
   shared/space-scene/rules/figures/            constellations.rules · figure-arrangement.rules · figure-label.rules · figure-room.rules · figure-target.rules · phone-figures.rules
   shared/space-scene/rules/sky/                comets.rules · star-field.rules · trail-steps.rules
   shared/space-scene/services/                 animated-canvas.service · click-absorber.service · scene-engine.service · scene-look.service · scene-targets.service
@@ -1026,12 +1037,13 @@ src/app/
   shared/ui/signals/                           element-size.signal
   shared/windows/components/window/            window.component
   shared/windows/components/window-controls/   window-controls.component
+  shared/windows/components/window-grip/       window-grip.component
   shared/windows/directives/                   double-press.directive · kept-window.directive · remember-scroll.directive · stacked-window.directive · window-cycle.directive · window-frame.directive
-  shared/windows/models/                       window-frame.model · window-icons.model · window-menu.model · window.model
+  shared/windows/models/                       window-frame.model · window-icons.model · window.model
   shared/windows/ports/                        window-fold.port · window-texts.port
-  shared/windows/rules/                        window-controls.rules · window-cycle.rules · window-frame.rules · window-menu.rules
+  shared/windows/rules/                        window-controls.rules · window-cycle.rules · window-frame.rules
   shared/windows/services/                     scroll-memory.service · window-stack.service
-  shared/windows/trackers/                     window-drag.tracker · window-frame.tracker · window-height.tracker · window-menu.tracker
+  shared/windows/trackers/                     window-drag.tracker · window-frame.tracker · window-height.tracker
 ```
 
 ## 6. Comment on en est arrivé là

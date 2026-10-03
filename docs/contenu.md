@@ -83,7 +83,7 @@ Le site existe en français (à la racine) et en anglais (sous `/en`).
 
 - **Un texte d'un projet** (titre court, sujet, preuve, chapô, paragraphes,
   légendes…) est dans le fichier de ce projet, les deux langues côte à côte :
-  `{ fr: '…', en: '…' }`. Un texte identique dans les deux langues (un nom, une
+  `bilingual('…', '…')` (français, puis anglais). Un texte identique dans les deux langues (un nom, une
   pile technique) s'écrit une seule fois, en simple chaîne.
 - **Tout autre texte de l'interface**, `aria-label` et `title` compris, est dans
   `src/app/i18n/data/fr.data.ts` pour le français et `en.data.ts` pour

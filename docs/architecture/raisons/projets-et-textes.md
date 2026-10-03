@@ -16,7 +16,7 @@ Le pourquoi des unités de `features/projects/`, `features/common/` et
 ## `features/projects/models/project.model.ts`
 
 - Un `Text` est une simple chaîne quand il se lit pareil dans les deux
-  langues, une paire sinon (D5).
+  langues, une valeur `bilingual(fr, en)` sinon (D5, D102).
 - Le `slug` est à la fois le segment d'adresse et l'identité : deux projets
   n'en partagent jamais un.
 - `short` est le nom là où la place manque : libellé de planète, repère de la

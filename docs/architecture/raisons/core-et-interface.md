@@ -36,6 +36,9 @@ nomme l'unité qu'elle concerne.
   anglais, toute autre adresse en français, à la racine. L'adresse est la
   seule source de la langue, pour que chaque page soit prérendue, indexée et
   partagée dans la sienne.
+- La table « langue → préfixe d'adresse » (`LANG_PREFIXES`) n'est écrite
+  qu'une fois, ici ; `langOfUrl`, `prefixedPath` et `unprefixedSegments` la
+  lisent, et les routes, les adresses et `check-prerender` la suivent (D102).
 
 ## `src/app/core/rules/draft.rules.ts`
 
@@ -51,10 +54,12 @@ nomme l'unité qu'elle concerne.
 ## `src/app/core/rules/localize.rules.ts`
 
 - Un `Text` est une chaîne simple quand il se lit de même dans les deux
-  langues (un nom, une pile technique), une paire `Localized` sinon (D5).
-- Une paire est un objet aux seules clés `fr` et `en`. Aucun autre objet du
-  contenu n'a cette forme ; un objet qui a d'autres clés est du contenu, et
-  `localize.rules.spec.ts` le garde.
+  langues (un nom, une pile technique), une valeur `Localized` sinon (D5).
+- Une valeur bilingue se construit par `bilingual(fr, en)` et porte
+  `kind: 'bilingual'` (D102). `localize` ne résout que ces valeurs marquées :
+  un `Record<Lang, string>` ordinaire (noms des langues, table `og:locale`)
+  a la même forme `{ fr, en }` et reste intact ; `localize.rules.spec.ts` le
+  garde.
 
 ## `src/app/core/rules/display-format.rules.ts`
 
@@ -244,73 +249,24 @@ nomme l'unité qu'elle concerne.
 ## `src/app/shared/windows/components/window/`
 
 - La barre de titre est une poignée pour la souris et le doigt, qui ne prend
-  pas le focus : replier a son propre bouton, et déplacer n'a pas
-  d'équivalent au clavier dans la maquette.
+  pas le focus : déplacer n'a pas d'équivalent au clavier ; agrandir et
+  réduire ont leurs boutons.
 - La barre garde `touch-action: none` : sans elle, le navigateur prend le
   glisser du doigt pour un défilement (il annule le pointeur), et WebKit le
   double toucher pour un zoom. Au téléphone, où elle ne se glisse plus, elle
-  passe à `manipulation` : tirer la barre fait descendre la vitre, et le
-  double toucher reste un repli, pas un zoom.
-- Au téléphone, la fenêtre est une vitre, par le CSS seul : les deux
-  enveloppes (`.glass`, `.rail`) et les deux calques (`.shade`, `.lead`)
-  sont dans le DOM à tous les formats, en `display: contents`, ou vides et
-  sans hauteur, hors du téléphone. Un bloc structurel qui dépendrait du format changerait
-  le HTML prérendu, qui vaut `desktop`. Au bureau et à la tablette, la
-  fenêtre garde donc ses boîtes, et leurs captures ne bougent pas.
-- La vitre debout est un conteneur de défilement : un espace transparent de
-  `--glass-lowered` (`.lead`, 60 %), la fenêtre, puis la réserve du bas
-  (`.tail`). La fenêtre prend la hauteur de son contenu, au plus l'écran
-  moins `--glass-raised-top` et `--glass-bottom-reserve`, au moins le reste
-  sous `.lead` : un contenu court ne monte pas, un contenu long monte comme
-  en D25 (D34). L'appelant pose ces trois propriétés et `--glass-inset`, la
-  place de la vitre dans son emplacement : la vitre ne sait rien de la barre
-  de pages ni de la rangée du bas. Sans elles, elle couvre l'emplacement et
-  monte à 12 px du haut, comme en D25. Faire défiler ce conteneur fait monter la vitre, avec l'élan
-  natif, sans JavaScript de geste ; sa course est exactement la montée. Le
-  conteneur laisse passer le pointeur : l'espace transparent ne cache pas
-  l'objet, et le doigt posé sur la fenêtre fait quand même défiler son
-  ancêtre (mesuré sous les deux moteurs).
-- Le corps reste le seul contenu qui défile, comme au bureau :
-  `remember-scroll` et `resetOn` gardent leur élément. Tant que la vitre est
-  basse, il est en `overflow-y: hidden` : un geste qui commence sur lui fait
-  d'abord monter la vitre. Il redevient libre quand la vitre repose en haut
-  (`data-rest='end'`), et `overscroll-behavior` y repasse à `auto` : revenu
-  en haut du contenu, tirer vers le bas passe au conteneur, qui redescend.
-- Le flou de la scène est une animation liée au défilement du conteneur
-  (`scroll-timeline`), portée par un calque frère (`.shade`) sous la vitre :
-  rien n'est écrit à chaque image, ni dans un signal ni dans le DOM. Le
-  calque est un élément et non un `::before` : WebKit 26 ne trouve pas une
-  frise nommée depuis un pseudo-élément (mesuré), et le calque est un frère
-  et non un ancêtre de la fenêtre, sans quoi il deviendrait la racine de son
-  `backdrop-filter` et la vitre ne flouterait plus rien.
-- Couchée, la vitre prend son emplacement, que la page met à la moitié
-  droite, de haut en bas, sans montée : le corps défile comme au bureau.
-  Repliée, elle se réduit à sa barre, en bas de sa place, debout comme
-  couchée. Debout, la vitre repliée et son conteneur repassent dans le flux
-  (`position: static`) : l'emplacement prend la hauteur de la barre, et
-  l'ancre que la caméra lit suit le repli sans mesurer la barre. La règle
-  est écrite hors de `.glass--rising`, et gagne par l'ordre à spécificité
-  égale : sous ce sélecteur, la feuille dépassait son budget de 4 kB.
-- Une fenêtre ancrée en bas (`anchor="bottom"`, l'aperçu) reste une petite
-  vitre basse : ni conteneur de défilement, ni voile ; elle garde ses boîtes,
-  comme au bureau, et l'emplacement la borne. Les règles de la vitre qui
-  monte sont écrites sous `.glass--rising`, que portent les autres fenêtres,
-  et celles qui doivent les battre (le repli, le mouvement réduit) sous le
-  même sélecteur, sinon elles perdent à la spécificité. Une classe positive
-  plutôt qu'un `:not()` : la feuille de la fenêtre tient dans son budget de
-  4 kB (`angular.json`).
-- Au téléphone, le titre passe avant le compteur : le compteur prend la
-  place que le titre laisse, et s'efface le premier (à 320 px, « Projets »
-  entier plutôt que « P… »).
+  passe à `manipulation` : le double toucher reste un repli, pas un zoom.
+- Au téléphone, la fenêtre est le contenu d'une feuille de
+  `shared/mobile-nav/` (D64) : la vitre à gestes, ses coques et son flou lié
+  au défilement n'existent plus.
 - L'ouverture joue sur `translate`, pas `transform` : `transform` appartient
-  au glissement, et une animation en `fill-mode: both` écraserait la
-  position que le lecteur a choisie.
-- Les boutons de la barre font 34×32, sous la cible de 44px à dessein : ils
-  sont secondaires, et doublés par le clavier.
+  au cadre, et une animation en `fill-mode: both` écraserait la position que
+  le lecteur a choisie.
+- Les boutons de la barre font 34×32 (`--target-compact`), sous la cible de
+  44px à dessein : ils sont secondaires, et doublés par le clavier.
 - Les bandes que la maquette répétait dans chaque appelant (outils, pied)
   sont dessinées une fois, ici. Une bande vide ne dessine rien.
 - Seul le corps défile, et arriver en bas ne fait jamais défiler la page
-  derrière (au téléphone, la vitre défile avant lui : voir plus haut). Sa marge intérieure diffère selon la vue : l'appelant la pose
+  derrière. Sa marge intérieure diffère selon la vue : l'appelant la pose
   (`--window-body-padding`).
 - L'entrée s'appelle `heading`, pas `title` : `title` posait sur l'hôte
   l'attribut natif, donc une infobulle.
@@ -318,11 +274,6 @@ nomme l'unité qu'elle concerne.
   bascule pas.
 - Dans le spec, `innerWidth` et `innerHeight` sont des accesseurs en lecture
   seule : on les redéfinit, puis on les restaure.
-- Au téléphone, la poignée est le fond de la barre (`--glass-handle`, un
-  dégradé de 32 × 3 px posé à 2 px du haut) : ni élément, ni hauteur de
-  plus, et la feuille de la fenêtre reste sous son budget de 4 kB. Les zones
-  du geste sont marquées dans le gabarit (`data-glass-zone` : barre, outils,
-  corps) ; la directive ne lit rien d'autre (D37).
 
 ## `src/app/shared/windows/directives/double-press.directive.ts`
 
@@ -337,78 +288,6 @@ nomme l'unité qu'elle concerne.
 - Deux touchers comptent s'ils tombent à moins de 350 ms et de 24 px l'un de
   l'autre ; un toucher qui a bougé de plus de 10 px est un glisser, pas un
   toucher. Une pression sur un bouton ou un lien ne compte pas.
-
-## `src/app/shared/windows/directives/glass-gesture.directive.ts`
-
-- Le geste se lit sur les pointeurs, et se décide par deux règles pures du
-  même fichier : `glassIntentOf` dit, passé 6 px, à qui est le glisser
-  (tirer, lever, balayer, ou au navigateur), et `glassGestureOf`, au lâcher,
-  ce qu'il fait. Elles vivent dans le fichier de la directive : le contrôle
-  de structure n'ouvre pas `rules/` à `shared/windows/` (D37).
-- Un glisser que le navigateur prend pour un défilement annule le pointeur
-  (`pointercancel`). La directive annule donc `touchmove` tant que le geste
-  peut être à elle, et le rend dès qu'il est au navigateur : la vitre monte
-  toujours par le défilement natif, et le corps défile comme avant.
-- La vitre basse se lit sur la position du conteneur (le parent de la
-  fenêtre, `scrollTop` à 0), pas sur `data-rest` : couchée, le conteneur ne défile jamais, et `data-rest`
-  pouvait rester à `end` après une rotation.
-- Un toucher qui rouvre la vitre repliée arrête son `pointerup` (écouté en
-  capture) : le double toucher de la barre ne le compte pas, et un second
-  toucher aussitôt après ne la replie pas de nouveau.
-- Au-delà de 6 px, ou quand un second doigt se pose, le clic qui suit est
-  avalé en capture (passation §5) : un balayage qui part d'un bouton du
-  segmenté ne le presse pas. Hors du téléphone, rien n'est avalé.
-- Un élément qui défile à l'horizontale se reconnaît à son `overflow-x`
-  (`auto` ou `scroll`) et à un contenu plus large que lui ; le balayage qui
-  part de lui ou d'un descendant lui appartient.
-- Le suivi du doigt est un `transform` écrit sur la fenêtre ou le corps,
-  jamais dans un signal : au téléphone, `transform` ne sert plus au
-  glissement du bureau. Le retour n'est animé que si le geste ne fait rien
-  (la classe `glass-return`, retirée à la pression suivante) : une vitre
-  repliée ou un chapitre changé se posent sans transition.
-- Le seuil de 6 px qui décide à qui est le glisser est choisi sous la
-  tolérance à partir de laquelle le navigateur commence un défilement : le
-  `touchmove` retenu avant la décision ne doit pas l'empêcher quand le
-  glisser revient au navigateur. Ce n'est pas mesuré sur un téléphone.
-- Le spec redéfinit `scrollTop`, `scrollWidth`, `clientWidth`, `matchMedia`
-  et `timeStamp`, que jsdom n'a pas ou fige.
-
-## `src/app/shared/windows/directives/draggable.directive.ts`
-
-- Au format `phone`, la fenêtre ne se glisse pas : la vitre a sa place, et
-  le doigt sur la barre fait défiler. Une fenêtre déplacée à la tablette
-  revient à sa place quand l'écran devient un téléphone.
-
-- Après un redimensionnement ou une rotation, une fenêtre déplacée est
-  ramenée dans les bornes du glisser, calculées sur la nouvelle mise en page.
-  Une fenêtre jamais déplacée reste où la mise en page la pose : son
-  `transform` reste vide, et les captures du bureau ne changent pas.
-- Le décalage est arrondi au pixel à l'intérieur des bornes, jamais au-delà :
-  arrondi après coup, il pouvait laisser 149,5 px à l'écran au lieu de 150.
-- Les bornes comptent le cadre de la fenêtre : les 150 px visibles sur le
-  côté comprennent sa bordure d'un pixel.
-
-## `src/app/shared/windows/directives/fit-height.directive.ts`
-
-- Au format `phone`, elle ne borne rien : la vitre prend sa hauteur du CSS,
-  et une borne comptée depuis sa position de mise en page (60 % de l'écran)
-  la couperait à la hauteur de la vitre basse.
-
-## `src/app/shared/windows/directives/scroll-stops.directive.ts`
-
-- Une zone qui défile ne repose qu'à son début ou à sa fin : lâchée entre
-  les deux, elle va du côté où on l'a poussée depuis sa dernière butée, pour
-  peu qu'elle ait bougé de 48 px. Sans elle, tirer la vitre de 150 px la
-  laisserait à mi-course, et l'accroche CSS (`scroll-snap`) choisirait la
-  butée la plus proche, donc la remonterait.
-- Elle agit à `scrollend`, que Chromium et WebKit 26 envoient, et ne lit que
-  la position : pas de geste à suivre, rien à chaque image. Elle écrit
-  `data-rest` quand la zone touche une butée, une fois par changement.
-- Elle suit la zone par `scrollTo` sans comportement : le CSS
-  (`scroll-behavior`) dit s'il y a une transition, et le mouvement réduit
-  l'enlève.
-- Le spec redéfinit `scrollHeight`, `clientHeight` et `scrollTo`, que jsdom
-  n'a pas.
 
 ## `src/styles.scss`
 

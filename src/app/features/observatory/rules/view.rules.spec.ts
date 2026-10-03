@@ -1,6 +1,7 @@
 import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
 import {
   AddressOf,
+  closeLabelsOf,
   closeTargetOf,
   viewAtAddress,
   DockFrom,
@@ -86,6 +87,26 @@ describe('closeTargetOf', () => {
     ['preview', 'index', null],
   ])('closing %s on %s leads to %s', (window, view, target) => {
     expect(closeTargetOf(window, view)).toBe(target);
+  });
+});
+
+describe('closeLabelsOf', () => {
+  const CLOSE_TO = { home: 'Home', index: 'Projects' };
+
+  it.each<
+    [ObservatoryView, Record<'about' | 'index' | 'sheet' | 'preview', string>]
+  >([
+    ['sheet', { about: '', index: '', sheet: 'Projects', preview: '' }],
+    ['not-found', { about: '', index: '', sheet: 'Projects', preview: '' }],
+    ['index', { about: '', index: 'Home', sheet: '', preview: '' }],
+    ['about', { about: 'Home', index: '', sheet: '', preview: '' }],
+    ['home', { about: '', index: '', sheet: '', preview: '' }],
+  ])('words only the window of %s with where closing leads', (view, labels) => {
+    expect(closeLabelsOf(view, CLOSE_TO)).toEqual({
+      about: labels['about'],
+      index: labels['index'],
+      sheet: labels['sheet'],
+    });
   });
 });
 

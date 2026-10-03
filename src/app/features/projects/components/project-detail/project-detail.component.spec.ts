@@ -73,6 +73,7 @@ describe('ProjectDetailComponent', () => {
       slug: string;
       pinned?: boolean;
       chapter?: number;
+      current?: boolean;
     },
     entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
@@ -90,6 +91,7 @@ describe('ProjectDetailComponent', () => {
     fixture.componentRef.setInput('slug', inputs.slug);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
     fixture.componentRef.setInput('chapter', inputs.chapter ?? 0);
+    fixture.componentRef.setInput('current', inputs.current ?? true);
     await fixture.whenStable();
 
     return {
@@ -129,10 +131,10 @@ describe('ProjectDetailComponent', () => {
   });
 
   it('opens a window titled after the project, without a rank counter', async () => {
-    const { host, texts } = await mount({ slug: 'proj-b' });
+    const { host } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
+    expect(window?.getAttribute('aria-label')).toBe('Project B');
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
@@ -150,10 +152,10 @@ describe('ProjectDetailComponent', () => {
     expect(titlebarChildren.indexOf(link as Element)).toBe(0);
   });
 
-  it('asks to go up to the list from its link, without following the link', async () => {
+  it('closes its window from its link to the list, without following the link', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b' });
     const requested = vi.fn();
-    fixture.componentInstance.indexRequested.subscribe(requested);
+    fixture.componentInstance.closed.subscribe(requested);
     const link = host.querySelector<HTMLAnchorElement>('a.to-index');
     const click = new MouseEvent('click', { bubbles: true, cancelable: true });
 
@@ -163,10 +165,25 @@ describe('ProjectDetailComponent', () => {
     expect(click.defaultPrevented).toBe(true);
   });
 
+  it('asks for the list instead of closing when its sheet is not the one of the address', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b', current: false });
+    const closed = vi.fn();
+    const listed = vi.fn();
+    fixture.componentInstance.closed.subscribe(closed);
+    fixture.componentInstance.listChosen.subscribe(listed);
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    host.querySelector('a.to-index')?.dispatchEvent(click);
+
+    expect(listed).toHaveBeenCalledOnce();
+    expect(closed).not.toHaveBeenCalled();
+    expect(click.defaultPrevented).toBe(true);
+  });
+
   it('leaves the link to the browser for a click that opens it elsewhere', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b' });
     const requested = vi.fn();
-    fixture.componentInstance.indexRequested.subscribe(requested);
+    fixture.componentInstance.closed.subscribe(requested);
     const click = new MouseEvent('click', {
       bubbles: true,
       cancelable: true,
@@ -334,6 +351,15 @@ describe('ProjectDetailComponent', () => {
       expect(host.querySelector('button.next')).toBeNull();
       expect(host.querySelector('.footer')?.textContent).not.toContain(
         texts.sheet.nextApproach('Comment'),
+      );
+    });
+
+    it('keeps the generic window name', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b' });
+
+      expect(host.querySelector('.window')?.getAttribute('aria-label')).toBe(
+        texts.sheet.label,
       );
     });
 

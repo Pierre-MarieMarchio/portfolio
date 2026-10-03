@@ -17,6 +17,7 @@ import { ObservatoryManager } from '@app/features/observatory/states';
 import { ViewFocusService } from '@shared/ui/services';
 import { WindowStackService } from '@shared/windows/services';
 import type { ObservatoryWindow, ViewSlot } from '../models/observatory.model';
+import { sheetIdOf } from '../rules/sheet-windows.rules';
 import { windowOf } from '../rules/view.rules';
 
 interface ShownSlot {
@@ -64,7 +65,9 @@ export class ViewWindowsService {
   }
 
   public bringToFront(window: ObservatoryWindow): void {
-    this.stack.bringToFront(window);
+    for (const id of this.stackIdsOf(window)) {
+      this.stack.bringToFront(id);
+    }
   }
 
   public scrollToTop(window: ObservatoryWindow | null): boolean {
@@ -98,6 +101,19 @@ export class ViewWindowsService {
     next(PREPARED);
   }
 
+  private stackIdOf(window: ObservatoryWindow): string {
+    return window === 'sheet' ? sheetIdOf(this.observatory.sheetKey()) : window;
+  }
+
+  private stackIdsOf(window: ObservatoryWindow): readonly string[] {
+    return window === 'sheet'
+      ? [
+          ...this.observatory.held().map(({ key }) => sheetIdOf(key)),
+          this.stackIdOf(window),
+        ]
+      : [window];
+  }
+
   private bringViewWindowToFront(): void {
     const front = linkedSignal({
       source: () => ({
@@ -111,7 +127,7 @@ export class ViewWindowsService {
       const shown = front();
       if (shown) {
         untracked(() => {
-          this.stack.bringToFront(shown);
+          this.stack.bringToFront(this.stackIdOf(shown));
         });
       }
     });

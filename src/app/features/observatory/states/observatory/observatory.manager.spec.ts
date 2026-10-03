@@ -24,6 +24,14 @@ describe('ObservatoryManager', () => {
     manager = TestBed.inject(ObservatoryManager);
   });
 
+  const holdTwo = (): void => {
+    manager.syncRoute('sheet', 'a');
+    manager.togglePin('sheet');
+    manager.syncRoute('sheet', 'b');
+    manager.togglePin('sheet');
+    manager.syncRoute('sheet', 'c');
+  };
+
   it('exposes its state read-only', () => {
     expect('set' in manager.view).toBe(false);
     expect('set' in manager.slug).toBe(false);
@@ -357,5 +365,140 @@ describe('ObservatoryManager', () => {
 
     expect(manager.selected()).toBeNull();
     expect(navigated).toEqual([]);
+  });
+
+  describe('sheets held beside the one being read', () => {
+    it('parks a pinned sheet when another project opens', () => {
+      manager.syncRoute('sheet', 'a');
+      manager.togglePin('sheet');
+
+      manager.syncRoute('sheet', 'b');
+
+      expect(manager.held().map(({ slug }) => slug)).toEqual(['a']);
+      expect(manager.pins().sheet).toBe(false);
+      expect(manager.slug()).toBe('b');
+    });
+
+    it('exposes the key of the window being read, and the held ones as read-only state', () => {
+      holdTwo();
+
+      expect(manager.sheetKey()).toBe(2);
+      expect('set' in manager.held).toBe(false);
+      expect('set' in manager.sheetKey).toBe(false);
+    });
+
+    it('holds nothing on the phone, where one sheet turns to the next project', () => {
+      resizeTo(390, 844);
+      manager.syncRoute('sheet', 'a');
+      manager.togglePin('sheet');
+
+      manager.syncRoute('sheet', 'b');
+
+      expect(manager.held()).toEqual([]);
+      expect(manager.pins().sheet).toBe(true);
+      vi.unstubAllGlobals();
+    });
+
+    it('shows no held sheet on the phone, even those held before the screen turned', () => {
+      holdTwo();
+
+      resizeTo(390, 844);
+
+      expect(manager.held()).toEqual([]);
+      vi.unstubAllGlobals();
+    });
+
+    it('closes a held sheet without leaving the page', async () => {
+      holdTwo();
+
+      await manager.closeSheet(0);
+
+      expect(manager.held().map(({ slug }) => slug)).toEqual(['b']);
+      expect(manager.slug()).toBe('c');
+      expect(navigated).toEqual([]);
+    });
+
+    it('closes the sheet being read as the window does: unpinned, then back to the list', async () => {
+      holdTwo();
+
+      await manager.closeSheet(manager.sheetKey());
+
+      expect(navigated).toEqual(['/projets']);
+      expect(manager.held()).toHaveLength(2);
+    });
+
+    it('unpins a held sheet by closing it', () => {
+      holdTwo();
+
+      manager.togglePinSheet(1);
+
+      expect(manager.held().map(({ slug }) => slug)).toEqual(['a']);
+    });
+
+    it('pins the sheet being read like the window', () => {
+      holdTwo();
+
+      manager.togglePinSheet(manager.sheetKey());
+
+      expect(manager.pins().sheet).toBe(true);
+      expect(manager.held()).toHaveLength(2);
+    });
+
+    it('reduces a held sheet alone, and the sheet being read alone', () => {
+      holdTwo();
+
+      manager.minimizeSheet(0);
+
+      expect(manager.held().map(({ minimized }) => minimized)).toEqual([
+        true,
+        false,
+      ]);
+      expect(manager.showsSheet()).toBe(true);
+
+      manager.minimizeSheet(manager.sheetKey());
+
+      expect(manager.showsSheet()).toBe(false);
+      expect(manager.held().map(({ minimized }) => minimized)).toEqual([
+        true,
+        false,
+      ]);
+    });
+
+    it('moves a held sheet to a chapter without moving the one being read', () => {
+      holdTwo();
+
+      manager.chooseSheetChapter(1, 2);
+
+      expect(manager.held().map(({ chapter }) => chapter)).toEqual([0, 2]);
+      expect(manager.chapter()).toBe(0);
+
+      manager.chooseSheetChapter(manager.sheetKey(), 1);
+
+      expect(manager.chapter()).toBe(1);
+      expect(manager.held().map(({ chapter }) => chapter)).toEqual([0, 2]);
+    });
+
+    it('makes the sheet being read the heading of the page only while it is the view', () => {
+      manager.syncRoute('sheet', 'a');
+      manager.togglePin('sheet');
+
+      expect(manager.headsSheet()).toBe(true);
+
+      manager.syncRoute('home');
+
+      expect(manager.headsSheet()).toBe(false);
+      expect(manager.opensSheet()).toBe(true);
+    });
+
+    it('keeps the pinned sheet as the heading on the phone, as it always was', () => {
+      resizeTo(390, 844);
+      manager.syncRoute('sheet', 'a');
+      manager.togglePin('sheet');
+
+      manager.syncRoute('home');
+
+      expect(manager.headsSheet()).toBe(true);
+      vi.unstubAllGlobals();
+    });
   });
 });

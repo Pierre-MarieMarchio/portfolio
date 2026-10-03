@@ -1,11 +1,13 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
 import { ViewHeadingDirective } from '@shared/ui/directives';
+import { KeptWindowDirective } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
 import { ObservatoryManager } from '../states';
 import { ViewSlotDirective } from '../directives';
+import type { ViewSlot } from '../models';
 import { ViewWindowsService } from './view-windows.service';
 
 @Component({
@@ -35,6 +37,28 @@ class Views {}
   `,
 })
 class Scrolling {}
+
+interface SheetEntry {
+  readonly key: number;
+  readonly slot: ViewSlot | null;
+  readonly title: string;
+}
+
+@Component({
+  imports: [ViewHeadingDirective, ViewSlotDirective, KeptWindowDirective],
+  template: `
+    @for (sheet of sheets(); track sheet.key) {
+      <div [appViewSlot]="sheet.slot" appKeptWindow [shown]="true">
+        <h1 tabindex="-1" appViewHeading>{{ sheet.title }}</h1>
+      </div>
+    }
+  `,
+})
+class Sheets {
+  public readonly sheets = signal<readonly SheetEntry[]>([
+    { key: 0, slot: 'sheet', title: 'First' },
+  ]);
+}
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
@@ -95,6 +119,22 @@ const mountScrolling = async (isReduced: boolean) => {
     body: part('.body'),
     page: part('.page'),
   };
+};
+
+const mountSheetStack = () => {
+  TestBed.configureTestingModule({
+    providers: [provideStatewise(), WindowStackService, ViewWindowsService],
+  });
+  const observatory = TestBed.inject(ObservatoryManager);
+  const stack = TestBed.inject(WindowStackService);
+  const windows = TestBed.inject(ViewWindowsService);
+  observatory.syncRoute('sheet', 'a');
+  observatory.togglePin('sheet');
+  observatory.syncRoute('sheet', 'b');
+  for (const id of ['sheet:0', 'sheet:1', 'about']) {
+    stack.register(id);
+  }
+  return { observatory, stack, windows };
 };
 
 describe('ViewWindowsService', () => {
@@ -220,6 +260,62 @@ describe('ViewWindowsService', () => {
       windows.scrollToTop('about');
 
       expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'instant' });
+    });
+  });
+
+  describe('the sheet windows', () => {
+    it('brings every sheet window to the front when asked, the one being read last', () => {
+      const { stack, windows } = mountSheetStack();
+
+      windows.bringToFront('sheet');
+
+      expect(stack.depthOf('about')).toBe(0);
+      expect(stack.depthOf('sheet:0')).toBe(1);
+      expect(stack.depthOf('sheet:1')).toBe(2);
+    });
+
+    it('brings only the window being read to the front when the view changes, not the held ones', () => {
+      const { observatory, stack } = mountSheetStack();
+      stack.bringToFront('about');
+      TestBed.tick();
+
+      observatory.syncRoute('home');
+      observatory.syncRoute('sheet', 'b');
+      TestBed.tick();
+
+      const depth = (id: string): number => stack.depthOf(id) ?? -1;
+      expect(depth('sheet:0')).toBeLessThan(depth('about'));
+      expect(depth('about')).toBeLessThan(depth('sheet:1'));
+    });
+
+    it('gives the focus to the title of the window opened beside a pinned one, once it is shown', async () => {
+      TestBed.configureTestingModule({
+        imports: [Sheets],
+        providers: [provideStatewise(), WindowStackService, ViewWindowsService],
+      });
+      const observatory = TestBed.inject(ObservatoryManager);
+      observatory.syncRoute('sheet', 'a');
+      TestBed.inject(ViewWindowsService);
+      const fixture = TestBed.createComponent(Sheets);
+      document.body.append(fixture.nativeElement as HTMLElement);
+      const settle = async (): Promise<void> => {
+        for (let frame = 0; frame < 4; frame += 1) {
+          await fixture.whenStable();
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+      };
+      await settle();
+      expect(document.activeElement?.textContent).toBe('First');
+
+      observatory.togglePin('sheet');
+      fixture.componentInstance.sheets.set([
+        { key: 0, slot: null, title: 'First' },
+        { key: 1, slot: 'sheet', title: 'Second' },
+      ]);
+      observatory.syncRoute('sheet', 'b');
+      await settle();
+
+      expect(document.activeElement?.textContent).toBe('Second');
     });
   });
 });

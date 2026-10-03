@@ -9,7 +9,6 @@ import {
   viewChildren,
 } from '@angular/core';
 import { DisplayFormatService, LocaleService } from '@app/core/services';
-import { SceneAnchorKind } from '@app/features/common';
 import {
   AnimationToggleComponent,
   HomeTitleComponent,
@@ -27,13 +26,14 @@ import {
 import {
   OBSERVATORY_IDS,
   ObservatoryView,
-  ObservatoryWindow,
   Planet,
+  SCENE_ANCHORS,
 } from '@app/features/observatory/models';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
 import {
-  closeTargetOf,
+  closeLabelsOf,
   sheetOnShowOf,
+  sheetWindowsOf,
   SheetFrom,
   SheetOnShow,
   viewAtAddress,
@@ -159,16 +159,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
   protected readonly ids = OBSERVATORY_IDS;
   protected readonly homeSheet = inject(HomeSheetService);
   protected readonly tabs = inject(TabNavigationService);
-  protected readonly anchor: {
-    readonly [K in Exclude<SceneAnchorKind, 'line'>]: K;
-  } = {
-    panel: 'panel',
-    head: 'head',
-    rule: 'rule',
-    detail: 'detail',
-    preview: 'preview',
-    chrome: 'chrome',
-  };
+  protected readonly anchor = SCENE_ANCHORS;
 
   protected readonly arrival = this.homeReveal.arrival;
   protected readonly isOpening = this.homeReveal.isOpening;
@@ -226,25 +217,30 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     if (this.observatory.opensAbout()) {
       routes.push(this.links.routeOf('about'));
     }
-    if (this.observatory.opensList() || this.observatory.opensSheet()) {
+    if (
+      this.observatory.opensList() ||
+      this.observatory.opensSheet() ||
+      this.observatory.held().length > 0
+    ) {
       routes.push(this.links.routeOf('index'));
     }
     return routes;
   });
 
-  protected readonly closeLabels = computed(() => {
-    const view = this.observatory.view();
-    const { closeTo } = this.observatoryTexts();
-    const labelOf = (window: ObservatoryWindow): string => {
-      const target = closeTargetOf(window, view);
-      return target === null ? '' : closeTo[target];
-    };
-    return {
-      about: labelOf('about'),
-      index: labelOf('index'),
-      sheet: labelOf('sheet'),
-    };
-  });
+  protected readonly closeLabels = computed(() =>
+    closeLabelsOf(this.observatory.view(), this.observatoryTexts().closeTo),
+  );
+
+  protected readonly sheets = computed(() =>
+    sheetWindowsOf(this.observatory.held(), this.observatory.sheetKey(), {
+      ...this.sheet(),
+      isPinned: this.observatory.pins().sheet,
+      isShown: this.observatory.showsSheet(),
+      isKept: this.observatory.kept().includes('sheet'),
+      isCurrent: this.observatory.headsSheet(),
+      closeLabel: this.closeLabels().sheet,
+    }),
+  );
 
   protected readonly showsRule = computed(
     () =>

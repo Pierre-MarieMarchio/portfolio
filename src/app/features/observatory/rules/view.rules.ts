@@ -1,4 +1,9 @@
-import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
+import {
+  MinimizableWindow,
+  ObservatoryPins,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../models';
 import { OBSERVATORY_WINDOWS } from '../models/observatory.model';
 
 export type ParentView = 'home' | 'index';
@@ -32,6 +37,21 @@ export function closeTargetOf(
   view: ObservatoryView,
 ): ParentView | null {
   return windowOf(view) === window ? parentOf(view) : null;
+}
+
+export function closeLabelsOf(
+  view: ObservatoryView,
+  closeTo: Readonly<Record<ParentView, string>>,
+): Readonly<Record<MinimizableWindow, string>> {
+  const labelOf = (window: ObservatoryWindow): string => {
+    const target = closeTargetOf(window, view);
+    return target === null ? '' : closeTo[target];
+  };
+  return {
+    about: labelOf('about'),
+    index: labelOf('index'),
+    sheet: labelOf('sheet'),
+  };
 }
 
 export function windowOf(view: ObservatoryView): ObservatoryWindow | null {

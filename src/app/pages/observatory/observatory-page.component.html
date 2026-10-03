@@ -93,43 +93,46 @@
       }
     </div>
 
-    <div
-      appViewSlot="sheet"
-      class="slot slot--sheet"
-      appStackedWindow="sheet"
-      appWindowFrame
-      appKeptWindow
-      [shown]="observatory.showsSheet()"
-      [attr.data-docked]="observatory.docked().includes('sheet')"
-      [appLayoutAnchor]="observatory.showsSheet() ? anchor.detail : null"
-    >
-      @if (observatory.kept().includes('sheet')) {
-        <app-bottom-sheet appWindowSheet appProjectSheet>
-          @let shown = sheet();
-          @if (shown.slug === null) {
+    @for (window of sheets(); track window.key) {
+      <div
+        [appViewSlot]="window.slot"
+        class="slot slot--sheet"
+        [appStackedWindow]="window.id"
+        appWindowFrame
+        appKeptWindow
+        [shown]="window.isShown"
+        [attr.data-docked]="observatory.docked().includes('sheet')"
+        [appLayoutAnchor]="window.isFraming ? anchor.detail : null"
+      >
+        @if (window.content === 'not-found') {
+          <app-bottom-sheet appWindowSheet appProjectSheet>
             <app-not-found-window
-              [current]="observatory.opensSheet()"
+              [current]="window.isCurrent"
               [total]="projects.ranked().length"
-              [closeLabel]="closeLabels().sheet"
-              (closed)="observatory.close('sheet')"
+              [closeLabel]="window.closeLabel"
+              (closed)="observatory.closeSheet(window.key)"
             />
-          } @else {
+          </app-bottom-sheet>
+        } @else if (window.content === 'detail') {
+          <app-bottom-sheet appWindowSheet appProjectSheet>
             <app-project-detail
-              [current]="observatory.opensSheet()"
-              [slug]="shown.slug"
-              [pinned]="observatory.pins().sheet"
-              [chapter]="shown.chapter"
-              (chapterChange)="observatory.chooseChapter($event)"
-              (pinToggled)="observatory.togglePin('sheet')"
-              (minimized)="tabs.minimize('sheet', nav)"
-              [closeLabel]="closeLabels().sheet"
-              (closed)="observatory.close('sheet')"
-              (indexRequested)="tabs.ascendToIndex()"
+              [current]="window.isCurrent"
+              [slug]="window.slug"
+              [pinned]="window.isPinned"
+              [chapter]="window.chapter"
+              (chapterChange)="
+                observatory.chooseSheetChapter(window.key, $event)
+              "
+              (pinToggled)="observatory.togglePinSheet(window.key)"
+              (minimized)="tabs.minimizeSheet(window.key, nav)"
+              [closeLabel]="window.closeLabel"
+              (closed)="observatory.closeSheet(window.key)"
+              (listChosen)="tabs.choose(links.routeOf('index'))"
             />
-          }
-        </app-bottom-sheet>
-      }
-    </div>
+          </app-bottom-sheet>
+        }
+      </div>
+    }
 
     @if (!homeSheet.isPhone()) {
       <div

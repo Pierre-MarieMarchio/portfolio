@@ -979,6 +979,196 @@ describe('ObservatoryPageComponent', () => {
     });
   });
 
+  describe('several sheets on the desktop', () => {
+    const SLUGS = ['alpha', 'beta', 'gamma'];
+    const SHEET_ENTRIES = SLUGS.map((slug) =>
+      sampleEntry({ project: { slug, title: `Title ${slug}` } }),
+    );
+
+    const mountSheets = async (isPhone = false) => {
+      const mounted = await mount({ entries: SHEET_ENTRIES, phone: isPhone });
+      const slots = (): HTMLElement[] => [
+        ...mounted.host.querySelectorAll<HTMLElement>('.slot--sheet'),
+      ];
+      const shown = (): string[] =>
+        slots()
+          .filter((slot) => slot.dataset['shown'] === 'true')
+          .map(
+            (slot) =>
+              slot.querySelector('[data-window-title]')?.textContent?.trim() ??
+              '',
+          );
+      const slotOf = (title: string): HTMLElement =>
+        slots().find(
+          (slot) =>
+            slot.querySelector('[data-window-title]')?.textContent?.trim() ===
+            title,
+        ) as HTMLElement;
+      const press = async (title: string, control: string): Promise<void> => {
+        slotOf(title).querySelector<HTMLButtonElement>(`.${control}`)?.click();
+        await mounted.fixture.whenStable();
+      };
+      const open = async (slug: string): Promise<void> => {
+        mounted.station.syncRoute('sheet', slug);
+        await shownAfterFrames(mounted.fixture);
+      };
+      return { ...mounted, slots, shown, slotOf, press, open };
+    };
+
+    it('keeps a pinned sheet on its project when another opens in front of it', async () => {
+      const { station, host, shown, slotOf, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+
+      await open('beta');
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+      expect(station.slug()).toBe('beta');
+      const rank = rankOf(host);
+      expect(rank('sheet')).toBeGreaterThan(0);
+      expect(
+        Number(slotOf('Title beta').style.getPropertyValue('--stack')),
+      ).toBeGreaterThan(
+        Number(slotOf('Title alpha').style.getPropertyValue('--stack')),
+      );
+    });
+
+    it('keeps every pinned sheet when the reader goes home, and opens another in front', async () => {
+      const { station, fixture, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+      await press('Title beta', 'pin');
+
+      station.syncRoute('home');
+      await shownAfterFrames(fixture);
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+
+      await open('gamma');
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta', 'Title gamma']);
+    });
+
+    it('names each window after its project, with a single h1 on the page', async () => {
+      const { host, slotOf, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      expect(
+        slotOf('Title alpha')
+          .querySelector('.window')
+          ?.getAttribute('aria-label'),
+      ).toBe('Title alpha, gardée ouverte');
+      expect(
+        slotOf('Title beta')
+          .querySelector('.window')
+          ?.getAttribute('aria-label'),
+      ).toBe('Title beta');
+      expect(
+        [...host.querySelectorAll('h1')].map((h) => h.textContent),
+      ).toEqual(['Title beta']);
+    });
+
+    it('puts a sheet that is opened again in front, without duplicating it', async () => {
+      const { station, slots, shown, slotOf, press, open } =
+        await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+      await press('Title beta', 'pin');
+      await open('gamma');
+      const count = slots().length;
+
+      await open('alpha');
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+      expect(
+        slots().filter(
+          (slot) =>
+            slot.querySelector('[data-window-title]')?.textContent?.trim() ===
+            'Title alpha',
+        ),
+      ).toHaveLength(1);
+      expect(slots().length).toBeLessThan(count);
+      expect(station.slug()).toBe('alpha');
+      expect(
+        Number(slotOf('Title alpha').style.getPropertyValue('--stack')),
+      ).toBeGreaterThan(
+        Number(slotOf('Title beta').style.getPropertyValue('--stack')),
+      );
+    });
+
+    it('closes a held sheet without leaving the page', async () => {
+      const { station, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      await press('Title alpha', 'close');
+
+      expect(shown()).toEqual(['Title beta']);
+      expect(station.slug()).toBe('beta');
+    });
+
+    it('reduces one sheet alone, and gives them all back from the Projets entry', async () => {
+      const { fixture, host, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      await press('Title alpha', 'minimize');
+
+      expect(shown()).toEqual(['Title beta']);
+      expect(openOf(host)).toEqual([false, true, false]);
+
+      host
+        .querySelector<HTMLElement>('app-main-nav a[href="/projets"]')
+        ?.click();
+      await shownAfterFrames(fixture);
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+    });
+
+    it('marks Projets while a held sheet stays open, back on the home page', async () => {
+      const { station, fixture, host, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+      await press('Title alpha', 'minimize');
+
+      station.syncRoute('home');
+      await shownAfterFrames(fixture);
+
+      expect(openOf(host)).toEqual([false, true, false]);
+    });
+
+    it('moves one sheet through its chapters without moving the others', async () => {
+      const { station, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      station.chooseSheetChapter(0, 1);
+
+      expect(station.held().map(({ chapter }) => chapter)).toEqual([1]);
+      expect(station.chapter()).toBe(0);
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+    });
+
+    it('keeps one window on the phone, the pinned sheet turning to the next project', async () => {
+      const { station, slots, open, press } = await mountSheets(true);
+      await open('alpha');
+      await press('Title alpha', 'pin');
+
+      await open('beta');
+
+      expect(slots()).toHaveLength(1);
+      expect(station.held()).toEqual([]);
+    });
+  });
+
   describe('the order of the page', () => {
     it('reaches the page bar, the windows and the rest of the page before the moving planets', async () => {
       const { host } = await mount();

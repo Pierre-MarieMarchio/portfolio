@@ -1,6 +1,6 @@
 @if (detail(); as detail) {
   <app-window
-    [label]="texts().sheet.label"
+    [label]="isPhone() ? texts().sheet.label : ''"
     size="l"
     [heading]="project()?.title ?? ''"
     [stableHeight]="true"

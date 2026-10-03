@@ -7,7 +7,11 @@ import {
 
 export const observatoryRouteSynced = defineSingleAction(
   'OBSERVATORY_ROUTE_SYNCED',
-  payload<{ view: ObservatoryView; slug: string | null }>(),
+  payload<{
+    view: ObservatoryView;
+    slug: string | null;
+    canHoldSheets?: boolean;
+  }>(),
 );
 
 export const observatoryPinToggled = defineSingleAction(
@@ -78,4 +82,14 @@ export const observatoryHovered = defineSingleAction(
 export const observatoryWindowPrepared = defineSingleAction(
   'OBSERVATORY_WINDOW_PREPARED',
   payload<ObservatoryWindow>(),
+);
+
+export const observatoryHeldSheetClosed = defineSingleAction(
+  'OBSERVATORY_HELD_SHEET_CLOSED',
+  payload<number>(),
+);
+
+export const observatoryHeldSheetEdited = defineSingleAction(
+  'OBSERVATORY_HELD_SHEET_EDITED',
+  payload<{ key: number; minimized?: boolean; chapter?: number }>(),
 );

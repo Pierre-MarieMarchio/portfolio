@@ -25,5 +25,5 @@ export interface SwipeHost {
   readonly platform: MobileNavPlatform;
   readonly appSwipeSteps: Signal<SwipeStops>;
   readonly stepped: OutputEmitterRef<number>;
-  readonly afterRender: (fn: () => void) => () => void;
+  readonly afterRender: (callback: () => void) => () => void;
 }

@@ -38,8 +38,8 @@ export class SwipeStepsDirective implements SwipeHost {
     });
   }
 
-  public readonly afterRender = (fn: () => void): (() => void) => {
-    const ref = afterNextRender(fn, { injector: this.injector });
+  public readonly afterRender = (callback: () => void): (() => void) => {
+    const ref = afterNextRender(callback, { injector: this.injector });
     return () => {
       ref.destroy();
     };

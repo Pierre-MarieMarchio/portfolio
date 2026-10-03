@@ -102,16 +102,7 @@ export class PagerComponent {
     });
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
       afterNextRender(() => {
-        for (const type of TOUCHES) {
-          this.element.addEventListener(type, this.onTouch, {
-            passive: true,
-          });
-        }
-        this.stopTouch = () => {
-          for (const type of TOUCHES) {
-            this.element.removeEventListener(type, this.onTouch);
-          }
-        };
+        this.listenToTouches();
       });
     }
     inject(DestroyRef).onDestroy(() => {
@@ -121,6 +112,17 @@ export class PagerComponent {
       this.stopFrame();
       this.stopTimer();
     });
+  }
+
+  private listenToTouches(): void {
+    for (const type of TOUCHES) {
+      this.element.addEventListener(type, this.onTouch, { passive: true });
+    }
+    this.stopTouch = () => {
+      for (const type of TOUCHES) {
+        this.element.removeEventListener(type, this.onTouch);
+      }
+    };
   }
 
   protected onScroll(): void {

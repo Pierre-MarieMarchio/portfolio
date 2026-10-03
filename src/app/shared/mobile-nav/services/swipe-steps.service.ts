@@ -87,30 +87,39 @@ export class SwipeStepsService {
   private move(gesture: Gesture, event: PointerEvent): void {
     const dx = event.clientX - gesture.x;
     const dy = event.clientY - gesture.y;
-    if (!gesture.isDecided) {
-      if (Math.max(Math.abs(dx), Math.abs(dy)) < SLOP) {
-        return;
-      }
-      gesture.isDecided = true;
-      if (Math.abs(dy) >= Math.abs(dx)) {
-        this.gesture = null;
-        return;
-      }
+    if (!gesture.isDecided && !this.decide(gesture, dx, dy)) {
+      return;
     }
     gesture.travel = dx;
     if (!this.host.platform.reducedMotion()) {
-      this.stopFrame();
-      this.stopFrame = this.host.platform.nextFrame(() => {
-        const { pane, at } = followOf(
-          dx,
-          gesture.area.clientWidth,
-          this.host.appSwipeSteps().index,
-          this.host.appSwipeSteps().count,
-        );
-        gesture.pane = pane;
-        this.set({ '--swipe-pane': pane, '--swipe-at': at });
-      });
+      this.followNextFrame(gesture, dx);
     }
+  }
+
+  private decide(gesture: Gesture, dx: number, dy: number): boolean {
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < SLOP) {
+      return false;
+    }
+    gesture.isDecided = true;
+    if (Math.abs(dy) >= Math.abs(dx)) {
+      this.gesture = null;
+      return false;
+    }
+    return true;
+  }
+
+  private followNextFrame(gesture: Gesture, dx: number): void {
+    this.stopFrame();
+    this.stopFrame = this.host.platform.nextFrame(() => {
+      const { pane, at } = followOf(
+        dx,
+        gesture.area.clientWidth,
+        this.host.appSwipeSteps().index,
+        this.host.appSwipeSteps().count,
+      );
+      gesture.pane = pane;
+      this.set({ '--swipe-pane': pane, '--swipe-at': at });
+    });
   }
 
   private letGo(gesture: Gesture, event: PointerEvent): void {
@@ -159,14 +168,14 @@ export class SwipeStepsService {
     }
   }
 
-  private afterSwap(fn: () => void): void {
+  private afterSwap(callback: () => void): void {
     let isDone = false;
     let stop = ignore;
     const run = (): void => {
       if (!isDone) {
         isDone = true;
         stop();
-        fn();
+        callback();
       }
     };
     const stopRender = this.host.afterRender(run);

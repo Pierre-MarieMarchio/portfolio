@@ -251,14 +251,12 @@ export class BottomSheetComponent {
     });
   }
 
+  private readonly isSettled = (): boolean =>
+    !this.release().isTouching && !this.isHeading;
+
   private measure(): void {
     const rail = this.rail().nativeElement;
-    if (
-      !this.isActive() ||
-      this.release().isTouching ||
-      this.isHeading ||
-      rail.clientHeight === 0
-    ) {
+    if (!this.isActive() || !this.isSettled() || rail.clientHeight === 0) {
       return;
     }
     const peek = this.peekNow();
@@ -267,12 +265,13 @@ export class BottomSheetComponent {
       this.element.style.setProperty('--mnav-sheet-peek', `${String(peek)}px`);
     }
     const stop = stopOf(this.stopsNow(), this.committed ?? this.detent());
-    if (stop && !isAtStop(rail.scrollTop, stop.at)) {
+    if (!stop) {
+      return;
+    }
+    if (!isAtStop(rail.scrollTop, stop.at)) {
       rail.scrollTo({ top: stop.at, behavior: 'instant' });
     }
-    if (stop) {
-      this.commit(stop);
-    }
+    this.commit(stop);
   }
 
   private commit(stop: SheetStop): void {

@@ -8,8 +8,13 @@ import {
   ProjectSource,
 } from '../models';
 
-type Fields = Record<string, unknown>;
+type RawFields = Record<string, unknown>;
+interface Fields {
+  readonly values: RawFields;
+  readonly unread: Set<string>;
+}
 type Reader<T> = (value: unknown, path: string) => T;
+type FieldsReader<T> = (fields: Fields, path: string) => T;
 type Link = DetailSource['links'][number];
 type Chapter = DetailSource['chapters'][number];
 type Bullet = NonNullable<Chapter['bullets']>[number];
@@ -25,12 +30,26 @@ function expected(path: string, what: string, value: unknown): never {
   throw new Error(`${path}: expected ${what}, found ${found}`);
 }
 
-function isFields(value: unknown): value is Fields {
+function isRecord(value: unknown): value is RawFields {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function readFields(value: unknown, path: string): Fields {
-  return isFields(value) ? value : expected(path, 'an object', value);
+  const values = isRecord(value) ? value : expected(path, 'an object', value);
+  return { values, unread: new Set(Object.keys(values)) };
+}
+
+function take(fields: Fields, key: string): unknown {
+  fields.unread.delete(key);
+  return fields.values[key];
+}
+
+function closed<T>(fields: Fields, path: string, built: T): T {
+  const [key] = [...fields.unread];
+  if (key !== undefined) {
+    throw new Error(`${childPath(path, key)}: unexpected field`);
+  }
+  return built;
 }
 
 function readString(value: unknown, path: string): string {
@@ -45,17 +64,19 @@ function readList<T>(value: unknown, path: string, read: Reader<T>): T[] {
 
 function readBilingual(value: unknown, path: string): Localized {
   const fields = readFields(value, path);
-  const hasEn = 'en' in fields;
-  if (hasEn === 'enDraft' in fields) {
+  const en = take(fields, 'en');
+  const enDraft = take(fields, 'enDraft');
+  if ((en === undefined) === (enDraft === undefined)) {
     throw new Error(`${path}: expected exactly one of en or enDraft`);
   }
-  const fr = readString(fields['fr'], childPath(path, 'fr'));
-  return hasEn
-    ? bilingual(fr, readString(fields['en'], childPath(path, 'en')))
-    : bilingual(
-        fr,
-        draft(readString(fields['enDraft'], childPath(path, 'enDraft'))),
-      );
+  const fr = required(fields, path, 'fr', readString);
+  const isReviewed = en !== undefined;
+  const english = closed(
+    fields,
+    path,
+    readString(en ?? enDraft, childPath(path, isReviewed ? 'en' : 'enDraft')),
+  );
+  return isReviewed ? bilingual(fr, english) : bilingual(fr, draft(english));
 }
 
 function readText(value: unknown, path: string): Text {
@@ -79,7 +100,7 @@ function required<T>(
   key: string,
   read: Reader<T>,
 ): T {
-  return read(fields[key], childPath(path, key));
+  return read(take(fields, key), childPath(path, key));
 }
 
 function optional<T>(
@@ -88,9 +109,8 @@ function optional<T>(
   key: string,
   read: Reader<T>,
 ): T | undefined {
-  return fields[key] === undefined
-    ? undefined
-    : read(fields[key], childPath(path, key));
+  const value = take(fields, key);
+  return value === undefined ? undefined : read(value, childPath(path, key));
 }
 
 function listOf<T>(read: Reader<T>): Reader<T[]> {
@@ -100,7 +120,7 @@ function listOf<T>(read: Reader<T>): Reader<T[]> {
 function readProject(value: unknown, path: string): ProjectSource {
   const fields = readFields(value, path);
   const tag = optional(fields, path, 'tag', readText);
-  return {
+  return closed(fields, path, {
     slug: required(fields, path, 'slug', readString),
     title: required(fields, path, 'title', readText),
     short: required(fields, path, 'short', readText),
@@ -108,74 +128,73 @@ function readProject(value: unknown, path: string): ProjectSource {
     family: required(fields, path, 'family', readFamily),
     subject: required(fields, path, 'subject', readText),
     summary: required(fields, path, 'summary', readText),
-  };
+  });
 }
 
 function readFacts(value: unknown, path: string): FactsSource {
   const fields = readFields(value, path);
-  return {
+  return closed(fields, path, {
     proof: required(fields, path, 'proof', readText),
     role: required(fields, path, 'role', readText),
     stack: required(fields, path, 'stack', readText),
     context: required(fields, path, 'context', readText),
     period: required(fields, path, 'period', readText),
-  };
+  });
 }
 
 function readLink(value: unknown, path: string): Link {
   const fields = readFields(value, path);
-  return {
+  return closed(fields, path, {
     label: required(fields, path, 'label', readText),
     href: required(fields, path, 'href', readString),
-  };
+  });
 }
 
 function readBullet(value: unknown, path: string): Bullet {
   const fields = readFields(value, path);
-  return {
+  return closed(fields, path, {
     term: required(fields, path, 'term', readText),
     text: required(fields, path, 'text', readText),
-  };
+  });
 }
 
 function readLayer(value: unknown, path: string): Layer {
   const fields = readFields(value, path);
-  return {
+  return closed(fields, path, {
     name: required(fields, path, 'name', readText),
     projects: required(fields, path, 'projects', readText),
-  };
+  });
 }
 
-function readFlow(value: unknown, path: string): Figure {
-  const fields = readFields(value, path);
-  return {
+function readFlow(fields: Fields, path: string): Figure {
+  return closed(fields, path, {
     kind: 'flow',
     steps: required(fields, path, 'steps', readTexts),
     loop: required(fields, path, 'loop', readText),
     caption: required(fields, path, 'caption', readText),
-  };
+  });
 }
 
-function readLayers(value: unknown, path: string): Figure {
-  const fields = readFields(value, path);
-  return {
+function readLayers(fields: Fields, path: string): Figure {
+  return closed(fields, path, {
     kind: 'layers',
     layers: required(fields, path, 'layers', listOf(readLayer)),
     caption: required(fields, path, 'caption', readText),
-  };
+  });
 }
 
-const FIGURE_READERS = new Map<unknown, Reader<Figure>>([
+const FIGURE_READERS = new Map<unknown, FieldsReader<Figure>>([
   ['flow', readFlow],
   ['layers', readLayers],
 ]);
 
 function readFigure(value: unknown, path: string): Figure {
   const fields = readFields(value, path);
-  const read = FIGURE_READERS.get(fields['kind']);
+  const kind = take(fields, 'kind');
+  const read = FIGURE_READERS.get(kind);
   return read
-    ? read(value, path)
-    : expected(childPath(path, 'kind'), 'flow or layers', fields['kind']);
+    ? read(fields, path)
+    : expected(childPath(path, 'kind'), 'flow or layers', kind);
 }
 
 function readChapter(value: unknown, path: string): Chapter {
@@ -183,35 +202,35 @@ function readChapter(value: unknown, path: string): Chapter {
   const title = optional(fields, path, 'title', readText);
   const bullets = optional(fields, path, 'bullets', listOf(readBullet));
   const figure = optional(fields, path, 'figure', readFigure);
-  return {
+  return closed(fields, path, {
     ...(title === undefined ? {} : { title }),
     paragraphs: required(fields, path, 'paragraphs', readTexts),
     ...(bullets === undefined ? {} : { bullets }),
     ...(figure === undefined ? {} : { figure }),
-  };
+  });
 }
 
 function readDetail(value: unknown, path: string): DetailSource {
   const fields = readFields(value, path);
-  return {
+  return closed(fields, path, {
     lede: required(fields, path, 'lede', readText),
     links: required(fields, path, 'links', listOf(readLink)),
     chapters: required(fields, path, 'chapters', listOf(readChapter)),
-  };
+  });
 }
 
 function readEntry(value: unknown): ProjectEntry {
   const fields = readFields(value, 'entry');
-  return {
+  return closed(fields, '', {
     project: required(fields, '', 'project', readProject),
     facts: required(fields, '', 'facts', readFacts),
     detail: required(fields, '', 'detail', readDetail),
-  };
+  });
 }
 
 function slugOf(value: unknown): string | undefined {
-  const project = isFields(value) ? value['project'] : undefined;
-  const slug = isFields(project) ? project['slug'] : undefined;
+  const project = isRecord(value) ? value['project'] : undefined;
+  const slug = isRecord(project) ? project['slug'] : undefined;
   return typeof slug === 'string' ? slug : undefined;
 }
 

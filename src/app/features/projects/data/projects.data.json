@@ -1,0 +1,753 @@
+[
+  {
+    "project": {
+      "slug": "skyted-companion",
+      "title": "Skyted Companion",
+      "short": "Skyted Companion",
+      "tag": {
+        "fr": "en cours",
+        "enDraft": "in progress"
+      },
+      "family": "professional",
+      "subject": {
+        "fr": "L’application desktop du prochain casque Skyted, pour Windows, macOS et Linux, écrite en .NET avec Avalonia.",
+        "enDraft": "The desktop app for Skyted’s next headset, for Windows, macOS and Linux, written in .NET with Avalonia."
+      },
+      "summary": {
+        "fr": "application desktop, trois systèmes",
+        "enDraft": "desktop app, three systems"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "En développement · code privé",
+        "enDraft": "In development · private code"
+      },
+      "role": {
+        "fr": "Seul, de la conception au code",
+        "enDraft": "Alone, from design to code"
+      },
+      "stack": ".NET · Avalonia · Bluetooth",
+      "context": "Skyted",
+      "period": "2025 – 2026"
+    },
+    "detail": {
+      "lede": {
+        "fr": "La version ordinateur de l’application qui pilote les casques Skyted.",
+        "enDraft": "The computer version of the app that drives Skyted headsets."
+      },
+      "links": [],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "L’application du casque existait sur téléphone. Pour le prochain modèle, il la fallait aussi sur ordinateur, et sur les trois systèmes.",
+              "enDraft": "The headset’s app existed on phones. The next model needed it on computers too, on all three systems."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Le modèle de domaine, l’interface et son design system, la persistance avec EF Core, et un installeur pour chaque système. L’application s’appuie sur le monorepo .NET de Skyted, qu’elle partage avec Skyted Voice.",
+              "enDraft": "The domain model, the interface and its design system, persistence with EF Core, and an installer for each system. The app builds on Skyted’s .NET monorepo, which it shares with Skyted Voice."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Le Bluetooth ne se programme pas de la même façon sur Windows, macOS et Linux, ni en Bluetooth Classic ni en BLE. J’ai mis les trois implémentations derrière une seule interface, choisie au démarrage par injection de dépendances. Le reste de l’application ignore sur quel système elle tourne.",
+              "enDraft": "Bluetooth is not programmed the same way on Windows, macOS and Linux, neither Classic nor BLE. I put the three implementations behind a single interface, picked at startup through dependency injection. The rest of the app does not know which system it runs on."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Elle est toujours en développement. La connexion Bluetooth Classic et BLE est stable sous Windows, et la prochaine étape est l’intégration du SoundBubble.",
+              "enDraft": "It is still in development. The Bluetooth Classic and BLE connection is stable on Windows, and the next step is integrating SoundBubble."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "skyted-voice",
+      "title": "Skyted Voice",
+      "short": "Skyted Voice",
+      "family": "professional",
+      "subject": {
+        "fr": "Une application Android gratuite qui amplifie la voix, pour les personnes qui ont du mal à se faire entendre.",
+        "enDraft": "A free Android app that amplifies the voice, for people who struggle to be heard."
+      },
+      "summary": {
+        "fr": "amplification de la voix, Android",
+        "enDraft": "voice amplification, Android"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Sur Google Play",
+        "enDraft": "On Google Play"
+      },
+      "role": {
+        "fr": "Conception, développement et publication",
+        "enDraft": "Design, development and release"
+      },
+      "stack": {
+        "fr": ".NET · Avalonia · audio temps réel",
+        "enDraft": ".NET · Avalonia · real-time audio"
+      },
+      "context": "Skyted",
+      "period": "2025 – 2026"
+    },
+    "detail": {
+      "lede": {
+        "fr": "Pour ceux dont la voix porte mal, qu’elle soit fatiguée ou abîmée.",
+        "enDraft": "For people whose voice does not carry, whether tired or damaged."
+      },
+      "links": [
+        {
+          "label": "Google Play",
+          "href": "https://play.google.com/store/apps/details?id=io.skyted.skytedvoice"
+        },
+        {
+          "label": {
+            "fr": "Article de lancement sur skyted.io",
+            "enDraft": "Launch article on skyted.io"
+          },
+          "href": "https://www.skyted.io/fr/blog/skyted-voice-launches-on-android"
+        }
+      ],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "On parle normalement dans le micro d’un casque Bluetooth, et le téléphone restitue la voix plus fort, par son haut-parleur ou une enceinte. Elle marche avec n’importe quel casque Bluetooth, et mieux avec le Skyted 320.",
+              "enDraft": "You speak normally into a Bluetooth headset’s microphone, and the phone plays your voice back louder, through its speaker or a Bluetooth speaker. It works with any Bluetooth headset, and best with the Skyted 320."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "La chaîne audio capte le micro du casque et renvoie le son en continu vers la sortie du téléphone, avec AudioRecord et AudioTrack. Une collègue a participé au développement, et j’ai assuré la publication sur Google Play.",
+              "enDraft": "The audio chain captures the headset’s microphone and streams the sound to the phone’s output, with AudioRecord and AudioTrack. A colleague took part in the development, and I handled the release on Google Play."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Je l’avais d’abord écrite en .NET MAUI. Je l’ai passée en Avalonia, comme Companion, pour que les applications de Skyted partagent leur code au lieu d’utiliser chacune un framework différent. À terme, la refonte de l’application mobile, sur iOS et Android, doit pouvoir repartir de Companion.",
+              "enDraft": "I first wrote it in .NET MAUI. I moved it to Avalonia, like Companion, so that Skyted’s apps share their code instead of each using a different framework. Eventually, the rewrite of the mobile app, on iOS and Android, should be able to start from Companion."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Elle est sur Google Play depuis le 8 juin 2026.",
+              "enDraft": "It has been on Google Play since 8 June 2026."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "ngx-statewise",
+      "title": "ngx-statewise",
+      "short": "ngx-statewise",
+      "tag": "open source",
+      "family": "personal",
+      "subject": {
+        "fr": "Une bibliothèque de gestion d’état pour Angular, construite sur les signals, qui demande moins de code d’infrastructure que NgRx.",
+        "enDraft": "A state management library for Angular, built on signals, that takes less infrastructure code than NgRx."
+      },
+      "summary": {
+        "fr": "gestion d’état Angular",
+        "enDraft": "Angular state management"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Sur npm · code public",
+        "enDraft": "On npm · public code"
+      },
+      "role": {
+        "fr": "Seul",
+        "enDraft": "Alone"
+      },
+      "stack": "Angular · signals · TypeScript",
+      "context": {
+        "fr": "Personnel",
+        "enDraft": "Personal"
+      },
+      "period": {
+        "fr": "depuis 2025",
+        "enDraft": "since 2025"
+      }
+    },
+    "detail": {
+      "lede": {
+        "fr": "Publiée sur npm, avec un site de documentation en français et en anglais.",
+        "enDraft": "Published on npm, with a documentation site in French and English."
+      },
+      "links": [
+        {
+          "label": {
+            "fr": "Site de documentation",
+            "enDraft": "Documentation site"
+          },
+          "href": "https://pierre-mariemarchio.github.io/ngx-statewise/"
+        },
+        {
+          "label": "github.com/Pierre-MarieMarchio/ngx-statewise",
+          "href": "https://github.com/Pierre-MarieMarchio/ngx-statewise"
+        }
+      ],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "Avec NgRx ou NGXS, on écrit beaucoup de code d’infrastructure avant d’arriver à la première règle métier. ngx-statewise s’appuie sur les signals d’Angular pour en écrire moins.",
+              "enDraft": "With NgRx or NGXS, you write a lot of infrastructure code before reaching the first business rule. ngx-statewise builds on Angular’s signals so you write less of it."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "La bibliothèque, sa documentation et son site, depuis avril 2025. Elle est couverte à 100 % par ses tests.",
+              "enDraft": "The library, its documentation and its site, since April 2025. Its tests cover it at 100%."
+            }
+          ],
+          "bullets": [
+            {
+              "term": "actions",
+              "text": {
+                "fr": "ce qui s’est passé",
+                "enDraft": "what happened"
+              }
+            },
+            {
+              "term": "interceptors",
+              "text": {
+                "fr": "peuvent refuser une action avant qu’elle touche l’état",
+                "enDraft": "can refuse an action before it reaches the state"
+              }
+            },
+            {
+              "term": "updaters",
+              "text": {
+                "fr": "appliquent l’action à l’état, de façon synchrone",
+                "enDraft": "apply the action to the state, synchronously"
+              }
+            },
+            {
+              "term": "effects",
+              "text": {
+                "fr": "le travail asynchrone, qui renvoie l’action suivante",
+                "enDraft": "the asynchronous work, which returns the next action"
+              }
+            },
+            {
+              "term": "managers",
+              "text": {
+                "fr": "la seule chose à laquelle parlent les composants",
+                "enDraft": "the only thing components talk to"
+              }
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "L’état est écrit avant que les effets tournent. Un effet travaille donc toujours sur l’état à jour, et le comportement reste prévisible. En contrepartie, on ne lance pas d’effet sans passer par une action. La documentation dit aussi dans quels cas mieux vaut prendre autre chose.",
+              "enDraft": "The state is written before the effects run. An effect therefore always works on the current state, and the behaviour stays predictable. In return, you cannot start an effect without going through an action. The documentation also says when something else is a better fit."
+            }
+          ],
+          "figure": {
+            "kind": "flow",
+            "steps": ["action", "interceptor", "updater", "effect"],
+            "loop": {
+              "fr": "nouvelles actions",
+              "enDraft": "new actions"
+            },
+            "caption": {
+              "fr": "Le flux décrit dans la documentation.",
+              "enDraft": "The flow described in the documentation."
+            }
+          }
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "La 0.6 est la version stable, la 1.0 est en bêta depuis septembre 2026. Ce portfolio l’utilise.",
+              "enDraft": "Version 0.6 is the stable one, and 1.0 has been in beta since September 2026. This portfolio runs on it."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "template-dotnet",
+      "title": "Template Clean Architecture .NET",
+      "short": "Template .NET",
+      "tag": "open source",
+      "family": "personal",
+      "subject": {
+        "fr": "Un point de départ pour une API .NET 10 : Clean Architecture, PostgreSQL, authentification JWT complète, erreurs au format RFC 7807.",
+        "enDraft": "A starting point for a .NET 10 API: Clean Architecture, PostgreSQL, full JWT authentication, RFC 7807 errors."
+      },
+      "summary": {
+        "fr": "socle d’API .NET 10",
+        "enDraft": ".NET 10 API foundation"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Code public sur GitHub",
+        "enDraft": "Public code on GitHub"
+      },
+      "role": {
+        "fr": "Seul",
+        "enDraft": "Alone"
+      },
+      "stack": ".NET 10 · EF Core · PostgreSQL",
+      "context": {
+        "fr": "Personnel",
+        "enDraft": "Personal"
+      },
+      "period": {
+        "fr": "depuis 2025",
+        "enDraft": "since 2025"
+      }
+    },
+    "detail": {
+      "lede": {
+        "fr": "De quoi démarrer une API .NET avec l’authentification, les couches et la CI déjà en place.",
+        "enDraft": "What you need to start a .NET API with authentication, layers and CI already in place."
+      },
+      "links": [
+        {
+          "label": "github.com/Pierre-MarieMarchio/Template-DotNet_Clean_Architecture",
+          "href": "https://github.com/Pierre-MarieMarchio/Template-DotNet_Clean_Architecture"
+        }
+      ],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "Toute nouvelle API demande la même mise en place : les couches, la base, l’authentification, le format des erreurs, la CI. Ce dépôt la fournit déjà faite.",
+              "enDraft": "Every new API needs the same setup: layers, database, authentication, error format, CI. This repository ships it ready-made."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Le code, trois fonctionnalités d’exemple et une documentation par sujet. On peut le cloner tel quel, ou générer un projet à son nom avec dotnet new.",
+              "enDraft": "The code, three example features and one document per subject. You can clone it as is, or generate a project under your own name with dotnet new."
+            }
+          ],
+          "bullets": [
+            {
+              "term": {
+                "fr": "refus par défaut",
+                "enDraft": "default deny"
+              },
+              "text": {
+                "fr": "un endpoint est protégé sauf s’il dit le contraire",
+                "enDraft": "an endpoint is protected unless it opts out"
+              }
+            },
+            {
+              "term": "RFC 7807",
+              "text": {
+                "fr": "la même forme d’erreur partout, avec un code stable",
+                "enDraft": "the same error shape everywhere, with a stable code"
+              }
+            },
+            {
+              "term": {
+                "fr": "configuration vérifiée au démarrage",
+                "enDraft": "configuration checked at startup"
+              },
+              "text": {
+                "fr": "une erreur de réglage arrête l’API tout de suite",
+                "enDraft": "a wrong setting stops the API straight away"
+              }
+            },
+            {
+              "term": {
+                "fr": "tests d’architecture",
+                "enDraft": "architecture tests"
+              },
+              "text": {
+                "fr": "un projet mal placé fait échouer le build",
+                "enDraft": "a misplaced project fails the build"
+              }
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "EF Core ne mappe pas les entités du domaine mais des modèles de persistance, et un mapper fait la conversion. Ça coûte une classe de plus par entité. En échange, le domaine ne dépend pas de l’ORM, et un test échoue dès qu’une propriété se perd dans la conversion.",
+              "enDraft": "EF Core does not map the domain entities but persistence models, and a mapper converts between them. It costs one more class per entity. In exchange, the domain does not depend on the ORM, and a test fails as soon as a property gets lost in the conversion."
+            }
+          ],
+          "figure": {
+            "kind": "layers",
+            "layers": [
+              {
+                "name": "Domain",
+                "projects": "AppTemplate.Domain.Core · AppTemplate.Domain"
+              },
+              {
+                "name": "Application",
+                "projects": "Application.Core · Application · Application.Auth"
+              },
+              {
+                "name": "Infrastructure",
+                "projects": "Core · Persistence · Auth · Email · Storage · InMemory"
+              },
+              {
+                "name": "Presentation",
+                "projects": "Presentation.Core · Api.Core · Api · Worker"
+              },
+              {
+                "name": "Tests",
+                "projects": {
+                  "fr": "miroir 1:1 de Src/, plus Architecture/ et Integration/",
+                  "enDraft": "a 1:1 mirror of Src/, plus Architecture/ and Integration/"
+                }
+              }
+            ],
+            "caption": {
+              "fr": "L’arborescence du dépôt. Les tests d’architecture échouent si un projet est ajouté sans que sa place soit décrite.",
+              "enDraft": "The repository’s tree. The architecture tests fail if a project is added without its place being described."
+            }
+          }
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Le dépôt est public et se lance avec Docker Compose.",
+              "enDraft": "The repository is public and starts with Docker Compose."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "speakey",
+      "title": "Speakey",
+      "short": "Speakey",
+      "tag": {
+        "fr": "arrêté",
+        "enDraft": "stopped"
+      },
+      "family": "professional",
+      "subject": {
+        "fr": "Le site et l’API d’un outil de dictée vocale hébergé en Europe, chez Skyted.",
+        "enDraft": "The website and API of a voice dictation tool hosted in Europe, at Skyted."
+      },
+      "summary": {
+        "fr": "dictée vocale, web",
+        "enDraft": "voice dictation, web"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Pas de lien public",
+        "enDraft": "No public link"
+      },
+      "role": {
+        "fr": "Tout, sauf le moteur de reconnaissance",
+        "enDraft": "Everything but the recognition engine"
+      },
+      "stack": "Angular · .NET 10 · OVHcloud",
+      "context": "Skyted",
+      "period": "2025 – 2026"
+    },
+    "detail": {
+      "lede": {
+        "fr": "Tout le logiciel autour du moteur de reconnaissance de la parole, jusqu’à la mise en production.",
+        "enDraft": "All the software around the speech recognition engine, up to production."
+      },
+      "links": [],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "Skyted voulait un outil de dictée vocale dont les données restent en Europe. Le moteur de reconnaissance devait venir ensuite.",
+              "enDraft": "Skyted wanted a voice dictation tool whose data stays in Europe. The recognition engine was to come later."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Le front en Angular (signals, prérendu, i18n, design system en SCSS), l’API REST en .NET 10, et la mise en production sur un VPS OVHcloud en HTTPS, avec une CI/CD GitHub Actions.",
+              "enDraft": "The Angular front end (signals, prerendering, i18n, an SCSS design system), the .NET 10 REST API, and the production deployment on an OVHcloud VPS over HTTPS, with GitHub Actions CI/CD."
+            }
+          ]
+        },
+        {
+          "title": {
+            "fr": "Aujourd’hui",
+            "enDraft": "Today"
+          },
+          "paragraphs": [
+            {
+              "fr": "Le projet s’est arrêté avant l’arrivée du moteur.",
+              "enDraft": "The project stopped before the engine arrived."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "skyted-app",
+      "title": {
+        "fr": "Application Skyted 320",
+        "enDraft": "Skyted 320 app"
+      },
+      "short": "Skyted 320",
+      "family": "professional",
+      "subject": {
+        "fr": "L’application mobile du casque Skyted 320 : appairage, mises à jour, entraînement à parler bas et portée de la voix en temps réel.",
+        "enDraft": "The mobile app for the Skyted 320 headset: pairing, updates, training to speak quietly and live voice reach."
+      },
+      "summary": {
+        "fr": "application du casque, iOS et Android",
+        "enDraft": "headset app, iOS and Android"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Sur Google Play et l’App Store",
+        "enDraft": "On Google Play and the App Store"
+      },
+      "role": {
+        "fr": "En binôme : correctifs, Bluetooth, back-end",
+        "enDraft": "In a pair: fixes, Bluetooth, back end"
+      },
+      "stack": "Kotlin · Swift · BLE · Firebase",
+      "context": "Skyted",
+      "period": "2025 – 2026"
+    },
+    "detail": {
+      "lede": {
+        "fr": "L’application qui accompagne le casque, pour l’appairer, le mettre à jour et apprendre à parler bas.",
+        "enDraft": "The app that comes with the headset, to pair it, update it and learn to speak quietly."
+      },
+      "links": [
+        {
+          "label": "Google Play",
+          "href": "https://play.google.com/store/apps/details?id=io.skyted.app320.android"
+        },
+        {
+          "label": "App Store",
+          "href": "https://apps.apple.com/app/skyted-app/id6753917589"
+        }
+      ],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "Le Skyted 320 garde les appels confidentiels. L’application gère l’appareil (batterie, compte, mises à jour du firmware) et montre en temps réel jusqu’où la voix porte.",
+              "enDraft": "The Skyted 320 keeps calls private. The app manages the device (battery, account, firmware updates) and shows in real time how far your voice carries."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Des correctifs sur les versions iOS et Android, et la migration du back-end vers Firebase Functions v2.",
+              "enDraft": "Fixes on the iOS and Android versions, and the migration of the back end to Firebase Functions v2."
+            }
+          ]
+        },
+        {
+          "title": {
+            "fr": "Le Bluetooth, refait",
+            "enDraft": "Bluetooth, redone"
+          },
+          "paragraphs": [
+            {
+              "fr": "Pour le firmware V24, j’ai refait le scan et l’appairage. L’application reconnaît le casque par ses données constructeur, puis par ses services GATT, et repère les mises à jour grâce à un checksum. La connexion est environ 20 % plus rapide.",
+              "enDraft": "For firmware V24, I redid the scan and the pairing. The app recognises the headset by its manufacturer data, then by its GATT services, and spots updates with a checksum. Connecting is about 20% faster."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "Elle est sur Google Play et sur l’App Store.",
+              "enDraft": "It is on Google Play and the App Store."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "trainways",
+      "title": "TrainWays",
+      "short": "TrainWays",
+      "family": "professional",
+      "subject": {
+        "fr": "Une application Android et iOS qui montre, avant un trajet en train, où le réseau passe et où il coupe.",
+        "enDraft": "An Android and iOS app that shows, before a train journey, where the network works and where it drops."
+      },
+      "summary": {
+        "fr": "réseau en train, Android et iOS",
+        "enDraft": "network on trains, Android and iOS"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Sur Google Play et l’App Store",
+        "enDraft": "On Google Play and the App Store"
+      },
+      "role": {
+        "fr": "En binôme : back-end, mise à jour, publication",
+        "enDraft": "In a pair: back end, update, release"
+      },
+      "stack": "Kotlin · Swift · Firebase",
+      "context": "Skyted",
+      "period": "2026"
+    },
+    "detail": {
+      "lede": {
+        "fr": "Pour savoir à l’avance à quel moment du trajet on pourra passer un appel.",
+        "enDraft": "To know ahead of time when during the journey you can make a call."
+      },
+      "links": [
+        {
+          "label": "Google Play",
+          "href": "https://play.google.com/store/apps/details?id=com.skyted.trainways"
+        },
+        {
+          "label": "App Store",
+          "href": "https://apps.apple.com/app/trainways/id6739769823"
+        }
+      ],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "On choisit son train, par son numéro ou par ses gares, et l’application affiche les horaires, les zones couvertes et les zones sans réseau du trajet.",
+              "enDraft": "You pick your train, by number or by stations, and the app shows the times, the covered stretches and the dead zones of the journey."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "J’ai refait le back-end, mis l’application à jour et repris les développements prévus, puis je l’ai republiée sur Google Play et l’App Store.",
+              "enDraft": "I rebuilt the back end, updated the app and took up the planned work, then released it again on Google Play and the App Store."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "slug": "bkone",
+      "title": "Bk-ONE",
+      "short": "Bk-ONE",
+      "tag": {
+        "fr": "stage",
+        "enDraft": "internship"
+      },
+      "family": "professional",
+      "subject": {
+        "fr": "Un progiciel bancaire de la gamme BKLINK, pour les banques de la zone euro. J’ai participé à la refonte de son application Java.",
+        "enDraft": "A banking software package from the BKLINK range, for euro-area banks. I took part in reworking its Java application."
+      },
+      "summary": {
+        "fr": "progiciel bancaire, Java",
+        "enDraft": "banking software, Java"
+      }
+    },
+    "facts": {
+      "proof": {
+        "fr": "Vendu à des banques · code privé",
+        "enDraft": "Sold to banks · private code"
+      },
+      "role": {
+        "fr": "Stagiaire, refonte du code",
+        "enDraft": "Intern, code rework"
+      },
+      "stack": "Java · Swing · XML",
+      "context": "Numerilis",
+      "period": "2024"
+    },
+    "detail": {
+      "lede": {
+        "fr": "Une application Swing ancienne, sans framework, qui gère des flux de virements.",
+        "enDraft": "An old Swing application, with no framework, that handles transfer flows."
+      },
+      "links": [
+        {
+          "label": {
+            "fr": "bklink.com, la page du produit",
+            "enDraft": "bklink.com, the product page"
+          },
+          "href": "https://www.bklink.com/produits/bklink/bk-one/"
+        },
+        {
+          "label": "numerilis.com",
+          "href": "https://www.numerilis.com/"
+        }
+      ],
+      "chapters": [
+        {
+          "paragraphs": [
+            {
+              "fr": "Bk-ONE traite des flux d’opérations bancaires en réception et en émission, selon les règles européennes de paiement (conventions EPC, virements CREDEURO et ICP).",
+              "enDraft": "Bk-ONE handles incoming and outgoing flows of banking operations, under the European payment rules (EPC conventions, CREDEURO and ICP transfers)."
+            }
+          ]
+        },
+        {
+          "paragraphs": [
+            {
+              "fr": "La refonte de l’interface : sortir les responsabilités dans des classes à part, supprimer le code dupliqué d’un écran à l’autre, mutualiser les composants. J’ai aussi centralisé et automatisé le traitement des flux XML, avec des contrôles d’intégrité sur des données bancaires personnelles.",
+              "enDraft": "Reworking the interface: moving responsibilities into their own classes, removing code duplicated from one screen to the next, sharing the components. I also centralised and automated the XML flow processing, with integrity checks on personal banking data."
+            }
+          ]
+        },
+        {
+          "title": {
+            "fr": "Une proposition retenue",
+            "enDraft": "A proposal that was kept"
+          },
+          "paragraphs": [
+            {
+              "fr": "Le code chargeait chaque fichier XML en entier dans une chaîne de caractères, puis allait lire et modifier chaque partie directement dans cette chaîne. J’ai proposé de passer par des objets : on lit le fichier une fois, puis on modifie des objets avec leurs méthodes. Rien de révolutionnaire sur le papier, mais il a fallu reprendre une bonne partie du code, et le traitement est devenu nettement plus robuste.",
+              "enDraft": "The code loaded each XML file whole into a string, then read and edited each part directly in that string. I proposed going through objects: read the file once, then change objects through their methods. Nothing revolutionary on paper, but a good part of the code had to be reworked, and the processing became much more robust."
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

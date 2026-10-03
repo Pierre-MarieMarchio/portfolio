@@ -4,6 +4,7 @@ import { basename, dirname, join, posix, relative, sep } from 'node:path';
 import {
   CLASS_SUFFIXES,
   ENGINE_ZONES,
+  EXTENSIONS_OF,
   ROLES_IN,
   ROLE_OF,
 } from './structure-tables.mjs';
@@ -14,7 +15,7 @@ const MAX_SOURCES = 8;
 const STRICT = process.argv.includes('--strict');
 
 const FILE =
-  /^(?<name>[a-z0-9-]+)\.(?<suffix>[a-z]+)(?:\.golden)?(?<spec>\.spec)?\.(?<ext>ts|html|scss)$/;
+  /^(?<name>[a-z0-9-]+)\.(?<suffix>[a-z]+)(?:\.golden)?(?<spec>\.spec)?\.(?<ext>ts|html|scss|json)$/;
 
 /**
  * @param {string} dir
@@ -197,6 +198,19 @@ const parsedFileName = (file) => {
 };
 
 /**
+ * @param {string} suffix
+ * @param {boolean} spec
+ * @param {string} ext
+ * @returns {string[]}
+ */
+const extensionErrors = (suffix, spec, ext) => {
+  if (!(EXTENSIONS_OF[suffix] ?? ['ts']).includes(ext)) {
+    return [`a .${suffix} file is not written as .${ext}`];
+  }
+  return spec && ext !== 'ts' ? ['a spec is written in .ts'] : [];
+};
+
+/**
  * @param {string} path
  * @param {string} file
  * @param {{ kind: string, zone: string, rest: string[] }} where
@@ -208,8 +222,9 @@ const namedFileErrors = (path, file, where) => {
     return ['has no suffix from the list (organisation.md §3.2)'];
   }
   const { name, suffix, spec, ext } = parsed;
-  if (ext !== 'ts' && suffix !== 'component') {
-    return ['only a component has a template or a stylesheet'];
+  const extensionProblems = extensionErrors(suffix, spec, ext);
+  if (extensionProblems.length > 0) {
+    return extensionProblems;
   }
   const checksClassNames = !spec && ext === 'ts' && CLASS_SUFFIXES.has(suffix);
   return [

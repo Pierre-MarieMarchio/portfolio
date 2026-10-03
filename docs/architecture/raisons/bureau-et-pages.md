@@ -221,8 +221,7 @@ de la racine `src/app/app.*` et de `src/testing/integration/`, sorti du code (D1
   zone passe par des microtâches.
 - La tablette reprend la disposition du bureau telle quelle : à 820×1180 et
   à 1180×820, chaque fenêtre tient déjà entière dans l'écran, sous la barre
-  de pages (mesuré, et tenu par `e2e/tablet.spec.ts`). Rien dans la page ne
-  dépend donc du format.
+  de pages (mesuré). Rien dans la page ne dépend donc du format.
 - Au téléphone (D27), un emplacement prend la place d'arrivée de sa vitre :
   pleine largeur, le haut à `--glass-lowered` (60 %) de l'écran, debout ; la
   moitié droite, couchée. C'est l'ancre que la caméra lit (`detail`,
@@ -277,20 +276,13 @@ de la racine `src/app/app.*` et de `src/testing/integration/`, sorti du code (D1
   de l'accueil les évite (D30). Le dock, vide, n'a pas de hauteur et ne
   compte pas.
 
-## `pages/resolvers/page-head.resolver.ts`
+## `i18n/resolvers/page-head.resolver.ts`
 
 - La route résout le nom ; la stratégie l'écrit, seule.
 
 ## `pages/workbench/`
 
-- Un banc de développement pour la fenêtre et le sélecteur partagés, tant que
-  les pages qui s'en servent n'en montrent pas tous les états. Ses lignes sont
-  des gabarits neutres : le banc exerce la grammaire, il ne porte aucun
-  contenu du site.
-- Il est disposé comme les emplacements de fenêtre de la maquette, pour que
-  les plafonds rencontrent la même place que sur les vraies pages.
-- Les trois familles de l'index servent à voir un sélecteur qui passe à la
-  ligne à 924 px.
+- Supprimé avec sa route `/atelier` (D83).
 
 ## `app.component.*`
 

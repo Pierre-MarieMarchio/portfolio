@@ -36,16 +36,24 @@ npm start          # http://localhost:4200
 
 Les messages de commit suivent les Conventional Commits (Husky + commitlint).
 
-## Intégration continue
+## Déploiement et branches
 
 `.github/workflows/ci.yml` refait `npm run check` en jobs parallèles : format,
 lint et structure ; tests avec couverture ; build et prérendu. SonarQube Cloud
-analyse la couverture et bloque sur sa quality gate. Sur `main`, le job de
-déploiement publie l'artefact du build tel quel, sans second build (D48).
+analyse la couverture et bloque sur sa quality gate.
 
-L'adresse du site est une variable de build : `SITE_URL` et `BASE_HREF`,
-des variables du dépôt sur GitHub, avec pour défaut GitHub Pages. En local,
-`ng build --base-href /x/ --define "SITE_URL=\"https://…\""`.
+Les PR vont dans `dev` ; un push sur `dev` déploie un staging protégé par
+mot de passe sous `https://pm-marchio.fr/staging/` (D98). Une PR `dev → main`
+publie la production sur `https://pm-marchio.fr` (D95) : le job de déploiement
+envoie l'artefact du build tel quel, sans second build (D48), par SFTP avec la
+clé du serveur épinglée (D97).
+
+L'adresse du site et la base de la route sont des variables de build :
+`SITE_URL` et `BASE_HREF`. Le déploiement place les pages 404 prérendues
+en français et en anglais (`404.html`, `en/404.html`), écrit `sitemap.xml` et
+`robots.txt` à partir des liens `canonical` et `alternate` des pages, et
+envoie un `.htaccess` qui gère les redirections, le cache et la compression
+(D95). En local, `ng build --base-href /x/ --define "SITE_URL=\"https://…\""`.
 
 ## Les couches
 
@@ -97,9 +105,6 @@ src/app/
       data/ models/ ports/
   pages/                 composition : un dossier par écran
     observatory/         l'écran de l'observatoire et sa feuille de route
-    providers/           provideMobileNav, le navigateur de mobile-nav
-    workbench/           l'atelier des composants, en développement
-    resolvers/           les têtes de page, dans la langue visée
 src/testing/             ce qui ne part pas en production
   fixtures/ doubles/     les outils partagés des specs
   integration/           suites qui testent un mécanisme, pas un composant

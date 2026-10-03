@@ -49,6 +49,25 @@ export const buildScene = (n: number, rnd: () => number): Grain[] => {
   return reserve.sorted();
 };
 
+interface ArcProfile {
+  readonly fam: Grain['fam'];
+  readonly spread: number;
+  readonly floor: number;
+  readonly gain: number;
+}
+
+const HIGH_ARC: ArcProfile = { fam: 1, spread: 0.44, floor: 0.16, gain: 0.78 };
+const LOW_ARC: ArcProfile = { fam: 2, spread: 0.52, floor: 0.07, gain: 0.4 };
+const HIGH_ARC_SHARE = 0.62;
+const ARC_FALL_RATE = 3.4;
+const ARC_RIPPLE_BASE = 0.84;
+const ARC_RIPPLE_DEPTH = 0.16;
+const ARC_RIPPLE_TURNS = 3.1;
+const ARC_RIPPLE_DRIFT = 9;
+const ARC_WIDTH = 0.12;
+const ARC_WIDENING = 2;
+const ARC_DRIFT = 0.012;
+
 class GrainReserve {
   private readonly grains: Grain[] = [];
   private readonly gauss: () => number;
@@ -74,21 +93,20 @@ class GrainReserve {
   public addArcs(count: number): void {
     const { rnd, gauss } = this;
     for (let i = 0; i < count; i++) {
-      const isHigh = rnd() < 0.62;
-      const u = Math.min(1, Math.abs(gauss()) * (isHigh ? 0.44 : 0.52));
+      const profile = rnd() < HIGH_ARC_SHARE ? HIGH_ARC : LOW_ARC;
+      const u = Math.min(1, Math.abs(gauss()) * profile.spread);
       const ang = rnd() * TAU;
-      const fall = Math.exp(-u * u * 3.4);
-      const base =
-        (isHigh ? 0.16 : 0.07) +
-        (isHigh ? 0.78 : 0.4) *
-          fall *
-          (0.84 + 0.16 * Math.sin(ang * 3.1 + u * 9));
-      this.add(isHigh ? 1 : 2, {
+      const fall = Math.exp(-u * u * ARC_FALL_RATE);
+      const ripple =
+        ARC_RIPPLE_BASE +
+        ARC_RIPPLE_DEPTH *
+          Math.sin(ang * ARC_RIPPLE_TURNS + u * ARC_RIPPLE_DRIFT);
+      this.add(profile.fam, {
         u,
         ang,
-        alpha0: base,
-        w: 0.12 / (1 + 2 * u),
-        g: gauss() * 0.012,
+        alpha0: profile.floor + profile.gain * fall * ripple,
+        w: ARC_WIDTH / (1 + ARC_WIDENING * u),
+        g: gauss() * ARC_DRIFT,
       });
     }
   }

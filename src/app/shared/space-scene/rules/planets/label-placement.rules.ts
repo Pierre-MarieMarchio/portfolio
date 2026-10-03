@@ -1,5 +1,6 @@
 import { clamp } from '@app/core/helpers';
 import { DrawnDisc, isBoxOverDisc } from '../camera/pointer.rules';
+import { firstClearRow, firstFreePlace, firstFreeRow } from './name-rows.rules';
 
 export const LEADER_START = 3.4;
 const ELBOW_GAP = 14;
@@ -42,6 +43,13 @@ export interface HoleDisc {
 const HOLE_CLEARANCE = 4;
 const BODY_TARGET_HALF = 24;
 const BODY_CLEARANCE = 2;
+const STACK_LIFT = 2;
+const STAGE_MARGIN = 2;
+const NAME_RISE = 24;
+const ROW_STEP_PADDING = 8;
+const ELBOW_MIN_PADDING = 20;
+const ELBOW_OBJECT_SHARE = 0.5;
+const ELBOW_SQUEEZED_PADDING = 12;
 
 const isOverDisc = (
   disc: DrawnDisc | undefined,
@@ -114,88 +122,149 @@ export function placeTag(
   return { x, y, onText: isOnText };
 }
 
+interface NamedPlanet {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+  readonly objectRadius: number;
+  readonly dpr: number;
+  readonly named: boolean;
+  readonly rank?: number;
+}
+
+interface LabelSize {
+  readonly w: number;
+  readonly h: number;
+}
+
+interface NamePlace {
+  readonly x: number;
+  readonly y: number;
+  readonly dir: number;
+}
+
+interface NameFlow {
+  readonly planetX: number;
+  readonly elbow: number;
+  readonly size: LabelSize;
+  readonly stage: Stage;
+  readonly dir: number;
+  readonly flanks: readonly number[];
+  readonly wantedRow: number;
+}
+
+function nameFlowOf(
+  planet: NamedPlanet,
+  size: LabelSize,
+  stage: Stage,
+): NameFlow {
+  const elbow = elbowOf(planet, size.w, stage.w);
+  const hasRoomRight = planet.x + elbow + ELBOW_GAP + size.w <= stage.w;
+  const hasRoomLeft = planet.x - elbow - ELBOW_GAP - size.w >= 0;
+  const outward = planet.x >= stage.w / 2 ? 1 : -1;
+  const dir = (outward > 0 && hasRoomRight) || !hasRoomLeft ? 1 : -1;
+  const flanks = [dir, -dir].filter(
+    (flank) => flank === dir || (flank > 0 ? hasRoomRight : hasRoomLeft),
+  );
+  const rise = (planet.y <= stage.h / 2 ? -1 : 1) * NAME_RISE;
+  return {
+    planetX: planet.x,
+    elbow,
+    size,
+    stage,
+    dir,
+    flanks,
+    wantedRow: planet.y + rise,
+  };
+}
+
+function nameColumn(flow: NameFlow, dir: number): number {
+  const edge = flow.planetX + dir * (flow.elbow + ELBOW_GAP);
+  const left = dir < 0 ? edge - flow.size.w : edge;
+  return clamp(left, STAGE_MARGIN, flow.stage.w - flow.size.w - STAGE_MARGIN);
+}
+
+function nameRow(flow: NameFlow, row: number): number {
+  const half = flow.size.h / 2;
+  return clamp(row, half + STAGE_MARGIN, flow.stage.h - half - STAGE_MARGIN);
+}
+
+function freeNamePlace(
+  planet: NamedPlanet,
+  flow: NameFlow,
+  isTaken: (x: number, y: number) => boolean,
+): NamePlace | null {
+  const { size, stage, wantedRow } = flow;
+  const found = firstFreePlace(
+    flow.flanks,
+    [
+      (fits) => firstFreeRow(wantedRow, size.h + ROW_STEP_PADDING, fits),
+      (fits) =>
+        firstClearRow(wantedRow, rowsClearOf(stage.bodies, size.h), fits),
+    ],
+    (dir, row) => {
+      const at = nameRow(flow, row);
+      return isTaken(nameColumn(flow, dir), at) ? null : at;
+    },
+  );
+  return found
+    ? { x: nameColumn(flow, found.dir), y: found.y, dir: found.dir }
+    : stackedPlace(planet, size, stage, isTaken);
+}
+
 export function placeName(
-  planet: {
-    readonly x: number;
-    readonly y: number;
-    readonly radius: number;
-    readonly objectRadius: number;
-    readonly dpr: number;
-    readonly named: boolean;
-    readonly rank?: number;
-  },
-  size: { readonly w: number; readonly h: number },
+  planet: NamedPlanet,
+  size: LabelSize,
   stage: Stage,
   taken: TakenPlace[],
 ): { x: number; y: number; dir: number; free: boolean } {
-  const { x: px, y: py } = planet;
-  const { w: lw, h: lh } = size;
-  const { w: stageW, h: stageH } = stage;
-  const elbow = elbowOf(planet, lw, stageW);
-  const rise = (py <= stageH / 2 ? -1 : 1) * 24;
-  const hasRoomRight = px + elbow + ELBOW_GAP + lw <= stageW;
-  const hasRoomLeft = px - elbow - ELBOW_GAP - lw >= 0;
-  const outward = px >= stageW / 2 ? 1 : -1;
-  const dir = (outward > 0 && hasRoomRight) || !hasRoomLeft ? 1 : -1;
-  const placeX = (d: number): number => {
-    let x2 = px + d * (elbow + ELBOW_GAP);
-    if (d < 0) {
-      x2 -= lw;
-    }
-    return clamp(x2, 2, stageW - lw - 2);
+  const flow = nameFlowOf(planet, size, stage);
+  const first = {
+    x: nameColumn(flow, flow.dir),
+    y: nameRow(flow, flow.wantedRow),
+    dir: flow.dir,
   };
-  const boundY = (y2: number): number =>
-    clamp(y2, lh / 2 + 2, stageH - lh / 2 - 2);
-  const isTaken = takenTest(stage, taken, planet.rank ?? -1, size);
-  const first = { x: placeX(dir), y: boundY(py + rise), dir };
   if (!planet.named) {
     return { ...first, free: true };
   }
-  const flanks = [dir, -dir].filter(
-    (d) => d === dir || (d > 0 ? hasRoomRight : hasRoomLeft),
-  );
-  const found = firstFreePlace(
-    flanks,
-    [
-      (fits) => firstFreeRow(py + rise, lh + 8, fits),
-      (fits) => firstClearRow(py + rise, rowsClearOf(stage.bodies, lh), fits),
-    ],
-    (d, row) => {
-      const at = boundY(row);
-      return isTaken(placeX(d), at) ? null : at;
-    },
-  );
-  const place = found
-    ? { x: placeX(found.dir), y: found.y, dir: found.dir }
-    : stackedPlace(planet, size, stage, isTaken);
+  const isTaken = takenTest(stage, taken, planet.rank ?? -1, size);
+  const place = freeNamePlace(planet, flow, isTaken);
   if (!place) {
     return { ...first, free: false };
   }
-  taken.push({ x: place.x, y: place.y, w: lw, h: lh, isName: true });
+  taken.push({ x: place.x, y: place.y, w: size.w, h: size.h, isName: true });
   return { ...place, free: true };
 }
 
-type RowFit = (row: number) => number | null;
-
-function stackedPlace(
-  planet: { readonly x: number; readonly y: number },
-  size: { readonly w: number; readonly h: number },
+function stackedLefts(
+  planet: { readonly x: number },
+  size: LabelSize,
   stage: Stage,
-  isTaken: (x: number, y: number) => boolean,
-): { x: number; y: number; dir: number } | null {
-  if (!stage.stacks) {
-    return null;
-  }
+): number[] {
   const isOutRight = planet.x >= (stage.hole?.x ?? stage.w / 2);
-  const lift = BODY_TARGET_HALF + size.h / 2 + 2;
-  const lefts = [
+  return [
     planet.x - size.w / 2,
     isOutRight
       ? planet.x - BODY_TARGET_HALF
       : planet.x + BODY_TARGET_HALF - size.w,
-  ].map((left) => clamp(left, 2, stage.w - size.w - 2));
+  ].map((left) => clamp(left, STAGE_MARGIN, stage.w - size.w - STAGE_MARGIN));
+}
+
+function stackedPlace(
+  planet: { readonly x: number; readonly y: number },
+  size: LabelSize,
+  stage: Stage,
+  isTaken: (x: number, y: number) => boolean,
+): NamePlace | null {
+  if (!stage.stacks) {
+    return null;
+  }
+  const lift = BODY_TARGET_HALF + size.h / 2 + STACK_LIFT;
+  const lefts = stackedLefts(planet, size, stage);
   for (const y of [planet.y + lift, planet.y - lift]) {
-    const isInside = y - size.h / 2 >= 2 && y + size.h / 2 <= stage.h - 2;
+    const isInside =
+      y - size.h / 2 >= STAGE_MARGIN &&
+      y + size.h / 2 <= stage.h - STAGE_MARGIN;
     const x = lefts.find((left) => isInside && !isTaken(left, y));
     if (x !== undefined) {
       return { x, y, dir: 0 };
@@ -208,7 +277,7 @@ function takenTest(
   stage: Stage,
   taken: readonly TakenPlace[],
   rank: number,
-  size: { readonly w: number; readonly h: number },
+  size: LabelSize,
 ): (x: number, y: number) => boolean {
   const { w: lw, h: lh } = size;
   const slack = stage.bodies ? -BODY_CLEARANCE : 4;
@@ -223,22 +292,6 @@ function takenTest(
     );
 }
 
-function firstFreePlace(
-  flanks: readonly number[],
-  searches: readonly ((fits: RowFit) => number | null)[],
-  fits: (dir: number, row: number) => number | null,
-): { dir: number; y: number } | null {
-  for (const search of searches) {
-    for (const dir of flanks) {
-      const y = search((row) => fits(dir, row));
-      if (y !== null) {
-        return { dir, y };
-      }
-    }
-  }
-  return null;
-}
-
 function elbowOf(
   planet: {
     readonly x: number;
@@ -249,31 +302,16 @@ function elbowOf(
   width: number,
   stageW: number,
 ): number {
-  const { x: px, radius: rBase, dpr } = planet;
+  const { x: planetX, radius, dpr } = planet;
+  const leader = (radius * LEADER_START) / dpr;
   const elbow = Math.max(
-    (rBase * LEADER_START) / dpr + 20,
-    (planet.objectRadius / dpr) * 0.5,
+    leader + ELBOW_MIN_PADDING,
+    (planet.objectRadius / dpr) * ELBOW_OBJECT_SHARE,
   );
-  return px + elbow + ELBOW_GAP + width > stageW &&
-    px - elbow - ELBOW_GAP - width < 0
-    ? (rBase * LEADER_START) / dpr + 12
+  return planetX + elbow + ELBOW_GAP + width > stageW &&
+    planetX - elbow - ELBOW_GAP - width < 0
+    ? leader + ELBOW_SQUEEZED_PADDING
     : elbow;
-}
-
-function firstFreeRow(
-  start: number,
-  step: number,
-  fits: RowFit,
-): number | null {
-  for (let k = 0; k <= 4; k++) {
-    for (const sign of k === 0 ? [1] : [-1, 1]) {
-      const found = fits(start + sign * k * step);
-      if (found !== null) {
-        return found;
-      }
-    }
-  }
-  return null;
 }
 
 function rowsClearOf(
@@ -282,21 +320,4 @@ function rowsClearOf(
 ): number[] {
   const reach = height / 2 + BODY_TARGET_HALF + BODY_CLEARANCE + 1;
   return (bodies ?? []).flatMap((body) => [body.y - reach, body.y + reach]);
-}
-
-function firstClearRow(
-  start: number,
-  rows: readonly number[],
-  fits: RowFit,
-): number | null {
-  const nearest = [...rows].sort(
-    (a, b) => Math.abs(a - start) - Math.abs(b - start),
-  );
-  for (const row of nearest) {
-    const found = fits(row);
-    if (found !== null) {
-      return found;
-    }
-  }
-  return null;
 }

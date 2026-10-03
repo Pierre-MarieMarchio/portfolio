@@ -29,6 +29,12 @@ export const ROLE_OF = {
   worker: 'engine',
 };
 
+/** @type {Record<string, string[]>} */
+export const EXTENSIONS_OF = {
+  component: ['ts', 'html', 'scss'],
+  data: ['ts', 'json'],
+};
+
 export const CLASS_SUFFIXES = new Set([
   'component',
   'directive',

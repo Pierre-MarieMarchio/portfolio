@@ -3183,3 +3183,42 @@ la géométrie où quatre valeurs vont ensemble. Une règle sur les noms : la
 scène a une notation géométrique cohérente (`dx`, `w`, `az`) ; les noms
 opaques ont été renommés dans les fonctions découpées. 250 lignes par
 fichier : 13 fichiers à couper pour un gain de lecture faible.
+
+## 2026-10-03 — Les projets sont un JSON, lu par une fabrique (D106, amende D5)
+
+**Décision.** Les projets vivent dans un seul fichier,
+`features/projects/data/projects.data.json` : un tableau, une entrée par
+projet, dont la position donne le rang, le numéro et la mise en avant.
+Ajouter ou modifier un projet se fait là, et nulle part ailleurs. Un texte
+bilingue s'écrit `{ "fr", "en" }` quand l'anglais est relu, `{ "fr",
+"enDraft" }` tant qu'il est en brouillon : relire, c'est renommer la clé.
+Une fabrique pure, `rules/project-entry.rules.ts`, reçoit le JSON comme
+`unknown`, restreint chaque champ et construit chaque entrée champ par
+champ, sans assertion de type ; elle pose `bilingual()` et `draft()`, et
+refuse un champ manquant ou de mauvais type, une famille inconnue, `en` et
+`enDraft` ensemble, un slug en double, en nommant le slug et le chemin du
+champ. Le prérendu passe par elle : un JSON faux fait échouer le build.
+`drafts.spec.ts` compte les `enDraft` du JSON au lieu d'un chiffre écrit en
+dur. `check-structure` accepte `.json` pour le seul suffixe `.data`, dans un
+dossier `data/`. Les « objets » sont des valeurs typées et immuables, pas des
+classes. Le prérendu ne change pas.
+
+**Raison.** Demande de l'opérateur : un seul endroit pour un projet, des
+objets créés à partir d'un JSON. Avant, ajouter un projet touchait son
+fichier, la liste et le compte des brouillons. La fabrique qui construit
+l'objet garde la garantie de D5 : un champ ajouté au modèle et oublié ne
+compile pas. Des classes ne s'instancient ici que pour les `.tracker`
+(organisation §3.2), et `localize` reconstruit les objets, ce qui perdrait
+leur prototype.
+
+**Le prix.** Bundle initial +3,47 kB tant que le JSON et la fabrique sont
+dans `main` ; l'étape suivante les charge à part. Pour tenir ce poids, la
+fabrique ne refuse pas encore un champ inconnu (une faute de frappe sur un
+champ facultatif passe) : il reviendra avec le chargement à part.
+
+**Écarté.** Un JSON par projet : il faut une liste à côté, et esbuild ne
+sait pas importer un dossier. Un `fetch` depuis `public/` : le build ne
+valide plus rien, et le fichier n'a pas d'empreinte. Un fichier par langue :
+changer de langue rechargerait des données. Écrire `kind` dans le JSON :
++1,6 kB, et un oubli s'affiche « [object Object] » sans que rien n'échoue.
+Une assertion de type, une dépendance de schéma (zod, ajv).

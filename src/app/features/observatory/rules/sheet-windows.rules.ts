@@ -43,12 +43,18 @@ export interface HandOver {
 
 export const sheetIdOf = (key: number): string => `sheet:${String(key)}`;
 
+function parkedSheetOf(
+  { key, slug, chapter, isPinned, isMinimized }: HandOverFrom,
+  arriving: string,
+): HeldSheet | null {
+  return isPinned && slug !== null && slug !== arriving
+    ? { key, slug, chapter, minimized: isMinimized }
+    : null;
+}
+
 export function handOverSheet(from: HandOverFrom, arriving: string): HandOver {
-  const { key, slug, chapter, isPinned, isMinimized } = from;
-  const parked =
-    isPinned && slug !== null && slug !== arriving
-      ? { key, slug, chapter, minimized: isMinimized }
-      : null;
+  const { key, slug, chapter, isPinned } = from;
+  const parked = parkedSheetOf(from, arriving);
   const held = parked ? [...from.held, parked] : from.held;
   const pulled = held.find((sheet) => sheet.slug === arriving);
   if (pulled) {
@@ -58,7 +64,7 @@ export function handOverSheet(from: HandOverFrom, arriving: string): HandOver {
       chapter: pulled.chapter,
     };
   }
-  if (!parked && slug === arriving && isPinned) {
+  if (slug === arriving && isPinned) {
     return { key, held, chapter };
   }
   return {

@@ -3158,3 +3158,28 @@ plus qu'il ne rapporte (D87).
 **Reste.** Une fiche ouverte à côté d'une épinglée ne recadre la scène
 qu'au lâcher d'un glisser (`SceneWindowDrag` ne suit que les cadres
 présents au démarrage).
+
+## 2026-10-03 — Le lint borne les fonctions à 40 lignes, une complexité de 8 et deux niveaux, scripts compris (D107)
+
+**Décision.** Pour le code de production de `src/` : `max-lines-per-function`
+40 (au lieu de 60), `complexity` 8 (au lieu de 10), `max-depth` 2 (au lieu
+de 3), `sonarjs/cognitive-complexity` 10 écrit (le défaut de sonarjs était 15) ; `max-params` 4 et `max-lines` 300 inchangés. Les mêmes six règles
+s'appliquent désormais à `scripts/**/*.mjs`, qui n'avaient aucune règle de
+lint. Les specs et `src/testing/` restent exemptés des règles de taille et
+de complexité, comme ils l'étaient déjà de la longueur. Aucune exception par
+fichier, aucun `eslint-disable`.
+
+**Raison.** Lot « clean code » demandé par l'opérateur : des fonctions
+longues et difficiles à lire au premier regard. Mesuré sur `src/` (1 896
+fonctions) : chaque maximum touchait exactement l'ancien plafond, qui
+bornait sans guider ; médiane 4 lignes, p90 17. 24 des 30 fonctions les plus
+lourdes étaient dans la scène. Elles ont été découpées par zone, sans
+changement de comportement, specs inchangés : scène (#167, #169),
+mobile-nav, core et i18n (#172), scripts (#171), puis observatory et windows
+ici. Les seuils retenus sont ceux que le code tient après ce travail.
+
+**Écarté.** Trois paramètres au plus : 65 fonctions à reprendre, surtout de
+la géométrie où quatre valeurs vont ensemble. Une règle sur les noms : la
+scène a une notation géométrique cohérente (`dx`, `w`, `az`) ; les noms
+opaques ont été renommés dans les fonctions découpées. 250 lignes par
+fichier : 13 fichiers à couper pour un gain de lecture faible.

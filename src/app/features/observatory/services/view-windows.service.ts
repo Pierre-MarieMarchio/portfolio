@@ -16,7 +16,11 @@ import {
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ViewFocusService } from '@shared/ui/services';
 import { WindowStackService } from '@shared/windows/services';
-import type { ObservatoryWindow, ViewSlot } from '../models/observatory.model';
+import type {
+  ObservatoryView,
+  ObservatoryWindow,
+  ViewSlot,
+} from '../models/observatory.model';
 import { sheetIdOf } from '../rules/sheet-windows.rules';
 import { windowOf } from '../rules/view.rules';
 
@@ -142,10 +146,7 @@ export class ViewWindowsService {
         view === 'home' && hasPreviewWindow
           ? this.observatory.preview()
           : untracked(() => this.observatory.preview());
-      const shown: ViewSlot =
-        view === 'home' && hasPreviewWindow && preview !== null
-          ? 'preview'
-          : (windowOf(view) ?? 'home');
+      const shown = focusedSlotOf(view, hasPreviewWindow ? preview : null);
       this.observatory.slug();
       const slot = untracked(() => this.slots.get(shown));
       const isReady = slot?.isShown?.() ?? true;
@@ -161,4 +162,13 @@ export class ViewWindowsService {
       withdraw?.();
     });
   }
+}
+
+function focusedSlotOf(
+  view: ObservatoryView,
+  preview: string | null,
+): ViewSlot {
+  return view === 'home' && preview !== null
+    ? 'preview'
+    : (windowOf(view) ?? 'home');
 }

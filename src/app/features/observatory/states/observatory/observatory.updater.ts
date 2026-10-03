@@ -171,6 +171,24 @@ function editHeldSheet(
   );
 }
 
+function closeWindow(
+  state: ObservatoryState,
+  window: ObservatoryWindow,
+): undefined {
+  state.pins.update((pins) => ({ ...pins, [window]: false }));
+  if (window === 'preview') {
+    state.preview.set(null);
+  } else {
+    state.minimized.update((minimized) => ({ ...minimized, [window]: false }));
+  }
+}
+
+function openPreview(state: ObservatoryState, slug: string): undefined {
+  state.preview.set(slug);
+  state.lastPreview.set(slug);
+  state.hovered.set(null);
+}
+
 export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
   on(observatoryRouteSynced, (state, { view, slug, canHoldSheets = false }) => {
     syncRoute(state, view, slug, canHoldSheets);
@@ -190,18 +208,7 @@ export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
 
   on(observatoryWindowsRestored, restoreWindows);
 
-  on(observatoryWindowClosed, (state, window) => {
-    state.pins.update((pins) => ({ ...pins, [window]: false }));
-    if (window !== 'preview') {
-      state.minimized.update((minimized) => ({
-        ...minimized,
-        [window]: false,
-      }));
-    }
-    if (window === 'preview') {
-      state.preview.set(null);
-    }
-  });
+  on(observatoryWindowClosed, closeWindow);
 
   on(observatoryHeldSheetClosed, closeHeldSheet);
 
@@ -224,11 +231,7 @@ export const observatoryUpdater = defineUpdater(ObservatoryState, (on) => {
     state.section.set(Math.max(0, section));
   });
 
-  on(observatoryPreviewOpened, (state, slug) => {
-    state.preview.set(slug);
-    state.lastPreview.set(slug);
-    state.hovered.set(null);
-  });
+  on(observatoryPreviewOpened, openPreview);
 
   on(observatoryPreviewClosed, (state) => {
     state.preview.set(null);

@@ -1,5 +1,5 @@
 import { DetailSource, ProjectEntry } from '../models';
-import { draftsLeft, localize } from '@app/core/rules';
+import { draftsLeft, forgetDraftsAfter, localize } from '@app/core/rules';
 import { readProjectEntries } from '../rules';
 import { PROJECTS } from './projects.data';
 import projectsJson from './projects.data.json';
@@ -38,6 +38,16 @@ function without(source: object, key: string): object {
 }
 
 describe('shipped project content', () => {
+  let draftsBefore = 0;
+
+  beforeEach(() => {
+    draftsBefore = draftsLeft();
+  });
+
+  afterEach(() => {
+    forgetDraftsAfter(draftsBefore);
+  });
+
   const slugs = PROJECTS.map((entry) => entry.project.slug);
 
   it('names each project by a slug of its own, fit for an address', () => {

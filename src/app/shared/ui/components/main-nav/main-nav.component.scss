@@ -51,7 +51,7 @@ nav {
   animation: wait 0s var(--arrival-at) backwards;
 }
 
-:host([data-arrival='held']) nav {
+:host([data-arrival='withheld']) nav {
   animation: none;
   display: none;
 }

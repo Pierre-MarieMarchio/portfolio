@@ -55,7 +55,7 @@ describe('ProjectSheetDirective', () => {
     expect(bottomSheet().detent()).toBe('full');
   });
 
-  it('keeps the detent of a project held when the reader comes back to it', async () => {
+  it('keeps the detent of a project when the reader comes back to it', async () => {
     const { fixture, settle } = await mount();
     const { bottomSheet } = fixture.componentInstance;
     await settle('sheet', 'alpha');

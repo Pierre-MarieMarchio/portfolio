@@ -37,7 +37,7 @@ export class HomeTitleComponent {
     afterRenderEffect((onCleanup) => {
       const bar = this.bar()?.nativeElement;
       if (bar) {
-        const release = this.fold?.hold(bar);
+        const release = this.fold?.attachHandle(bar);
         onCleanup(() => {
           release?.();
         });

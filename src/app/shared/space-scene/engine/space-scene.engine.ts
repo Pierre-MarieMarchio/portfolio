@@ -197,7 +197,7 @@ export class SpaceSceneEngine {
   }
 
   public turn(clientX: number, clientY: number): void {
-    if (this.turntable.held) {
+    if (this.turntable.isGripped) {
       this.turntable.turn(
         clientX,
         clientY,
@@ -209,7 +209,7 @@ export class SpaceSceneEngine {
   }
 
   public release(): boolean {
-    if (!this.turntable.held) {
+    if (!this.turntable.isGripped) {
       return false;
     }
     const isDrag = this.turntable.release(this.host.now());
@@ -217,11 +217,11 @@ export class SpaceSceneEngine {
     return isDrag;
   }
 
-  public holdZoom(clientX: number, clientY: number): boolean {
+  public grabZoom(clientX: number, clientY: number): boolean {
     const point = this.onCanvas(clientX, clientY);
     if (point) {
       this.release();
-      this.motion.zoom.hold(point.x, point.y);
+      this.motion.zoom.grab(point.x, point.y);
       this.request();
     }
     return point !== null;
@@ -284,7 +284,7 @@ export class SpaceSceneEngine {
       this.draw();
       this.needsDraw = false;
     }
-    return !this.motion.isSettled || this.turntable.held || this.isTurning;
+    return !this.motion.isSettled || this.turntable.isGripped || this.isTurning;
   }
 
   private advance(dt: number, isVisible: boolean): void {

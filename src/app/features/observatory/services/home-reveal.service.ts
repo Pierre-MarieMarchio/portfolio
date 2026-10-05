@@ -44,20 +44,20 @@ export class HomeRevealService {
       this.state.set('shown');
       return;
     }
-    this.state.set('held');
+    this.state.set('withheld');
     this.cancel = this.presence.whenPresent(
       this.styles.duration('--arrival-at'),
       () => {
         this.arrive();
       },
     );
-    if (this.state() === 'held') {
+    if (this.state() === 'withheld') {
       this.onArrived = onArrived;
     }
   }
 
   public arrive(): void {
-    if (this.state() !== 'held') {
+    if (this.state() !== 'withheld') {
       return;
     }
     this.cancel();

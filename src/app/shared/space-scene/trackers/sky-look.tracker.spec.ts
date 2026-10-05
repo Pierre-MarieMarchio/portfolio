@@ -6,7 +6,7 @@ import {
 
 const PIXELS = 0;
 const MIDDLE = 1;
-const MIDDLE_HELD = 4;
+const MIDDLE_PRESSED = 4;
 
 const roll = (
   target: EventTarget,
@@ -38,14 +38,14 @@ const mouse = (
   type: 'mousedown' | 'mousemove' | 'mouseup',
   { x, y, button = MIDDLE, buttons }: Press,
 ): MouseEvent => {
-  const held = button === MIDDLE && type !== 'mouseup' ? MIDDLE_HELD : 0;
+  const pressed = button === MIDDLE && type !== 'mouseup' ? MIDDLE_PRESSED : 0;
   const event = new MouseEvent(type, {
     bubbles: true,
     cancelable: true,
     clientX: x,
     clientY: y,
     button,
-    buttons: buttons ?? held,
+    buttons: buttons ?? pressed,
   });
   target.dispatchEvent(event);
   return event;
@@ -90,7 +90,7 @@ describe('SkyLookTracker', () => {
     expect(scene.holds).toEqual([]);
   });
 
-  it('moves the camera with the pointer while the middle button is held on the sky', () => {
+  it('moves the camera with the pointer while the middle button is pressed on the sky', () => {
     const press = mouse(sky, 'mousedown', { x: 100, y: 100 });
     mouse(sky, 'mousemove', { x: 130, y: 90 });
     mouse(sky, 'mousemove', { x: 150, y: 120 });

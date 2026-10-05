@@ -2,7 +2,7 @@ import type { SceneLayout } from '../../models/scene-layout.model';
 import { REST_FRAME } from '../camera/camera-frames.rules';
 import {
   layoutInRoom,
-  holeHeldLeftOf,
+  holeKeptLeftOf,
   isHoleInRoom,
   mirroredFrame,
   mirrorTurnStep,
@@ -173,15 +173,15 @@ describe('the hole in its room', () => {
       approachEdge: 800,
       closeUpEdge: 900,
     });
-    const held = holeHeldLeftOf(REST_FRAME, layout, {
+    const kept = holeKeptLeftOf(REST_FRAME, layout, {
       dims,
       framing: 'approach',
     });
     const radius = Math.min(1440 / 6.6, 900 / 3.2) * REST_FRAME.s;
 
-    expect(held.x * 1440 + radius).toBeCloseTo(800, 9);
+    expect(kept.x * 1440 + radius).toBeCloseTo(800, 9);
     expect(
-      holeHeldLeftOf(REST_FRAME, layout, { dims, framing: 'close-up' }),
+      holeKeptLeftOf(REST_FRAME, layout, { dims, framing: 'close-up' }),
     ).toBe(REST_FRAME);
   });
 

@@ -7,7 +7,7 @@ export class LookableSceneDouble implements LookableScene {
   public requests = 0;
   public looks = 0;
 
-  public holdZoom(clientX: number, clientY: number): boolean {
+  public grabZoom(clientX: number, clientY: number): boolean {
     this.holds.push([clientX, clientY]);
     return true;
   }

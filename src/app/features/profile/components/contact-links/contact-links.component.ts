@@ -2,7 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { SceneAnchorKind } from '@app/features/common';
 import { SocialLinksComponent } from '@shared/ui/components';
 import {
-  HeldInertDirective,
+  WithheldInertDirective,
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
 import {
@@ -20,7 +20,7 @@ import { ContactMenuComponent } from '../contact-menu/contact-menu.component';
   selector: 'app-contact-links',
   imports: [
     ContactMenuComponent,
-    HeldInertDirective,
+    WithheldInertDirective,
     SocialLinksComponent,
     LayoutAnchorDirective,
   ],

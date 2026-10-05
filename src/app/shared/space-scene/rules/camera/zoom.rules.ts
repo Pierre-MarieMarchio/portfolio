@@ -22,7 +22,7 @@ export const unzoomedAt = (
 ): number => (value - anchor * (1 - factor)) / factor;
 
 export const anchorKeeping = (
-  held: number,
+  grabbed: number,
   under: number,
   factor: number,
   extent: number,
@@ -30,7 +30,7 @@ export const anchorKeeping = (
   if (factor <= ZOOM_MIN) {
     return under;
   }
-  const shift = clamp(under - held * factor, extent * (1 - factor), 0);
+  const shift = clamp(under - grabbed * factor, extent * (1 - factor), 0);
   return clamp(shift / (1 - factor), 0, extent);
 };
 

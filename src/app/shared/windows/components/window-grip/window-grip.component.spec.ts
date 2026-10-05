@@ -33,7 +33,7 @@ const foldOf = (isActive = true) => {
     isActive: () => isActive,
     isFolded: () => isFolded(),
     toggle,
-    hold: () => NOTHING,
+    attachHandle: () => NOTHING,
   };
   return { fold, isFolded, toggle };
 };

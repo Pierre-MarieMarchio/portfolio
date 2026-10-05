@@ -37,7 +37,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/models/entrance.model.ts`
 
 - Entrance says where the rest of the home page stands during the opening crossing: timed, held or shown — `src/app/shared/ui/models/entrance.model.ts:1` — origin: docs/architecture/raisons/core-et-interface.md:198 @ b299e1d
-- held: the script holds the element until the first gesture or the end of the crossing — `src/app/shared/ui/directives/held-inert.directive.ts:11` — origin: docs/architecture/raisons/core-et-interface.md:204 @ b299e1d
+- withheld: the script holds the element until the first gesture or the end of the crossing (arrival state, opposite of shown) — `src/app/shared/ui/models/entrance.model.ts:1` — origin: docs/architecture/raisons/core-et-interface.md:204 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/directives/hover-focus.directive.ts`
 

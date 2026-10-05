@@ -8,7 +8,7 @@ import { ZoomGestureTracker } from '../trackers/zoom-gesture.tracker';
 import { loadSkyLook, loadTouchLook } from './scene-look.service';
 
 const scene: LookableScene = {
-  holdZoom: () => true,
+  grabZoom: () => true,
   stretchZoom: () => {},
   releaseZoom: () => {},
   lookCloser: () => true,

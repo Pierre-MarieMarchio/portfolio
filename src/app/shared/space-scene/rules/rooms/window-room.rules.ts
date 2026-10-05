@@ -133,7 +133,7 @@ const drawnRadius = (frame: Frame, { dims, framing }: HoleView): number =>
   referenceRadius(dims.w, dims.h, frame.s) *
   (framing === 'close-up' ? CLOSE_UP_DRAWN : 1);
 
-export const holeHeldLeftOf = (
+export const holeKeptLeftOf = (
   frame: Frame,
   layout: SceneLayout,
   view: HoleView,

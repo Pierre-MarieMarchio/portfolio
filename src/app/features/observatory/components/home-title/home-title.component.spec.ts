@@ -19,7 +19,7 @@ const mount = async () => {
 
 const foldOf = () => {
   const isFolded = signal(false);
-  const held: HTMLElement[] = [];
+  const attached: HTMLElement[] = [];
   const released: HTMLElement[] = [];
   const toggle = vi.fn(() => {
     isFolded.update((folded) => !folded);
@@ -28,14 +28,14 @@ const foldOf = () => {
     isActive: () => true,
     isFolded: () => isFolded(),
     toggle,
-    hold: (handle) => {
-      held.push(handle);
+    attachHandle: (handle) => {
+      attached.push(handle);
       return () => {
         released.push(handle);
       };
     },
   };
-  return { fold, isFolded, held, released, toggle };
+  return { fold, isFolded, attached, released, toggle };
 };
 
 const mountOnPhone = async () => {
@@ -98,13 +98,13 @@ describe('HomeTitleComponent', () => {
     });
 
     it('hands its bar to the bottom sheet as the handle, and lets it go when it leaves', async () => {
-      const { fixture, host, held, released } = await mountOnPhone();
+      const { fixture, host, attached, released } = await mountOnPhone();
 
-      expect(held).toEqual([host.querySelector('.bar')]);
+      expect(attached).toEqual([host.querySelector('.bar')]);
       expect(released).toEqual([]);
 
       fixture.destroy();
-      expect(released).toEqual(held);
+      expect(released).toEqual(attached);
     });
 
     it('carries the same handle as the other bottom sheets, and no chevron', async () => {

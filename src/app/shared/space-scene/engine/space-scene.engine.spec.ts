@@ -116,7 +116,7 @@ describe('SpaceSceneEngine, turned by hand', () => {
     expect(view().disk?.squash).toBeLessThan(opening(0.4));
   });
 
-  it('follows the hand angle for angle while held', () => {
+  it('follows the hand angle for angle while grabbed', () => {
     const { engine, view, drag, grab } = mount();
     const before = view().turntable.rotor('disk').angle;
     grab(0.2);
@@ -194,19 +194,19 @@ describe('SpaceSceneEngine, turned by hand', () => {
     expect(engine.grab(point.x, point.y)).toBe(false);
   });
 
-  it('turns the inner orbits faster than the outer, the one held with the hand', () => {
+  it('turns the inner orbits faster than the outer, the one grabbed with the hand', () => {
     const { engine, step, view, drag, grab } = mount();
     const orbits = view().orbits.map((orbit, i) => ({ i, rb: orbit.rb }));
-    const held = orbits[2];
-    if (!held) {
+    const grabbed = orbits[2];
+    if (!grabbed) {
       throw new Error('expected five orbits');
     }
-    grab(0, held.rb);
-    drag(0, 1, 300, held.rb);
+    grab(0, grabbed.rb);
+    drag(0, 1, 300, grabbed.rb);
     step(16);
     const turns = [...view().turntable.turns()];
     engine.release();
-    expect(turns[held.i]).toBeCloseTo(1, 1);
+    expect(turns[grabbed.i]).toBeCloseTo(1, 1);
     const byRadius = [...orbits].sort((a, b) => a.rb - b.rb);
     const shares = byRadius.map((orbit) => turns[orbit.i] ?? 0);
     for (const [k, share] of shares.slice(1).entries()) {
@@ -844,17 +844,17 @@ describe('SpaceSceneEngine, beside the windows of a desktop, wherever they are',
     60_000,
   );
 
-  it('holds the close-up hole left of the preview on the right, by what crossed it only', () => {
+  it('keeps the close-up hole left of the preview on the right, by what crossed it only', () => {
     const [, direction, role, left] = CLOSE_UP_VIEW;
     const layout = framedLayout([[left, 1396]], role);
-    const held = framedScene(layout, direction).hole();
+    const kept = framedScene(layout, direction).hole();
     const before = framedScene({ ...layout, windows: undefined }, direction);
     const crossed = before.hole();
 
     expect(crossed.x + crossed.radius).toBeGreaterThan(left);
-    expect(held.x + held.radius).toBeCloseTo(left, 0);
-    expect(held.y).toBe(crossed.y);
-    expect(held.radius).toBe(crossed.radius);
+    expect(kept.x + kept.radius).toBeCloseTo(left, 0);
+    expect(kept.y).toBe(crossed.y);
+    expect(kept.radius).toBe(crossed.radius);
   }, 60_000);
 
   it.each([
@@ -1155,7 +1155,7 @@ const homeUpClose = ({ direction, ...change }: SceneChange = {}) => {
   });
   scene.run(PAST_CROSSING_MS);
   const pinch = (at: { x: number; y: number }, ratio: number): void => {
-    expect(scene.engine.holdZoom(at.x, at.y)).toBe(true);
+    expect(scene.engine.grabZoom(at.x, at.y)).toBe(true);
     scene.engine.stretchZoom(at.x, at.y, ratio);
     scene.engine.releaseZoom();
     scene.run(FRAME_MS);
@@ -1266,10 +1266,10 @@ describe('SpaceSceneEngine, looked at up close', () => {
     const view = (): HandView => scene.engine as unknown as HandView;
 
     expect(scene.engine.grab(hole.x + 60, hole.y)).toBe(true);
-    expect(view().turntable.held).toBe(true);
-    scene.engine.holdZoom(hole.x + 30, hole.y);
+    expect(view().turntable.isGripped).toBe(true);
+    scene.engine.grabZoom(hole.x + 30, hole.y);
 
-    expect(view().turntable.held).toBe(false);
+    expect(view().turntable.isGripped).toBe(false);
   });
 
   it('keeps the loop running while the factor eases, and stops it once still', () => {
@@ -1353,7 +1353,7 @@ describe('SpaceSceneEngine, moved by the middle button on a desktop', () => {
     const at = { x: before.x + 50, y: before.y };
 
     const unmoved = { x: at.x - scene.pan.x, y: at.y - scene.pan.y };
-    expect(scene.engine.holdZoom(unmoved.x, unmoved.y)).toBe(true);
+    expect(scene.engine.grabZoom(unmoved.x, unmoved.y)).toBe(true);
     scene.engine.stretchZoom(unmoved.x, unmoved.y, 2);
     scene.engine.releaseZoom();
     scene.run(FRAME_MS);

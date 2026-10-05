@@ -32,7 +32,7 @@ export class TurntableMotion {
   };
   private driver: Rotor = 'disk';
   private trail: { t: number; a: number }[] = [];
-  private heldAngle = 0;
+  private grippedAngle = 0;
   private orbitTurns: number[] = [];
   private shared = 0;
   private reference = ORBITS_REFERENCE;
@@ -44,7 +44,7 @@ export class TurntableMotion {
     rotor: Rotor;
   } | null = null;
 
-  public get held(): boolean {
+  public get isGripped(): boolean {
     return this.grip !== null;
   }
 
@@ -78,10 +78,10 @@ export class TurntableMotion {
     this.driver = rotor;
     this.reference =
       rotor === 'orbits' && under ? under.radius : ORBITS_REFERENCE;
-    const held = this.rotors[rotor];
-    held.speed = 0;
-    this.heldAngle = held.angle;
-    this.trail = [{ t: now, a: held.angle }];
+    const gripped = this.rotors[rotor];
+    gripped.speed = 0;
+    this.grippedAngle = gripped.angle;
+    this.trail = [{ t: now, a: gripped.angle }];
   }
 
   public turn(
@@ -98,12 +98,12 @@ export class TurntableMotion {
     grip.x = clientX;
     grip.y = clientY;
     const angle = angleFrom(under);
-    const held = this.rotors[grip.rotor];
+    const gripped = this.rotors[grip.rotor];
     if (angle !== null && grip.angle !== null) {
-      held.angle += nearestTurn(angle, grip.angle) - grip.angle;
+      gripped.angle += nearestTurn(angle, grip.angle) - grip.angle;
     }
     grip.angle = angle;
-    this.trail.push({ t: now, a: held.angle });
+    this.trail.push({ t: now, a: gripped.angle });
     while (
       this.trail.length > 2 &&
       now - (this.trail[0]?.t ?? now) > HAND_WINDOW_MS
@@ -137,27 +137,28 @@ export class TurntableMotion {
     isReduced: boolean,
     orbits: readonly { readonly rb: number }[],
   ): boolean {
-    const held = this.grip ? this.rotors[this.grip.rotor] : null;
-    this.measureHeld(held, dt);
+    const gripped = this.grip ? this.rotors[this.grip.rotor] : null;
+    this.measureGripped(gripped, dt);
     const driver = this.rotors[this.driver];
     const driven = this.rotors[this.driver === 'disk' ? 'orbits' : 'disk'];
     this.dragDriven(driver, driven, dt, isReduced);
-    const isDriverTurning = isTurningAfterCoast(driver, held, dt, true);
-    const isDrivenTurning = isTurningAfterCoast(driven, held, dt, false);
+    const isDriverTurning = isTurningAfterCoast(driver, gripped, dt, true);
+    const isDrivenTurning = isTurningAfterCoast(driven, gripped, dt, false);
     this.share(orbits);
-    return held !== null || isDriverTurning || isDrivenTurning;
+    return gripped !== null || isDriverTurning || isDrivenTurning;
   }
 
-  private measureHeld(
-    held: { angle: number; speed: number } | null,
+  private measureGripped(
+    gripped: { angle: number; speed: number } | null,
     dt: number,
   ): void {
-    if (!held || dt <= 0) {
+    if (!gripped || dt <= 0) {
       return;
     }
-    const measured = (held.angle - this.heldAngle) / dt;
-    held.speed += (measured - held.speed) * (1 - Math.pow(0.5, dt / 0.05));
-    this.heldAngle = held.angle;
+    const measured = (gripped.angle - this.grippedAngle) / dt;
+    gripped.speed +=
+      (measured - gripped.speed) * (1 - Math.pow(0.5, dt / 0.05));
+    this.grippedAngle = gripped.angle;
   }
 
   private dragDriven(
@@ -186,11 +187,11 @@ export class TurntableMotion {
 
 function isTurningAfterCoast(
   rotor: { angle: number; speed: number },
-  held: { angle: number; speed: number } | null,
+  gripped: { angle: number; speed: number } | null,
   dt: number,
   isDriving: boolean,
 ): boolean {
-  if (rotor === held) {
+  if (rotor === gripped) {
     return false;
   }
   rotor.angle += rotor.speed * dt;

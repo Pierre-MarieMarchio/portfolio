@@ -45,7 +45,7 @@ describe('ProjectSheetService', () => {
       expect(route('sheet', 'beta')).toBe(1);
     });
 
-    it('from the home, for a project other than the one held', () => {
+    it('from the home, for a project other than the one last read', () => {
       const { route } = mount();
       route('sheet', 'alpha');
       route('home');
@@ -63,7 +63,7 @@ describe('ProjectSheetService', () => {
 
   describe('a project is not opened again', () => {
     it.each(['home', 'about'] as const)(
-      'when it comes back through %s, the project held being the same',
+      'when it comes back through %s, the project last read being the same',
       (view) => {
         const { route } = mount();
         route('sheet', 'alpha');

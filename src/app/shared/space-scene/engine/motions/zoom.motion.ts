@@ -31,7 +31,7 @@ export class ZoomMotion {
   private readonly hole = { cx: 0, cy: 0, radius: 0 };
   public pan: SkyPan | null = null;
 
-  public get held(): boolean {
+  public get isGripped(): boolean {
     return this.grip !== null;
   }
 
@@ -67,7 +67,7 @@ export class ZoomMotion {
     this.pan?.reset();
   }
 
-  public hold(x: number, y: number): void {
+  public grab(x: number, y: number): void {
     this.grip = {
       x: unzoomedAt(x, this.anchorX, this.now),
       y: unzoomedAt(y, this.anchorY, this.now),

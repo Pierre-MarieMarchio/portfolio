@@ -81,7 +81,7 @@ import {
 } from '@shared/ui/components';
 import {
   BottomEdgeVariableDirective,
-  HeldInertDirective,
+  WithheldInertDirective,
   LayoutAnchorDirective,
 } from '@shared/ui/directives';
 import {
@@ -108,7 +108,7 @@ const boxOf = (rect: FrameRect): LayoutBox => ({
     BottomSheetComponent,
     ContactLinksComponent,
     FeaturedBarComponent,
-    HeldInertDirective,
+    WithheldInertDirective,
     HomeTitleComponent,
     IntroCardComponent,
     IntroSkipComponent,

@@ -128,7 +128,7 @@ export class BottomSheetComponent {
     }
   }
 
-  public hold(handle: HTMLElement): () => void {
+  public attachHandle(handle: HTMLElement): () => void {
     this.handle = handle;
     const stop = this.observer.onResize(handle, () => {
       this.measureSoon();

@@ -10,7 +10,7 @@
   animation: rise $duration calc(var(--arrival-at) + #{$delay}) both;
 }
 
-@mixin held($hide: false) {
+@mixin withheld($hide: false) {
   animation: none;
   opacity: 0;
   pointer-events: none;

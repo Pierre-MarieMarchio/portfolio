@@ -102,8 +102,8 @@ export class WindowComponent {
     afterNextRender(() => {
       const bar = this.bar().nativeElement;
       releases.push(
-        this.fold?.hold(bar) ?? NOTHING,
-        this.frame?.hold({
+        this.fold?.attachHandle(bar) ?? NOTHING,
+        this.frame?.attachParts({
           section: this.section().nativeElement,
           bar,
           anchor: this.anchor,

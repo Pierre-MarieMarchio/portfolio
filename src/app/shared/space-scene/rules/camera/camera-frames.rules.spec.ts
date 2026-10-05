@@ -96,7 +96,7 @@ describe('settledStep', () => {
 describe('approachFrame beside a panel on an upright screen', () => {
   const dims = { w: 820, h: 1180, dpr: 1 };
   const orbit = { ang: 0.62, v: 0.01, rb: 5.2 };
-  const framed = (step: number, isDiscHeld: boolean): Frame =>
+  const framed = (step: number, isDiscKept: boolean): Frame =>
     approachFrame({
       step,
       rest: REST_FRAME,
@@ -105,7 +105,7 @@ describe('approachFrame beside a panel on an upright screen', () => {
       orbit,
       panelLeft: 361,
       band: null,
-      isDiscHeld,
+      isDiscKept,
       phase: 0,
       azim: 0,
       offset: noOffset,

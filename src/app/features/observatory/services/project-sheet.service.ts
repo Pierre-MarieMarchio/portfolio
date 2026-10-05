@@ -5,7 +5,7 @@ import type { ObservatoryView } from '../models';
 interface Reading {
   readonly view: ObservatoryView;
   readonly slug: string | null;
-  readonly held: string | null;
+  readonly lastSheet: string | null;
 }
 
 const isOpened = (previous: Reading | undefined, next: Reading): boolean => {
@@ -20,7 +20,7 @@ const isOpened = (previous: Reading | undefined, next: Reading): boolean => {
   }
   return previous.view === 'sheet'
     ? previous.slug !== next.slug
-    : previous.held !== next.slug;
+    : previous.lastSheet !== next.slug;
 };
 
 @Service({ autoProvided: false })
@@ -31,7 +31,7 @@ export class ProjectSheetService {
     source: () => ({
       view: this.observatory.view(),
       slug: this.observatory.slug(),
-      held: this.observatory.lastSheet(),
+      lastSheet: this.observatory.lastSheet(),
     }),
     computation: (reading, previous) =>
       (previous?.value ?? 0) + (isOpened(previous?.source, reading) ? 1 : 0),

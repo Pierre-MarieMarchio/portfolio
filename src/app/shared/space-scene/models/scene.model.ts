@@ -12,7 +12,7 @@ export type CameraFraming =
 
 export type FramingKind = CameraFraming['kind'];
 
-export type BodiesPresence = 'shown' | 'held' | 'hidden';
+export type BodiesPresence = 'shown' | 'withheld' | 'hidden';
 
 export type LabelStyle = 'names' | 'tags' | 'none';
 
@@ -46,7 +46,7 @@ export interface SceneDirection {
 
 export const RESTING_DIRECTION: SceneDirection = {
   framing: { kind: 'rest' },
-  presence: 'held',
+  presence: 'withheld',
   labels: 'names',
   emphasised: null,
   aimed: null,

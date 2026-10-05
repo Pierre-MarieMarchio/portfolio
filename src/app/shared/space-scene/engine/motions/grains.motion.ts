@@ -70,7 +70,7 @@ export class GrainsMotion {
   }
 
   public begin(frame: SceneFrame): void {
-    this.pointer = this.turntable.held ? null : frame.pointer;
+    this.pointer = this.turntable.isGripped ? null : frame.pointer;
     this.reach = CURSOR_REACH * frame.dpr;
     this.dpr = frame.dpr;
     this.isPushed = false;

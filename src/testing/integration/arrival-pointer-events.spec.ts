@@ -6,20 +6,20 @@ const compile = (scss: string): string =>
     .trim();
 
 describe('arrival mixins compiled to CSS', () => {
-  it('keeps a held command out of reach, without hiding it from layout', () => {
+  it('keeps a withheld command out of reach, without hiding it from layout', () => {
     const css = compile(`
       @use 'mixins/arrival';
-      :host([data-arrival='held']) { @include arrival.held; }
+      :host([data-arrival='withheld']) { @include arrival.withheld; }
     `);
 
     expect(css).toContain('pointer-events: none;');
     expect(css).not.toContain('visibility: hidden;');
   });
 
-  it('still hides a held command that opts into it', () => {
+  it('still hides a withheld command that opts into it', () => {
     const css = compile(`
       @use 'mixins/arrival';
-      :host([data-arrival='held']) { @include arrival.held($hide: true); }
+      :host([data-arrival='withheld']) { @include arrival.withheld($hide: true); }
     `);
 
     expect(css).toContain('visibility: hidden;');

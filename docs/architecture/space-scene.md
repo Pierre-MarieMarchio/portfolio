@@ -169,7 +169,7 @@ knowledge-commit: b299e1d
 - D32: the factor returns to 1 with damping on each framing change and canvas resize (zoom.motion.ts:50-60 and :110) — `src/app/shared/space-scene/engine/motions/scene.motion.ts:58` — origin: docs/architecture/decisions.md:877 @ b299e1d
 - D32: under reduced motion the zoom applies without damping — `src/app/shared/space-scene/engine/motions/zoom.motion.ts:110` — origin: docs/architecture/decisions.md:880 @ b299e1d
 - D32: the factor is laid after the camera (ZoomMotion.lay), data-hole reflects it, at 1 nothing changes (zoom.motion.ts:122 and :136) — `src/app/shared/space-scene/engine/motions/scene.motion.ts:99` — origin: docs/architecture/decisions.md:881 @ b299e1d
-- D32: a second finger ends the turn (holdZoom releases the turntable) — `src/app/shared/space-scene/engine/space-scene.engine.ts:223` — origin: docs/architecture/decisions.md:887 @ b299e1d
+- D32: a second finger ends the turn (grabZoom releases the turntable) — `src/app/shared/space-scene/engine/space-scene.engine.ts:223` — origin: docs/architecture/decisions.md:887 @ b299e1d
 - The pinch factor is bounded to [1, 3] and the home double tap gives a close look at x2.2 — `src/app/shared/space-scene/models/scene-config.model.ts:84` — origin: docs/architecture/decisions.md:868 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-26 — Au doigt, les noms évitent le disque ; le ciel libre range la figure et reprend la vitre repliée (D33, étend D29 à D31)

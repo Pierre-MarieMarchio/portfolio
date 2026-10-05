@@ -98,7 +98,7 @@ export class ZoomGestureTracker implements SceneLook {
       return;
     }
     const mid = midpoint(a, b);
-    if (scene.holdZoom(mid.x, mid.y)) {
+    if (scene.grabZoom(mid.x, mid.y)) {
       this.pinch = { spread: Math.max(1, spread(a, b)) };
       this.hasPinched = true;
       this.lastTap = null;

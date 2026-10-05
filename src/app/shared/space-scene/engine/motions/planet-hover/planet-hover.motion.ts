@@ -32,10 +32,10 @@ export class PlanetHoverMotion {
     }
   }
 
-  private holdBack(i: number, held: number): void {
+  private holdBack(i: number, delay: number): void {
     const lag = this.lag.get(i) ?? 0;
-    if (held > 0 || lag !== 0) {
-      this.lag.set(i, lag + held);
+    if (delay > 0 || lag !== 0) {
+      this.lag.set(i, lag + delay);
     }
   }
 }

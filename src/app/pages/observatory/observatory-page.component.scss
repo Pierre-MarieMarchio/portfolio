@@ -231,7 +231,7 @@ $glass-landscape-min: 324px;
   animation: rise 1300ms calc(var(--arrival-at) + 400ms) both;
 }
 
-.home[data-arrival='held'] {
+.home[data-arrival='withheld'] {
   animation: none;
   opacity: 0;
 }

@@ -37,26 +37,26 @@ describe('PlanetHoverMotion', () => {
     expect(scene.phaseOf(0)).toBeCloseTo(settled, 2);
   });
 
-  it('keeps the other orbits turning while one is held', () => {
+  it('keeps the other orbits turning while one is hovered', () => {
     const scene = harness();
     scene.run(600, 0);
 
-    const held = scene.phaseOf(0);
+    const hovered = scene.phaseOf(0);
     const other = scene.phaseOf(1);
 
-    expect(other).toBeGreaterThan(held);
+    expect(other).toBeGreaterThan(hovered);
   });
 
   it('resumes smoothly, without jumping back to the shared phase', () => {
     const scene = harness();
     scene.run(600, 0);
-    const held = scene.phaseOf(0);
+    const hovered = scene.phaseOf(0);
 
     scene.run(FRAME_MS, -1);
     const justAfter = scene.phaseOf(0);
 
-    expect(justAfter).toBeGreaterThan(held);
-    expect(justAfter - held).toBeLessThan(STEP);
+    expect(justAfter).toBeGreaterThan(hovered);
+    expect(justAfter - hovered).toBeLessThan(STEP);
   });
 
   it('brings a released orbit back to full speed within about 300 ms', () => {

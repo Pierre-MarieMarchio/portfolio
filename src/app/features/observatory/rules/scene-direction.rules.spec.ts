@@ -32,7 +32,7 @@ describe('sceneDirectionOf', () => {
   it('rests on the home page, and holds the planets until the rest arrives', () => {
     expect(sceneDirectionOf(scene('home', { revealed: false }))).toEqual({
       framing: { kind: 'rest' },
-      presence: 'held',
+      presence: 'withheld',
       labels: 'names',
       emphasised: null,
       aimed: null,

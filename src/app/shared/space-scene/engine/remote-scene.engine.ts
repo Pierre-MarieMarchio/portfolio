@@ -198,13 +198,13 @@ export class RemoteSceneEngine implements SceneEngine {
     return grip.d > SCENE_CONFIG.gestures.dragPx;
   }
 
-  public holdZoom(clientX: number, clientY: number): boolean {
+  public grabZoom(clientX: number, clientY: number): boolean {
     const isOnCanvas =
       clientOnCanvas(clientX, clientY, this.layout?.canvas, this.dpr) !== null;
     if (isOnCanvas) {
       this.grip = null;
     }
-    this.send('holdZoom', [clientX, clientY]);
+    this.send('grabZoom', [clientX, clientY]);
     return isOnCanvas;
   }
 

@@ -192,7 +192,7 @@ const approachFraming = (
     panelLeft: layout?.approachEdge ?? null,
     band,
     isPairCentred: isFolded,
-    isDiscHeld: typeof layout?.sidePanelLeft === 'number',
+    isDiscKept: typeof layout?.sidePanelLeft === 'number',
     phase: scene.phase,
     azim: scene.azim + scene.orbitTurn(framed),
     offset: (az, tilt) => offsetSeen(scene, framed, az, tilt),

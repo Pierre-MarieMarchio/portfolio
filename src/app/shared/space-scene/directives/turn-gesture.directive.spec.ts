@@ -134,7 +134,7 @@ describe('TurnGestureDirective', () => {
     expect(scene.releases).toBe(1);
   });
 
-  it('shows the grabbing cursor while the scene is held', async () => {
+  it('shows the grabbing cursor while the scene is grabbed', async () => {
     const { host } = await mount(new SceneDouble());
 
     firePointer(host, 'pointerdown');
@@ -225,7 +225,7 @@ describe('TurnGestureDirective', () => {
     expect(document.body.style.cursor).toBe('');
   });
 
-  it('lets go of a held scene and stops listening when destroyed', async () => {
+  it('lets go of a grabbed scene and stops listening when destroyed', async () => {
     const scene = new SceneDouble();
     const { host, fixture } = await mount(scene);
 

@@ -488,7 +488,7 @@ describe('TabNavigationService', () => {
       expect(observatory.preview()).toBeNull();
     });
 
-    it('poses again the card shown at half, which only the hover held', () => {
+    it('poses again the card shown at half, which only the hover kept up', () => {
       const { observatory, homeBottomSheet } = mount();
       TestBed.tick();
       observatory.hover('skyted');

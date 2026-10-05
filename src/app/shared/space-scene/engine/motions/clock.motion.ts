@@ -99,10 +99,10 @@ export class ClockMotion {
 
   private yieldToHand(dt: number, isReduced: boolean): void {
     const before = this.idle;
-    const isHeld = this.turntable.held;
-    const halfLife = isHeld ? 0.05 : 0.6;
+    const isGripped = this.turntable.isGripped;
+    const halfLife = isGripped ? 0.05 : 0.6;
     const pace = isReduced ? 1 : halfLifeStep(dt, halfLife);
-    this.idle += ((isHeld ? 0 : 1) - this.idle) * pace;
+    this.idle += ((isGripped ? 0 : 1) - this.idle) * pace;
     if (Math.abs(this.idle - 1) < 0.001) {
       this.idle = 1;
     }

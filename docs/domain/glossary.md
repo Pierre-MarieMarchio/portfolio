@@ -26,7 +26,8 @@ knowledge-commit: b299e1d
 - part (about section, lit figure) -> `PARTS` (`src/app/features/profile/components/about-window/about-window.component.ts:23`)
 - contact address -> `ContactAddress` (`src/app/features/profile/models/contact.model.ts:3`)
 - staging / production target -> `TARGET` (`.github/workflows/ci.yml:131`)
-- arrival states `held` / `shown` / `timed` -> `data-arrival` host attribute (`src/app/features/observatory/components/home-title/home-title.component.ts:23`) styled at `src/app/features/observatory/components/home-title/home-title.component.scss:29`
+- arrival states `withheld` / `shown` / `timed` -> `data-arrival` host attribute (`src/app/features/observatory/components/home-title/home-title.component.ts:23`) styled at `src/app/features/observatory/components/home-title/home-title.component.scss:29`
+- withheld (arrival state: elements withheld until first gesture or end of crossing) -> `Entrance` model (`src/app/shared/ui/models/entrance.model.ts:1`)
 - crossing (intro duration before the rest arrives) -> `--arrival-at` (`src/assets/styles/_tokens.scss:65`), spec option `crossing` (`src/app/features/observatory/services/home-reveal.service.spec.ts:47`)
 - phone media set -> `TOUCH` (`src/app/features/observatory/services/home-bottom-sheet.service.spec.ts:7`)
 - held sheet -> pinned sheet windows kept open with their project, minimizable by index (`tabs.minimizeSheet(0, bar)`), window-stack ids `sheet:<n>` — `src/app/features/observatory/services/tab-navigation.service.spec.ts:324`, `src/app/features/observatory/services/view-windows.service.spec.ts:134`

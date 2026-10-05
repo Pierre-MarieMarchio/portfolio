@@ -4,6 +4,7 @@ export { ClockService } from './browser/clock.service';
 export { CursorService } from './browser/cursor.service';
 export { DocumentStylesService } from './browser/document-styles.service';
 export { ElementObserverService } from './browser/element-observer.service';
+export { HapticsService } from './browser/haptics/haptics.service';
 export {
   COARSE_POINTER_QUERY,
   MediaPreferencesService,

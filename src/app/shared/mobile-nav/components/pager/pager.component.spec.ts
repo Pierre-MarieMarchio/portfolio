@@ -7,6 +7,7 @@ import {
   provideMobileNavPlatform,
 } from '@testing/doubles/mobile-nav-platform.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
+import { fireTouch, swipe } from '@testing/fixtures/pointer.fixture';
 
 const WIDTH = 300;
 
@@ -96,6 +97,18 @@ const setup = async ({ index = 0 } = {}) => {
       await fixture.whenStable();
     },
   };
+};
+
+const swipeFrom = async (
+  page: number,
+  gesture: { dx?: number; dy?: number; ms?: number },
+) => {
+  const harness = await setup({ index: page });
+  harness.platform.frame();
+  await harness.rest(page * WIDTH);
+  harness.scrollTo.mockClear();
+  swipe(harness.pager, gesture);
+  return harness;
 };
 
 describe('PagerComponent', () => {
@@ -407,5 +420,113 @@ describe('PagerComponent', () => {
       behavior: 'instant',
     });
     expect(changes).toEqual([2]);
+  });
+
+  describe('following a short swipe', () => {
+    it('advances one page on a clear leftward swipe', async () => {
+      const { scrollTo } = await swipeFrom(1, { dx: -60 });
+
+      expect(scrollTo).toHaveBeenCalledExactlyOnceWith({
+        left: 2 * WIDTH,
+        behavior: 'smooth',
+      });
+    });
+
+    it('goes back one page on a clear rightward swipe', async () => {
+      const { scrollTo } = await swipeFrom(2, { dx: 60 });
+
+      expect(scrollTo).toHaveBeenCalledExactlyOnceWith({
+        left: WIDTH,
+        behavior: 'smooth',
+      });
+    });
+
+    it('stays on the page when the swipe is too short', async () => {
+      const { scrollTo } = await swipeFrom(1, { dx: -10 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('stays on the page when the swipe is too slow', async () => {
+      const { scrollTo } = await swipeFrom(1, { dx: -30, ms: 1000 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('stays on the page when the swipe is more vertical than horizontal', async () => {
+      const { scrollTo } = await swipeFrom(1, { dx: -40, dy: 80 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('ignores a gesture that starts with two fingers', async () => {
+      const { pager, scrollTo } = await swipeFrom(1, {});
+
+      fireTouch(pager, 'touchstart', {
+        fingers: [{ x: 200 }, { x: 250 }],
+        at: 0,
+      });
+      fireTouch(pager, 'touchend', { fingers: [{ x: 100 }], at: 100 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('ignores a gesture that ends with two fingers', async () => {
+      const { pager, scrollTo } = await swipeFrom(1, {});
+
+      fireTouch(pager, 'touchstart', { fingers: [{ x: 200 }], at: 0 });
+      fireTouch(pager, 'touchend', {
+        fingers: [{ x: 100 }, { x: 120 }],
+        at: 100,
+      });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('ignores a gesture that is cancelled', async () => {
+      const { pager, scrollTo } = await swipeFrom(1, {});
+
+      fireTouch(pager, 'touchstart', { fingers: [{ x: 200 }], at: 0 });
+      fireTouch(pager, 'touchcancel', { fingers: [{ x: 100 }], at: 100 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('jumps without animation under reduced motion', async () => {
+      const harness = await setup({ index: 1 });
+      harness.platform.frame();
+      await harness.rest(WIDTH);
+      harness.platform.isReduced = true;
+      harness.scrollTo.mockClear();
+
+      swipe(harness.pager, { dx: -60 });
+
+      expect(harness.scrollTo).toHaveBeenCalledExactlyOnceWith({
+        left: 2 * WIDTH,
+        behavior: 'instant',
+      });
+    });
+
+    it('does not scroll when the pager already shows the target page', async () => {
+      const { pager, scrollTo } = await swipeFrom(1, {});
+
+      fireTouch(pager, 'touchstart', { fingers: [{ x: 200 }], at: 0 });
+      Object.defineProperty(pager, 'scrollLeft', {
+        value: 2 * WIDTH,
+        configurable: true,
+      });
+      fireTouch(pager, 'touchend', { fingers: [{ x: 140 }], at: 100 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('does not start a swipe while the pager has no width', async () => {
+      const { pager, scrollTo } = await swipeFrom(1, {});
+      layOut(pager, 0);
+
+      swipe(pager, { dx: -60 });
+
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
   });
 });

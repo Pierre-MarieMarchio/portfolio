@@ -206,17 +206,27 @@ const drawHead = (layer: CometsLayer, sighting: CometSighting): void => {
   ctx.fill();
 };
 
+const isNameInFrame = (
+  layer: CometsLayer,
+  sighting: CometSighting,
+): boolean => {
+  const { w, h } = layer;
+  const { dpr } = layer.args;
+  const { sx, sy } = sighting;
+  return (
+    sx > 60 * dpr && sx < w - 60 * dpr && sy > 24 * dpr && sy < h - 24 * dpr
+  );
+};
+
 const nameComet = (
   layer: CometsLayer,
   sighting: CometSighting,
   name: string,
 ): void => {
-  const { ctx, w, h } = layer;
+  const { ctx } = layer;
   const { dpr } = layer.args;
   const { sx, sy, ux, uy, isActive, alpha } = sighting;
-  const isInFrame =
-    sx > 60 * dpr && sx < w - 60 * dpr && sy > 24 * dpr && sy < h - 24 * dpr;
-  if (!name || !isInFrame) {
+  if (!name || !isNameInFrame(layer, sighting)) {
     return;
   }
   ctx.globalAlpha = alpha * (isActive ? 0.95 : 0.5);

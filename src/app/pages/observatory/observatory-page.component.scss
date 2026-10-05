@@ -49,10 +49,6 @@ main {
   animation: rise 1100ms 200ms both;
 }
 
-.rule {
-  @include controls.divider;
-}
-
 .void {
   inset: 0;
   z-index: var(--z-scene);
@@ -112,14 +108,14 @@ $index-width: min(78ch, max(56vw, 320px));
   z-index: calc(var(--z-window) + var(--stack, 1));
 }
 
-@include formats.tablet {
+@include formats.handheld {
   .void {
     touch-action: none;
   }
 }
 
 $dock-reserve: calc(var(--target) + 2 * var(--s1));
-$contact-room: calc(3 * var(--target) + 3 * var(--s1));
+$contact-room: calc(3 * (var(--target) + var(--s1)));
 
 @include formats.phone {
   :host {
@@ -138,6 +134,7 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
     flex-wrap: nowrap;
     justify-content: flex-start;
     gap: var(--s1);
+    min-height: calc(var(--target) + var(--s2));
     padding: var(--s1);
     border: 0;
     background: linear-gradient(var(--paper), transparent);
@@ -146,14 +143,6 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
 
   .scene {
     min-height: 0;
-  }
-
-  .void {
-    touch-action: none;
-  }
-
-  .overview {
-    display: none;
   }
 
   .slot {
@@ -184,48 +173,25 @@ $contact-room: calc(3 * var(--target) + 3 * var(--s1));
     animation-name: appear;
   }
 
-  .rule {
-    display: none;
-  }
-
   .slot {
     top: calc(var(--glass-lowered) * 100%);
     bottom: var(--floor);
 
     --mnav-sheet-top: calc(var(--head-bottom, 0px) + var(--s1));
     --mnav-sheet-half: calc((1 - var(--glass-lowered)) * 100svh - var(--floor));
-    --mnav-sheet-fill: var(--mnav-sheet-half);
     --mnav-sheet-shade: var(--glass-shade-raised);
   }
 
-  .slot:not(.slot--preview, :has(> [data-detent='full'])) {
+  .slot:not(:has(> [data-detent='full'])) {
     --window-body-overflow: hidden;
   }
 
-  .slot--preview {
-    top: auto;
-    max-height: calc(45% - var(--floor));
-
-    --mnav-sheet-top: 55svh;
-    --mnav-sheet-half: 100%;
-    --mnav-sheet-fill: 0px;
-    --mnav-sheet-shade: none;
-  }
-
   :host:has(app-observatory-dock li)
-    .slot:not(.slot--preview, :has(> [data-detent='folded']))::after {
+    .slot:not(:has(> [data-detent='folded']))::after {
     content: '';
     position: absolute;
     inset: auto 0 0;
     border-bottom: 1px solid var(--line);
-  }
-}
-
-@include formats.short-phone-portrait {
-  .slot--preview {
-    max-height: calc(50% - var(--floor));
-
-    --mnav-sheet-top: 50svh;
   }
 }
 
@@ -241,29 +207,54 @@ $glass-landscape-min: 324px;
     gap: 0;
   }
 
-  app-featured-bar {
-    left: calc(50% + var(--s1));
-    right: var(--s2);
-    bottom: var(--s1);
-  }
-
   .slot {
     left: calc(100% - var(--glass-width));
 
     --mnav-sheet-half: 100%;
-    --mnav-sheet-fill: 100%;
   }
 
-  .slot--preview {
-    top: auto;
-    max-height: 100%;
+  .slot--home {
+    --mnav-sheet-half: 50%;
+  }
+}
 
-    --mnav-sheet-fill: 0px;
+.home {
+  flex: auto;
+  overflow: clip;
+  border-top: 1px solid var(--line);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  background: var(--sheet-surface);
+  box-shadow: var(--sheet-shadow);
+  pointer-events: auto;
+  animation: rise 1300ms calc(var(--arrival-at) + 400ms) both;
+}
+
+.home[data-arrival='held'] {
+  animation: none;
+  opacity: 0;
+}
+
+.home[data-arrival='shown'] {
+  animation-delay: 0s;
+}
+
+.stage {
+  display: grid;
+}
+
+.layer {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition: opacity var(--t);
+
+  &[inert] {
+    opacity: 0;
   }
 }
 
 @include motion.reduced {
-  .bar {
+  .bar,
+  .home {
     animation: none;
   }
 }

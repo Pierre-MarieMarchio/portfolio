@@ -3,6 +3,7 @@ import {
   indexOfChild,
   isAt,
   offsetOfPage,
+  pageAfterSwipe,
   pageAt,
 } from './pager.rules';
 
@@ -78,5 +79,32 @@ describe('indexOfChild', () => {
 
   it('reads no index for an element outside the container', () => {
     expect(indexOfChild(container, document.createElement('li'))).toBeNull();
+  });
+});
+
+describe('pageAfterSwipe', () => {
+  it.each([
+    [1, { dx: -40, dy: 4, ms: 80 }, 4, 2],
+    [1, { dx: 40, dy: -4, ms: 80 }, 4, 0],
+    [0, { dx: -70, dy: 0, ms: 430 }, 4, 1],
+  ])(
+    'moves page %#: one page in the direction of a short horizontal swipe',
+    (origin, swipe, count, expected) => {
+      expect(pageAfterSwipe(origin, swipe, count)).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['too short', { dx: -10, dy: 0, ms: 60 }],
+    ['more vertical than horizontal', { dx: -40, dy: 60, ms: 60 }],
+    ['too slow to be a flick', { dx: -40, dy: 0, ms: 900 }],
+    ['instant, with no time elapsed and no travel', { dx: 0, dy: 0, ms: 0 }],
+  ])('stays where the swipe is %s', (_case, swipe) => {
+    expect(pageAfterSwipe(1, swipe, 4)).toBe(1);
+  });
+
+  it('never leaves the first or the last page', () => {
+    expect(pageAfterSwipe(0, { dx: 40, dy: 0, ms: 80 }, 4)).toBe(0);
+    expect(pageAfterSwipe(3, { dx: -40, dy: 0, ms: 80 }, 4)).toBe(3);
   });
 });

@@ -14,12 +14,12 @@ export class UserPresenceService {
   private readonly clock = inject(ClockService);
   private readonly media = inject(MediaPreferencesService);
 
-  public whenPresent(maxMs: number | null, fn: () => void): () => void {
+  public whenPresent(maxMs: number | null, callback: () => void): () => void {
     if (!this.isBrowser) {
       return () => {};
     }
     if (maxMs === null || this.media.reducedMotion()) {
-      fn();
+      callback();
       return () => {};
     }
     const stops: (() => void)[] = [];
@@ -33,7 +33,7 @@ export class UserPresenceService {
         return;
       }
       cancel();
-      fn();
+      callback();
     };
     stops.push(
       this.clock.after(maxMs, once),

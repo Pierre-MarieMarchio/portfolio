@@ -1,4 +1,9 @@
-import { Lang, langOfUrl } from '@app/core/models';
+import {
+  Lang,
+  langOfUrl,
+  prefixedPath,
+  unprefixedSegments,
+} from '@app/core/models';
 import { AddressedView, PATHS } from '../data/paths.data';
 
 export function pathOf(view: AddressedView, lang: Lang, slug?: string): string {
@@ -20,6 +25,5 @@ export function translatePath(url: string, lang: Lang): string {
       return pathOf(view, lang, rest[0]);
     }
   }
-  const bare = from === 'en' ? segments.slice(1) : segments;
-  return `/${[...(lang === 'en' ? ['en'] : []), ...bare].join('/')}`;
+  return `/${prefixedPath(lang, unprefixedSegments(path).join('/'))}`;
 }

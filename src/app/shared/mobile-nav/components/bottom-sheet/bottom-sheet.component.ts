@@ -9,6 +9,7 @@ import {
   inject,
   input,
   model,
+  output,
   PLATFORM_ID,
   untracked,
   viewChild,
@@ -16,9 +17,12 @@ import {
 import { ScrollReleaseDirective } from '../../directives/scroll-release.directive';
 import type { SheetDetent, SheetStop } from '../../models/bottom-sheet.model';
 import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
+import { BackClaimService } from '../../services/back-claim.service';
 import {
   detentAfter,
   isAtStop,
+  isDismissedBy,
+  isFelt,
   shadeFromOf,
   stopOf,
   stopsOf,
@@ -26,11 +30,14 @@ import {
 
 const CONTROLS = 'button, a, input, select, textarea, label';
 
+const SETTLE_VIBRATION_MS = 10;
+
 const ignore = (): void => {};
 
 @Component({
   selector: 'app-bottom-sheet',
   imports: [ScrollReleaseDirective],
+  providers: [BackClaimService],
   templateUrl: './bottom-sheet.component.html',
   styleUrl: './bottom-sheet.component.scss',
   host: {
@@ -40,6 +47,7 @@ const ignore = (): void => {};
 })
 export class BottomSheetComponent {
   private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly back = inject(BackClaimService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly rail = viewChild.required<ElementRef<HTMLElement>>('rail');
@@ -54,6 +62,8 @@ export class BottomSheetComponent {
     'full',
   ]);
   public readonly detent = model<SheetDetent>('half');
+  public readonly transient = input(false);
+  public readonly dismissed = output();
 
   public readonly isActive = computed(() => this.platform.isCompact());
 
@@ -65,6 +75,7 @@ export class BottomSheetComponent {
   private band = '';
   private isLanded = false;
   private isHeading = false;
+  private isByUser = false;
   private stopFrame: () => void = ignore;
   private stopMeasure: () => void = ignore;
   private readonly stops: (() => void)[] = [];
@@ -72,12 +83,14 @@ export class BottomSheetComponent {
   constructor() {
     effect(() => {
       const detent = this.detent();
-      if (this.isActive()) {
-        untracked(() => {
+      const isActive = this.isActive();
+      untracked(() => {
+        if (isActive) {
           this.ask(detent);
-        });
-      }
+        }
+      });
     });
+    this.back.follow(this.isActive, this.detent);
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
       afterNextRender(() => {
         this.land();
@@ -96,6 +109,7 @@ export class BottomSheetComponent {
     if (!this.isActive()) {
       return;
     }
+    this.isByUser = true;
     const isFolded = this.detent() === 'folded';
     const target = this.stopsNow().find(
       (stop) => (stop.detent === 'folded') !== isFolded,
@@ -120,17 +134,23 @@ export class BottomSheetComponent {
 
   protected press(): void {
     this.stopFrame();
+    this.isByUser = false;
     this.isHeading = false;
     this.origin = this.detent();
   }
 
-  protected letGo(vy: number): void {
+  protected letGo(vy: number, pull = 0): void {
     const stops = this.stopsNow();
     const origin = stopOf(stops, this.origin);
     if (!origin) {
       return;
     }
+    this.isByUser = true;
     const top = this.rail().nativeElement.scrollTop;
+    if (this.transient() && isDismissedBy(stops, origin.detent, top, pull)) {
+      this.dismissed.emit();
+      return;
+    }
     const stop = stopOf(
       stops,
       detentAfter(origin.detent, top - origin.at, vy, stops),
@@ -168,6 +188,9 @@ export class BottomSheetComponent {
       this.platform.onResize(this.content().nativeElement, () => {
         this.measureSoon();
       }),
+      this.platform.onVisible(this.rail().nativeElement, (isVisible) => {
+        this.back.seen(isVisible);
+      }),
     );
     this.isLanded = true;
   }
@@ -188,10 +211,11 @@ export class BottomSheetComponent {
 
   private ask(detent: SheetDetent): void {
     this.origin = detent;
-    if (!this.isLanded || [null, detent].includes(this.committed)) {
+    this.stopFrame();
+    const isAlready = [null, detent].includes(this.committed);
+    if (!this.isLanded || (isAlready && !this.isHeading)) {
       return;
     }
-    this.stopFrame();
     this.stopFrame = this.platform.nextFrame(() => {
       const stop = stopOf(this.stopsNow(), detent);
       if (stop) {
@@ -203,7 +227,7 @@ export class BottomSheetComponent {
   private head(stop: SheetStop): void {
     const rail = this.rail().nativeElement;
     this.origin = stop.detent;
-    const isThere = isAtStop(rail.scrollTop, stop.at);
+    const isThere = !this.isHeading && isAtStop(rail.scrollTop, stop.at);
     const isInstant = this.platform.reducedMotion();
     this.isHeading = !isThere && !isInstant;
     if (!isThere) {
@@ -220,18 +244,19 @@ export class BottomSheetComponent {
   private measureSoon(): void {
     this.stopMeasure();
     this.stopMeasure = this.platform.nextFrame(() => {
+      if (this.rail().nativeElement.clientHeight > 0) {
+        this.back.retake();
+      }
       this.measure();
     });
   }
 
+  private readonly isSettled = (): boolean =>
+    !this.release().isTouching && !this.isHeading;
+
   private measure(): void {
     const rail = this.rail().nativeElement;
-    if (
-      !this.isActive() ||
-      this.release().isTouching ||
-      this.isHeading ||
-      rail.clientHeight === 0
-    ) {
+    if (!this.isActive() || !this.isSettled() || rail.clientHeight === 0) {
       return;
     }
     const peek = this.peekNow();
@@ -240,12 +265,13 @@ export class BottomSheetComponent {
       this.element.style.setProperty('--mnav-sheet-peek', `${String(peek)}px`);
     }
     const stop = stopOf(this.stopsNow(), this.committed ?? this.detent());
-    if (stop && !isAtStop(rail.scrollTop, stop.at)) {
+    if (!stop) {
+      return;
+    }
+    if (!isAtStop(rail.scrollTop, stop.at)) {
       rail.scrollTo({ top: stop.at, behavior: 'instant' });
     }
-    if (stop) {
-      this.commit(stop);
-    }
+    this.commit(stop);
   }
 
   private commit(stop: SheetStop): void {
@@ -255,6 +281,10 @@ export class BottomSheetComponent {
       this.band = band;
       this.element.style.setProperty('--mnav-sheet-band', band);
     }
+    if (isFelt(this.isByUser, this.committed, stop.detent)) {
+      this.platform.vibrate(SETTLE_VIBRATION_MS);
+    }
+    this.isByUser = false;
     this.committed = stop.detent;
     if (this.detent() !== stop.detent) {
       this.detent.set(stop.detent);

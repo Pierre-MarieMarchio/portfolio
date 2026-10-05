@@ -64,6 +64,15 @@ const setStyle = (
   }
 };
 
+const opacityOf = (
+  isVisible: boolean,
+  isBright: boolean,
+  dimmed: string,
+): string => {
+  const brightness = isBright ? '1' : dimmed;
+  return isVisible ? brightness : '0';
+};
+
 export class PlanetLabelsRenderer {
   private buttons: readonly SceneNode[] = [];
   private labels: readonly SceneNode[] = [];
@@ -255,24 +264,20 @@ export class PlanetLabelsRenderer {
       this.stage,
       this.panels,
     );
-    let opacity = '0';
-    if (!body.isCovered && !tag.onText && isTagShown(frame.focus, i)) {
-      opacity = isHighlighted(frame.focus, i) ? '1' : '0.8';
-    }
+    const isTagVisible =
+      !body.isCovered && !tag.onText && isTagShown(frame.focus, i);
     this.writeLabel(
       i,
       `translate(${String(tag.x)}px,${String(tag.y)}px)`,
-      opacity,
+      opacityOf(isTagVisible, isHighlighted(frame.focus, i), '0.8'),
     );
   }
 
   private name(body: PlanetBody, frame: SceneFrame): void {
     const i = body.rank;
     const dpr = frame.dpr;
-    const size = this.labelSizes[i];
-    const lw = size?.w || 120;
-    const lh = size?.h || 20;
-    const isBright = isHighlighted(frame.focus, i);
+    const labelWidth = this.labelSizes[i]?.w || 120;
+    const labelHeight = this.labelSizes[i]?.h || 20;
     const isNamedHere = isNamed(frame.focus, body);
     const place = placeName(
       {
@@ -284,22 +289,18 @@ export class PlanetLabelsRenderer {
         named: isNamedHere,
         rank: i,
       },
-      { w: lw, h: lh },
+      { w: labelWidth, h: labelHeight },
       this.stage,
       this.places,
     );
     const isVisible = isNamedHere && place.free;
-    let opacity = '0';
-    if (isVisible) {
-      opacity = isBright ? '1' : '0.62';
-    }
     this.writeLabel(
       i,
-      `translate(${String(place.x)}px,${String(place.y - lh / 2)}px)`,
-      opacity,
+      `translate(${String(place.x)}px,${String(place.y - labelHeight / 2)}px)`,
+      opacityOf(isVisible, isHighlighted(frame.focus, i), '0.62'),
     );
     if (isVisible && place.dir !== 0) {
-      this.stroke(body, frame, place, lw);
+      this.stroke(body, frame, place, labelWidth);
     }
   }
 
@@ -307,19 +308,19 @@ export class PlanetLabelsRenderer {
     body: PlanetBody,
     frame: SceneFrame,
     place: NamePlace,
-    lw: number,
+    labelWidth: number,
   ): void {
     const dpr = frame.dpr;
-    const l1 = body.radius * LEADER_START;
-    const endX = (place.dir > 0 ? place.x - 6 : place.x + lw + 6) * dpr;
+    const leaderStart = body.radius * LEADER_START;
+    const endX = (place.dir > 0 ? place.x - 6 : place.x + labelWidth + 6) * dpr;
     const ctx = this.ctx;
     ctx.globalAlpha =
       (isHighlighted(frame.focus, body.rank) ? 0.85 : 0.34) *
       frame.entry *
       frame.marks;
     ctx.beginPath();
-    ctx.moveTo(body.sx + place.dir * l1, body.sy);
-    ctx.lineTo(body.sx + place.dir * (l1 + 26 * dpr), place.y * dpr);
+    ctx.moveTo(body.sx + place.dir * leaderStart, body.sy);
+    ctx.lineTo(body.sx + place.dir * (leaderStart + 26 * dpr), place.y * dpr);
     ctx.lineTo(endX, place.y * dpr);
     ctx.stroke();
   }

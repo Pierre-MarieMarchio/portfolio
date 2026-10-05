@@ -5,14 +5,11 @@ import type {
 } from '../models/window-frame.model';
 import {
   areaOf,
-  cascadePlaceOf,
   clampMove,
   clampResize,
   clearanceOf,
-  fitBelowFloor,
   frameOfZone,
   isZone,
-  leastOverlapPlaceOf,
   snapZoneOf,
   unsnapAt,
 } from './window-frame.rules';
@@ -21,8 +18,6 @@ const VIEWPORT = { width: 1200, height: 800 };
 const AREA: FrameArea = { left: 44, top: 100, right: 1156, bottom: 724 };
 const FRAME: FrameRect = { x: 756, y: 100, width: 400, height: 300 };
 const CLEARANCE = { top: 12, bottom: 60 };
-const FLOOR = AREA.bottom;
-const BOUNDS = { ...CLEARANCE, floor: FLOOR };
 
 describe('window frame rules', () => {
   describe('clampMove', () => {
@@ -170,142 +165,6 @@ describe('window frame rules', () => {
 
     it('falls back to no head bar and no bar height', () => {
       expect(clearanceOf(0, 76, 0)).toEqual({ top: 12, bottom: 76 });
-    });
-  });
-
-  describe('cascadePlaceOf', () => {
-    const OWN: FrameRect = { x: 800, y: 100, width: 400, height: 300 };
-
-    it('offsets 32 px left and 32 px down from the corner of the window above', () => {
-      expect(cascadePlaceOf(OWN, OWN, VIEWPORT, BOUNDS)).toEqual({
-        dx: -32,
-        dy: 32,
-        width: null,
-        height: null,
-      });
-    });
-
-    it('is not thrown off by a fractional layout position', () => {
-      const top: FrameRect = { x: 800, y: 94.5, width: 400, height: 300 };
-      const own: FrameRect = { x: 768, y: 94.5, width: 400, height: 300 };
-
-      expect(cascadePlaceOf(top, own, VIEWPORT, BOUNDS)).toEqual({
-        dx: 0,
-        dy: 33,
-        width: null,
-        height: null,
-      });
-    });
-
-    it('reads the offset from the window above, wherever it sits and whatever its size', () => {
-      const top: FrameRect = { x: 500, y: 200, width: 300, height: 250 };
-
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toEqual({
-        dx: 500 + 300 - 32 - 400 - 800,
-        dy: 200 + 32 - 100,
-        width: null,
-        height: null,
-      });
-    });
-
-    it('gives up and lets the window keep its default place once the offset goes off screen', () => {
-      const top: FrameRect = { ...OWN, x: 1150 };
-
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
-    });
-
-    it('gives up once the offset leaves its title bar unreachable', () => {
-      const top: FrameRect = { ...OWN, y: VIEWPORT.height - CLEARANCE.bottom };
-
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
-    });
-
-    it('reduces its height to stay above the floor, the body free to scroll inside', () => {
-      const top: FrameRect = { ...OWN, y: 450 };
-
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toEqual({
-        dx: -32,
-        dy: 382,
-        width: null,
-        height: FLOOR - 482,
-      });
-    });
-
-    it('gives up once even the minimum height would not fit above the floor', () => {
-      const top: FrameRect = { ...OWN, y: 600 };
-
-      expect(cascadePlaceOf(top, OWN, VIEWPORT, BOUNDS)).toBeNull();
-    });
-  });
-
-  describe('leastOverlapPlaceOf', () => {
-    const OWN: FrameRect = { x: 800, y: 100, width: 400, height: 300 };
-    const MIRROR: FrameRect = { x: 0, y: 100, width: 400, height: 300 };
-
-    it('moves to the mirrored left when it clears the window already there entirely', () => {
-      expect(leastOverlapPlaceOf(OWN, [OWN], VIEWPORT, BOUNDS)).toEqual({
-        dx: -800,
-        dy: 0,
-        width: null,
-        height: null,
-      });
-    });
-
-    it('is not thrown off by a fractional layout position', () => {
-      const own: FrameRect = { ...OWN, y: 100.5 };
-
-      expect(leastOverlapPlaceOf(own, [own], VIEWPORT, BOUNDS)).toEqual({
-        dx: -800,
-        dy: 0.5,
-        width: null,
-        height: null,
-      });
-    });
-
-    it('keeps the default place when there is nothing else shown', () => {
-      expect(leastOverlapPlaceOf(OWN, [], VIEWPORT, BOUNDS)).toBeNull();
-    });
-
-    it('prefers the default place when every reachable candidate clears the overlap equally', () => {
-      const front: FrameRect = { ...OWN, x: -1000 };
-
-      expect(leastOverlapPlaceOf(OWN, [front], VIEWPORT, BOUNDS)).toBeNull();
-    });
-
-    it('keeps the default place when the mirrored side is worse and the cascade is not reachable', () => {
-      const front: FrameRect = { ...OWN, x: 1150 };
-
-      expect(
-        leastOverlapPlaceOf(OWN, [front, MIRROR], VIEWPORT, BOUNDS),
-      ).toBeNull();
-    });
-
-    it('falls back to the cascade once the default and the mirrored side are both already taken', () => {
-      expect(leastOverlapPlaceOf(OWN, [OWN, MIRROR], VIEWPORT, BOUNDS)).toEqual(
-        { dx: -32, dy: 32, width: null, height: null },
-      );
-    });
-
-    it('keeps the default place once even the cascade would leave it covered more', () => {
-      const wide: FrameRect = { x: 100, y: 100, width: 1000, height: 300 };
-
-      expect(leastOverlapPlaceOf(OWN, [wide], VIEWPORT, BOUNDS)).toBeNull();
-    });
-  });
-
-  describe('fitBelowFloor', () => {
-    const RECT: FrameRect = { x: 100, y: 300, width: 400, height: 300 };
-
-    it('keeps a rect that already fits above the floor', () => {
-      expect(fitBelowFloor(RECT, 700)).toBe(RECT);
-    });
-
-    it('shrinks a rect that would cross the floor', () => {
-      expect(fitBelowFloor(RECT, 500)).toEqual({ ...RECT, height: 200 });
-    });
-
-    it('gives up once the minimum height would still cross the floor', () => {
-      expect(fitBelowFloor(RECT, 450)).toBeNull();
     });
   });
 

@@ -10,6 +10,7 @@ import {
 interface Layer {
   readonly depth: number;
   readonly onBack: () => void;
+  readonly onLeave: () => void;
 }
 
 const ignore = (): void => {};
@@ -30,11 +31,39 @@ export class BackLayersService {
   }
 
   public push(onBack: () => void): () => void {
-    if (this.platform.closesOnBack()) {
-      return ignore;
-    }
+    return this.platform.closesOnBack() ? ignore : this.stack(onBack, onBack);
+  }
+
+  public claim(onBack: () => void, onLeave: () => void): () => void {
+    return this.platform.closesOnBack()
+      ? this.watch(onBack, onLeave)
+      : this.stack(onBack, onLeave);
+  }
+
+  private watch(onBack: () => void, onLeave: () => void): () => void {
+    let stopWatching = ignore;
+    let stopLeaving = ignore;
+    const stop = (): void => {
+      stopWatching();
+      stopLeaving();
+      stopWatching = ignore;
+      stopLeaving = ignore;
+    };
+    const close = (): void => {
+      stop();
+      onBack();
+    };
+    stopWatching = this.platform.watchClose(close);
+    stopLeaving = this.platform.onLeave(() => {
+      stop();
+      onLeave();
+    });
+    return stop;
+  }
+
+  private stack(onBack: () => void, onLeave: () => void): () => void {
     this.listen();
-    const layer = { depth: this.layers.length + 1, onBack };
+    const layer = { depth: this.layers.length + 1, onBack, onLeave };
     this.layers = [...this.layers, layer];
     this.platform.pushHistory(
       withLayer(this.platform.historyState(), layer.depth),
@@ -67,7 +96,9 @@ export class BackLayersService {
       }),
       this.platform.onLeave(() => {
         this.swallowed = 0;
-        this.backFrom(0);
+        for (const layer of this.closeAbove(0)) {
+          layer.onLeave();
+        }
       }),
     ];
   }

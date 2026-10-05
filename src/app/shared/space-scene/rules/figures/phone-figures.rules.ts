@@ -48,47 +48,63 @@ interface PhoneSky {
 
 const FIGURE_GAP = 10;
 
+const unnamedSize: NameSize = { w: 0, h: 0, gap: 0 };
+
+const placementsWithOwn = (
+  count: number,
+  lit: number,
+  own: FigurePlacement,
+  others: readonly FigurePlacement[],
+): FigurePlacement[] =>
+  Array.from({ length: count }, (_, k) => {
+    if (k === lit) {
+      return own;
+    }
+    return others[k < lit ? k : k - 1] ?? own;
+  });
+
+const litFigure = (
+  lit: number,
+  figures: readonly FigurePoints[],
+  shapes: readonly SkyRoom[],
+  sky: PhoneSky,
+): { readonly placements: FigurePlacement[]; readonly name: FigureName } => {
+  const { room, disc, hole, dpr } = sky;
+  const size = sky.names[lit] ?? unnamedSize;
+  const fit = figureInRoom(figures[lit] ?? [], { room, disc, name: size, dpr });
+  const own = { dx: fit.dx, dy: fit.dy, scale: 1 };
+  const name = nameInRoom(
+    { ...fit.name, x: fit.name.x + fit.dx, y: fit.name.y + fit.dy },
+    size,
+    room,
+  );
+  const taken = unionOf(
+    placedBox(shapes[lit] ?? room, own),
+    nameBoxOf(name, size),
+  );
+  const others = arrangeFigures(
+    shapes.filter((_, k) => k !== lit),
+    { room, taken, hole, disc, gap: FIGURE_GAP * dpr },
+  );
+  return {
+    placements: placementsWithOwn(shapes.length, lit, own, others),
+    name,
+  };
+};
+
 export const phoneFigureLayout = (
   figures: readonly FigurePoints[],
-  { room, disc, hole, names, dpr }: PhoneSky,
+  sky: PhoneSky,
 ): FigureLayout => {
-  const shapes = figures.map((points) => spanOf(points, dpr));
-  const placements: FigurePlacement[][] = [];
-  const litNames: FigureName[] = [];
-  for (const [lit, points] of figures.entries()) {
-    const size = names[lit] ?? { w: 0, h: 0, gap: 0 };
-    const fit = figureInRoom(points, { room, disc, name: size, dpr });
-    const own = { dx: fit.dx, dy: fit.dy, scale: 1 };
-    const name = nameInRoom(
-      { ...fit.name, x: fit.name.x + fit.dx, y: fit.name.y + fit.dy },
-      size,
-      room,
-    );
-    const taken = unionOf(
-      placedBox(shapes[lit] ?? room, own),
-      nameBoxOf(name, size),
-    );
-    const others = arrangeFigures(
-      shapes.filter((_, k) => k !== lit),
-      { room, taken, hole, disc, gap: FIGURE_GAP * dpr },
-    );
-    placements.push(
-      shapes.map((_, k) => {
-        if (k === lit) {
-          return own;
-        }
-        return others[k < lit ? k : k - 1] ?? own;
-      }),
-    );
-    litNames.push(name);
-  }
+  const shapes = figures.map((points) => spanOf(points, sky.dpr));
+  const lits = figures.map((_, lit) => litFigure(lit, figures, shapes, sky));
   return {
-    placements,
-    names: litNames,
+    placements: lits.map((lit) => lit.placements),
+    names: lits.map((lit) => lit.name),
     points: figures,
     shapes,
-    sizes: names,
-    room,
+    sizes: sky.names,
+    room: sky.room,
   };
 };
 
@@ -198,28 +214,24 @@ const skyOf = (frame: SceneFrame, room: SkyRoom): number[] => {
 const SHADOW_REACH = 1.05;
 const STAR_REACH = 3;
 
-export const phoneFigures = (
-  frame: SceneFrame,
+const isSameSky = (
   last: PhoneFigures | null,
+  labels: readonly string[],
+  sky: readonly number[],
+): last is PhoneFigures =>
+  last?.labels === labels && last.sky.every((value, i) => value === sky[i]);
+
+const measuredLayout = (
+  frame: SceneFrame,
+  room: SkyRoom,
   ctx: CanvasRenderingContext2D,
-): PhoneFigures | null => {
-  const room = frame.figureRoom;
-  if (!room) {
-    return null;
-  }
-  const sky = skyOf(frame, room);
-  const labels = frame.state.figureNames;
-  if (
-    last?.labels === labels &&
-    last.sky.every((value, i) => value === sky[i])
-  ) {
-    return last;
-  }
+): FigureLayout => {
   const { w, h, dpr } = frame;
   const hole = frame.unzoomedHole;
+  const labels = frame.state.figureNames;
   ctx.font = figureLabelFont(dpr);
   ctx.letterSpacing = '0px';
-  const layout = phoneFigureLayout(
+  return phoneFigureLayout(
     CONSTELLATIONS.map((figure) => restingPoints(w, h, figure)),
     {
       room,
@@ -235,6 +247,23 @@ export const phoneFigures = (
       dpr,
     },
   );
+};
+
+export const phoneFigures = (
+  frame: SceneFrame,
+  last: PhoneFigures | null,
+  ctx: CanvasRenderingContext2D,
+): PhoneFigures | null => {
+  const room = frame.figureRoom;
+  if (!room) {
+    return null;
+  }
+  const sky = skyOf(frame, room);
+  const labels = frame.state.figureNames;
+  if (isSameSky(last, labels, sky)) {
+    return last;
+  }
+  const layout = measuredLayout(frame, room, ctx);
   return {
     sky,
     labels,

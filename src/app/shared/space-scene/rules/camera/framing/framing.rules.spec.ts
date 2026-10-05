@@ -1,7 +1,8 @@
 import type { SceneLayout } from '../../../models/scene-layout.model';
 import { NO_STATE, SceneState } from '../../scene-state.rules';
 import { mirroredFrame, planetTurnOf } from '../../rooms/window-room.rules';
-import { framingFor, framingScene } from './framing.rules';
+import { skyRoomsOf } from './body-framing.rules';
+import { framingFor, framingScene, HoleFocusRules } from './framing.rules';
 import { REST_FRAME } from '../camera-frames.rules';
 
 const DESKTOP = { width: 1440, height: 900 } as const;
@@ -101,5 +102,33 @@ describe('framingFor beside a window that crosses the screen', () => {
     }
 
     expect(maxStep).toBeLessThan(0.6 / 60 + 1e-9);
+  });
+});
+
+const rulesGiving = (room: { left: number; right: number }) =>
+  ({
+    skyRooms: () => [{ ...room, top: 0, bottom: 400 }],
+  }) as unknown as HoleFocusRules;
+
+describe('skyRoomsOf', () => {
+  it('keeps the very same rooms when the panels are laid out again at the same places', () => {
+    const scene = sceneAt(layoutWithWindow([[900, 1396]]));
+    const first = skyRoomsOf(scene, rulesGiving({ left: 0, right: 880 }));
+
+    scene.layout = layoutWithWindow([[900, 1396]]);
+    const again = skyRoomsOf(scene, rulesGiving({ left: 0, right: 880 }));
+
+    expect(again).toBe(first);
+  });
+
+  it('gives new rooms once a panel has moved', () => {
+    const scene = sceneAt(layoutWithWindow([[900, 1396]]));
+    const first = skyRoomsOf(scene, rulesGiving({ left: 0, right: 880 }));
+
+    scene.layout = layoutWithWindow([[700, 1396]]);
+    const moved = skyRoomsOf(scene, rulesGiving({ left: 0, right: 680 }));
+
+    expect(moved).not.toBe(first);
+    expect(moved[0]?.right).toBe(680);
   });
 });

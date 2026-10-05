@@ -102,14 +102,14 @@ const GOLDEN: Record<string, string> = {
   crossing: '0561053f',
   arrival: '7d6b7a10',
   'rest, emphasised': '3f932d2d',
-  'close-up': '216dcedf',
-  overview: '2bb0f172',
-  approach: 'b59399f1',
-  aside: '51724907',
-  'empty overview': '7d9fe8a2',
-  'rest, pointer': '82bb3fba',
-  'turned by hand': 'fdb8dd05',
-  'reduced motion': 'f115cf39',
+  'close-up': '4f9639c5',
+  overview: 'da03e33d',
+  approach: '34ff6a86',
+  aside: 'cbc09524',
+  'empty overview': 'dd72ebcf',
+  'rest, pointer': '7205a6ad',
+  'turned by hand': '45167e18',
+  'reduced motion': '8e4af44b',
 };
 
 const PHONE_LAYOUT: SceneLayout = {
@@ -327,8 +327,8 @@ const SCENES_GOLDEN = {
     arrival: 'f7e3d1e4',
     overview: '3d44831a',
     approach: '98566f33',
-    'close-up': 'e8be76ee',
-    aside: '902a4eb6',
+    'close-up': 'f700f25c',
+    aside: 'a7b92b35',
   },
   measuredLabels: {
     arrival: '29a2446b',
@@ -353,7 +353,7 @@ const SCENES_GOLDEN = {
   },
   secondLayout: {
     rest: '7298c305',
-    'close-up': '79d280d5',
+    'close-up': 'b7372db6',
   },
   landed: {
     'landed, first frame': 'b512a3fd',
@@ -363,9 +363,9 @@ const SCENES_GOLDEN = {
   },
   nineBodies: {
     arrival: '89a4f92f',
-    'close-up first': 'a3a250b2',
-    'close-up last bright': '0a9ea370',
-    overview: '80461910',
-    approach: '7b617064',
+    'close-up first': '8da1b602',
+    'close-up last bright': 'a2510272',
+    overview: '4d04121e',
+    approach: '108bcaab',
   },
 } satisfies Record<string, Record<string, string>>;

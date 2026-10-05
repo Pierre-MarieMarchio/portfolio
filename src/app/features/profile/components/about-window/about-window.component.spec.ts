@@ -6,9 +6,10 @@ import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { WindowComponent } from '@shared/windows/components';
-import { loadWindowMenu } from '@shared/windows/components/window/window.component';
+import { ScrollMemoryService } from '@shared/windows/services/scroll-memory.service';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
 const mount = async (inputs: { pinned?: boolean; part?: number } = {}) => {
@@ -41,21 +42,14 @@ const textsOf = (elements: Iterable<Element>): (string | undefined)[] =>
 
 describe('AboutWindowComponent', () => {
   it('defaults to the first part and unpinned, with no input set', async () => {
-    const { fixture, host, about } = await mount();
+    const { host, about } = await mount();
 
     expect(host.querySelector('h1')?.textContent?.trim()).toBe(
       about.title(about.profile.title),
     );
-    await loadWindowMenu();
-    await new Promise((resolve) => setTimeout(resolve));
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
-    await fixture.whenStable();
-    expect(
-      host
-        .querySelector('[role="menuitemcheckbox"]')
-        ?.getAttribute('aria-checked'),
-    ).toBe('false');
+    expect(host.querySelector('button.pin')?.getAttribute('aria-pressed')).toBe(
+      'false',
+    );
   });
 
   it('opens a window titled and labelled for "about", with an empty meta', async () => {
@@ -110,12 +104,12 @@ describe('AboutWindowComponent', () => {
   });
 
   it.each([0, 1, 2, 3])(
-    'titles the focusable h1 after part %i',
+    'titles the h1, left to the window title for the focus, after part %i',
     async (part) => {
       const { host, about, parts } = await mount({ part });
       const h1 = host.querySelector('h1');
 
-      expect(h1?.getAttribute('tabindex')).toBe('-1');
+      expect(h1?.hasAttribute('tabindex')).toBe(false);
       expect(h1?.textContent?.trim()).toBe(
         about.title(parts[part]?.title ?? ''),
       );
@@ -228,6 +222,31 @@ describe('AboutWindowComponent', () => {
     },
   );
 
+  describe('on the phone', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('drops the next-part button and keeps the part title in the footer', async () => {
+      stubViewport(390, 844);
+      const { host, parts } = await mount({ part: 1 });
+      const footer = host.querySelector('.footer');
+
+      expect(footer?.textContent).toContain(parts[1]?.title);
+      expect(footer?.querySelector('button.next')).toBeNull();
+      expect(footer?.querySelector('a.next')).toBeNull();
+    });
+
+    it('still links to every project on the last part', async () => {
+      stubViewport(390, 844);
+      const { host, about } = await mount({ part: 3 });
+
+      expect(host.querySelector('.footer a.next')?.textContent?.trim()).toBe(
+        about.back,
+      );
+    });
+  });
+
   it('links to every project instead of a next button, on the last part', async () => {
     const { host, about } = await mount({ part: 3 });
     const footer = host.querySelector('.footer');
@@ -239,19 +258,17 @@ describe('AboutWindowComponent', () => {
     expect(link?.getAttribute('href')).toBe('/projets');
   });
 
-  it('re-emits the window pin and close as its own outputs', async () => {
+  it('re-emits the window minimize, pin and close as its own outputs', async () => {
     const { fixture, host } = await mount();
+    const minimized = recordOutput(fixture.componentInstance.minimized);
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    await loadWindowMenu();
-    await new Promise((resolve) => setTimeout(resolve));
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
+    host.querySelector<HTMLButtonElement>('button.minimize')?.click();
+    host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
+    expect(minimized).toHaveLength(1);
     expect(pinToggled).toHaveLength(1);
     expect(closed).toHaveLength(1);
   });
@@ -309,5 +326,18 @@ describe('AboutWindowComponent', () => {
         ?.querySelectorAll('button')[0]
         ?.getAttribute('aria-pressed'),
     ).toBe('true');
+  });
+
+  it('remembers where its body was scrolled, under its own key', async () => {
+    const { host } = await mount();
+    const body = host.querySelector<HTMLElement>('.body');
+    if (!body) {
+      throw new Error('expected a body');
+    }
+
+    body.scrollTop = 90;
+    body.dispatchEvent(new Event('scroll'));
+
+    expect(TestBed.inject(ScrollMemoryService).read('about')).toBe(90);
   });
 });

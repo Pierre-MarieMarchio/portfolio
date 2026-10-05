@@ -41,91 +41,58 @@ describe('WindowControlsComponent', () => {
     vi.unstubAllGlobals();
   });
 
-  it('hides the pin from the bar outside the phone format', async () => {
+  it('offers only the close outside the phone format', async () => {
     const { names } = await mount();
 
     expect(names()).toEqual([texts().close]);
   });
 
-  it('says on the phone what pin and fold do there, and emits each once per press', async () => {
-    stubViewport(390, 844);
-    const { fixture, named, names } = await mount({ foldable: true });
+  it('offers minimize, then pin, then close when asked, each emitting its own output', async () => {
+    const { fixture, named, names } = await mount({
+      minimizable: true,
+      pinned: false,
+    });
+    const minimized = recordOutput(fixture.componentInstance.minimized);
     const pins = recordOutput(fixture.componentInstance.pinToggled);
-    const folds = recordOutput(fixture.componentInstance.foldToggled);
+
+    expect(names()).toEqual([texts().minimize, texts().pin, texts().close]);
+
+    named(texts().minimize).click();
+    named(texts().pin).click();
+
+    expect(minimized).toHaveLength(1);
+    expect(pins).toHaveLength(1);
+  });
+
+  it('tells a pinned window from an unpinned one by aria-pressed, never by its name', async () => {
+    const { fixture, named } = await mount({ pinned: false });
+
+    expect(named(texts().pin).getAttribute('aria-pressed')).toBe('false');
+
+    fixture.componentRef.setInput('pinned', true);
+    await fixture.whenStable();
+
+    expect(named(texts().pin).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('offers neither pin nor fold on the phone, only the close', async () => {
+    stubViewport(390, 844);
+    const { fixture, named, names } = await mount();
     const closes = recordOutput(fixture.componentInstance.closed);
 
-    expect(names()).toEqual([
-      texts().phone.pin,
-      texts().phone.fold,
-      texts().close,
-    ]);
+    expect(names()).toEqual([texts().close]);
 
-    named(texts().phone.pin).click();
-    named(texts().phone.fold).click();
     named(texts().close).click();
 
-    expect([pins.length, folds.length, closes.length]).toEqual([1, 1, 1]);
-  });
-
-  it('presses the pin and renames it while pinned, and names the fold by its state', async () => {
-    stubViewport(390, 844);
-    const { fixture, named } = await mount({ foldable: true });
-
-    expect(named(texts().phone.pin).getAttribute('aria-pressed')).toBe('false');
-    expect(named(texts().phone.fold).getAttribute('aria-expanded')).toBe(
-      'true',
-    );
-
-    fixture.componentRef.setInput('pinned', true);
-    fixture.componentRef.setInput('folded', true);
-    await fixture.whenStable();
-
-    expect(named(texts().phone.unpin).getAttribute('aria-pressed')).toBe(
-      'true',
-    );
-    expect(named(texts().phone.unfold).getAttribute('aria-expanded')).toBe(
-      'false',
-    );
-  });
-
-  it('says briefly that the window is kept or released once the pin is pressed, on the phone', async () => {
-    stubViewport(390, 844);
-    const { fixture, named, note } = await mount();
-
-    expect(note()).toBe('');
-
-    named(texts().phone.pin).click();
-    fixture.componentRef.setInput('pinned', true);
-    await fixture.whenStable();
-
-    expect(note()).toBe(texts().kept);
-
-    named(texts().phone.unpin).click();
-    fixture.componentRef.setInput('pinned', false);
-    await fixture.whenStable();
-
-    expect(note()).toBe(texts().released);
-  });
-
-  it('says nothing when the pin changes without being pressed, on the phone', async () => {
-    stubViewport(390, 844);
-    const { fixture, named, note } = await mount();
-    named(texts().phone.pin).click();
-    fixture.componentRef.setInput('pinned', true);
-    await fixture.whenStable();
-
-    fixture.componentRef.setInput('pinned', false);
-    await fixture.whenStable();
-
-    expect(note()).toBe('');
+    expect(closes).toHaveLength(1);
   });
 
   it('shows each name in a tooltip hidden from assistive technologies, never in a title', async () => {
     stubViewport(390, 844);
-    const { host } = await mount({ foldable: true });
+    const { host } = await mount();
     const buttons = [...host.querySelectorAll('button')];
 
-    expect(buttons).toHaveLength(3);
+    expect(buttons).toHaveLength(1);
     for (const button of buttons) {
       const tip = button.querySelector('.tip');
       expect(tip?.textContent?.trim()).toBe(button.getAttribute('aria-label'));

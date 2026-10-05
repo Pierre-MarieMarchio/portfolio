@@ -15,3 +15,8 @@ export interface SheetSample {
   readonly top: number;
   readonly at: number;
 }
+
+export interface SheetRelease {
+  readonly speed: number;
+  readonly pull: number;
+}

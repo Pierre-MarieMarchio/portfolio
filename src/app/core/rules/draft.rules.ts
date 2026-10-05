@@ -10,3 +10,7 @@ export function draft<T extends string | ((...values: never[]) => string)>(
 export function draftsLeft(): number {
   return drafts.length;
 }
+
+export function forgetDraftsAfter(count: number): void {
+  drafts.length = Math.min(drafts.length, count);
+}

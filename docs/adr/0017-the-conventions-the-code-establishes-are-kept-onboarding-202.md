@@ -7,17 +7,17 @@
 
 ## Decision
 
-Keep the principles convention as the code establishes it (eslint.config.js:165)
+Keep the principles convention as the code establishes it (eslint.config.ts:165)
 
 Keep the comments convention as the code establishes it (package.json:23)
 
 Keep the lint-tolerance convention as the code establishes it (package.json:18)
 
-Keep the naming convention as the code establishes it (eslint.config.js:48)
+Keep the naming convention as the code establishes it (eslint.config.ts:48)
 
-Keep the layout convention as the code establishes it (scripts/check-structure.mjs:17)
+Keep the layout convention as the code establishes it (scripts/check-structure.ts:17)
 
-Keep the layer-content convention as the code establishes it (eslint.config.js:169)
+Keep the layer-content convention as the code establishes it (eslint.config.ts:169)
 
 Keep the framework-posture convention as the code establishes it (src/app/app.config.ts:25)
 

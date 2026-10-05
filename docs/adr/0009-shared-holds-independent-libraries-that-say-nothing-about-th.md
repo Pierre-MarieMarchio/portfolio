@@ -21,7 +21,7 @@ The phone portrait tab bar stays MainNavComponent (shared/ui), as D38 placed it:
 
 Session 3 survey (current state): those were the two sole portfolio words in core/ and shared/. The name was written two more times in catalogues; it is no longer written but once.
 
-Chosen by the operator at the onboarding interview; eslint.config.js:125 made it standalone, reaching the browser and texts through its ports (f962ca0)
+Chosen by the operator at the onboarding interview; eslint.config.ts:125 made it standalone, reaching the browser and texts through its ports (f962ca0)
 
 Chosen by the operator at the onboarding interview
 

@@ -1,7 +1,7 @@
-// @ts-check
 import { readdirSync } from 'node:fs';
 import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
+import type { Linter } from 'eslint';
 import prettier from 'eslint-config-prettier';
 import angular from 'angular-eslint';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -19,7 +19,7 @@ const onDisk = readdirSync(`${APP}/features`, { withFileTypes: true })
 
 if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
   throw new Error(
-    `eslint.config.js: FEATURES lists [${FEATURES.join(', ')}] but ` +
+    `eslint.config.ts: FEATURES lists [${FEATURES.join(', ')}] but ` +
       `${APP}/features holds [${onDisk.join(', ')}]. Each feature needs its ` +
       'row in the dependency law.',
   );
@@ -39,7 +39,7 @@ if (
   [...SHARED_LIBS].sort((a, b) => a.localeCompare(b)).join()
 ) {
   throw new Error(
-    `eslint.config.js: SHARED_LIBS lists [${SHARED_LIBS.join(', ')}] but ` +
+    `eslint.config.ts: SHARED_LIBS lists [${SHARED_LIBS.join(', ')}] but ` +
       `${APP}/shared holds [${libsOnDisk.join(', ')}]. Each library needs its ` +
       'row in the dependency law.',
   );
@@ -125,16 +125,14 @@ const LIBRARY_WHY =
 const STANDALONE_WHY =
   'a shared library that stands alone: it imports nothing from this repository, core included, and reaches the browser and the texts through its ports';
 
-/**
- * @typedef {object} Zone
- * @property {string[]} files
- * @property {string} name
- * @property {string} why
- * @property {string[]} denies
- */
+interface Zone {
+  files: string[];
+  name: string;
+  why: string;
+  denies: string[];
+}
 
-/** @type {Zone[]} */
-const ZONES = [
+const ZONES: Zone[] = [
   {
     files: [`${APP}/core/**/*.ts`],
     name: 'core/',
@@ -187,8 +185,7 @@ const ZONES = [
   },
 ];
 
-/** @type {Record<string, string[]>} */
-const GROUPS = {
+const GROUPS: Record<string, string[]> = {
   core: [
     '@app/core',
     '@app/core/**',
@@ -231,11 +228,13 @@ const GROUPS = {
   escapes: ['../../*', '../../**', '@testing/**'],
 };
 
-/**
- * @param {{ zones: Zone[], groups: Record<string, string[]> }} law
- * @returns {import('eslint').Linter.Config[]}
- */
-function zoneLaws({ zones, groups }) {
+function zoneLaws({
+  zones,
+  groups,
+}: {
+  zones: Zone[];
+  groups: Record<string, string[]>;
+}): Linter.Config[] {
   return zones.map(({ files, name, why, denies }) => ({
     files,
     rules: {
@@ -334,8 +333,9 @@ export default defineConfig(
   },
 
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.ts'],
     plugins: { sonarjs },
+    languageOptions: { parser: tseslint.parser },
     rules: {
       'max-lines': [
         'error',

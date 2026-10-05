@@ -1,4 +1,3 @@
-// @ts-check
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, posix, relative, sep } from 'node:path';
 import {
@@ -7,7 +6,7 @@ import {
   EXTENSIONS_OF,
   ROLES_IN,
   ROLE_OF,
-} from './structure-tables.mjs';
+} from './structure-tables.ts';
 
 const APP = 'src/app';
 const TESTING = 'src/testing';
@@ -17,22 +16,14 @@ const STRICT = process.argv.includes('--strict');
 const FILE =
   /^(?<name>[a-z0-9-]+)\.(?<suffix>[a-z]+)(?:\.golden)?(?<spec>\.spec)?\.(?<ext>ts|html|scss|json)$/;
 
-/**
- * @param {string} dir
- * @returns {string[]}
- */
-const filesUnder = (dir) =>
+const filesUnder = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true, recursive: true })
     .filter((entry) => entry.isFile())
     .map((entry) =>
       relative('.', join(entry.parentPath, entry.name)).split(sep).join('/'),
     );
 
-/**
- * @param {string} dir
- * @returns {string[]}
- */
-const emptyDirsUnder = (dir) =>
+const emptyDirsUnder = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true, recursive: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => join(entry.parentPath, entry.name))
@@ -40,11 +31,13 @@ const emptyDirsUnder = (dir) =>
 
 const SINGLE_ZONES = new Set(['core', 'i18n', 'pages']);
 
-/**
- * @param {string} inApp
- * @returns {{ zone: string, kind: string, rest: string[] } | null}
- */
-const zoneOf = (inApp) => {
+interface Zone {
+  zone: string;
+  kind: string;
+  rest: string[];
+}
+
+const zoneOf = (inApp: string): Zone | null => {
   const parts = inApp.split('/');
   const [first = '', second = ''] = parts;
   if (SINGLE_ZONES.has(first)) {
@@ -61,19 +54,10 @@ const zoneOf = (inApp) => {
   return first === 'features' ? { zone, kind: 'feature', rest } : null;
 };
 
-/**
- * @param {string} suffix
- * @returns {string}
- */
-const classSuffix = (suffix) =>
+const classSuffix = (suffix: string): string =>
   suffix.charAt(0).toUpperCase() + suffix.slice(1);
 
-/**
- * @param {string} path
- * @param {string} suffix
- * @returns {string[]}
- */
-const misnamedClasses = (path, suffix) => {
+const misnamedClasses = (path: string, suffix: string): string[] => {
   const expected = classSuffix(suffix);
   return [
     ...readFileSync(path, 'utf8').matchAll(/export (?:abstract )?class (\w+)/g),
@@ -83,14 +67,12 @@ const misnamedClasses = (path, suffix) => {
     .map((name) => `class ${name} should end with ${expected}`);
 };
 
-/**
- * @param {string} kind
- * @param {string} suffix
- * @param {string} name
- * @param {string[]} rest
- * @returns {string[] | null}
- */
-const pageComponentErrors = (kind, suffix, name, rest) => {
+const pageComponentErrors = (
+  kind: string,
+  suffix: string,
+  name: string,
+  rest: string[],
+): string[] | null => {
   if (kind !== 'pages' || suffix !== 'component') {
     return null;
   }
@@ -100,14 +82,12 @@ const pageComponentErrors = (kind, suffix, name, rest) => {
     : ['a page folder holds only -page and -route components'];
 };
 
-/**
- * @param {string} suffix
- * @param {string} role
- * @param {string} first
- * @param {string} second
- * @returns {string[] | null}
- */
-const engineRoleErrors = (suffix, role, first, second) => {
+const engineRoleErrors = (
+  suffix: string,
+  role: string,
+  first: string,
+  second: string,
+): string[] | null => {
   if (suffix !== 'motion' && suffix !== 'renderer') {
     return null;
   }
@@ -116,59 +96,42 @@ const engineRoleErrors = (suffix, role, first, second) => {
     : [`belongs in engine/${role}/`];
 };
 
-/**
- * @param {string} suffix
- * @param {string} name
- * @param {string[]} rest
- * @returns {string[]}
- */
-const componentFolderErrors = (suffix, name, rest) =>
+const componentFolderErrors = (
+  suffix: string,
+  name: string,
+  rest: string[],
+): string[] =>
   suffix === 'component' && (rest.length !== 3 || rest[1] !== name)
     ? [`a component lives alone in components/${name}/`]
     : [];
 
-/**
- * @param {string} role
- * @param {string[]} rest
- * @returns {string[]}
- */
-const stateFolderErrors = (role, rest) =>
+const stateFolderErrors = (role: string, rest: string[]): string[] =>
   role === 'states' && rest.length !== 3
     ? ['a state lives in states/<state>/']
     : [];
 
-/**
- * @param {{ kind: string, zone: string }} where
- * @param {string} role
- * @returns {string[]}
- */
-const roleAllowanceErrors = ({ kind, zone }, role) => {
+const roleAllowanceErrors = (
+  { kind, zone }: Pick<Zone, 'kind' | 'zone'>,
+  role: string,
+): string[] => {
   const engineHere = role === 'engine' && ENGINE_ZONES.has(zone);
   return (ROLES_IN[kind] ?? []).includes(role) || engineHere
     ? []
     : [`${zone}/ has no ${role}/ role`];
 };
 
-/**
- * @param {{ kind: string, zone: string, rest: string[] }} where
- * @param {string} suffix
- * @param {string} name
- * @param {string} role
- * @returns {string[]}
- */
-const roleErrors = (where, suffix, name, role) => [
+const roleErrors = (
+  where: Zone,
+  suffix: string,
+  name: string,
+  role: string,
+): string[] => [
   ...roleAllowanceErrors(where, role),
   ...componentFolderErrors(suffix, name, where.rest),
   ...stateFolderErrors(role, where.rest),
 ];
 
-/**
- * @param {{ kind: string, zone: string, rest: string[] }} where
- * @param {string} suffix
- * @param {string} name
- * @returns {string[]}
- */
-const misplaced = (where, suffix, name) => {
+const misplaced = (where: Zone, suffix: string, name: string): string[] => {
   const role = ROLE_OF[suffix] ?? '';
   const [first = '', second = ''] = where.rest;
   return (
@@ -180,11 +143,14 @@ const misplaced = (where, suffix, name) => {
   );
 };
 
-/**
- * @param {string} file
- * @returns {{ name: string, suffix: string, spec: boolean, ext: string } | null}
- */
-const parsedFileName = (file) => {
+interface ParsedFileName {
+  name: string;
+  suffix: string;
+  spec: boolean;
+  ext: string;
+}
+
+const parsedFileName = (file: string): ParsedFileName | null => {
   const groups = FILE.exec(file)?.groups;
   if (!groups?.suffix || !(groups.suffix in ROLE_OF)) {
     return null;
@@ -197,29 +163,21 @@ const parsedFileName = (file) => {
   };
 };
 
-/**
- * @param {string} suffix
- * @param {boolean} spec
- * @param {string} ext
- * @returns {string[]}
- */
-const extensionErrors = (suffix, spec, ext) => {
+const extensionErrors = (
+  suffix: string,
+  spec: boolean,
+  ext: string,
+): string[] => {
   if (!(EXTENSIONS_OF[suffix] ?? ['ts']).includes(ext)) {
     return [`a .${suffix} file is not written as .${ext}`];
   }
   return spec && ext !== 'ts' ? ['a spec is written in .ts'] : [];
 };
 
-/**
- * @param {string} path
- * @param {string} file
- * @param {{ kind: string, zone: string, rest: string[] }} where
- * @returns {string[]}
- */
-const namedFileErrors = (path, file, where) => {
+const namedFileErrors = (path: string, file: string, where: Zone): string[] => {
   const parsed = parsedFileName(file);
   if (!parsed) {
-    return ['has no suffix from the list (scripts/structure-tables.mjs)'];
+    return ['has no suffix from the list (scripts/structure-tables.ts)'];
   }
   const { name, suffix, spec, ext } = parsed;
   const extensionProblems = extensionErrors(suffix, spec, ext);
@@ -233,20 +191,12 @@ const namedFileErrors = (path, file, where) => {
   ];
 };
 
-/**
- * @param {string} file
- * @returns {string[]}
- */
-const rootFileErrors = (file) =>
+const rootFileErrors = (file: string): string[] =>
   /^app\.[a-z.]+\.ts$|^app\.component\.(html|scss)$/.test(file)
     ? []
     : ['the root holds only the app.*.ts files'];
 
-/**
- * @param {string} path
- * @returns {string[]}
- */
-const appFileErrors = (path) => {
+const appFileErrors = (path: string): string[] => {
   const inApp = posix.relative(APP, path);
   const file = basename(path);
   if (!inApp.includes('/')) {
@@ -259,18 +209,13 @@ const appFileErrors = (path) => {
   return file === 'index.ts' ? [] : namedFileErrors(path, file, where);
 };
 
-/** @type {Record<string, string>} */
-const TESTING_SUFFIX_OF = {
+const TESTING_SUFFIX_OF: Record<string, string> = {
   fixtures: 'fixture',
   doubles: 'double',
   integration: 'spec',
 };
 
-/**
- * @param {string} path
- * @returns {string[]}
- */
-const testingFileErrors = (path) => {
+const testingFileErrors = (path: string): string[] => {
   const [role = '', file = '', ...deeper] = posix
     .relative(TESTING, path)
     .split('/');
@@ -283,13 +228,8 @@ const testingFileErrors = (path) => {
     : [`a file in ${role}/ ends with .${expected}.ts`];
 };
 
-/**
- * @param {string[]} paths
- * @returns {string[]}
- */
-const crowdedFolders = (paths) => {
-  /** @type {Map<string, number>} */
-  const sources = new Map();
+const crowdedFolders = (paths: string[]): string[] => {
+  const sources = new Map<string, number>();
   for (const path of paths) {
     const file = basename(path);
     if (

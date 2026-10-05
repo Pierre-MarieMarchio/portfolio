@@ -48,7 +48,7 @@ knowledge-commit: b299e1d
 - planet focus -> `PlanetFocus` (`src/app/shared/space-scene/rules/planets/planet-focus.rules.ts:4`)
 - scene target -> `SceneTargetDirective` / `data-scene-target` (`src/app/shared/space-scene/directives/scene-target.directive.ts:7`); sky (empty background) -> `isOnSky` (`src/app/shared/space-scene/rules/gestures/sky-touch.rules.ts:7`)
 - turnable scene -> `TurnableScene` (`src/app/shared/space-scene/directives/turn-gesture.directive.ts:22`)
-- feature / shared library / zone -> `FEATURES`, `SHARED_LIBS`, `ZONES` (`eslint.config.js:13`, `eslint.config.js:28`, `eslint.config.js:137`); standalone library -> `STANDALONE_LIBS` (`eslint.config.js:30`)
+- feature / shared library / zone -> `FEATURES`, `SHARED_LIBS`, `ZONES` (`eslint.config.ts:13`, `eslint.config.ts:28`, `eslint.config.ts:137`); standalone library -> `STANDALONE_LIBS` (`eslint.config.ts:30`)
 - English draft -> `INTERFACE_DRAFTS`, `"enDraft"` (`src/testing/integration/drafts.spec.ts:7`, `src/testing/integration/drafts.spec.ts:12`)
 
 ## src/app/core/**,src/app/i18n/**,src/app/pages/**,src/app/shared/space-scene/engine/**,src/app/shared/space-scene/trackers/*

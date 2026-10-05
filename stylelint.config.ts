@@ -1,3 +1,5 @@
+import type { Config } from 'stylelint';
+
 const disallowedValues = {
   '/.*/': ['/clamp\\(20px, 4vw, 44px\\)/'],
   'border-radius': ['2px'],
@@ -7,7 +9,6 @@ const disallowedValues = {
 const message =
   'Use the design token (src/assets/styles/_tokens.scss) or the shared mixin (src/assets/styles/mixins)';
 
-/** @type {import('stylelint').Config} */
 export default {
   extends: ['stylelint-config-standard-scss'],
   ignoreFiles: ['dist/**', 'coverage/**', 'node_modules/**', '.angular/**'],
@@ -56,4 +57,4 @@ export default {
       { message },
     ],
   },
-};
+} satisfies Config;

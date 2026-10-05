@@ -1,37 +1,28 @@
-// @ts-check
-/**
- * What the prerendered pages must hold, checked on the build's output.
- *
- * The prerender renders each page in a DOM without layout (Domino), where a
- * browser API that jsdom has may be missing. A throw there does not fail the
- * build: the page is written anyway, from whatever state was reached, and
- * every page came out as the home page once. The specs run in jsdom and
- * cannot see it; this reads the files a reader without JavaScript gets.
- */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = 'dist/portfolio/browser';
 
-/**
- * @typedef {object} Page
- * @property {string} path     The address, for the message.
- * @property {string} file     The prerendered file, under ROOT.
- * @property {'fr' | 'en'} lang The language the address is in (D4).
- * @property {string[]} holds  Elements the page must contain.
- * @property {string[]} lacks  Elements it must not.
- */
+type Language = 'fr' | 'en';
+
+interface Page {
+  path: string;
+  file: string;
+  lang: Language;
+  holds: string[];
+  lacks: string[];
+}
+
+interface NotFoundPage {
+  file: string;
+  lang: Language;
+}
 
 const sheets = readdirSync(join(ROOT, 'projet'), { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
 
-/**
- * @param {string} html
- * @param {string} rel
- * @returns {string[]}
- */
-const linksOf = (html, rel) =>
+const linksOf = (html: string, rel: string): string[] =>
   [...html.matchAll(/<link\b[^>]*>/g)]
     .map((match) => match[0])
     .filter((tag) => tag.includes(`rel="${rel}"`))
@@ -43,13 +34,7 @@ const homeCanonical = linksOf(
 )[0];
 const siteAddress = (homeCanonical ?? '').replace(/\/$/, '');
 
-/**
- * The address of a page's English twin, read from the hreflang link the page
- * itself carries, so the English prefix is written once, in src/ (D4).
- * @param {string} file The French page, under ROOT.
- * @returns {string} The address under the site, leading slash included.
- */
-const englishAddressOf = (file) => {
+const englishAddressOf = (file: string): string => {
   const html = readFileSync(join(ROOT, file), 'utf8');
   const tag = [...html.matchAll(/<link\b[^>]*>/g)]
     .map((match) => match[0])
@@ -58,36 +43,32 @@ const englishAddressOf = (file) => {
   return href.startsWith(siteAddress) ? href.slice(siteAddress.length) : '';
 };
 
-/**
- * Every view in French, the language at the root of the site.
- * @returns {Page[]}
- */
-const frenchPages = () => [
+const frenchPages = (): Page[] => [
   {
     path: '/',
     file: 'index.html',
-    lang: /** @type {const} */ ('fr'),
+    lang: 'fr',
     holds: ['<app-home-title', '<app-featured-bar', '<app-intro-card'],
     lacks: ['<app-window'],
   },
   {
     path: '/projets',
     file: join('projets', 'index.html'),
-    lang: /** @type {const} */ ('fr'),
+    lang: 'fr',
     holds: ['<app-project-list', '<app-window'],
     lacks: ['<app-home-title', '<app-intro-card'],
   },
   {
     path: '/a-propos',
     file: join('a-propos', 'index.html'),
-    lang: /** @type {const} */ ('fr'),
+    lang: 'fr',
     holds: ['<app-about-window', '<app-window'],
     lacks: ['<app-home-title', '<app-intro-card'],
   },
-  ...sheets.map((slug) => ({
+  ...sheets.map((slug): Page => ({
     path: `/projet/${slug}`,
     file: join('projet', slug, 'index.html'),
-    lang: /** @type {const} */ ('fr'),
+    lang: 'fr',
     holds: ['<app-project-detail', '<app-window'],
     lacks: ['<app-home-title', '<app-not-found-window', '<app-intro-card'],
   })),
@@ -95,12 +76,7 @@ const frenchPages = () => [
 
 const FRENCH_PAGES = frenchPages();
 
-/**
- * Each French page has an English twin with the same expectations, at the
- * address the French page links to.
- * @type {Page[]}
- */
-const ENGLISH_PAGES = FRENCH_PAGES.map((page) => {
+const ENGLISH_PAGES: Page[] = FRENCH_PAGES.map((page) => {
   const path = englishAddressOf(page.file);
   return {
     ...page,
@@ -110,18 +86,11 @@ const ENGLISH_PAGES = FRENCH_PAGES.map((page) => {
   };
 });
 
-/** @type {Page[]} */
-const PAGES = [...FRENCH_PAGES, ...ENGLISH_PAGES];
+const PAGES: Page[] = [...FRENCH_PAGES, ...ENGLISH_PAGES];
 
 const englishPrefix = ENGLISH_PAGES[0]?.path.replace(/^\//, '') ?? '';
 
-/**
- * The visible words of a page, and its accessible names: what a reader of
- * that language gets. French is told by its accents, which no English text
- * of the site carries; the language switch names French in French.
- * @param {string} html
- */
-const wordsOf = (html) => {
+const wordsOf = (html: string): string => {
   const body = html
     .replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/g, '')
     .replace(/<head[\s\S]*?<\/head>/, '');
@@ -133,56 +102,32 @@ const wordsOf = (html) => {
     .replaceAll('Français', '');
 };
 
-/**
- * The not-found pages, one per language, which the server's error document
- * serves: a real page, kept out of the index.
- * @type {{ file: string, lang: 'fr' | 'en' }[]}
- */
-const NOT_FOUND_PAGES = [
+const NOT_FOUND_PAGES: NotFoundPage[] = [
   { file: '404.html', lang: 'fr' },
   { file: join(englishPrefix, '404.html'), lang: 'en' },
 ];
 
-/**
- * @param {boolean} condition
- * @param {string} message
- * @returns {string[]}
- */
-const when = (condition, message) => (condition ? [message] : []);
+const when = (condition: boolean, message: string): string[] =>
+  condition ? [message] : [];
 
-/**
- * @param {string} file
- * @returns {string}
- */
-const readIfExists = (file) =>
+const readIfExists = (file: string): string =>
   existsSync(join(ROOT, file)) ? readFileSync(join(ROOT, file), 'utf8') : '';
 
-/**
- * @param {string} html
- * @returns {string[]}
- */
-const headingFailures = (html) => {
+const headingFailures = (html: string): string[] => {
   const headings = html.match(/<h1[\s>]/g)?.length ?? 0;
   return when(headings !== 1, `${String(headings)} <h1>, one expected`);
 };
 
-/**
- * @param {string} html
- * @param {string} lang
- * @returns {string[]}
- */
-const languageFailures = (html, lang) =>
+const languageFailures = (html: string, lang: Language): string[] =>
   when(
     !/<html[^>]*\slang="([a-z]+)"/.exec(html)?.[1]?.startsWith(lang),
     `<html> does not say lang="${lang}"`,
   );
 
-/**
- * @param {Page} page
- * @param {string} html
- * @returns {string[]}
- */
-const presenceFailures = ({ holds, lacks }, html) => [
+const presenceFailures = (
+  { holds, lacks }: Pick<Page, 'holds' | 'lacks'>,
+  html: string,
+): string[] => [
   ...holds
     .filter((element) => !html.includes(element))
     .map((element) => `${element}> is missing`),
@@ -191,11 +136,7 @@ const presenceFailures = ({ holds, lacks }, html) => [
     .map((element) => `${element}> should not be there`),
 ];
 
-/**
- * @param {Page} page
- * @returns {string[]}
- */
-const pageFailures = (page) => {
+const pageFailures = (page: Page): string[] => {
   const html = readFileSync(join(ROOT, page.file), 'utf8');
   const otherLang = page.lang === 'fr' ? 'en' : 'fr';
   return [
@@ -217,10 +158,7 @@ const pageFailures = (page) => {
   ].map((why) => `${page.path}: ${why}`);
 };
 
-/**
- * @returns {Set<string>}
- */
-const declaredElements = () =>
+const declaredElements = (): Set<string> =>
   new Set(
     readdirSync('src/app', { recursive: true, encoding: 'utf8' })
       .filter((file) => file.endsWith('.component.ts'))
@@ -232,10 +170,7 @@ const declaredElements = () =>
       .map((match) => `<${match[1] ?? ''}`),
   );
 
-/**
- * @returns {string[]}
- */
-const undeclaredAbsenceFailures = () => {
+const undeclaredAbsenceFailures = (): string[] => {
   const declared = declaredElements();
   return [...new Set(PAGES.flatMap((page) => page.lacks))]
     .filter((element) => !declared.has(element))
@@ -245,11 +180,7 @@ const undeclaredAbsenceFailures = () => {
     );
 };
 
-/**
- * @param {{ file: string, lang: 'fr' | 'en' }} notFoundPage
- * @returns {string[]}
- */
-const notFoundFailures = ({ file, lang }) => {
+const notFoundFailures = ({ file, lang }: NotFoundPage): string[] => {
   if (!existsSync(join(ROOT, file))) {
     return [`${file}: was not written`];
   }
@@ -273,12 +204,7 @@ const notFoundFailures = ({ file, lang }) => {
   ].map((why) => `${file}: ${why}`);
 };
 
-/**
- * @param {Page} page
- * @param {string[]} entries
- * @returns {string[]}
- */
-const pageSitemapFailures = (page, entries) => {
+const pageSitemapFailures = (page: Page, entries: string[]): string[] => {
   const html = readFileSync(join(ROOT, page.file), 'utf8');
   const canonical = linksOf(html, 'canonical')[0];
   const entry = entries.find((candidate) =>
@@ -302,10 +228,7 @@ const pageSitemapFailures = (page, entries) => {
   ];
 };
 
-/**
- * @returns {string[]}
- */
-const sitemapFailures = () => {
+const sitemapFailures = (): string[] => {
   const sitemap = readIfExists('sitemap.xml');
   const entries = sitemap.split('<url>').slice(1);
   const wellFormed =
@@ -321,10 +244,7 @@ const sitemapFailures = () => {
   ];
 };
 
-/**
- * @returns {string[]}
- */
-const robotsFailures = () => {
+const robotsFailures = (): string[] => {
   const robots = readIfExists('robots.txt');
   const allowsEverything =
     /^User-agent: \*$/m.test(robots) && /^Allow: \/$/m.test(robots);
@@ -340,10 +260,7 @@ const robotsFailures = () => {
   ];
 };
 
-/**
- * @returns {string[]}
- */
-const allFailures = () => [
+const allFailures = (): string[] => [
   ...PAGES.flatMap(pageFailures),
   ...undeclaredAbsenceFailures(),
   ...when(sheets.length === 0, '/projet/…: no sheet was prerendered'),
@@ -352,10 +269,7 @@ const allFailures = () => [
   ...robotsFailures(),
 ];
 
-/**
- * @param {string[]} failures
- */
-const report = (failures) => {
+const report = (failures: string[]): void => {
   if (failures.length > 0) {
     console.error(`check-prerender: ${String(failures.length)} failure(s)`);
     failures.forEach((failure) => {

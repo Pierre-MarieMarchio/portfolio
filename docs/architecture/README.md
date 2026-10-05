@@ -8,7 +8,7 @@ against the code.
 ## Documents
 
 - [layers.md](layers.md) — the layers, what each may contain and import; held by the lint
-  (`eslint.config.js:169`) and by check:structure (`scripts/check-structure.mjs:17`)
+  (`eslint.config.ts:169`) and by check:structure (`scripts/check-structure.ts:17`)
 - [reuse.md](reuse.md) — the reusable units, one line each: what, when to use, when not, callers
 - [flows.md](flows.md) — the entry points and the main paths through the code
 - [desktop-and-pages.md](desktop-and-pages.md) — the desktop, its windows, the phone sheets and the pages

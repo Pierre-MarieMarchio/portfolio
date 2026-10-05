@@ -13,7 +13,9 @@ The no-comment rule (D10) covers src/, scripts/, the CI/CD configuration and the
 
 **Reason.** A comment paraphrases the code or tells its history; either way it reads twice and ages alone, and several had become false. We do not leave scaffolding on the house: the thickness of foundations is justified in the plans, not on the floor.
 
-Chosen by the operator at the onboarding interview; check:comments scans only src/ today (package.json:23)
+Chosen by the operator at the onboarding interview; check:comments scans src/, scripts/, .github/, .husky/ and the root config files (package.json:25).
+
+Scripts and config files are TypeScript run by Node 24's native type stripping, so their types need no JSDoc comment. ESLint reads its TS config through `--flag unstable_native_nodejs_ts_config` in the npm scripts (package.json:22, package.json:23) rather than declaring a jiti dependency; Node's own stripping handles the conversion without an undeclared transitive.
 
 ## Alternatives set aside
 

@@ -1,12 +1,8 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
     "noImplicitOverride": true,
-    /* Reading past the end of an array, or off a record with a key that is
-       not there, hands back `undefined`: the type says so instead of hiding it. */
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,

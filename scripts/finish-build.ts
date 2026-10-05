@@ -1,14 +1,3 @@
-// @ts-check
-/**
- * What the build leaves to do once Angular has prerendered the site.
- *
- * The not-found pages are prerendered at /404 and /en/404, the only way the
- * prerender writes a page for an address that is not a real route. They move
- * to 404.html and en/404.html, where the web server's error document points,
- * and are marked noindex. The sitemap and robots.txt are then written from
- * the pages' own head, which already carries the absolute address and the
- * other-language links built from SITE_URL.
- */
 import {
   existsSync,
   readdirSync,
@@ -22,32 +11,22 @@ import { join } from 'node:path';
 const ROOT = 'dist/portfolio/browser';
 const NOT_FOUND_PAGES = ['404', 'en/404'];
 
-/**
- * @param {string} html
- * @returns {string[]}
- */
-const pageHeadLinks = (html) =>
+const pageHeadLinks = (html: string): string[] =>
   [...html.matchAll(/<link\b[^>]*\bdata-page-head\b[^>]*>/g)].map(
     (match) => match[0],
   );
 
-/**
- * @param {string} tag
- * @param {string} name
- */
-const attribute = (tag, name) =>
+const attribute = (tag: string, name: string): string | undefined =>
   new RegExp(`\\b${name}="([^"]*)"`).exec(tag)?.[1];
 
-/** @param {string} text */
-const escapeXml = (text) =>
+const escapeXml = (text: string): string =>
   text
     .replaceAll('&amp;', '&')
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 
-/** @param {string} directory */
-const moveNotFoundPage = (directory) => {
+const moveNotFoundPage = (directory: string): void => {
   const source = join(ROOT, directory, 'index.html');
   if (!existsSync(source)) {
     throw new Error(`${source} was not prerendered`);
@@ -59,18 +38,13 @@ const moveNotFoundPage = (directory) => {
   rmSync(join(ROOT, directory), { recursive: true });
 };
 
-/**
- * @param {string} directory
- * @returns {string[]}
- */
-const prerenderedPages = (directory) =>
+const prerenderedPages = (directory: string): string[] =>
   readdirSync(directory, { withFileTypes: true, recursive: true })
     .filter((entry) => entry.isFile() && entry.name === 'index.html')
     .map((entry) => join(entry.parentPath, entry.name))
     .sort();
 
-/** @param {string} file */
-const sitemapEntry = (file) => {
+const sitemapEntry = (file: string): string => {
   const links = pageHeadLinks(readFileSync(file, 'utf8'));
   const canonical = links
     .filter((link) => attribute(link, 'rel') === 'canonical')

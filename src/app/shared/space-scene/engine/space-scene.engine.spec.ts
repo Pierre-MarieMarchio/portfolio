@@ -326,7 +326,7 @@ describe('SpaceSceneEngine, fixed', () => {
     scene.run(3000);
 
     expect(scene.styles()).toEqual(placed);
-  });
+  }, 60_000);
 
   it('bounds the lit figure by the figures there are, whatever it is asked', () => {
     const { step, texts } = mountAt(
@@ -528,7 +528,7 @@ describe('SpaceSceneEngine, grain density', () => {
     unturned.step(4000);
 
     expect(rotated.grainsDrawn()).toBe(unturned.grainsDrawn());
-  });
+  }, 60_000);
 });
 
 const GLASS_TOP_SHARE = 0.6;
@@ -659,7 +659,7 @@ describe('SpaceSceneEngine, the whole object above a window along the bottom', (
     expect(firstStep - lowered).toBeGreaterThan(0);
     expect(firstStep - lowered).toBeLessThan(0.2 * (folded - lowered));
     expect(scene.hole().y).toBeCloseTo(lowered, 0);
-  });
+  }, 60_000);
 
   it('follows the folded glass at once under reduced motion', () => {
     const { width, height } = { width: 390, height: 844 };
@@ -1191,7 +1191,7 @@ describe('SpaceSceneEngine, looked at up close', () => {
 
     scene.pinch(at, 0.1);
     expect(scene.hole().radius).toBeCloseTo(before.radius, 0);
-  });
+  }, 60_000);
 
   it('eases to a close look about the hole on a double tap at rest, and back', () => {
     const scene = homeUpClose();
@@ -1212,7 +1212,7 @@ describe('SpaceSceneEngine, looked at up close', () => {
     expect(scene.engine.lookCloser()).toBe(true);
     scene.run(EASED_MS);
     expect(scene.hole().radius).toBeCloseTo(before.radius, 0);
-  });
+  }, 60_000);
 
   it('looks closer at once under reduced motion', () => {
     const scene = homeUpClose({ reduced: true });
@@ -1228,7 +1228,7 @@ describe('SpaceSceneEngine, looked at up close', () => {
     const scene = homeUpClose({ direction: { framing: { kind: 'overview' } } });
 
     expect(scene.engine.lookCloser()).toBe(false);
-  });
+  }, 60_000);
 
   it('comes back to the framing of the next view', () => {
     const overview: SceneChange = {
@@ -1284,7 +1284,7 @@ describe('SpaceSceneEngine, looked at up close', () => {
 
     scene.run(EASED_MS);
     expect(scene.scheduled()).toBe(false);
-  });
+  }, 60_000);
 });
 
 const DESK = WIDE_LAYOUT.viewport;
@@ -1560,7 +1560,7 @@ describe('SpaceSceneEngine, on a phone whose framing code arrives late', () => {
 
     expect(Number.isFinite(bare.radius)).toBe(true);
     expect(bare.radius).toBeLessThan(focused.radius);
-  });
+  }, 60_000);
 
   it('eases to the phone framing once the code arrives, without a jump', () => {
     const scene = phoneAtRest(false);

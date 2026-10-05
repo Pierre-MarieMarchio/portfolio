@@ -20,4 +20,11 @@ describe('contact addresses', () => {
       expect(EN_PROFILE.contact[address.icon]).toBeTruthy();
     }
   });
+
+  it('titles every address in both languages', () => {
+    for (const address of CONTACT_ADDRESSES) {
+      expect(FR_PROFILE.contactTitle[address.icon]).toBeTruthy();
+      expect(EN_PROFILE.contactTitle[address.icon]).toBeTruthy();
+    }
+  });
 });

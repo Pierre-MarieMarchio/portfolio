@@ -73,8 +73,8 @@ $cards-below: 500px;
 }
 
 .number {
-  font-family: var(--mono);
-  font-size: var(--m3);
+  @include type.mono(var(--m3), null);
+
   color: var(--ink-2);
 
   &.featured {

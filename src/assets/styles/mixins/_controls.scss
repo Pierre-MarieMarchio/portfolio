@@ -45,8 +45,8 @@
   border-radius: var(--radius-control);
   color: var(--ink-2);
   cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--m4);
+  @include type.mono(var(--m4), null);
+
   line-height: 1;
   transition:
     color $duration,

@@ -262,7 +262,7 @@ Hover of a planet goes through appHoverFocus (entered/exited outputs at :11-12) 
 
 The window draws the bands once; callers project into toolbar, body (:22) and footer (:100) slots — `src/app/features/profile/components/about-window/about-window.component.html:16` — origin: docs/architecture/raisons/core-et-interface.md:266 @ b299e1d
 
-The caller sets the window body padding via --window-body-padding (also not-found-window.component.scss:5) — `src/app/features/profile/components/about-window/about-window.component.scss:179` — origin: docs/architecture/raisons/core-et-interface.md:269 @ b299e1d
+The caller sets the window body padding via --window-body-padding — `src/app/features/profile/components/about-window/about-window.component.scss:179` — origin: docs/architecture/raisons/core-et-interface.md:269 @ b299e1d
 
 The window input is heading, not title (also about-window.component.html:3) — `src/app/features/observatory/components/not-found-window/not-found-window.component.html:4` — origin: docs/architecture/raisons/core-et-interface.md:271 @ b299e1d
 

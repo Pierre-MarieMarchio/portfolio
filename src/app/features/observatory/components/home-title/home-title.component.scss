@@ -50,10 +50,9 @@ $arrival-delay: 700ms;
 
 h1 {
   margin-top: var(--s3);
-  font-family: var(--mono);
-  font-size: var(--h1);
+  @include type.mono(var(--h1), -0.005em);
+
   line-height: 1.18;
-  letter-spacing: -0.005em;
   font-weight: 500;
   color: var(--ink);
   outline: none;

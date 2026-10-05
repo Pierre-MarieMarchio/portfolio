@@ -47,7 +47,7 @@ knowledge-commit: b299e1d
 
 - features/common imports nothing from the repository — `eslint.config.ts:163` — origin: README.md:129 @ b299e1d
 - A shared library may import core only, never another library, features, i18n or pages — `eslint.config.ts:144` — origin: README.md:130 @ b299e1d
-- shared/mobile-nav imports nothing from the repository, core included — `eslint.config.ts:149` — origin: README.md:131 @ b299e1d
+- shared/mobile-nav imports only core, like other shared libraries — `eslint.config.ts:150` — origin: README.md:131 @ b299e1d
 - core imports nothing else under app/ — `eslint.config.ts:142` — origin: README.md:132 @ b299e1d
 - i18n may import features shared core but never pages or the root — `eslint.config.ts:179` — origin: README.md:127 @ b299e1d
 - A feature never imports another feature, i18n, pages or the root — `eslint.config.ts:170` — origin: README.md:128 @ b299e1d
@@ -84,7 +84,7 @@ knowledge-commit: b299e1d
 
 - pages/ only contains observatory/ and check-structure refuses any role folder there — `scripts/structure-tables.ts:125` — origin: docs/architecture/decisions.md:2548 @ b299e1d
 - The page-head resolver lives in i18n/resolvers next to the catalogue guard — `scripts/structure-tables.ts:120` — origin: docs/architecture/decisions.md:2554 @ b299e1d
-- D83: the mobile-nav browser wiring is MobileNavPlatformService implementing MOBILE_NAV_PLATFORM, provided by the page ; provideMobileNav() no longer exists — `src/app/pages/observatory/observatory-page.component.ts:143` — origin: docs/architecture/decisions.md:2549 @ b299e1d
+- D83 (superseded by ADR 0009): mobile-nav reaches the browser through core services directly; the page provides only MobileNavLayoutService as MOBILE_NAV_LAYOUT — `src/app/features/observatory/services/mobile-nav-layout.service.ts:1` — origin: docs/architecture/decisions.md:2549 @ b299e1d
 - D83: features/common imports nothing from the repo (lint denies core, shared, features, i18n, pages, root) — `eslint.config.ts:160` — origin: docs/architecture/decisions.md:2561 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/core/services/device/display-format.service.ts`
@@ -102,7 +102,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/decisions.md — 2026-09-28 — Au téléphone, la vitre est une feuille à crans de `shared/mobile-nav` (D64, amende D25, D37, D39 et D62)
 
 - shared/windows opens an optional port WINDOW_FOLD instead of importing mobile-nav — `src/app/shared/windows/components/window/window.component.ts:44` — origin: docs/architecture/decisions.md:1997 @ b299e1d
-- D64: the library does not know formats ; MOBILE_NAV_PLATFORM gains isCompact (mobile-nav-platform.port.ts:4) — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:68` — origin: docs/architecture/decisions.md:1996 @ b299e1d
+- D64: the library does not know formats ; MOBILE_NAV_LAYOUT carries isCompact (mobile-nav-layout.port.ts:4) — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:68` — origin: docs/architecture/decisions.md:1996 @ b299e1d
 - D64: shared/windows and shared/mobile-nav do not import each other (lint denies every other library ; grep finds no cross import) — `eslint.config.ts:150` — origin: docs/architecture/decisions.md:1997 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, l'accueil est une feuille, et l'aperçu en est le plein (D86, amende D57, D58, D64 et D71)
@@ -132,7 +132,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Le téléphone a une librairie de navigation, et les chapitres se tournent comme des pages (D57, amende D37)
 
-- D57: shared/mobile-nav/ imports nothing from the repo, not even core, and the lint enforces it (STANDALONE_LIBS denies core) — `eslint.config.ts:149` — origin: docs/architecture/decisions.md:1777 @ b299e1d
+- D57 (superseded): formerly shared/mobile-nav/ imported nothing from the repo; now it imports core like other shared libraries (ADR 0009) — origin: docs/architecture/decisions.md:1777 @ b299e1d — status: superseded by ADR 0009
 - D57: mobile-nav words come through MOBILE_NAV_TEXTS, provided by provideI18n — `src/app/i18n/providers/i18n.provider.ts:48` — origin: docs/architecture/decisions.md:1781 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Les onglets du téléphone restent dans `shared/ui`, et les transitions orientées attendent les fenêtres qui durent (D61)
@@ -141,7 +141,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, la carte et la page se choisissent dès que le navigateur connaît la cible (D69, amende D57 et D58)
 
-- D69: MOBILE_NAV_PLATFORM gains onSnapChanging and hasSnapChanging (line 9) — `src/app/shared/mobile-nav/ports/mobile-nav-platform.port.ts:20` — origin: docs/architecture/decisions.md:2166 @ b299e1d
+- D69 (superseded by ADR 0009): onSnapChanging and hasSnapChanging come from ElementObserverService, no longer from a mobile-nav port — `src/app/core/services/browser/element-observer.service.ts:1` — origin: docs/architecture/decisions.md:2166 @ b299e1d
 
 ## Decided at the onboarding interview (2026-10-05)
 

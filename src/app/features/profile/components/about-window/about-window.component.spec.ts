@@ -10,12 +10,12 @@ import { ScrollMemoryService } from '@shared/windows/services';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { stubViewport } from '@testing/doubles/browser.double';
-import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 
 const mount = async (inputs: { pinned?: boolean; part?: number } = {}) => {
   TestBed.configureTestingModule({
     imports: [AboutWindowComponent],
-    providers: [provideTexts(), provideRouter([]), provideMobileNavPlatform()],
+    providers: [provideTexts(), provideRouter([]), provideMobileNavLayout()],
   });
 
   const fixture = TestBed.createComponent(AboutWindowComponent);

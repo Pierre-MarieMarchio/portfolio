@@ -13,7 +13,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/organisation.md — La navigation du téléphone : `shared/mobile-nav/` (D57)
 
-- MobileNavPlatformService builds on core browser and history services and the router NavigationStart for onLeave — `src/app/features/observatory/services/mobile-nav-platform.service.ts:101` — origin: docs/architecture/organisation.md:473 @ b299e1d
+- MobileNavLayoutService tells the library only whether the display is compact; mobile-nav reads the browser and history through core services, and the start of a navigation from the router's NavigationStart in BackLayersService — `src/app/features/observatory/services/mobile-nav-layout.service.ts:1`, `src/app/shared/mobile-nav/services/back-layers.service.ts:108` — origin: docs/architecture/organisation.md:473 @ b299e1d
 
 ## docs/architecture/organisation.md — L'état : découpé selon ses actions
 
@@ -34,7 +34,7 @@ knowledge-commit: b299e1d
 - FeaturedTourService contract is play(slugs) and takeOver() — `src/app/features/observatory/services/featured-tour.service.ts:21` — origin: docs/architecture/organisation.md:736 @ b299e1d
 - ViewWindowsService brings the view window to the front and focuses it except on first load — `src/app/features/observatory/services/view-windows.service.ts:121` — origin: docs/architecture/organisation.md:739 @ b299e1d
 - prepareWhenIdle mounts index and about hidden when the browser is idle — `src/app/features/observatory/services/view-windows.service.ts:32` — origin: docs/architecture/organisation.md:745 @ b299e1d
-- MobileNavPlatformService is provided by the page, never at root — `src/app/features/observatory/services/mobile-nav-platform.service.ts:14` — origin: docs/architecture/organisation.md:751 @ b299e1d
+- MobileNavLayoutService is provided by the page, never at root — `src/app/features/observatory/services/mobile-nav-layout.service.ts:5` — origin: docs/architecture/organisation.md:751 @ b299e1d
 
 ## docs/architecture/organisation.md — 4.6 `features/profile/`
 
@@ -214,7 +214,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — `pages/` ne garde que ses écrans, et l'atelier est défait (D83, amende D57 et défait « Atelier de composants en route de développement »)
 
-- The page provides MobileNavPlatformService and BackLayersService — `src/app/pages/observatory/observatory-page.component.ts:206` — origin: docs/architecture/decisions.md:2551 @ b299e1d
+- The page provides MobileNavLayoutService and BackLayersService — `src/app/pages/observatory/observatory-page.component.ts:206` — origin: docs/architecture/decisions.md:2551 @ b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/pages/observatory/observatory-page.component.ts`, le lien aux fenêtres
 

@@ -13,7 +13,7 @@ import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { stubViewport } from '@testing/doubles/browser.double';
-import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 
 const currentPage = (host: HTMLElement): HTMLElement =>
   host.querySelector('app-pager-page:not([inert])') as HTMLElement;
@@ -82,7 +82,7 @@ describe('ProjectDetailComponent', () => {
       providers: [
         provideRouter([]),
         provideProjects(entries),
-        provideMobileNavPlatform(),
+        provideMobileNavLayout(),
       ],
     });
     const manager = await loadProjects();

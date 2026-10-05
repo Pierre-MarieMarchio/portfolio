@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Service } from '@angular/core';
-import { MOBILE_NAV_PLATFORM } from '../ports/mobile-nav-platform.port';
+import { NavigationStart, Router } from '@angular/router';
+import { SessionHistoryService } from '@app/core/services';
 import {
   closedBy,
   layerOf,
@@ -15,9 +16,10 @@ interface Layer {
 
 const ignore = (): void => {};
 
-@Service()
+@Service({ autoProvided: false })
 export class BackLayersService {
-  private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly history = inject(SessionHistoryService);
+  private readonly router = inject(Router);
   private layers: Layer[] = [];
   private swallowed = 0;
   private stops: (() => void)[] = [];
@@ -31,11 +33,11 @@ export class BackLayersService {
   }
 
   public push(onBack: () => void): () => void {
-    return this.platform.closesOnBack() ? ignore : this.stack(onBack, onBack);
+    return this.history.hasCloseWatcher() ? ignore : this.stack(onBack, onBack);
   }
 
   public claim(onBack: () => void, onLeave: () => void): () => void {
-    return this.platform.closesOnBack()
+    return this.history.hasCloseWatcher()
       ? this.watch(onBack, onLeave)
       : this.stack(onBack, onLeave);
   }
@@ -53,8 +55,8 @@ export class BackLayersService {
       stop();
       onBack();
     };
-    stopWatching = this.platform.watchClose(close);
-    stopLeaving = this.platform.onLeave(() => {
+    stopWatching = this.history.watchClose(close);
+    stopLeaving = this.onLeave(() => {
       stop();
       onLeave();
     });
@@ -65,9 +67,7 @@ export class BackLayersService {
     this.listen();
     const layer = { depth: this.layers.length + 1, onBack, onLeave };
     this.layers = [...this.layers, layer];
-    this.platform.pushHistory(
-      withLayer(this.platform.historyState(), layer.depth),
-    );
+    this.history.push(withLayer(this.history.state(), layer.depth));
     return () => {
       this.release(layer);
     };
@@ -80,7 +80,7 @@ export class BackLayersService {
     }
     const closed = this.closeAbove(layer.depth - 1);
     this.swallowed += 1;
-    this.platform.historyBack(steps);
+    this.history.back(steps);
     for (const above of closed.filter((open) => open !== layer)) {
       above.onBack();
     }
@@ -91,16 +91,27 @@ export class BackLayersService {
       return;
     }
     this.stops = [
-      this.platform.onHistoryPop((state) => {
+      this.history.onPop((state) => {
         this.popped(state);
       }),
-      this.platform.onLeave(() => {
+      this.onLeave(() => {
         this.swallowed = 0;
         for (const layer of this.closeAbove(0)) {
           layer.onLeave();
         }
       }),
     ];
+  }
+
+  private onLeave(callback: () => void): () => void {
+    const watching = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        callback();
+      }
+    });
+    return () => {
+      watching.unsubscribe();
+    };
   }
 
   private popped(state: unknown): void {

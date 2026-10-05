@@ -6,10 +6,8 @@ import { SHARED_TEXTS } from '@shared/ui/ports';
 import { CONTACT_ADDRESSES, CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports';
 import { ContactMenuComponent } from './contact-menu.component';
-import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
+import { BackLayersService } from '@shared/mobile-nav/services';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 import { restoreDialogs, stubDialogs } from '@testing/doubles/browser.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
@@ -30,13 +28,13 @@ const setup = async ({
 } = {}) => {
   const { showModal } = stubDialogs();
   const copy = vi.fn(() => Promise.resolve(canCopy));
-  const platform = new MobileNavPlatformDouble();
   TestBed.configureTestingModule({
     imports: [ContactMenuComponent],
     providers: [
       provideRouter([{ path: '**', children: [] }]),
       provideTexts(),
-      provideMobileNavPlatform(platform),
+      provideMobileNavLayout(),
+      BackLayersService,
       { provide: ClipboardService, useValue: { copy } },
     ],
   });

@@ -2,9 +2,17 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CardCarouselComponent } from './card-carousel.component';
 import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
+  BrowserWindowService,
+  ClockService,
+  ElementObserverService,
+  MediaPreferencesService,
+} from '@app/core/services';
+import {
+  BrowserWindowDouble,
+  ClockDouble,
+  ElementObserverDouble,
+  MediaPreferencesDouble,
+} from '@testing/doubles/browser-services.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const STEP = 236;
@@ -55,10 +63,19 @@ const layOut = (track: HTMLElement, places: HTMLElement[], width: number) => {
 };
 
 const setup = async ({ active = 0 } = {}) => {
-  const platform = new MobileNavPlatformDouble();
+  const clock = new ClockDouble();
+  const observer = new ElementObserverDouble();
+  const media = new MediaPreferencesDouble();
+  const browserWindow = new BrowserWindowDouble();
   TestBed.configureTestingModule({
     imports: [CarouselHost],
-    providers: [provideTexts(), provideMobileNavPlatform(platform)],
+    providers: [
+      provideTexts(),
+      { provide: ClockService, useValue: clock },
+      { provide: ElementObserverService, useValue: observer },
+      { provide: MediaPreferencesService, useValue: media },
+      { provide: BrowserWindowService, useValue: browserWindow },
+    ],
   });
   const fixture = TestBed.createComponent(CarouselHost);
   fixture.componentInstance.active.set(active);
@@ -82,7 +99,10 @@ const setup = async ({ active = 0 } = {}) => {
   return {
     fixture,
     host,
-    platform,
+    clock,
+    observer,
+    media,
+    browserWindow,
     track,
     places,
     cards,
@@ -169,19 +189,19 @@ describe('CardCarouselComponent', () => {
   });
 
   it('shows the card the browser announces as its next snap target, before the scroll ends', async () => {
-    const { platform, track, places, current, fixture } = await setup();
+    const { observer, track, places, current, fixture } = await setup();
 
-    platform.snapTo(track, places[2] ?? null);
+    observer.snapTo(track, places[2] ?? null);
     await fixture.whenStable();
 
     expect(current()).toBe(2);
   });
 
   it('follows only the snap announcements once the browser makes them, ignoring the nearest guess from scroll', async () => {
-    const { platform, track, places, current, rest } = await setup();
-    platform.knowsSnapChanging = true;
+    const { observer, track, places, current, rest } = await setup();
+    observer.knowsSnapChanging = true;
 
-    platform.snapTo(track, places[2] ?? null);
+    observer.snapTo(track, places[2] ?? null);
     await rest(STEP, ['scroll']);
 
     expect(current()).toBe(2);
@@ -223,7 +243,7 @@ describe('CardCarouselComponent', () => {
   });
 
   it('never scrolls to a card set from outside while a finger is on the track, but catches up once it lifts', async () => {
-    const { platform, track, scrollTo, pointTo } = await setup();
+    const { clock, track, scrollTo, pointTo } = await setup();
 
     track.dispatchEvent(new Event('touchstart'));
     await pointTo(2);
@@ -231,7 +251,7 @@ describe('CardCarouselComponent', () => {
     expect(scrollTo).not.toHaveBeenCalled();
 
     track.dispatchEvent(new Event('touchend'));
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).toHaveBeenCalledWith({
       left: 2 * STEP,
@@ -240,13 +260,13 @@ describe('CardCarouselComponent', () => {
   });
 
   it('keeps a realignment off while the scroll has not ended, and catches up once it does', async () => {
-    const { platform, track, places, scrollTo, rest } = await setup();
+    const { observer, track, places, scrollTo, rest } = await setup();
     await rest(2 * STEP);
     scrollTo.mockClear();
 
     track.dispatchEvent(new Event('scroll'));
     layOut(track, places, 400);
-    platform.resize();
+    observer.resize();
 
     expect(scrollTo).not.toHaveBeenCalled();
 
@@ -269,15 +289,14 @@ describe('CardCarouselComponent', () => {
   });
 
   it('scrolls smoothly, after the next frame, to a card set from outside, and does not echo it', async () => {
-    const { platform, scrollTo, changes, current, rest, pointTo } =
-      await setup();
+    const { clock, scrollTo, changes, current, rest, pointTo } = await setup();
 
     await pointTo(2);
 
     expect(scrollTo).not.toHaveBeenCalled();
     expect(current()).toBe(2);
 
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).toHaveBeenCalledWith({
       left: 2 * STEP,
@@ -292,10 +311,10 @@ describe('CardCarouselComponent', () => {
   });
 
   it('reaches the card it was heading to without ever showing the cards a programmed scroll crosses', async () => {
-    const { platform, changes, current, rest, pointTo } = await setup();
+    const { clock, changes, current, rest, pointTo } = await setup();
 
     await pointTo(3);
-    platform.frame();
+    clock.frame();
 
     expect(current()).toBe(3);
 
@@ -308,11 +327,11 @@ describe('CardCarouselComponent', () => {
   });
 
   it('jumps to a card set from outside without animation under reduced motion', async () => {
-    const { platform, fixture, scrollTo, current, pointTo } = await setup();
-    platform.isReduced = true;
+    const { clock, media, fixture, scrollTo, current, pointTo } = await setup();
+    media.isReduced = true;
 
     await pointTo(3);
-    platform.frame();
+    clock.frame();
     await fixture.whenStable();
 
     expect(scrollTo).toHaveBeenCalledWith({
@@ -349,8 +368,8 @@ describe('CardCarouselComponent', () => {
   });
 
   it('jumps to the card of a tapped dot under reduced motion', async () => {
-    const { platform, dots, scrollTo } = await setup();
-    platform.isReduced = true;
+    const { media, dots, scrollTo } = await setup();
+    media.isReduced = true;
 
     dots[1]?.click();
 
@@ -358,29 +377,29 @@ describe('CardCarouselComponent', () => {
   });
 
   it('settles 120 ms after the last scroll where the browser has no scrollend', async () => {
-    const { platform, fixture, changes, rest } = await setup();
-    platform.knowsScrollEnd = false;
+    const { browserWindow, clock, fixture, changes, rest } = await setup();
+    browserWindow.knowsScrollEnd = false;
 
     await rest(STEP, ['scroll']);
     await rest(2 * STEP, ['scroll']);
-    platform.elapse(119);
+    clock.elapse(119);
 
     expect(changes).toEqual([]);
 
-    platform.elapse(120);
+    clock.elapse(120);
     await fixture.whenStable();
 
     expect(changes).toEqual([2]);
   });
 
   it('stays on its card when its width changes', async () => {
-    const { platform, track, places, scrollTo, rest } = await setup();
+    const { observer, track, places, scrollTo, rest } = await setup();
     await rest(2 * STEP);
-    platform.resize();
+    observer.resize();
     scrollTo.mockClear();
 
     layOut(track, places, 400);
-    platform.resize();
+    observer.resize();
 
     expect(scrollTo).toHaveBeenCalledWith({
       left: 2 * (400 - 2 * 48 + 8),

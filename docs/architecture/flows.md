@@ -281,7 +281,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/decisions.md — 2026-10-02 — Au téléphone, fermer remonte d'un cran sans ajouter d'entrée, et une feuille rétablie au plein redescend au retour (D96, amende D70, D91 et D94)
 
 - SessionHistoryService.backTo reads entries via the Navigation API and goes back if the nearest other address is the parent — `src/app/core/services/history/session-history.service.ts:41` — origin: docs/architecture/decisions.md:2904 @ b299e1d
-- D96: a sheet visible again at full retakes its back layer as soon as it is visible (onVisible of the port, mobile-nav-platform.port.ts:14), not only on a resize — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:191` — origin: docs/architecture/decisions.md:2907 @ b299e1d
+- D96: a sheet visible again at full retakes its back layer as soon as it is visible (ElementObserverService.onVisible), not only on a resize — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:200` — origin: docs/architecture/decisions.md:2907 @ b299e1d
 
 ## README.md — Déploiement et branches
 

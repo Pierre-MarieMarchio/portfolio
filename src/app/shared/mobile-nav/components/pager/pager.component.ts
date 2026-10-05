@@ -14,7 +14,11 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
+import {
+  ClockService,
+  ElementObserverService,
+  MediaPreferencesService,
+} from '@app/core/services';
 import {
   clampPage,
   indexOfChild,
@@ -23,9 +27,9 @@ import {
   pageAfterSwipe,
   pageAt,
 } from '../../rules/pager.rules';
+import { ScrollEndService } from '../../services/scroll-end.service';
 import { PagerPageComponent } from '../pager-page/pager-page.component';
 
-const SETTLE_MS = 120;
 interface TouchStart {
   readonly x: number;
   readonly y: number;
@@ -37,6 +41,7 @@ const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
 
 @Component({
   selector: 'app-pager',
+  providers: [ScrollEndService],
   templateUrl: './pager.component.html',
   styleUrl: './pager.component.scss',
   host: {
@@ -45,7 +50,10 @@ const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
   },
 })
 export class PagerComponent {
-  private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly media = inject(MediaPreferencesService);
+  private readonly clock = inject(ClockService);
+  private readonly observer = inject(ElementObserverService);
+  private readonly scrollEnd = inject(ScrollEndService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -65,7 +73,6 @@ export class PagerComponent {
   );
 
   private stopFrame: () => void = () => {};
-  private stopTimer: () => void = () => {};
   private stopTouch: () => void = () => {};
   private isHeading = false;
   private isTouching = false;
@@ -94,10 +101,10 @@ export class PagerComponent {
         this.goTo(target);
       });
     });
-    const stopResize = this.platform.onResize(this.element, () => {
+    const stopResize = this.observer.onResize(this.element, () => {
       this.realign();
     });
-    const stopSnap = this.platform.onSnapChanging(this.element, (target) => {
+    const stopSnap = this.observer.onSnapChanging(this.element, (target) => {
       this.showNearest(indexOfChild(this.element, target));
     });
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
@@ -110,7 +117,6 @@ export class PagerComponent {
       stopSnap();
       this.stopTouch();
       this.stopFrame();
-      this.stopTimer();
     });
   }
 
@@ -127,7 +133,7 @@ export class PagerComponent {
 
   protected onScroll(): void {
     this.isScrolling = true;
-    if (!this.platform.hasSnapChanging() && this.element.clientWidth > 0) {
+    if (!this.observer.hasSnapChanging() && this.element.clientWidth > 0) {
       this.showNearest(
         pageAt(
           this.element.scrollLeft,
@@ -136,17 +142,13 @@ export class PagerComponent {
         ),
       );
     }
-    if (this.platform.hasScrollEnd()) {
-      return;
-    }
-    this.stopTimer();
-    this.stopTimer = this.platform.after(SETTLE_MS, () => {
+    this.scrollEnd.expect(() => {
       this.settle();
     });
   }
 
   protected settle(): void {
-    this.stopTimer();
+    this.scrollEnd.cancel();
     if (this.isHeading) {
       return;
     }
@@ -221,7 +223,7 @@ export class PagerComponent {
     if (target !== start.page && !this.isShowing(target)) {
       this.element.scrollTo({
         left: this.offsetOf(target),
-        behavior: this.platform.reducedMotion() ? 'instant' : 'smooth',
+        behavior: this.media.reducedMotion() ? 'instant' : 'smooth',
       });
     }
   }
@@ -271,7 +273,7 @@ export class PagerComponent {
     }
     this.isHeading = true;
     this.headingTo.set(target);
-    this.stopFrame = this.platform.nextFrame(() => {
+    this.stopFrame = this.clock.nextFrame(() => {
       this.isHeading = false;
       this.scrollTo(target);
     });
@@ -282,7 +284,7 @@ export class PagerComponent {
       this.commit(target);
       return;
     }
-    const isInstant = this.settled() === null || this.platform.reducedMotion();
+    const isInstant = this.settled() === null || this.media.reducedMotion();
     this.element.scrollTo({
       left: this.offsetOf(target),
       behavior: isInstant ? 'instant' : 'smooth',

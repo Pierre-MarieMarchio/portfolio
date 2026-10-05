@@ -42,7 +42,7 @@ import {
   FeaturedTourService,
   HomeRevealService,
   HomeSheetService,
-  MobileNavPlatformService,
+  MobileNavLayoutService,
   TabNavigationService,
   ViewWindowsService,
 } from '@app/features/observatory/services';
@@ -70,7 +70,7 @@ import {
   PagerDotsComponent,
   PagerPageComponent,
 } from '@shared/mobile-nav/components';
-import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
+import { MOBILE_NAV_LAYOUT } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import type { LayoutBox } from '@shared/space-scene/models';
 import { SCENE_WINDOW_DRAG, SceneWindowDrag } from '@shared/space-scene/ports';
@@ -140,7 +140,7 @@ const boxOf = (rect: FrameRect): LayoutBox => ({
     WindowStackService,
     ViewWindowsService,
     { provide: SCENE_WINDOW_DRAG, useExisting: ObservatoryPageComponent },
-    { provide: MOBILE_NAV_PLATFORM, useClass: MobileNavPlatformService },
+    { provide: MOBILE_NAV_LAYOUT, useClass: MobileNavLayoutService },
     BackLayersService,
   ],
   host: { '(document:keydown.escape)': 'onEscape()' },

@@ -6,14 +6,17 @@ import {
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
 import { FamilyFilter, ProjectEntry } from '@app/features/projects/models';
+import { ClockService, MediaPreferencesService } from '@app/core/services';
 import { PROJECTS_TEXTS } from '@app/features/projects/ports';
 import { ProjectListComponent } from './project-list.component';
 import { stubViewport } from '@testing/doubles/browser.double';
 import { at, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { ClockDouble } from '@testing/doubles/browser-services.double';
 import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
+  MobileNavLayoutDouble,
+  provideMobileNavLayout,
+} from '@testing/doubles/mobile-nav-layout.double';
+import { BackLayersService } from '@shared/mobile-nav/services';
 import { drag } from '@testing/fixtures/pointer.fixture';
 import { loadSwipeSteps } from '@shared/mobile-nav/directives';
 
@@ -77,18 +80,29 @@ describe('ProjectListComponent', () => {
     } = {},
     entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
-    const platform = new MobileNavPlatformDouble();
-    platform.compact.set(inputs.compact ?? false);
-    platform.isReduced = inputs.reduced ?? false;
+    const layout = new MobileNavLayoutDouble();
+    const clock = new ClockDouble();
+    layout.compact.set(inputs.compact ?? false);
     stubPhoneViewport(inputs.compact);
     TestBed.configureTestingModule({
       imports: [ProjectListComponent],
       providers: [
         provideRouter([{ path: '**', children: [] }]),
         provideProjects(entries),
-        provideMobileNavPlatform(platform),
+        provideMobileNavLayout(layout),
+        BackLayersService,
       ],
     });
+    vi.spyOn(TestBed.inject(ClockService), 'nextFrame').mockImplementation(
+      clock.nextFrame,
+    );
+    vi.spyOn(TestBed.inject(ClockService), 'after').mockImplementation(
+      clock.after,
+    );
+    vi.spyOn(
+      TestBed.inject(MediaPreferencesService),
+      'reducedMotion',
+    ).mockReturnValue(inputs.reduced ?? false);
     const manager = await loadProjects();
 
     const fixture = TestBed.createComponent(ProjectListComponent);
@@ -102,7 +116,7 @@ describe('ProjectListComponent', () => {
     return {
       fixture,
       manager,
-      platform,
+      clock,
       host: fixture.nativeElement as HTMLElement,
       texts: TestBed.inject(PROJECTS_TEXTS)().index,
     };
@@ -332,10 +346,10 @@ describe('ProjectListComponent', () => {
         mounted.fixture.componentInstance.familyChange,
       );
       drag(list as HTMLElement, path);
-      mounted.platform.frame();
-      mounted.platform.elapse(180);
+      mounted.clock.frame();
+      mounted.clock.elapse(180);
       await mounted.fixture.whenStable();
-      mounted.platform.elapse(180);
+      mounted.clock.elapse(180);
       return { ...mounted, list: list as HTMLElement, emitted };
     };
 
@@ -427,7 +441,7 @@ describe('ProjectListComponent', () => {
           clientY: 100,
         }),
       );
-      mounted.platform.frame();
+      mounted.clock.frame();
 
       expect(scope?.style.getPropertyValue('--swipe-pane')).toBe('-0.25');
       expect(scope?.style.getPropertyValue('--swipe-at')).toBe('0.25');
@@ -444,19 +458,19 @@ describe('ProjectListComponent', () => {
       );
 
       drag(list as HTMLElement, left);
-      mounted.platform.frame();
+      mounted.clock.frame();
 
       expect(emitted).toEqual(['professional']);
       expect(scope?.style.getPropertyValue('--swipe-at')).toBe('1');
 
-      mounted.platform.elapse(100);
+      mounted.clock.elapse(100);
 
       expect(scope?.style.getPropertyValue('--swipe-pane')).toBe('0');
       expect(scope?.style.getPropertyValue('--swipe-t')).toBe(
         'var(--t-duration)',
       );
 
-      mounted.platform.elapse(180);
+      mounted.clock.elapse(180);
 
       expect(scope?.style.getPropertyValue('--swipe-pane')).toBe('');
       expect(scope?.style.getPropertyValue('--swipe-at')).toBe('');
@@ -472,14 +486,14 @@ describe('ProjectListComponent', () => {
         { x: 300, y: 100, at: 0 },
         { x: 260, y: 100, at: 600 },
       ]);
-      mounted.platform.frame();
+      mounted.clock.frame();
 
       expect(scope?.style.getPropertyValue('--swipe-pane')).toBe('0');
       expect(scope?.style.getPropertyValue('--swipe-t')).toBe(
         'var(--t-duration)',
       );
 
-      mounted.platform.elapse(180);
+      mounted.clock.elapse(180);
 
       expect(scope?.style.getPropertyValue('--swipe-pane')).toBe('');
     });

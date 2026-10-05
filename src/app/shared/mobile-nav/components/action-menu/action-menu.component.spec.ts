@@ -1,12 +1,20 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { BackLayersService } from '../../services/back-layers.service';
+import { provideRouter, Router } from '@angular/router';
+import {
+  ElementObserverService,
+  MediaPreferencesService,
+  SessionHistoryService,
+} from '@app/core/services';
 import { ActionMenuComponent } from './action-menu.component';
 import { ActionRowDirective } from '../../directives/action-row.directive';
-import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
 import { restoreDialogs, stubDialogs } from '@testing/doubles/browser.double';
+import {
+  ElementObserverDouble,
+  MediaPreferencesDouble,
+} from '@testing/doubles/browser-services.double';
+import { HistoryStackDouble } from '@testing/doubles/session-history.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 @Component({
@@ -36,12 +44,21 @@ class MenuHost {
 
 const setup = async ({ isReduced = false, hasCloseWatcher = false } = {}) => {
   const dialogs = stubDialogs();
-  const platform = new MobileNavPlatformDouble();
-  platform.isReduced = isReduced;
-  platform.hasCloseWatcher = hasCloseWatcher;
+  const observer = new ElementObserverDouble();
+  const media = new MediaPreferencesDouble();
+  const history = new HistoryStackDouble();
+  media.isReduced = isReduced;
+  history.hasWatcher = hasCloseWatcher;
   TestBed.configureTestingModule({
     imports: [MenuHost],
-    providers: [provideTexts(), provideMobileNavPlatform(platform)],
+    providers: [
+      provideTexts(),
+      BackLayersService,
+      provideRouter([{ path: '**', children: [] }]),
+      { provide: ElementObserverService, useValue: observer },
+      { provide: MediaPreferencesService, useValue: media },
+      { provide: SessionHistoryService, useValue: history },
+    ],
   });
   const fixture = TestBed.createComponent(MenuHost);
   const host = fixture.nativeElement as HTMLElement;
@@ -56,7 +73,9 @@ const setup = async ({ isReduced = false, hasCloseWatcher = false } = {}) => {
     ...dialogs,
     fixture,
     host,
-    platform,
+    observer,
+    history,
+    leave: () => TestBed.inject(Router).navigateByUrl('/elsewhere'),
     dialog,
     rows,
     closer,
@@ -69,7 +88,7 @@ const setup = async ({ isReduced = false, hasCloseWatcher = false } = {}) => {
       await stable();
     },
     settle: async () => {
-      await platform.settle();
+      await observer.settle();
       await stable();
     },
   };
@@ -104,14 +123,14 @@ describe('ActionMenuComponent', () => {
   });
 
   it('plays its exit before it closes, and says it is closed only once the exit is over', async () => {
-    const { platform, close, closer, state, isShown, open, stable, settle } =
+    const { observer, close, closer, state, isShown, open, stable, settle } =
       await setup();
     await open();
 
     closer?.click();
     await stable();
 
-    expect(platform.moving).toHaveLength(1);
+    expect(observer.moving).toHaveLength(1);
     expect(close).not.toHaveBeenCalled();
     expect(isShown()).toBe(true);
     expect(state()).toBe(true);
@@ -216,7 +235,7 @@ describe('ActionMenuComponent', () => {
   });
 
   it('closes at once under reduced motion, with no exit to wait for', async () => {
-    const { platform, close, closer, state, open, stable } = await setup({
+    const { observer, close, closer, state, open, stable } = await setup({
       isReduced: true,
     });
     await open();
@@ -224,39 +243,39 @@ describe('ActionMenuComponent', () => {
     closer?.click();
     await stable();
 
-    expect(platform.moving).toEqual([]);
+    expect(observer.moving).toEqual([]);
     expect(close).toHaveBeenCalledOnce();
     expect(state()).toBe(false);
   });
 
   it('closes on the back button before the view is left, where the browser has no close watcher', async () => {
-    const { platform, close, state, open, settle } = await setup();
+    const { history, close, state, open, settle } = await setup();
     await open();
 
-    expect(platform.entries).toHaveLength(2);
+    expect(history.entries).toHaveLength(2);
 
-    platform.pressBack();
+    history.pressBack();
     await settle();
 
     expect(close).toHaveBeenCalledOnce();
     expect(state()).toBe(false);
-    expect(platform.backs).toEqual([]);
+    expect(history.backs).toEqual([]);
   });
 
   it('takes its history entry back when closed from the page', async () => {
-    const { platform, closer, open, settle } = await setup();
+    const { history, closer, open, settle } = await setup();
     await open();
 
     closer?.click();
     await settle();
-    platform.deliverPops();
+    history.deliverPops();
 
-    expect(platform.backs).toEqual([1]);
-    expect(platform.place).toBe(0);
+    expect(history.backs).toEqual([1]);
+    expect(history.place).toBe(0);
   });
 
   it('leaves the history alone where the browser sends the back button to the dialog', async () => {
-    const { platform, closer, open, settle } = await setup({
+    const { history, closer, open, settle } = await setup({
       hasCloseWatcher: true,
     });
     await open();
@@ -264,18 +283,18 @@ describe('ActionMenuComponent', () => {
     closer?.click();
     await settle();
 
-    expect(platform.entries).toHaveLength(1);
-    expect(platform.backs).toEqual([]);
+    expect(history.entries).toHaveLength(1);
+    expect(history.backs).toEqual([]);
   });
 
   it('closes when the router leaves the view', async () => {
-    const { platform, state, open, settle } = await setup();
+    const { history, leave, state, open, settle } = await setup();
     await open();
 
-    platform.leave();
+    await leave();
     await settle();
 
     expect(state()).toBe(false);
-    expect(platform.backs).toEqual([]);
+    expect(history.backs).toEqual([]);
   });
 });

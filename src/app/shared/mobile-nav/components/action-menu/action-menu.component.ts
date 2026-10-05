@@ -10,7 +10,10 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
+import {
+  ElementObserverService,
+  MediaPreferencesService,
+} from '@app/core/services';
 import { MOBILE_NAV_TEXTS } from '../../ports/mobile-nav-texts.port';
 import { BackLayersService } from '../../services/back-layers.service';
 
@@ -32,7 +35,8 @@ const nextMenu = (): number => {
   encapsulation: ViewEncapsulation.None,
 })
 export class ActionMenuComponent {
-  private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly media = inject(MediaPreferencesService);
+  private readonly observer = inject(ElementObserverService);
   private readonly backLayers = inject(BackLayersService);
   protected readonly texts = inject(MOBILE_NAV_TEXTS);
 
@@ -71,11 +75,11 @@ export class ActionMenuComponent {
     this.phase = 'leaving';
     this.letGoOfBack();
     this.dialog().nativeElement.dataset['leaving'] = '';
-    if (this.platform.reducedMotion()) {
+    if (this.media.reducedMotion()) {
       this.finish();
       return;
     }
-    void this.platform.whenStill(this.panel().nativeElement).then(() => {
+    void this.observer.whenStill(this.panel().nativeElement).then(() => {
       this.finish();
     });
   }

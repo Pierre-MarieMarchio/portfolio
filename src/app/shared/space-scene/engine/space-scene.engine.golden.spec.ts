@@ -103,13 +103,13 @@ const GOLDEN: Record<string, string> = {
   arrival: '7d6b7a10',
   'rest, emphasised': '3f932d2d',
   'close-up': '4f9639c5',
-  overview: 'da03e33d',
-  approach: '34ff6a86',
-  aside: 'cbc09524',
-  'empty overview': 'dd72ebcf',
-  'rest, pointer': '7205a6ad',
-  'turned by hand': '45167e18',
-  'reduced motion': '8e4af44b',
+  overview: '945a72b2',
+  approach: 'dfdb714b',
+  aside: 'fe11cc68',
+  'empty overview': 'e2241042',
+  'rest, pointer': '013eb401',
+  'turned by hand': 'bc475620',
+  'reduced motion': 'c70ba09d',
 };
 
 const PHONE_LAYOUT: SceneLayout = {
@@ -123,6 +123,12 @@ const PHONE_LAYOUT: SceneLayout = {
   approachBandTop: 430,
   closeUpBandTop: 430,
   panelBandTop: 430,
+  sidePanelLeft: null,
+  cornerPanelLeft: null,
+  cornerBandTop: null,
+  topBar: { left: 0, top: 0, right: 390, bottom: 56 },
+  chrome: [{ left: 0, top: 0, right: 390, bottom: 56, opacity: 1 }],
+  windows: [],
 };
 
 const NARROW_LAYOUT: SceneLayout = {
@@ -131,6 +137,8 @@ const NARROW_LAYOUT: SceneLayout = {
   panels: [{ left: 600, top: 60, right: 1000, bottom: 560, opacity: 0.6 }],
   approachEdge: 600,
   closeUpEdge: 700,
+  panelBandTop: null,
+  windows: [{ left: 600, top: 60, right: 1000, bottom: 560 }],
 };
 
 const ARRIVED = 12_000;
@@ -310,11 +318,11 @@ describe('SpaceSceneEngine, the scenes the first golden left out', () => {
 
 const SCENES_GOLDEN = {
   comets: {
-    'comet 0': '2a235f63',
-    'comet 1': '022f847c',
-    'comet 2': '291e8e8b',
-    'comet 3': '71f42349',
-    'back at rest': '240b6f8e',
+    'comet 0': '6859da1d',
+    'comet 1': '2e2ef096',
+    'comet 2': '6189c2ed',
+    'comet 3': '14549069',
+    'back at rest': 'c6634856',
   },
   dpr2: {
     crossing: 'badb3cef',
@@ -324,26 +332,26 @@ const SCENES_GOLDEN = {
     approach: 'b4d24e42',
   },
   phone: {
-    arrival: 'f7e3d1e4',
-    overview: '3d44831a',
-    approach: '98566f33',
-    'close-up': 'f700f25c',
-    aside: 'a7b92b35',
+    arrival: '4afd7f3b',
+    overview: '0ea8628c',
+    approach: '01409f0b',
+    'close-up': '5a064da5',
+    aside: '679693fb',
   },
   measuredLabels: {
     arrival: '29a2446b',
     emphasised: 'e0b1d7cd',
-    overview: '2fba48b5',
+    overview: '8bb7457a',
   },
   reducedFromStart: {
     rest: 'c2f3041b',
     approach: 'ec7a18b2',
-    aside: '8933f53b',
-    'motion back': '5e3f7dd8',
+    aside: '55a007f2',
+    'motion back': '060789d1',
   },
   noSky: {
     arrival: 'f5ddcadb',
-    aside: '01a987bd',
+    aside: '2297d596',
   },
   pausedAndHidden: {
     paused: '72759d6f',
@@ -352,8 +360,8 @@ const SCENES_GOLDEN = {
     resumed: 'f5472e76',
   },
   secondLayout: {
-    rest: '7298c305',
-    'close-up': 'b7372db6',
+    rest: '9f569157',
+    'close-up': 'c0700d20',
   },
   landed: {
     'landed, first frame': 'b512a3fd',
@@ -365,7 +373,7 @@ const SCENES_GOLDEN = {
     arrival: '89a4f92f',
     'close-up first': '8da1b602',
     'close-up last bright': 'a2510272',
-    overview: '4d04121e',
-    approach: '108bcaab',
+    overview: '094ae5ed',
+    approach: '5beb480d',
   },
 } satisfies Record<string, Record<string, string>>;

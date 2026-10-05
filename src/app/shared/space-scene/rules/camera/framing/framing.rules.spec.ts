@@ -4,6 +4,7 @@ import { mirroredFrame, planetTurnOf } from '../../rooms/window-room.rules';
 import { skyRoomsOf } from './body-framing.rules';
 import { framingFor, framingScene, HoleFocusRules } from './framing.rules';
 import { REST_FRAME } from '../camera-frames.rules';
+import { BARE_BOUNDS } from '@testing/fixtures/scene-layout.fixture';
 
 const DESKTOP = { width: 1440, height: 900 } as const;
 
@@ -17,6 +18,7 @@ const layoutWithWindow = (
   bottomBarHeight: null,
   approachEdge: null,
   closeUpEdge: null,
+  ...BARE_BOUNDS,
   windows: spans.map(([left, right]) => ({
     left,
     top: 104,

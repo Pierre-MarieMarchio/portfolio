@@ -100,7 +100,7 @@ function homeDirection(
   return {
     ...shared,
     framing: homeFraming(scene.preview),
-    presence: scene.revealed ? 'shown' : 'held',
+    presence: scene.revealed ? 'shown' : 'withheld',
     labels: isNamedByRule ? 'none' : 'names',
     emphasised: scene.hovered ?? designated,
     aimed: designated ?? scene.hovered,

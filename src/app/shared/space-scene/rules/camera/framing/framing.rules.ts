@@ -10,7 +10,7 @@ import {
 } from './body-framing.rules';
 import {
   hasBand,
-  holeHeldLeftOf,
+  holeKeptLeftOf,
   HoleView,
   layoutInRoom,
   isHoleInRoom,
@@ -90,7 +90,7 @@ const framingOnSide = (
   if (state.framing === 'rest' || side === 'middle') {
     return framingIn(state, scene, layout);
   }
-  const seen = holeHeldLeftOf(framingIn(state, scene, layout), layout, view);
+  const seen = holeKeptLeftOf(framingIn(state, scene, layout), layout, view);
   const mirrored =
     side === 'right' ? mirroredFrame(seen, planetTurnOf(state, scene)) : seen;
   scene.turn = mirrorTurnStep(scene.turn, mirrored, dt);

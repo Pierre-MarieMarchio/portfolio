@@ -15,8 +15,8 @@ $rise-delay: 800ms;
   z-index: var(--z-chrome);
 }
 
-:host([data-arrival='held']) {
-  @include arrival.held;
+:host([data-arrival='withheld']) {
+  @include arrival.withheld;
 }
 
 :host([data-arrival='shown']) {

@@ -8,7 +8,7 @@ import { wheelRatio } from '../rules/gestures/sky-look.rules';
 import { isOnScene } from '../rules/gestures/sky-touch.rules';
 
 const MIDDLE_BUTTON = 1;
-const MIDDLE_BUTTON_HELD = 4;
+const MIDDLE_BUTTON_PRESSED = 4;
 
 export class SkyLookTracker implements SceneLook {
   public readonly pan = new SkyPanMotion();
@@ -61,7 +61,7 @@ export class SkyLookTracker implements SceneLook {
     event.preventDefault();
     const x = event.clientX - this.pan.x;
     const y = event.clientY - this.pan.y;
-    if (this.scene.holdZoom(x, y)) {
+    if (this.scene.grabZoom(x, y)) {
       this.scene.stretchZoom(x, y, wheelRatio(event.deltaY, event.deltaMode));
       this.scene.releaseZoom();
     }
@@ -80,7 +80,7 @@ export class SkyLookTracker implements SceneLook {
     if (!drag) {
       return;
     }
-    if ((event.buttons & MIDDLE_BUTTON_HELD) === 0) {
+    if ((event.buttons & MIDDLE_BUTTON_PRESSED) === 0) {
       this.drag = null;
       return;
     }

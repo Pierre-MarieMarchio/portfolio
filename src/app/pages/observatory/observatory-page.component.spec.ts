@@ -156,12 +156,22 @@ describe('ObservatoryPageComponent', () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mount({ reducedMotion: false });
 
-      expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
+      expect(arrivals(host)).toEqual([
+        'withheld',
+        'withheld',
+        'withheld',
+        'withheld',
+      ]);
       expect(isRevealed(fixture)).toBe(false);
 
       vi.advanceTimersByTime(ARRIVAL_AT.ms - 1);
       await fixture.whenStable();
-      expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
+      expect(arrivals(host)).toEqual([
+        'withheld',
+        'withheld',
+        'withheld',
+        'withheld',
+      ]);
 
       vi.advanceTimersByTime(1);
       await fixture.whenStable();
@@ -206,7 +216,7 @@ describe('ObservatoryPageComponent', () => {
       expect(host.querySelector('app-intro-card')).toBeNull();
     });
 
-    it('shows a button to skip the intro only while it is held, reachable before anything else', async () => {
+    it('shows a button to skip the intro only while it is withheld, reachable before anything else', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mount({ reducedMotion: false });
       const focusables = () =>
@@ -1481,11 +1491,11 @@ describe('ObservatoryPageComponent', () => {
       expect(home?.dataset['panel']).toBe('preview');
     });
 
-    it('keeps the home bottom sheet held and inert while the intro plays, and lets it in with the rest', async () => {
+    it('keeps the home bottom sheet withheld and inert while the intro plays, and lets it in with the rest', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mountOnPhone({ reducedMotion: false });
       const surface = host.querySelector<HTMLElement>('.slot--home .home');
-      expect(surface?.dataset['arrival']).toBe('held');
+      expect(surface?.dataset['arrival']).toBe('withheld');
       expect(surface?.inert).toBe(true);
 
       vi.advanceTimersByTime(ARRIVAL_AT.ms);

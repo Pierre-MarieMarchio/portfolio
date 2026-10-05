@@ -181,7 +181,7 @@ const setup = async ({
     changes: fixture.componentInstance.changes,
     top: () => top,
     lay: async (): Promise<void> => {
-      bottomSheet.hold(bar);
+      bottomSheet.attachHandle(bar);
       observer.resize();
       clock.frame();
       await settle();

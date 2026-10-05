@@ -107,7 +107,7 @@ class FoldDouble implements WindowFold {
   public readonly toggle = (): void => {
     this.toggles += 1;
   };
-  public readonly hold = (handle: HTMLElement): (() => void) => {
+  public readonly attachHandle = (handle: HTMLElement): (() => void) => {
     this.handles.push(handle);
     return () => {
       this.handles.splice(this.handles.indexOf(handle), 1);
@@ -115,7 +115,7 @@ class FoldDouble implements WindowFold {
   };
 }
 
-const mountHeld = async () => {
+const mountFolding = async () => {
   const fold = new FoldDouble();
   TestBed.configureTestingModule({
     imports: [HostWindowZones],
@@ -396,9 +396,9 @@ describe('WindowComponent', () => {
     });
   });
 
-  describe('held by a fold port', () => {
+  describe('folded by a port', () => {
     it('hands its title bar to the port as the handle, and takes it back when destroyed', async () => {
-      const { fixture, host, fold } = await mountHeld();
+      const { fixture, host, fold } = await mountFolding();
 
       expect(fold.handles).toEqual([host.querySelector('.titlebar')]);
 
@@ -408,7 +408,7 @@ describe('WindowComponent', () => {
     });
 
     it('asks the port to fold from its grip, a double click and a double tap of its title bar, and keeps its content', async () => {
-      const { fixture, host, fold, collapse } = await mountHeld();
+      const { fixture, host, fold, collapse } = await mountFolding();
       const heading = host.querySelector('.titlebar h2') as HTMLElement;
 
       collapse.click();
@@ -424,7 +424,7 @@ describe('WindowComponent', () => {
     });
 
     it('says folded when the port does, and takes what lies under its bar out of reach', async () => {
-      const { fixture, host, fold, collapse } = await mountHeld();
+      const { fixture, host, fold, collapse } = await mountFolding();
 
       fold.folded.set(true);
       await fixture.whenStable();

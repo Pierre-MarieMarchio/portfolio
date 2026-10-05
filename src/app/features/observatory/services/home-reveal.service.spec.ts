@@ -49,7 +49,7 @@ describe('HomeRevealService', () => {
     const onArrived = vi.fn();
 
     reveal.start(onArrived);
-    expect(reveal.arrival()).toBe('held');
+    expect(reveal.arrival()).toBe('withheld');
     window.dispatchEvent(new Event('keydown'));
 
     expect(reveal.arrival()).toBe('shown');
@@ -62,7 +62,7 @@ describe('HomeRevealService', () => {
 
     reveal.start(onArrived);
     vi.advanceTimersByTime(ARRIVAL_AT.ms - 1);
-    expect(reveal.arrival()).toBe('held');
+    expect(reveal.arrival()).toBe('withheld');
     vi.advanceTimersByTime(1);
 
     expect(reveal.arrival()).toBe('shown');

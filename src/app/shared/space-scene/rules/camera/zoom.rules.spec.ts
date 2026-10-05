@@ -34,7 +34,7 @@ describe('zoom rules', () => {
     expect(unzoomedAt(zoomedAt(150, 250, 2.2), 250, 2.2)).toBeCloseTo(150, 9);
   });
 
-  it('keeps the point held under the fingers when they spread', () => {
+  it('keeps the point under the fingers when they spread', () => {
     const anchor = anchorKeeping(120, 120, 2, WIDTH);
     expect(zoomedAt(120, anchor, 2)).toBeCloseTo(120, 9);
   });

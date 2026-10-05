@@ -42,7 +42,7 @@ describe('IntroSkipComponent', () => {
     expect(host.querySelector('.skip')).toBeNull();
   });
 
-  it('shows the button once the intro is held, named for the reader', async () => {
+  it('shows the button once the intro is withheld, named for the reader', async () => {
     const { fixture, host, reveal } = await mount();
 
     reveal.start(() => {});

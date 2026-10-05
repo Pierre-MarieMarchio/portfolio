@@ -43,7 +43,7 @@ export interface SceneWorkerCommands {
   readonly grab: (clientX: number, clientY: number) => void;
   readonly turn: (clientX: number, clientY: number) => void;
   readonly release: () => void;
-  readonly holdZoom: (clientX: number, clientY: number) => void;
+  readonly grabZoom: (clientX: number, clientY: number) => void;
   readonly stretchZoom: (
     clientX: number,
     clientY: number,
@@ -64,7 +64,7 @@ export const PASSED_COMMANDS = [
   'grab',
   'turn',
   'release',
-  'holdZoom',
+  'grabZoom',
   'stretchZoom',
   'releaseZoom',
   'lookCloser',

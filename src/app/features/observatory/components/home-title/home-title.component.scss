@@ -26,8 +26,8 @@ $arrival-delay: 700ms;
   }
 }
 
-:host([data-arrival='held']) {
-  @include arrival.held($hide: false);
+:host([data-arrival='withheld']) {
+  @include arrival.withheld($hide: false);
 }
 
 :host([data-arrival='shown']) {

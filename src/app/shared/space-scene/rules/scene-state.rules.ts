@@ -94,7 +94,7 @@ export const sceneState = ({
     emphasised: rankOf(bodies, direction.emphasised),
     aimed: rankOf(bodies, direction.aimed),
     ringed: rankOf(bodies, direction.ringed),
-    marksShown: presence === 'shown' || (presence === 'held' && reduced),
+    marksShown: presence === 'shown' || (presence === 'withheld' && reduced),
     isTagged: direction.labels === 'tags',
     turnable: direction.turnable,
     figuresShown: direction.figuresShown,

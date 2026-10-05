@@ -80,7 +80,7 @@ const mount = async (
 const transitionEnd = (propertyName: string): Event =>
   new TransitionEvent('transitionend', { propertyName });
 
-const heldFrames = () => {
+const deferredFrames = () => {
   const frames: FrameRequestCallback[] = [];
   vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((fn) => {
     frames.push(fn);
@@ -162,7 +162,7 @@ describe('SpaceSceneComponent', () => {
   });
 
   it('lays the panels out once per frame, however many transitions end in it', async () => {
-    const flush = heldFrames();
+    const flush = deferredFrames();
     await mount();
     const laid = vi.spyOn(SpaceSceneEngine.prototype, 'setLayout');
 
@@ -176,7 +176,7 @@ describe('SpaceSceneComponent', () => {
   });
 
   it('lays a panel out where its entrance will leave it, then lets the entrance carry on', async () => {
-    const flush = heldFrames();
+    const flush = deferredFrames();
     const entrance = { currentTime: 300 as CSSNumberish | null };
     const element = document.createElement('div');
     element.getAnimations = () =>
@@ -204,7 +204,7 @@ describe('SpaceSceneComponent', () => {
   });
 
   it('does not lay the panels out again when only a colour ends its transition', async () => {
-    const flush = heldFrames();
+    const flush = deferredFrames();
     await mount();
     const laid = vi.spyOn(SpaceSceneEngine.prototype, 'setLayout');
 

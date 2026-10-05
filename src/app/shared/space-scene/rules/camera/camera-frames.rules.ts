@@ -108,7 +108,7 @@ interface ApproachArgs {
   readonly orbit: OrbitAim | null;
   readonly panelLeft: number | null;
   readonly band: SkyBand | null;
-  readonly isDiscHeld?: boolean;
+  readonly isDiscKept?: boolean;
   readonly isPairCentred?: boolean;
   readonly phase: number;
   readonly azim: number;
@@ -161,19 +161,19 @@ const approachBesidePanel = (
     args.panelLeft === null ? d.w * 0.54 : (args.panelLeft - 96) * d.dpr;
   const room = Math.max(150, edge - cxPx);
   const radius = shrinkToRoom(frame, baseRadius, room);
-  const held = args.isDiscHeld
-    ? holdDiscOnScreen(frame, { dims: d, baseRadius, radius, edge })
+  const kept = args.isDiscKept
+    ? keepDiscOnScreen(frame, { dims: d, baseRadius, radius, edge })
     : { room, radius };
   frame.az = approachAzimuth(
     orbit,
     approach,
-    held.room / (orbit.rb * held.radius),
+    kept.room / (orbit.rb * kept.radius),
     args,
   );
   return frame;
 };
 
-const holdDiscOnScreen = (
+const keepDiscOnScreen = (
   frame: MutableFrame,
   {
     dims: d,
@@ -191,9 +191,9 @@ const holdDiscOnScreen = (
     DISC_ON_SCREEN.reach * r + DISC_ON_SCREEN.gutter * d.dpr;
   const cxPx = Math.max(frame.x * d.w, discLeft(radius));
   const room = Math.max(150, edge - cxPx);
-  const held = shrinkToRoom(frame, baseRadius, room);
+  const kept = shrinkToRoom(frame, baseRadius, room);
   frame.x = cxPx / d.w;
-  return { room, radius: held };
+  return { room, radius: kept };
 };
 
 const approachAboveBand = (

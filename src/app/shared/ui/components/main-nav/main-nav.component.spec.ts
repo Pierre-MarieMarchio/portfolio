@@ -78,10 +78,10 @@ describe('MainNavComponent', () => {
 
     expect(host.dataset['arrival']).toBe('timed');
 
-    fixture.componentRef.setInput('arrival', 'held');
+    fixture.componentRef.setInput('arrival', 'withheld');
     await fixture.whenStable();
 
-    expect(host.dataset['arrival']).toBe('held');
+    expect(host.dataset['arrival']).toBe('withheld');
   });
 
   it('marks the entries it is told are open, and only those', async () => {

@@ -140,7 +140,7 @@ export class WindowFrameDirective {
     };
   }
 
-  public hold(parts: WindowParts): () => void {
+  public attachParts(parts: WindowParts): () => void {
     this.parts.set(parts);
     return () => {
       if (this.parts() === parts) {

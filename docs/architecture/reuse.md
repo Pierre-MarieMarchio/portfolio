@@ -234,7 +234,7 @@ knowledge-commit: b299e1d
 - `SocialLinksComponent` — `src/app/shared/ui/components/social-links/social-links.component.ts:19` — contact rail with optional extra action ; use for social links ; footer display — 1 caller
 - `SOCIAL_ICONS` — `src/app/shared/ui/data/social-icons.data.ts:3` — 4 SVG paths by SocialIcon key ; use for icon rendering ; icon map — 2 callers
 - `HoverFocusDirective` — `src/app/shared/ui/directives/hover-focus.directive.ts:14` — entered/exited for mouse hover or non-touch focus ; use for real hover detection ; interaction — 3 callers
-- `HeldInertDirective` — `src/app/shared/ui/directives/held-inert.directive.ts:8` — inert while Entrance is held ; use for conditional inertness ; entrance binding — 2 callers
+- `WithheldInertDirective` — `src/app/shared/ui/directives/withheld-inert.directive.ts:8` — inert while Entrance is withheld ; use for conditional inertness ; entrance binding — 2 callers
 - `LayoutAnchorDirective` + `LayoutAnchorsService` — `src/app/shared/ui/directives/layout-anchor.directive.ts:8`, `src/app/shared/ui/services/layout-anchors.service.ts:9` — tag element with kind and list by kind in document order ; use for panel registration ; layout mapping — 3 / 2 callers
 - `ViewHeadingDirective` + `ViewFocusService` — `src/app/shared/ui/directives/view-heading.directive.ts:11`, `src/app/shared/ui/services/view-focus.service.ts:7` — move focus to view's heading after navigation ; use for a11y ; focus management — 3 / 2 callers
 - `BottomEdgeVariableDirective` — `src/app/shared/ui/directives/bottom-edge-variable.directive.ts:12` — writes element bottom as CSS var on parent ; use for edge measurements ; dynamic spacing — 1 caller
@@ -462,7 +462,7 @@ D79: SocialLinksComponent (shared/ui) gains a generic optional action (action in
 
 ## docs/architecture/decisions.md — 2026-09-29 — L'intro se passe d'un geste, aucun geste ne se perd, et la scène se pose à la fin (D80, amende D41)
 
-D80: a control not yet visible is held inert by HeldInertDirective in shared/ui, set on every panel carrying data-arrival — `src/app/shared/ui/directives/held-inert.directive.ts:5` — origin: docs/architecture/decisions.md:2460 @ b299e1d
+D80: a control not yet visible is held inert by WithheldInertDirective in shared/ui, set on every panel carrying data-arrival — `src/app/shared/ui/directives/withheld-inert.directive.ts:5` — origin: docs/architecture/decisions.md:2460 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, une feuille se reconnaît, et le retour la baisse avant de quitter la page (D84, amende D57, D60 et D64)
 

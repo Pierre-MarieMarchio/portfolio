@@ -1,11 +1,11 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Entrance } from '../models';
-import { HeldInertDirective } from './held-inert.directive';
+import { WithheldInertDirective } from './withheld-inert.directive';
 
 @Component({
-  imports: [HeldInertDirective],
-  template: `<button [appHeldInert]="arrival()" id="panel">panel</button>`,
+  imports: [WithheldInertDirective],
+  template: `<button [appWithheldInert]="arrival()" id="panel">panel</button>`,
 })
 class Page {
   public readonly arrival = signal<Entrance>('timed');
@@ -22,11 +22,11 @@ const mount = async () => {
   };
 };
 
-describe('HeldInertDirective', () => {
+describe('WithheldInertDirective', () => {
   it('is inert while the intro retains it', async () => {
     const { fixture, panel } = await mount();
 
-    fixture.componentInstance.arrival.set('held');
+    fixture.componentInstance.arrival.set('withheld');
     await fixture.whenStable();
 
     expect(panel.inert).toBe(true);
@@ -34,7 +34,7 @@ describe('HeldInertDirective', () => {
 
   it('is reachable once shown', async () => {
     const { fixture, panel } = await mount();
-    fixture.componentInstance.arrival.set('held');
+    fixture.componentInstance.arrival.set('withheld');
     await fixture.whenStable();
 
     fixture.componentInstance.arrival.set('shown');

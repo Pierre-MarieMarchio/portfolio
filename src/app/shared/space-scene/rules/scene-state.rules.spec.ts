@@ -61,9 +61,10 @@ describe('sceneState', () => {
   });
 
   it('holds the bodies back until shown, unless motion is reduced', () => {
-    expect(sceneState(inputs({ presence: 'held' })).marksShown).toBe(false);
+    expect(sceneState(inputs({ presence: 'withheld' })).marksShown).toBe(false);
     expect(
-      sceneState(inputs({ presence: 'held' }, { reduced: true })).marksShown,
+      sceneState(inputs({ presence: 'withheld' }, { reduced: true }))
+        .marksShown,
     ).toBe(true);
     expect(sceneState(inputs({ presence: 'shown' })).marksShown).toBe(true);
     expect(

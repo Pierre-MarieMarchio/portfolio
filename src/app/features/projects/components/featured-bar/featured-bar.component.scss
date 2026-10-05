@@ -18,8 +18,8 @@ $rise-delay: 400ms;
   pointer-events: none;
 }
 
-:host([data-arrival='held']) {
-  @include arrival.held;
+:host([data-arrival='withheld']) {
+  @include arrival.withheld;
 }
 
 :host([data-arrival='shown']) {

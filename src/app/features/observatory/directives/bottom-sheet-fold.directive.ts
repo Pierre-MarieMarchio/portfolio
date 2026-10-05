@@ -18,6 +18,6 @@ export class BottomSheetFoldDirective implements WindowFold {
     this.bottomSheet.toggle();
   };
 
-  public readonly hold = (handle: HTMLElement): (() => void) =>
-    this.bottomSheet.hold(handle);
+  public readonly attachHandle = (handle: HTMLElement): (() => void) =>
+    this.bottomSheet.attachHandle(handle);
 }

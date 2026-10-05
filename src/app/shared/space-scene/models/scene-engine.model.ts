@@ -15,7 +15,7 @@ export type SceneEngine = Pick<
   | 'grab'
   | 'turn'
   | 'release'
-  | 'holdZoom'
+  | 'grabZoom'
   | 'stretchZoom'
   | 'releaseZoom'
   | 'lookCloser'

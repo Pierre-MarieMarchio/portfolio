@@ -25,7 +25,7 @@
         [openRoutes]="openRoutes()"
         (chosen)="tabs.choose($event)"
         [arrival]="arrival()"
-        [appHeldInert]="arrival()"
+        [appWithheldInert]="arrival()"
       />
     </div>
 
@@ -34,7 +34,7 @@
         appViewSlot="home"
         [appLayoutAnchor]="anchor.chrome"
         [arrival]="arrival()"
-        [appHeldInert]="arrival()"
+        [appWithheldInert]="arrival()"
       />
     }
 
@@ -166,7 +166,7 @@
           <div
             class="home"
             [attr.data-arrival]="arrival()"
-            [appHeldInert]="arrival()"
+            [appWithheldInert]="arrival()"
           >
             <app-home-title />
             <div class="stage">
@@ -233,7 +233,7 @@
         [hovered]="observatory.hovered()"
         [reading]="observatory.lastPreview()"
         [arrival]="arrival()"
-        [appHeldInert]="arrival()"
+        [appWithheldInert]="arrival()"
         (chosen)="observatory.openPreview($event)"
         (hoveredChange)="onReaderHovered($event)"
       />

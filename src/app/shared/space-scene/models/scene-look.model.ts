@@ -5,7 +5,7 @@ import type { ClickAbsorberService } from '../services/click-absorber.service';
 
 export type LookableScene = Pick<
   SpaceSceneEngine,
-  'holdZoom' | 'stretchZoom' | 'releaseZoom' | 'lookCloser' | 'request'
+  'grabZoom' | 'stretchZoom' | 'releaseZoom' | 'lookCloser' | 'request'
 >;
 
 export type WindowEvents = Pick<AnimatedCanvasService, 'onWindow'>;

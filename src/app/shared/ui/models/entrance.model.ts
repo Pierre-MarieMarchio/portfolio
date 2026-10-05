@@ -1,1 +1,1 @@
-export type Entrance = 'timed' | 'held' | 'shown';
+export type Entrance = 'timed' | 'withheld' | 'shown';

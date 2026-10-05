@@ -139,7 +139,7 @@ describe('RemoteSceneEngine', { timeout: 30_000 }, () => {
       },
     });
     expect(engine.lookCloser()).toBe(false);
-    expect(engine.holdZoom(10, 10)).toBe(true);
+    expect(engine.grabZoom(10, 10)).toBe(true);
   });
 
   it('sends the pan of the page to the worker, and takes back the pan it eases', async () => {

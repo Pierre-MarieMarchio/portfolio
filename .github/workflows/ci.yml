@@ -24,8 +24,8 @@ concurrency:
 # staging has no host of its own: on dev the site is built for a path of the
 # production host.
 env:
-  SITE_URL: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL || 'https://pierre-mariemarchio.github.io/portfolio' }}
-  BASE_HREF: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_BASE_HREF || '/staging/') || vars.BASE_HREF || '/portfolio/' }}
+  SITE_URL: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL || 'https://pm-marchio.fr' }}
+  BASE_HREF: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_BASE_HREF || '/staging/') || vars.BASE_HREF || '/' }}
 
 jobs:
   lint:
@@ -137,17 +137,17 @@ jobs:
       FTP_REMOTE_DIR: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_REMOTE_DIR || 'www/staging') || vars.FTP_REMOTE_DIR || 'www' }}
       SFTP_KNOWN_HOSTS: ${{ vars.SFTP_KNOWN_HOSTS }}
     steps:
-      # Without SITE_URL the build would ship the GitHub Pages address in its
-      # canonical links and its sitemap, and a deploy would publish it.
       - name: Require the site address and the SFTP access
         env:
           SITE_URL_VARIABLE: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL }}
+          STAGING_HTPASSWD_PATH: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_HTPASSWD_PATH || '' }}
           STAGING_USER: ${{ github.ref == 'refs/heads/dev' && secrets.STAGING_USER || '' }}
           STAGING_PASSWORD: ${{ github.ref == 'refs/heads/dev' && secrets.STAGING_PASSWORD || '' }}
         run: |
           missing=""
           if [ "$TARGET" = "staging" ]; then
             [ -n "$SITE_URL_VARIABLE" ] || missing="$missing variable:STAGING_SITE_URL"
+            [ -n "$STAGING_HTPASSWD_PATH" ] || missing="$missing variable:STAGING_HTPASSWD_PATH"
             [ -n "$STAGING_USER" ] || missing="$missing secret:STAGING_USER"
             [ -n "$STAGING_PASSWORD" ] || missing="$missing secret:STAGING_PASSWORD"
           else
@@ -186,7 +186,7 @@ jobs:
       - name: Close the staging
         if: env.TARGET == 'staging'
         env:
-          STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH || '/home/pmmarcc/.htpasswd-staging' }}
+          STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH }}
           STAGING_BASE_HREF: ${{ vars.STAGING_BASE_HREF || '/staging/' }}
         run: |
           if ! [[ "$STAGING_HTPASSWD_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
@@ -262,7 +262,7 @@ jobs:
       # which --delete would empty of the production site.
       - name: Mirror the site over SFTP
         env:
-          STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH || '/home/pmmarcc/.htpasswd-staging' }}
+          STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH }}
         run: |
           umask 077
           known_hosts="$RUNNER_TEMP/known_hosts"

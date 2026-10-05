@@ -40,7 +40,7 @@
               "includePaths": ["src/assets/styles"]
             },
             "define": {
-              "SITE_URL": "\"https://pierre-mariemarchio.github.io/portfolio\""
+              "SITE_URL": "\"https://pm-marchio.fr\""
             }
           },
           "configurations": {

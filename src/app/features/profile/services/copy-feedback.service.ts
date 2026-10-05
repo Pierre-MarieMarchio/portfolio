@@ -3,7 +3,7 @@ import { ClipboardService, ClockService } from '@app/core/services';
 
 const COPIED_FOR_MS = 4000;
 
-@Service()
+@Service({ autoProvided: false })
 export class CopyFeedbackService {
   private readonly clipboard = inject(ClipboardService);
   private readonly clock = inject(ClockService);

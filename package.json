@@ -53,16 +53,16 @@
     "angular-eslint": "^22.5.0",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-sonarjs": "^4.2.1",
+    "eslint-plugin-sonarjs": "^4.2.2",
     "eslint-plugin-unicorn": "^76.0.0",
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.9",
     "sass": "^1.105.1",
-    "stylelint": "^17.15.0",
+    "stylelint": "^17.16.0",
     "stylelint-config-standard-scss": "^17.0.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.70.0",
+    "typescript-eslint": "^8.71.0",
     "vitest": "^5.0.2"
   }
 }

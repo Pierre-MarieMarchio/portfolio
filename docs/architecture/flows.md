@@ -4,120 +4,170 @@ knowledge-date: 2026-10-05
 knowledge-commit: b299e1d
 
 ## Boot and first render
+
 1. `appConfig` providers: zoneless, router with component input binding, `RouteHeadStrategy`, hydration, statewise effects, i18n — `src/app/app.config.ts:27`
 2. Initializer awaits `ProjectsManager.load()` — `src/app/app.config.ts:48`
 3. `AppComponent` renders skip link, `<router-outlet>` (route markers) then `<app-observatory-page>` once, outside the outlet — `src/app/app.component.html:1`, `src/app/app.component.html:4`, `src/app/app.component.html:5`
+
 ## Address to view
+
 1. Each route (both languages) maps to `ObservatoryRouteComponent` with `data.view`, guard `loadCatalog`, title and resolvers — `src/app/app.routes.ts:17`
 2. Unknown paths per language → `not-found` — `src/app/app.routes.ts:41`
 3. Page/route component calls `ObservatoryManager.syncRoute(view, slug)` with `canHoldSheets` = not phone — `src/app/features/observatory/states/observatory/observatory.manager.ts:119`
 4. Updater `syncRoute`: resume point, sheet hand-over, view/slug/chapter, minimized cleanup, seen, preview drop, arrival notes — `src/app/features/observatory/states/observatory/observatory.updater.ts:119`
 5. `ViewWindowsService` brings the view window to front and claims focus — `src/app/features/observatory/services/view-windows.service.ts:121`, `src/app/features/observatory/services/view-windows.service.ts:140`
+
 ## Prerender
+
 1. Server config merges `serverRoutes` — `src/app/app.config.server.ts:10`
 2. Sheet routes enumerate slugs from `ProjectsRepositoryService.getCatalog()` — `src/app/app.routes.server.ts:12`
 3. Per-language 404 and `**` prerendered — `src/app/app.routes.server.ts:20`, `src/app/app.routes.server.ts:24`
+
 ## Close a window
+
 1. `ObservatoryManager.close(window)` dispatches async — `src/app/features/observatory/states/observatory/observatory.manager.ts:145`
 2. Updater unpins and clears preview/minimized — `src/app/features/observatory/states/observatory/observatory.updater.ts:174`
 3. Effect computes parent and goes back in history or `navigateByUrl(replaceUrl)` — `src/app/features/observatory/states/observatory/observatory.effect.ts:23`, `src/app/features/observatory/states/observatory/observatory.effect.ts:58`
+
 ## Escape / background step back
+
 1. `escape()` / `stepBack()` — `src/app/features/observatory/states/observatory/observatory.manager.ts:181`
 2. Effect returns `observatorySelected(null)` or `observatoryPreviewClosed()` or nothing — `src/app/features/observatory/states/observatory/observatory.effect.ts:39`
+
 ## Home intro and tour
+
 1. `HomeRevealService.start` holds the rest until presence or `--arrival-at` — `src/app/features/observatory/services/home-reveal.service.ts:42`
 2. Skip button calls `arrive()` while held — `src/app/features/observatory/components/intro-skip/intro-skip.component.html:2`
 3. `FeaturedTourService.play` waits 4200 ms then hovers each featured slug — `src/app/features/observatory/services/featured-tour.service.ts:21`
+
 ## Scene
+
 1. `ObservatorySceneComponent.direction` = `sceneDirectionOf(...)` — `src/app/features/observatory/components/observatory-scene/observatory-scene.component.ts:66`
 2. `SpaceSceneComponent` boots the engine after first render, then pushes inputs snapshot through an effect — `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:134`, `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:107`, `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:194`
 3. Layout re-measured after every render and on resize/pointerup/animationend/transitionend/drag — `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:127`, `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:243`, `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:292`
+
 ## Phone tab choice
+
 1. `TabNavigationService.choose(address)` — desktop restores minimized windows of the tab, phone applies history rules — `src/app/features/observatory/services/tab-navigation.service.ts:67`, `src/app/features/observatory/services/tab-navigation.service.ts:108`
+
 ## Copy contact address
+
 1. `ContactLinksComponent.copy()` / `ContactMenuComponent.copy()` — `src/app/features/profile/components/contact-links/contact-links.component.ts:56`
 2. `CopyFeedbackService.copy` → `isCopied` 4 s → `<output>` announces — `src/app/features/profile/services/copy-feedback.service.ts:20`, `src/app/features/profile/components/contact-links/contact-links.component.html:13`
+
 ## CI / deploy
+
 1. Triggers: PR, push main/dev, dispatch; concurrency per ref — `.github/workflows/ci.yml:8`, `.github/workflows/ci.yml:18`
 2. Jobs lint (format, typecheck tools, lint, structure, comments), test (coverage artifact), build (base-href, SITE_URL define, build:finish, check:prerender, artifact with hidden files) — `.github/workflows/ci.yml:31`, `.github/workflows/ci.yml:47`, `.github/workflows/ci.yml:64`
 3. Sonar on PR and non-dev pushes, waits quality gate — `.github/workflows/ci.yml:84`
 4. Deploy: checks, staging closing (.htaccess rewrite, Basic auth, robots, no sitemap), htpasswd, lftp SFTP mirror with pinned host key — `.github/workflows/ci.yml:108`, `.github/workflows/ci.yml:186`, `.github/workflows/ci.yml:263`
+
 ## A spec that renders an observatory component
+
 1. Provide French texts and links — `src/testing/fixtures/texts.fixture.ts:12`
 2. Put the format with `stubMedia` / `resizeTo` / `stubViewport` — `src/testing/doubles/browser.double.ts:19`, `src/testing/doubles/browser.double.ts:10`, `src/testing/doubles/browser.double.ts:5`
 3. Set tokens the global stylesheet would give (`--arrival-at`, `--intro-duration`) on `<html>` — `src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:14`, `src/app/features/observatory/components/intro-card/intro-card.component.spec.ts:15`
 4. Tear down in `afterEach` (`removeProperty`, `useRealTimers`, `unstubAllGlobals`) — `src/app/features/observatory/services/home-reveal.service.spec.ts:40`
 
 ## Local gate (`npm run check`)
+
 1. format:check, typecheck:tools (JS configs and scripts, `tsconfig.tools.json:19-24`) — `package.json:22`, `package.json:27`
 2. lint: ESLint then Stylelint, `--max-warnings 0` — `package.json:18`; ESLint first asserts folders vs lists — `eslint.config.js:15-46`
 3. test: `ng test --watch=false` (Vitest runner, `angular.json:82`) — `package.json:16`
 4. build + `build:finish` — `package.json:12-13`; then check:prerender, check:structure --strict, check:comments src — `package.json:24`, `package.json:25`, `package.json:23`
+
 ## Commit
+
 1. Husky installed by `prepare` — `package.json:26`
 2. `commit-msg` hook runs commitlint on the message — `.husky/commit-msg:1`
 3. rule set = config-conventional, nothing else — `commitlint.config.js:2`
+
 ## CI (.github/workflows/ci.yml, read to check claims; outside the zone globs)
+
 1. lint, test (coverage), build jobs in parallel — `.github/workflows/ci.yml:31`, `.github/workflows/ci.yml:47`, `.github/workflows/ci.yml:64`
 2. sonar after test, quality gate waited, skipped on dev pushes — `.github/workflows/ci.yml:88`, `.github/workflows/ci.yml:106`
 3. deploy on main/dev pushes and manual runs, from the build artifact, SFTP with pinned host key — `.github/workflows/ci.yml:110-118`, `.github/workflows/ci.yml:299`, `.github/workflows/ci.yml:307`
+
 ## Turning the scene by drag
+
 1. window-level capturing `pointerdown` stops the click absorber; primary pointers go to `grab` — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:35-44`
 2. reject if no scene, non-left button, or not on sky — `:54` → `src/app/shared/space-scene/rules/gestures/sky-touch.rules.ts:7`
 3. `scene.grab` must accept; cursor `grabbing`; listeners for that pointer id — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:57-83`
 4. `pointermove` → `scene.turn`; `pointerup`/`pointercancel` → `release` — `:68`, `:75`, `:80`
 5. release: if it was a drag, absorb the next click — `:86-91`
+
 ## Registering a scene target
+
 1. directive constructor adds the element to `SceneTargetsService`, removal on destroy — `src/app/shared/space-scene/directives/scene-target.directive.ts:10-13`
+
 ## Per-frame derivation
+
 1. `sceneState(inputs)` — `src/app/shared/space-scene/rules/scene-state.rules.ts:78`
 2. `sceneFrame(state, style)` with a veil closure — `src/app/shared/space-scene/rules/scene-frame.rules.ts:99-107`
 
 ## Boot and first render
+
 1. `provideI18n` provides the text tokens, SITE_NAME and LINKS, and an initializer loads the catalogue of the current language — `src/app/i18n/providers/i18n.provider.ts:69`
 2. `LocaleService.path` falls back to `Location.path()` before the first navigation — `src/app/core/services/i18n/locale.service.ts:9`, :13
 3. `ObservatoryPageComponent` is mounted by AppComponent, outside the router (app.component.ts:9). Its constructor reads the view from the address, calls `syncRoute`, then `publishOnRoot` — `src/app/pages/observatory/observatory-page.component.ts:263-268`
 4. `afterNextRender` starts the home reveal, then the featured tour — `src/app/pages/observatory/observatory-page.component.ts:276-280`
+
 ## Navigation
+
 1. Each route has the empty `ObservatoryRouteComponent`, `canActivate: [loadCatalog]` and a title resolver (app.routes.ts:20-22)
 2. The guard loads the target-language catalogue — `src/app/i18n/guards/catalog.guard.ts:6`
 3. The route component calls `observatory.syncRoute(view, slug)` only if view or slug changed, one frame later after the first navigation — `src/app/pages/observatory/observatory-route.component.ts:35-49`
 4. `RouteHeadStrategy.updateTitle` → `DocumentHeadService.set` — `src/app/core/strategies/route-head.strategy.ts:10`
+
 ## Scene in a worker
+
 1. `RemoteSceneEngine` posts `boot`, then a `call` for each method, stamped with `at` and `hidden` — `src/app/shared/space-scene/engine/remote-scene.engine.ts:100`, `src/app/shared/space-scene/engine/remote-scene.engine.ts:247-253`
 2. The worker builds `SpaceSceneEngine` on OffscreenCanvas, wraps clearRect to detect a drawn canvas — `src/app/shared/space-scene/engine/scene-worker.engine.ts:62-112`; it loads hole-focus lazily — `src/app/shared/space-scene/engine/scene.worker.ts:45`
 3. A flush posts bitmaps, the recorded DOM writes, the generations and the pan — `src/app/shared/space-scene/engine/scene-worker.engine.ts:219`
 4. The page keeps only writes whose generation still matches, then on its next frame applies writes and paints bitmaps together — `src/app/shared/space-scene/engine/remote-scene.engine.ts:281-287`, `src/app/shared/space-scene/engine/remote-scene.engine.ts:297-305`
+
 ## Frame loop
+
 1. `request()` → `wake()` → host.frame(tick) — `src/app/shared/space-scene/engine/space-scene.engine.ts:252`, `src/app/shared/space-scene/engine/frame-loop.engine.ts:38`
 2. tick → step → advance + draw ; it re-arms while not settled, held or turning — `src/app/shared/space-scene/engine/space-scene.engine.ts:280-288`
+
 ## One frame of the scene (body of `tick → step → advance + draw` named in knowledge-3)
+
 1. `SceneMotion.advance`: opening ease, grains arrival/density, camera, zoom (+ pan), clock — `src/app/shared/space-scene/engine/motions/scene.motion.ts:86-90`
 2. `SceneMotion.lay` writes the SceneFrame: traveling, camera pose (`src/app/shared/space-scene/engine/motions/camera.motion.ts:176-197`), unzoomed hole, zoom/pan offset (`src/app/shared/space-scene/engine/motions/zoom.motion.ts:120-137`, `src/app/shared/space-scene/engine/motions/sky-pan.motion.ts:53-69`), entry, time, phase, disc azimuth, focus — `src/app/shared/space-scene/engine/motions/scene.motion.ts:93-104`
 3. `SceneRenderer.draw`: clear matter, grains, orbits, planets (writes labels, buttons, lines, `frame.aim`), comets, then sky (stars, trails, constellations, figure targets), then hole-mark attributes — `src/app/shared/space-scene/engine/renderers/scene.renderer.ts:62-72`
+
 ## Stars in a frame
+
 1. `SkyRenderer.draw` maps pose to `SkyCamera` with `finiteOr` fallbacks — `src/app/shared/space-scene/engine/renderers/sky/sky.renderer.ts:20-40`
 2. `StarFlowMotion.update` builds the `SkyFrame`, flattens once at the end of the flight — `src/app/shared/space-scene/engine/motions/star-flow.motion.ts:122-136`
 3. Per star: `place` (spread, wrap or respawn) → `holeLight` (hidden in the shadow) → `follow` (velocity, trail aim) → trail stroke or batch → dot with lensing — `src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.ts:154-172`
 4. On phone the batch is flushed once — `src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.ts:148-150`; constellations drawn with the returned pan — `src/app/shared/space-scene/engine/renderers/sky/sky.renderer.ts:41`
+
 ## Planet labels in a frame
+
 1. Lines faded by `rising` — `src/app/shared/space-scene/engine/renderers/planets.renderer.ts:61-63`; planets placed and repelled — :64-69; aim written — :70
 2. `labels.begin` captures panels, stage, hole (once arrived and marks shown) and, on touch, disc and bodies — `src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts:133-166`
 3. Per shown planet: reach (button), body, then tag or name with a leader line — `src/app/shared/space-scene/engine/renderers/planets.renderer.ts:117-140`, `src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts:177-183`; planets beyond `focus.shown` hidden — `src/app/shared/space-scene/engine/renderers/planets.renderer.ts:78-80`
 
 ## Projects load
+
 1. Initializer calls `load()` — `src/app/features/projects/states/projects/projects.manager.ts:96`
 2. Effect reads repository, failure goes to ErrorHandler — `src/app/features/projects/states/projects/projects.effect.ts:12`
 3. Repository answers `of()` built from PROJECTS — `src/app/features/projects/services/projects-repository.service.ts:14`
 4. PROJECTS built once by the factory at import — `src/app/features/projects/data/projects.data.ts:5`
 5. Updater writes projects, facts, details — `src/app/features/projects/states/projects/projects.updater.ts:9`
 6. Manager localizes and ranks — `src/app/features/projects/states/projects/projects.manager.ts:29`
+
 ## Build and post-build
+
 1. `ng build && build:finish` — `package.json:12`
 2. 404 pages moved to 404.html / en/404.html, noindex — `scripts/finish-build.mjs:50`, `scripts/finish-build.mjs:95`
 3. sitemap.xml and robots.txt from page-head links — `scripts/finish-build.mjs:107`
 4. check:prerender reads dist — `scripts/check-prerender.mjs:346`
+
 ## Desktop window drag
+
 1. WindowComponent hands section+bar after first render — `src/app/shared/windows/components/window/window.component.ts:100`
 2. Directive stores parts, lazy-loads tracker for desktop/tablet — `src/app/shared/windows/directives/window-frame.directive.ts:74`, `src/app/shared/windows/directives/window-frame.directive.ts:101`, `src/app/shared/windows/directives/window-frame.directive.ts:143`
 3. Tracker listens bar/edge pointerdown and window resize — `src/app/shared/windows/trackers/window-frame.tracker.ts:61`
@@ -125,28 +175,39 @@ knowledge-commit: b299e1d
 5. Drag clamps move/resize, shows snap outline — `src/app/shared/windows/trackers/window-drag.tracker.ts:67`
 6. Drop lands: snap or commit free — `src/app/shared/windows/trackers/window-frame.tracker.ts:180`
 7. Directive host binds transform/width/height/data-frame — `src/app/shared/windows/directives/window-frame.directive.ts:55`
+
 ## F6 cycle
+
 1. keydown via BrowserWindowService — `src/app/shared/windows/directives/window-cycle.directive.ts:14`
 2. target from shown windows front to back — `src/app/shared/windows/services/window-stack.service.ts:47`
 3. focus `[data-window-title]` — `src/app/shared/windows/directives/window-cycle.directive.ts:28`
+
 ## Window body padding set by the content
+
 1. Feature host sets `--window-body-padding` on a `display: contents` host — `src/app/features/projects/components/project-list/project-list.component.scss:5-8`
 2. `app-window` host is `display: contents` too, so the property inherits through — `src/app/shared/windows/components/window/window.component.scss:6`
 3. `.body` reads it with a fallback — `src/app/shared/windows/components/window/window.component.scss:104` ; overflow/overscroll the same way from the page slot — `src/app/pages/observatory/observatory-page.component.scss:151`, `src/app/pages/observatory/observatory-page.component.scss:186`
 4. pager.in-window then inherits that overflow (`overflow-y: inherit`) — `src/assets/styles/mixins/_pager.scss:20`, `src/assets/styles/mixins/_pager.scss:29`
+
 ## Phone index swipe (CSS side)
+
 1. SwipeStepsService writes `--swipe-pane` / `--swipe-t` inline on the `app-window` carrying `[appSwipeSteps]` — `src/app/shared/mobile-nav/services/swipe-steps.service.ts:199-205`, `src/app/features/projects/components/project-list/project-list.component.html:1-2`
 2. `.rows` (projected `body`) reads them, phone only — `src/app/features/projects/components/project-list/project-list.component.scss:145-152`
 3. End of gesture removes both properties — `src/app/shared/mobile-nav/services/swipe-steps.service.ts:210`
+
 ## Featured bar arrival
+
 1. Host attribute from the `arrival` input — `src/app/features/projects/components/featured-bar/featured-bar.component.ts:41`, `src/app/features/projects/components/featured-bar/featured-bar.component.ts:50`
 2. timed: `rise` at `--arrival-at + 400ms` over 1300 ms — `src/app/features/projects/components/featured-bar/featured-bar.component.scss:11`, `src/assets/styles/mixins/_arrival.scss:10` ; `@keyframes rise` at `src/assets/styles/_motion.scss:1` ; `--arrival-at: 8700ms` at `src/assets/styles/_tokens.scss:65`, also read by TS `src/app/features/observatory/services/home-reveal.service.ts:49`
 3. held / shown — `src/app/features/projects/components/featured-bar/featured-bar.component.scss:21`, `src/app/features/projects/components/featured-bar/featured-bar.component.scss:25`
+
 ## Window stacking and frame animation (CSS side)
+
 1. `--stack` bound by StackedWindowDirective — `src/app/shared/windows/directives/stacked-window.directive.ts:14` ; read by the slot z-index — `src/app/pages/observatory/observatory-page.component.scss:81`, `src/app/pages/observatory/observatory-page.component.scss:97`, `src/app/pages/observatory/observatory-page.component.scss:108`
 2. `data-frame-animating` bound by WindowFrameDirective — `src/app/shared/windows/directives/window-frame.directive.ts:60` ; global transition 280 ms — `src/assets/styles/_base.scss:73-78`
 
 ## Back closes an overlay (stacked mode)
+
 1. Overlay opens: `ActionMenuComponent.show` calls `backLayers.push` — `src/app/shared/mobile-nav/components/action-menu/action-menu.component.ts:112`
 2. Layer stacked, history entry pushed with depth — `src/app/shared/mobile-nav/services/back-layers.service.ts:64-69`
 3. Browser Back pops; `popped` reads depth, closes layers above — `src/app/shared/mobile-nav/services/back-layers.service.ts:106-117`
@@ -154,6 +215,7 @@ knowledge-commit: b299e1d
 5. Leaving the page drops all layers via `onLeave` — `src/app/shared/mobile-nav/services/back-layers.service.ts:97`
 
 ## Bottom sheet drag to detent
+
 1. Touch start -> `ScrollReleaseDirective.pressed` — `src/app/shared/mobile-nav/directives/scroll-release.directive.ts:98`
 2. Lift off -> `released{speed,pull}` — `src/app/shared/mobile-nav/directives/scroll-release.directive.ts:111`
 3. `letGo` computes target detent or dismissal — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:142-160`
@@ -161,6 +223,7 @@ knowledge-commit: b299e1d
 5. `BackClaimService` claims Back when detent becomes full — `src/app/shared/mobile-nav/services/back-claim.service.ts:36-45`
 
 ## Scene engine creation
+
 1. `SceneEngineService.create` tries remote first — `src/app/shared/space-scene/services/scene-engine.service.ts:38-45`
 2. Remote needs `canDrawOffThread` and bitmap contexts, spawns `../engine/scene.worker` — `src/app/shared/space-scene/services/scene-engine.service.ts:133`, `src/app/shared/space-scene/services/animated-canvas.service.ts:51`
 3. Else lazy-import local engine under a PendingTask — `src/app/shared/space-scene/services/scene-engine.service.ts:46-50`, `src/app/shared/space-scene/services/scene-engine.service.ts:85`
@@ -168,6 +231,7 @@ knowledge-commit: b299e1d
 5. Look (zoom/sky) started on the engine by format — `src/app/shared/space-scene/services/scene-look.service.ts:36`
 
 ## Focus after navigation
+
 1. Heading registers after render — `src/app/shared/ui/directives/view-heading.directive.ts:16`
 2. Desktop claims a container — `src/app/shared/ui/services/view-focus.service.ts:24`
 3. `settle` focuses the heading within it, or `[data-window-title]`, until focused or 2500 ms — `src/app/shared/ui/services/view-focus.service.ts:40-56`

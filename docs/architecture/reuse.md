@@ -3,7 +3,7 @@
 knowledge-date: 2026-10-05
 knowledge-commit: b299e1d
 
-## .github/**,src/app/*,src/app/features/observatory/**,src/app/features/profile/**,src/app/shared/space-scene/components/**
+## .github/**,src/app/\*,src/app/features/observatory/**,src/app/features/profile/**,src/app/shared/space-scene/components/**
 
 - `ObservatoryManager` — `src/app/features/observatory/states/observatory/observatory.manager.ts:35` — the only door to the observatory state (view, slug, pins, minimized, held sheets, preview, selection) and its commands; use from components/services/pages; never inject `ObservatoryState` (only updater/effect/manager do) — 9 callers
 - `AnimationManager` — `src/app/features/observatory/states/animation/animation.manager.ts:8` — scene pause flag + `togglePause()`; use for the pause; not for reduced-motion (that is `MediaPreferencesService`) — 2 callers
@@ -58,7 +58,7 @@ knowledge-commit: b299e1d
 - `pager` (`in-window`) — `src/assets/styles/mixins/_pager.scss:15` — full-width pager styling and scroll behavior ; use for page carousels ; in windows — all 2 / zone 1 (about-window)
 - Local mixin `sky-takes-the-hand` — `src/app/shared/space-scene/components/space-scene/space-scene.component.scss:33` — scene hand styling applied on phone and tablet ; use for scene hand display ; phone/tablet only — 1 file
 
-## *,.husky/*,docs/**,src/app/shared/space-scene/directives/*,src/app/shared/space-scene/rules/**,src/testing/**
+## _,.husky/_,docs/**,src/app/shared/space-scene/directives/\*,src/app/shared/space-scene/rules/**,src/testing/**
 
 - `SceneTargetDirective` — `src/app/shared/space-scene/directives/scene-target.directive.ts:9` — registers the host element in SceneTargetsService for the life of the view and stamps data-scene-target ; use on elements standing for scene bodies in document order ; not for figures which use data-scene-figure — 1 caller, the only export of the barrel
 - `TurnGestureDirective` — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:25` — window-level capture pointerdown → grab/turn/release on TurnableScene, sets cursor, absorbs drag ending click ; use on the stage hosting the engine ; for scene interaction — 1 caller
@@ -143,7 +143,7 @@ knowledge-commit: b299e1d
 - `PlanetLabelsRenderer` — `src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts:76` — writes button/label/line DOM styles only when changed (`setStyle` :55); draws leader lines on the matter canvas — 2 callers
 - `HoleMarkRenderer` — `src/app/shared/space-scene/engine/renderers/hole-mark.renderer.ts:16` — writes hole/disc/target attributes on stage node ; use for hole mark rendering ; scene markup — 1 caller
 
-## public/*,scripts/*,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
+## public/_,scripts/_,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
 
 - `WindowComponent` — `src/app/shared/windows/components/window/window.component.ts:42` — the window frame: title bar, toolbar/body/footer slots, controls, fold grip, hands section+bar to WindowFrameDirective ; use for any page window ; not for phone-only content that is not a window — 5 callers (project-list, project-detail, project-preview, about-window, not-found-window)
 - `WindowControlsComponent` — `src/app/shared/windows/components/window-controls/window-controls.component.ts:13` — Minimize/Pin/frame controls/Close buttons ; used inside WindowComponent ; not standalone elsewhere — 1 caller (window.component.ts:26)
@@ -192,7 +192,7 @@ knowledge-commit: b299e1d
 - window body hooks `--window-body-overflow`, `--window-body-overscroll`, `--window-body-padding` — `src/app/shared/windows/components/window/window.component.scss:102`, `src/app/shared/windows/components/window/window.component.scss:103`, `src/app/shared/windows/components/window/window.component.scss:104` — only styling inputs with fallback ; use for window body styling ; feature-set and app-level — fallback auto / contain / var(--s3) var(--s2)
 - local units (not shared): mixin `lit-row` — `src/app/features/projects/components/project-list/project-list.component.scss:12` — per-component utilities not shared ; project-list/featured-bar/window ; for component-specific styling
 
-## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/*,src/app/shared/space-scene/ports/*,src/app/shared/space-scene/services/*,src/app/shared/ui/**
+## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/_,src/app/shared/space-scene/ports/_,src/app/shared/space-scene/services/*,src/app/shared/ui/**
 
 - `LINKS` / `ILinks` — `src/app/features/common/ports/links.port.ts:3` — port giving home/index/about/sheet(slug) URLs ; use when a feature must build an address without importing i18n ; not for router navigation itself — 11 callers
 - `SceneAnchorKind` — `src/app/features/common/models/scene-anchors.model.ts:1` — closed list of anchor kinds a feature registers for the scene ; use to tag a panel ; `src/app/features/observatory/models/scene-anchors.model.ts:4` maps all but `'line'` — 4 callers

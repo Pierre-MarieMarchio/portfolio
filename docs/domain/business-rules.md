@@ -3,7 +3,7 @@
 knowledge-date: 2026-10-05
 knowledge-commit: b299e1d
 
-## .github/**,src/app/*,src/app/features/observatory/**,src/app/features/profile/**,src/app/shared/space-scene/components/**
+## .github/**,src/app/\*,src/app/features/observatory/**,src/app/features/profile/**,src/app/shared/space-scene/components/**
 
 - A step back goes one notch only: deselect on index, close preview on home, otherwise nothing — `src/app/features/observatory/rules/view.rules.ts:73` (Escape and background share it: `src/app/features/observatory/states/observatory/observatory.effect.ts:31`)
 - Closing the window of the current view navigates to its parent (sheet/not-found → index, index/about → home), by history back when possible, else `replaceUrl` — `src/app/features/observatory/states/observatory/observatory.effect.ts:58`, `src/app/features/observatory/rules/view.rules.ts:35`
@@ -29,7 +29,7 @@ knowledge-commit: b299e1d
 - Deploy: only push/dispatch on main (production) or dev (staging), after lint, test, build success and Sonar success (or Sonar skipped on dev) — `.github/workflows/ci.yml:111`
 - Deploy guards: required vars/secrets present, `.htaccess` present, remote dir not root/`..`, staging inside production folder, production mirror excludes staging folder — `.github/workflows/ci.yml:142`, `.github/workflows/ci.yml:168`, `.github/workflows/ci.yml:272`, `.github/workflows/ci.yml:282`, `.github/workflows/ci.yml:287`
 - Dependabot never proposes TypeScript minor/major nor `@types/node` major bumps — `.github/dependabot.yml:11`
-Rules the specs pin down (cited at the `it(` line); source-side citations are in knowledge-1.md.
+  Rules the specs pin down (cited at the `it(` line); source-side citations are in knowledge-1.md.
 - Closing a window navigates only when that window is the current view; a window merely pinned elsewhere closes in place; a preview close never navigates — `src/app/features/observatory/states/observatory/observatory.effect.spec.ts:58` (table `src/app/features/observatory/states/observatory/observatory.effect.spec.ts:67`-`src/app/features/observatory/states/observatory/observatory.effect.spec.ts:113`)
 - Close targets table: sheet on sheet/not-found → index, index → home, about → home, any window not the view → none, preview → none — `src/app/features/observatory/rules/view.rules.spec.ts:79`
 - Close labels: only the window of the current view carries a "close to" label; home has none — `src/app/features/observatory/rules/view.rules.spec.ts:96`
@@ -69,7 +69,7 @@ Rules the specs pin down (cited at the `it(` line); source-side citations are in
 - Contact menu rows: e-mail, copy, LinkedIn, GitHub, CV, then optional language row (6 rows with, 5 without); only `external` addresses get `target="_blank" rel="noopener"`; stays open after copy — `src/app/features/profile/components/contact-menu/contact-menu.component.spec.ts:96`, `src/app/features/profile/components/contact-menu/contact-menu.component.spec.ts:116`, `src/app/features/profile/components/contact-menu/contact-menu.component.spec.ts:128`, `src/app/features/profile/components/contact-menu/contact-menu.component.spec.ts:134`, `src/app/features/profile/components/contact-menu/contact-menu.component.spec.ts:148`
 - Rail link accessible name contains its visible word (WCAG 2.5.3); copy button placed right after the e-mail entry — `src/app/features/profile/components/contact-links/contact-links.component.spec.ts:95`, `src/app/features/profile/components/contact-links/contact-links.component.spec.ts:114`
 - Hydration config registers DOM reuse and event replay — `src/app/app.config.spec.ts:13`, `src/app/app.config.spec.ts:19`, `src/app/app.config.spec.ts:25`
-Implicit couplings (invariant held by nothing but convention):
+  Implicit couplings (invariant held by nothing but convention):
 - `$phone-width-below: 620px` / `500px` in `src/assets/styles/mixins/_formats.scss:1`, `src/assets/styles/mixins/_formats.scss:2` must equal `PHONE_WIDTH_BELOW` / `PHONE_HEIGHT_BELOW_WITH_COARSE_POINTER` in `src/app/core/rules/display-format.rules.ts:6`, `src/app/core/rules/display-format.rules.ts:7` (commit f3e425a: "SCSS mixins say the same thresholds"); zone SCSS uses `formats.phone` while zone TS branches on the TS format
 - `--arrival-at: 8700ms` (`src/assets/styles/_tokens.scss:65`) is read by TS (`src/app/features/observatory/services/home-reveal.service.ts:49`) and CSS (`src/assets/styles/mixins/_arrival.scss:10`); specs do not load global styles and set it themselves (`src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:14`, `src/testing/fixtures/observatory.fixture.ts:20`)
 - `--intro-duration: 5600ms` (`src/assets/styles/_tokens.scss:66`) drives both the CSS animation (`src/app/features/observatory/components/intro-card/intro-card.component.scss:15`) and the TS removal timer (`src/app/features/observatory/components/intro-card/intro-card.component.ts:26`); spec sets it at `src/app/features/observatory/components/intro-card/intro-card.component.spec.ts:15`
@@ -82,7 +82,9 @@ Implicit couplings (invariant held by nothing but convention):
 - about-window styles the child host `app-pager-page` of `shared/mobile-nav` by element name — `src/app/features/profile/components/about-window/about-window.component.scss:182`
 - Spec assertions on wording use the French catalogue (`provideTexts` → `FR`, `src/testing/fixtures/texts.fixture.ts:7`), e.g. literal "Rien en orbite à cette adresse." (`src/app/features/observatory/components/not-found-window/not-found-window.component.spec.ts:21`)
 - SpaceScene spec spies on `SpaceSceneEngine.prototype` (`setInputs`, `setLayout`, `setPointer`) — `src/app/shared/space-scene/components/space-scene/space-scene.component.spec.ts:43`, `src/app/shared/space-scene/components/space-scene/space-scene.component.spec.ts:168`, `src/app/shared/space-scene/components/space-scene/space-scene.component.spec.ts:220`
+
 ### Tab navigation (pinned by `TN`)
+
 - Phone, touching another tab from home pushes a new entry (`replaceUrl: false`) — `src/app/features/observatory/services/tab-navigation.service.spec.ts:72`
 - Phone, touching a tab while already on another tab replaces the entry (`replaceUrl: true`) — `src/app/features/observatory/services/tab-navigation.service.spec.ts:82`; from a sheet to about also replaces — `src/app/features/observatory/services/tab-navigation.service.spec.ts:118`
 - Phone, re-touching the projects tab from another tab reopens the sheet last read (`/projet/<slug>`) — `src/app/features/observatory/services/tab-navigation.service.spec.ts:93`; but if the sheet was left for the list, it reopens the list — `src/app/features/observatory/services/tab-navigation.service.spec.ts:105`
@@ -97,6 +99,7 @@ Implicit couplings (invariant held by nothing but convention):
 - Phone, leaving the home parks the preview posed at the last touch and re-poses it when the home sheet is shown again — `src/app/features/observatory/services/tab-navigation.service.spec.ts:457`; nothing parked if nothing posed at last touch — `src/app/features/observatory/services/tab-navigation.service.spec.ts:472`; a hover-only card shown at half is re-posed as hover, not preview — `src/app/features/observatory/services/tab-navigation.service.spec.ts:488`; nothing parked outside the phone — `src/app/features/observatory/services/tab-navigation.service.spec.ts:506`
 
 ### View windows focus and scroll (pinned by `VW`)
+
 - Opening the preview from home focuses its title like a page window — `src/app/features/observatory/services/view-windows.service.spec.ts:146`; closing it gives focus back to the home title — `src/app/features/observatory/services/view-windows.service.spec.ts:156`; a preview pinned open away from home does not take focus — `src/app/features/observatory/services/view-windows.service.spec.ts:167`
 - Phone: posing a project keeps focus on the home title (same element) — `src/app/features/observatory/services/view-windows.service.spec.ts:180`; later posings do not re-take focus — `src/app/features/observatory/services/view-windows.service.spec.ts:192`; coming back home lands on the home title — `src/app/features/observatory/services/view-windows.service.spec.ts:204`
 - `scrollToTop(window)` returns true when any descendant of the window's `app-window` is scrolled (page or body) — `src/app/features/observatory/services/view-windows.service.spec.ts:217`; the rail around the window is not counted and not scrolled — `src/app/features/observatory/services/view-windows.service.spec.ts:230`; false for a window never shown or `null` — `src/app/features/observatory/services/view-windows.service.spec.ts:239`
@@ -105,6 +108,7 @@ Implicit couplings (invariant held by nothing but convention):
 - A sheet opened beside a pinned one gets focus on its title once shown — `src/app/features/observatory/services/view-windows.service.spec.ts:291`
 
 ### Home title, dock, animation toggle, intro skip (component specs)
+
 - Desktop home title: a `p.status` right under the single `h1` (only heading in the component) — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:59`; two lines (`.name` + `h1` trade), no `.bar`, no button — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:69`
 - Phone home title: one `h1` "name · trade", no `.name`, no `.status` — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:83`; keeps `id="home-title"` (the scene section is labelled by it) — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:94`; hands its `.bar` to `WINDOW_FOLD.hold` and releases it on destroy — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:100`; exactly one button `.bar button.grip`, no chevron/svg — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:110`; grip toggles the fold, `aria-label` names the next action ("Baisser"/"Remonter la fenêtre"), `aria-expanded` mirrors unfolded — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:118`
 - Dock: a `nav` labelled `dock.label`, empty at first — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:31`; lists pinned windows the reader left, index before sheet, with their route (`/projets`, `/projet/<slug>`) — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:40`; a docked preview links to `/` — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:56`; a docked about links to `/a-propos` — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:69`
@@ -112,12 +116,14 @@ Implicit couplings (invariant held by nothing but convention):
 - Intro skip: no `.skip` before `HomeRevealService.start` — `src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:38`; shown with `intro.skip` text once held — `src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:44`; click sets `reveal.arrival()` to `'shown'` and removes the button — `src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:55`
 
 ### About window pager (pinned by `src/app/features/profile/components/about-window/about-window.component.spec.ts`)
+
 - The window asks `WindowComponent` for `stableHeight` so a part change does not resize it — `src/app/features/profile/components/about-window/about-window.component.spec.ts:66`
 - A swipe (`PagerComponent.indexChange`) is re-emitted as `partChange` — `src/app/features/profile/components/about-window/about-window.component.spec.ts:276`
 - The toolbar presses the tab the pager visibly shows (`shownChange`) before `part` is committed — `src/app/features/profile/components/about-window/about-window.component.spec.ts:285`; stays there when `part` catches up — `src/app/features/profile/components/about-window/about-window.component.spec.ts:299`; moves back if the gesture returns to the start page — `src/app/features/profile/components/about-window/about-window.component.spec.ts:315`
 - Body scroll is remembered in `ScrollMemoryService` under key `'about'` — `src/app/features/profile/components/about-window/about-window.component.spec.ts:331`
 
 ### CSS rules and invariants (SCSS bodies)
+
 - About/sheet pager layout: `.about` includes `pager.in-window` (`src/app/features/profile/components/about-window/about-window.component.scss:12`): on phone a flex column of height 100% with `app-pager-page` faded at the top by a scroll-driven mask (only under `@supports (animation-timeline: scroll())`) — `src/assets/styles/mixins/_pager.scss:16`, `src/assets/styles/mixins/_pager.scss:32`; beyond phone, only the `app-pager-page[data-current]` is displayed — `src/assets/styles/mixins/_pager.scss:52`; `data-current` is set by `src/app/shared/mobile-nav/components/pager-page/pager-page.component.ts:18`
 - `:host { display: contents }` on about-window, contact-menu, planet-buttons, not-found-window — `src/app/features/profile/components/about-window/about-window.component.scss:7`, `src/app/features/profile/components/contact-menu/contact-menu.component.scss:4`, `src/app/features/observatory/components/planet-buttons/planet-buttons.component.scss:3`, `src/app/features/observatory/components/not-found-window/not-found-window.component.scss:3` (invariant: the host box never participates in layout)
 - Window body padding is set through the custom property `--window-body-padding`, consumed by `src/app/shared/windows/components/window/window.component.scss:104` with fallback `var(--s3) var(--s2)`; about sets it on phone only (`src/app/features/profile/components/about-window/about-window.component.scss:179`), not-found sets it to the same value as the fallback (`src/app/features/observatory/components/not-found-window/not-found-window.component.scss:5`)
@@ -126,7 +132,7 @@ Implicit couplings (invariant held by nothing but convention):
 - Intro card: full-screen fixed overlay at `--z-intro` (45, `src/assets/styles/_tokens.scss:83`), `pointer-events: none`, fading out over `--intro-duration` with opacity held to 64% of it — `src/app/features/observatory/components/intro-card/intro-card.component.scss:5`, `src/app/features/observatory/components/intro-card/intro-card.component.scss:15`, `src/app/features/observatory/components/intro-card/intro-card.component.scss:53`; hidden entirely under reduced motion — `src/app/features/observatory/components/intro-card/intro-card.component.scss:98`; `.trade` and `.caps` use the global `rise` keyframes not declared in the file — `src/app/features/observatory/components/intro-card/intro-card.component.scss:43`, `src/app/features/observatory/components/intro-card/intro-card.component.scss:50`, declared at `src/assets/styles/_motion.scss:1`
 - Not-found window: `.grow` spacer pushes the back link to the end of the footer — `src/app/features/observatory/components/not-found-window/not-found-window.component.scss:22`, template `src/app/features/observatory/components/not-found-window/not-found-window.component.html:18`; the link uses `controls.next-link` — `src/app/features/observatory/components/not-found-window/not-found-window.component.scss:27`
 
-## *,.husky/*,docs/**,src/app/shared/space-scene/directives/*,src/app/shared/space-scene/rules/**,src/testing/**
+## _,.husky/_,docs/**,src/app/shared/space-scene/directives/\*,src/app/shared/space-scene/rules/**,src/testing/**
 
 - `npm run check` = format:check → typecheck:tools → lint → test → build → check:prerender → check:structure → check:comments — `package.json:22`
 - lint fails on any warning (ESLint and Stylelint) — `package.json:18`
@@ -169,7 +175,7 @@ Implicit couplings (invariant held by nothing but convention):
 - Tap ≤ 300 ms and ≤ 6 px ; double tap ≤ 320 ms and ≤ 32 px, on the sky only ; a pinched gesture never counts as a tap and swallows the next click — `src/app/shared/space-scene/trackers/zoom-gesture.tracker.ts:136-139`, `src/app/shared/space-scene/trackers/zoom-gesture.tracker.ts:180-186`, values in models/scene-config.model.ts:95-98
 - Wheel and middle-button pan act only on the scene (isOnScene) ; preventDefault only there — `src/app/shared/space-scene/trackers/sky-look.tracker.ts:58-61`, `src/app/shared/space-scene/trackers/sky-look.tracker.ts:71-74`
 - Presence: the deferred start runs on the first gesture other than Tab, Shift, Ctrl, Alt or Meta, or at maxMs — `src/app/core/services/presence/user-presence.service.ts:8`, :31
-Renderers and motions (each with the invariant that breaks if touched):
+  Renderers and motions (each with the invariant that breaks if touched):
 - Draw order is grains → orbits → planets → comets on the matter canvas, then sky, then hole mark — `src/app/shared/space-scene/engine/renderers/scene.renderer.ts:64-71` (invariant: `PlanetLabelsRenderer.stroke` sets no strokeStyle (`src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts:317-325`) and inherits the accent left by `PlanetsRenderer.drawBody` (`src/app/shared/space-scene/engine/renderers/planets.renderer.ts:207`, :214); reordering or adding a layer between them changes the leader colour)
 - Figures are either constellations (sky canvas) or comets (matter canvas), never both — `src/app/shared/space-scene/engine/renderers/scene.renderer.ts:26`, :58
 - Every canvas call is fingerprinted to 3 decimals under a seeded rnd (seed 7) and compared to 50 stored hashes — `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts:101`, `src/testing/doubles/recording-canvas.double.ts:1-17`, `src/testing/fixtures/engine-scene.fixture.ts:20` (invariant: any change to a draw call, its order, or the order of `rnd()` draws — e.g. `src/app/shared/space-scene/engine/motions/star-flow.motion.ts:195-196` — moves the hashes; history shows they are re-recorded by feature commits, see rationale)
@@ -195,14 +201,14 @@ Renderers and motions (each with the invariant that breaks if touched):
 - Clock: orbit phase advances only when not paused, not reduced and visible; it slows 92 % during a camera flyover and yields to a held disc (half-life 0.05 s held, 0.6 s released) — `src/app/shared/space-scene/engine/motions/clock.motion.ts:77`, :92-97, :100-110
 - Opening landed skips the crossing and lights matter in 0.6 s; landing later hurries the crossing and matter within 0.9 s; turning motion back on skips the crossing — `src/app/shared/space-scene/engine/motions/scene.motion.ts:14-15`, :60-78
 - Every motion feeds `hasMoved`/`isSettled`, which the frame loop uses to re-arm — `src/app/shared/space-scene/engine/motions/scene.motion.ts:34-50` (a new motion not added there never keeps the loop alive)
-Page template and scss:
+  Page template and scss:
 - The about, index and sheet windows stay mounted once kept (`observatory.kept()`), hidden when not shown — `src/app/pages/observatory/observatory-page.component.html:51`, :77, :96-135
 - On phone the desktop preview slot is replaced by one home bottom sheet (featured bar at half, pager + dots at full; the hidden layer is `inert`) — `src/app/pages/observatory/observatory-page.component.html:137-210`, `src/app/pages/observatory/observatory-page.component.scss:245-253`
 - The void button exists only when there is something to step back from; the overview chip only with a selection and off phone — `src/app/pages/observatory/observatory-page.component.html:212-226`
 - A docked slot is hidden (content-visibility, visibility) on phone only — `src/app/pages/observatory/observatory-page.component.scss:159-162`
 - Under reduced motion the bar and home sheet do not animate — `src/app/pages/observatory/observatory-page.component.scss:255-260`
 
-## public/*,scripts/*,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
+## public/_,scripts/_,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
 
 - Featured = first FEATURED (4) projects by rank, derived not stored — `src/app/features/projects/states/projects/projects.manager.ts:17` , `src/app/features/projects/rules/ranking.rules.ts:12`
 - Rank and number come from position in the JSON — `src/app/features/projects/rules/ranking.rules.ts:8`
@@ -222,7 +228,7 @@ Page template and scss:
 - Sitemap holds exactly the prerendered pages, no 404; 404 pages noindex without canonical — `scripts/check-prerender.mjs:308`, `scripts/check-prerender.mjs:252`
 - No comment in src (ts-expect-error with reason allowed in specs) — `scripts/check-comments.mjs:8`, `scripts/check-comments.mjs:52`
 - At most 8 source files per folder, no empty folder, component alone in its folder — `scripts/check-structure.mjs:14`, `scripts/check-structure.mjs:290`, `scripts/check-structure.mjs:323`, `scripts/check-structure.mjs:125`
-CSS-level rules and invariants of the zone.
+  CSS-level rules and invariants of the zone.
 - Every hover effect is gated on `(hover: hover)` — `src/assets/styles/mixins/_formats.scss:48` (callers: window-controls:37, featured-bar:96, :159, project-list:68, project-preview:113)
 - Touch targets reach 44 px only under a coarse pointer — `src/assets/styles/mixins/_controls.scss:28`, `src/assets/styles/_tokens.scss:42`
 - Window control buttons are 34 x 32 px (--target-compact x 32) — `src/app/shared/windows/components/window-controls/window-controls.component.scss:13`, `src/assets/styles/_tokens.scss:43`
@@ -246,7 +252,7 @@ CSS-level rules and invariants of the zone.
 - Stylelint, zero warnings, refuses outside _tokens.scss: the literal gutter `clamp(20px, 4vw, 44px)`, `border-radius: 2px`, any `backdrop-filter: blur(` — `stylelint.config.mjs:36-43`, `package.json:18`
 - Class names are kebab-case with optional `--modifier` (BEM-like) — `stylelint.config.mjs:23-26`
 
-## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/*,src/app/shared/space-scene/ports/*,src/app/shared/space-scene/services/*,src/app/shared/ui/**
+## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/_,src/app/shared/space-scene/ports/_,src/app/shared/space-scene/services/*,src/app/shared/ui/**
 
 - Hover is only a real mouse on a hover-capable screen — `src/app/shared/ui/directives/hover-focus.directive.ts:55`
 - Focus given by a touch press is not a hover — `src/app/shared/ui/directives/hover-focus.directive.ts:35`, `src/app/shared/ui/directives/hover-focus.directive.ts:39`

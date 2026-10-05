@@ -3,7 +3,7 @@
 knowledge-date: 2026-10-05
 knowledge-commit: b299e1d
 
-## .github/**,src/app/*,src/app/features/observatory/**,src/app/features/profile/**,src/app/shared/space-scene/components/**
+## .github/**,src/app/\*,src/app/features/observatory/**,src/app/features/profile/**,src/app/shared/space-scene/components/**
 
 - observatory (the whole screen metaphor; ex-desktop/station) -> `ObservatoryState` (`src/app/features/observatory/states/observatory/observatory.state.ts:25`)
 - view (home, index, sheet, about, not-found) -> `ObservatoryView` (`src/app/features/observatory/models/observatory.model.ts:1`)
@@ -34,7 +34,7 @@ knowledge-commit: b299e1d
 - dock -> `ObservatoryDockComponent` nav of pinned-and-left windows — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:40`
 - part (about) -> one of profile/skills/path/method pages of the about pager — `src/app/features/profile/components/about-window/about-window.component.spec.ts:35`
 
-## *,.husky/*,docs/**,src/app/shared/space-scene/directives/*,src/app/shared/space-scene/rules/**,src/testing/**
+## _,.husky/_,docs/**,src/app/shared/space-scene/directives/\*,src/app/shared/space-scene/rules/**,src/testing/**
 
 - framing (rest, overview, aside, close-up, approach) -> `FramingKind` in `SceneState` (`src/app/shared/space-scene/rules/scene-state.rules.ts:11`); frames `REST_FRAME`/`OVERVIEW_FRAME`/`ASIDE_FRAME` (`src/app/shared/space-scene/rules/camera/camera-frames.rules.ts:17`, `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts:26`, `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts:35`)
 - faint body -> `faintFrom` (`src/app/shared/space-scene/rules/scene-state.rules.ts:55`)
@@ -87,7 +87,7 @@ knowledge-commit: b299e1d
 - detent (folded / half / full of a bottom sheet) -> `homeSheet.detent()` (`src/app/pages/observatory/observatory-page.component.html:163`)
 - void (transparent step-back button over the scene) -> `.void` (`src/app/pages/observatory/observatory-page.component.html:213`)
 
-## public/*,scripts/*,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
+## public/_,scripts/_,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
 
 - project entry -> `ProjectEntry` (`src/app/features/projects/models/project.model.ts:23`)
 - facts (proof, role, stack, context, period) -> `FactsSource` (`src/app/features/projects/models/project.model.ts:15`)
@@ -114,7 +114,7 @@ knowledge-commit: b299e1d
 - crowded -> `:host([data-crowded='true'])` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:197`)
 - facts row/term/value -> `facts.*` (`src/assets/styles/mixins/_facts.scss:1`)
 
-## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/*,src/app/shared/space-scene/ports/*,src/app/shared/space-scene/services/*,src/app/shared/ui/**
+## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/_,src/app/shared/space-scene/ports/_,src/app/shared/space-scene/services/*,src/app/shared/ui/**
 
 - detent (folded / half / full) -> `SheetDetent` (`src/app/shared/mobile-nav/models/bottom-sheet.model.ts:1`)
 - back layer -> `BackLayersService` (`src/app/shared/mobile-nav/services/back-layers.service.ts:19`), history key `mobileNavLayer` (`src/app/shared/mobile-nav/rules/back-layers.rules.ts:1`)

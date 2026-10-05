@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { RenderMode, type ServerRoute } from '@angular/ssr';
 import { firstValueFrom } from 'rxjs';
-import { LANGS } from '@app/core/models';
+import { LANGS, prefixedPath } from '@app/core/models';
 import { PATHS } from '@app/i18n';
 import { ProjectsRepositoryService } from './features/projects/services';
 
@@ -17,8 +17,10 @@ export const serverRoutes: ServerRoute[] = [
       return projects.map(({ slug }) => ({ slug }));
     },
   })),
-  { path: '404', renderMode: RenderMode.Prerender },
-  { path: 'en/404', renderMode: RenderMode.Prerender },
+  ...LANGS.map((lang): ServerRoute => ({
+    path: prefixedPath(lang, '404'),
+    renderMode: RenderMode.Prerender,
+  })),
   {
     path: '**',
     renderMode: RenderMode.Prerender,

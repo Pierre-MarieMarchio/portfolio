@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { recordOutput } from '@testing/fixtures/testbed.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { MainNavComponent } from './main-nav.component';
 
@@ -14,7 +14,7 @@ const mount = async (
 ) => {
   TestBed.configureTestingModule({
     imports: [MainNavComponent],
-    providers: [provideRouter([]), provideTexts()],
+    providers: [provideTexts()],
   });
 
   const fixture = TestBed.createComponent(MainNavComponent);
@@ -47,6 +47,22 @@ describe('MainNavComponent', () => {
 
     expect(current).toHaveLength(1);
     expect(current[0]?.textContent?.trim()).toBe('Projets');
+  });
+
+  it('moves the focus to the entry of a route, and to no other', async () => {
+    const { fixture, host } = await mount();
+
+    fixture.componentInstance.focusRoute('/projets');
+
+    expect(document.activeElement).toBe(
+      host.querySelector('a[href="/projets"]'),
+    );
+
+    fixture.componentInstance.focusRoute('/nowhere');
+
+    expect(document.activeElement).toBe(
+      host.querySelector('a[href="/projets"]'),
+    );
   });
 
   it('names its navigation in the reader language', async () => {
@@ -97,5 +113,38 @@ describe('MainNavComponent', () => {
     expect(projects?.getAttribute('aria-label')).toBe(
       'Projets, fenêtre ouverte',
     );
+  });
+
+  it('says which entry was touched, the current one included, and does not follow the link', async () => {
+    const { fixture, host } = await mount('/projets');
+    const chosen = recordOutput(fixture.componentInstance.chosen);
+    const [home, projects] = [...host.querySelectorAll<HTMLElement>('nav a')];
+    const touches = [home, projects].map(
+      () => new MouseEvent('click', { bubbles: true, cancelable: true }),
+    );
+
+    home?.dispatchEvent(touches[0] as Event);
+    projects?.dispatchEvent(touches[1] as Event);
+
+    expect(chosen).toEqual(['/', '/projets']);
+    expect(touches.map((touch) => touch.defaultPrevented)).toEqual([
+      true,
+      true,
+    ]);
+  });
+
+  it('leaves a touch with a modifier key to the browser, and says nothing', async () => {
+    const { fixture, host } = await mount('/projets');
+    const chosen = recordOutput(fixture.componentInstance.chosen);
+    const touch = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+
+    host.querySelector('nav a')?.dispatchEvent(touch);
+
+    expect(chosen).toEqual([]);
+    expect(touch.defaultPrevented).toBe(false);
   });
 });

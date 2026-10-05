@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ViewFocusService } from './view-focus.service';
 import { ViewHeadingDirective } from '../directives/view-heading.directive';
@@ -19,6 +19,22 @@ import { ViewHeadingDirective } from '../directives/view-heading.directive';
 class Views {
   public readonly second = signal(false);
 }
+
+@Component({
+  imports: [ViewHeadingDirective],
+  template: `
+    <app-window id="framed">
+      <h2 tabindex="-1" data-window-title>Title</h2>
+      <h1 class="landing">Hidden</h1>
+    </app-window>
+    <app-window id="registered">
+      <h2 tabindex="-1" data-window-title>Other title</h2>
+      <h1 tabindex="-1" appViewHeading>Registered</h1>
+    </app-window>
+  `,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+})
+class Framed {}
 
 const mount = async () => {
   TestBed.configureTestingModule({
@@ -124,5 +140,33 @@ describe('ViewFocusService', () => {
     await fixture.whenStable();
 
     expect(focused()).toBe('Second');
+  });
+
+  it('focuses the window title when the window has no registered heading', async () => {
+    TestBed.configureTestingModule({ imports: [Framed] });
+    const fixture = TestBed.createComponent(Framed);
+    document.body.append(fixture.nativeElement as HTMLElement);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const focus = TestBed.inject(ViewFocusService);
+
+    focus.claimWithin(() => host.querySelector('#framed') ?? undefined);
+    await fixture.whenStable();
+
+    expect(document.activeElement?.textContent).toBe('Title');
+  });
+
+  it('prefers the registered heading over the window title', async () => {
+    TestBed.configureTestingModule({ imports: [Framed] });
+    const fixture = TestBed.createComponent(Framed);
+    document.body.append(fixture.nativeElement as HTMLElement);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const focus = TestBed.inject(ViewFocusService);
+
+    focus.claimWithin(() => host.querySelector('#registered') ?? undefined);
+    await fixture.whenStable();
+
+    expect(document.activeElement?.textContent).toBe('Registered');
   });
 });

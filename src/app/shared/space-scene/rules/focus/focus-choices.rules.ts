@@ -53,20 +53,20 @@ export const unitDisc = (tilt: Pick<Frame, 'ev' | 'i'>): DrawnDisc => ({
   sin: Math.sin(tilt.i),
 });
 
-export const reachWithin = (extent: Extent, room: number): number => {
-  let reach = Infinity;
-  for (const [highSlope, highPad] of extent.high) {
-    for (const [lowSlope, lowPad] of extent.low) {
-      const slope = highSlope - lowSlope;
-      const pad = highPad - lowPad;
-      if (slope > 0) {
-        reach = Math.min(reach, (room - pad) / slope);
-      } else if (pad > room) {
-        reach = 0;
-      }
-    }
+const reachBetween = (high: Span, low: Span, room: number): number => {
+  const slope = high[0] - low[0];
+  const pad = high[1] - low[1];
+  if (slope > 0) {
+    return (room - pad) / slope;
   }
-  return Math.max(0, reach);
+  return pad > room ? 0 : Infinity;
+};
+
+export const reachWithin = (extent: Extent, room: number): number => {
+  const reaches = extent.high.flatMap((high) =>
+    extent.low.map((low) => reachBetween(high, low, room)),
+  );
+  return Math.max(0, Math.min(...reaches));
 };
 
 export const middleAt = (extent: Extent, radius: number): number => {

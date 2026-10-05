@@ -21,9 +21,11 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   public place = 0;
   public readonly backs: number[] = [];
   public readonly moving: Element[] = [];
+  public readonly vibrations: number[] = [];
   private frames: (() => void)[] = [];
   private waiting: Waiting[] = [];
   private readonly resized: (() => void)[] = [];
+  private readonly sightings: ((isVisible: boolean) => void)[] = [];
   private readonly snapping = new Map<
     Element,
     (target: Element | null) => void
@@ -32,6 +34,7 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   private pops: ((state: unknown) => void)[] = [];
   private leaves: (() => void)[] = [];
   private pendingPops: unknown[] = [];
+  private watchers: (() => void)[] = [];
 
   public readonly isCompact = (): boolean => this.compact();
 
@@ -61,6 +64,14 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
     return ignore;
   };
 
+  public readonly onVisible = (
+    _element: Element,
+    fn: (isVisible: boolean) => void,
+  ) => {
+    this.sightings.push(fn);
+    return ignore;
+  };
+
   public readonly onSnapChanging = (
     element: Element,
     fn: (target: Element | null) => void,
@@ -80,6 +91,13 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
 
   public readonly closesOnBack = (): boolean => this.hasCloseWatcher;
 
+  public readonly watchClose = (fn: () => void): (() => void) => {
+    this.watchers.push(fn);
+    return () => {
+      this.watchers = this.watchers.filter((watcher) => watcher !== fn);
+    };
+  };
+
   public readonly historyState = (): unknown => this.entries[this.place];
 
   public readonly pushHistory = (state: unknown): void => {
@@ -98,6 +116,10 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
     return () => {
       this.pops = this.pops.filter((pop) => pop !== fn);
     };
+  };
+
+  public readonly vibrate = (ms: number): void => {
+    this.vibrations.push(ms);
   };
 
   public readonly onLeave = (fn: () => void) => {
@@ -129,6 +151,12 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
     }
   }
 
+  public sight(isVisible: boolean): void {
+    for (const fn of this.sightings) {
+      fn(isVisible);
+    }
+  }
+
   public snapTo(element: Element, target: Element | null): void {
     this.snapping.get(element)?.(target);
   }
@@ -143,6 +171,11 @@ export class MobileNavPlatformDouble implements MobileNavPlatform {
   }
 
   public pressBack(): void {
+    const watcher = this.hasCloseWatcher ? this.watchers.pop() : undefined;
+    if (watcher) {
+      watcher();
+      return;
+    }
     this.place = Math.max(this.place - 1, 0);
     this.pop(this.entries[this.place]);
   }

@@ -1,5 +1,5 @@
 import { Route, Routes } from '@angular/router';
-import { Lang, LANGS } from '@app/core/models';
+import { Lang, LANGS, prefixedPath } from '@app/core/models';
 import {
   alternates,
   loadCatalog,
@@ -49,10 +49,15 @@ function unknownAt(path: string): Route {
   };
 }
 
+function unknownPathsUnder(leaf: string): string[] {
+  return LANGS.map((lang) => prefixedPath(lang, leaf)).sort(
+    (a, b) => b.length - a.length,
+  );
+}
+
 export const routes: Routes = [
   ...LANGS.flatMap((lang) => routesIn(lang)),
-  unknownAt('en/404'),
-  unknownAt('404'),
-  unknownAt('en/**'),
-  unknownAt('**'),
+  ...[...unknownPathsUnder('404'), ...unknownPathsUnder('**')].map((path) =>
+    unknownAt(path),
+  ),
 ];

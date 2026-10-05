@@ -4,6 +4,7 @@ export const CURSOR_REACH = SCENE_CONFIG.sky.cursorReach;
 export const SHADOW_EDGE = 1.02;
 
 export const ORBIT_RATE = SCENE_CONFIG.camera.orbitRate;
+export const CLOSE_UP_TURN_RATE = SCENE_CONFIG.camera.closeUpTurnRate;
 
 export const JOURNEY_ELEVATION = 0.022;
 export const MIN_ELEVATION = 0.018;

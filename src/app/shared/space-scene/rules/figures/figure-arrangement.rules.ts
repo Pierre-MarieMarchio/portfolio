@@ -87,38 +87,80 @@ const centresFor = (
   return centres;
 };
 
+const naturalCentreOf = (shape: SkyRoom): { x: number; y: number } => ({
+  x: (shape.l + shape.r) / 2,
+  y: (shape.t + shape.b) / 2,
+});
+
+const isWithinRoom = (shape: SkyRoom, room: SkyRoom, scale: number): boolean =>
+  widthOf(shape) * scale <= widthOf(room) &&
+  heightOf(shape) * scale <= heightOf(room);
+
+const candidatePlacements = (
+  shape: SkyRoom,
+  room: SkyRoom,
+  scale: number,
+): FigurePlacement[] => {
+  const natural = naturalCentreOf(shape);
+  const centres = centresFor(
+    room,
+    widthOf(shape) * scale,
+    heightOf(shape) * scale,
+    natural,
+  );
+  return centres.map((centre) => ({
+    dx: centre.x - natural.x,
+    dy: centre.y - natural.y,
+    scale,
+  }));
+};
+
+const isAllowed = (
+  box: SkyRoom,
+  taken: readonly SkyRoom[],
+  around: Surroundings,
+  attempt: Attempt,
+): boolean => {
+  const isShadowHit = attempt.isShadowAvoided && isOverShadow(box, around.hole);
+  return (
+    !isShadowHit && taken.every((other) => isApart(box, other, around.gap))
+  );
+};
+
+const costOf = (
+  placement: FigurePlacement,
+  box: SkyRoom,
+  around: Surroundings,
+): number => {
+  const { room, disc } = around;
+  const offDiscWorth = Math.hypot(widthOf(room), heightOf(room));
+  const isOverDisc = disc !== null && isBoxOverDisc(disc, box, 0);
+  return (
+    Math.hypot(placement.dx, placement.dy) + (isOverDisc ? offDiscWorth : 0)
+  );
+};
+
 const placeOne = (
   shape: SkyRoom,
   taken: readonly SkyRoom[],
   around: Surroundings,
   attempt: Attempt,
 ): FigurePlacement | null => {
-  const { room, disc, gap } = around;
-  const width = widthOf(shape) * attempt.scale;
-  const height = heightOf(shape) * attempt.scale;
-  if (width > widthOf(room) || height > heightOf(room)) {
+  if (!isWithinRoom(shape, around.room, attempt.scale)) {
     return null;
   }
-  const natural = { x: (shape.l + shape.r) / 2, y: (shape.t + shape.b) / 2 };
-  const offDiscWorth = Math.hypot(widthOf(room), heightOf(room));
   let best: FigurePlacement | null = null;
   let bestCost = Infinity;
-  for (const centre of centresFor(room, width, height, natural)) {
-    const placement = {
-      dx: centre.x - natural.x,
-      dy: centre.y - natural.y,
-      scale: attempt.scale,
-    };
+  for (const placement of candidatePlacements(
+    shape,
+    around.room,
+    attempt.scale,
+  )) {
     const box = placedBox(shape, placement);
-    if (
-      (attempt.isShadowAvoided && isOverShadow(box, around.hole)) ||
-      !taken.every((other) => isApart(box, other, gap))
-    ) {
+    if (!isAllowed(box, taken, around, attempt)) {
       continue;
     }
-    const cost =
-      Math.hypot(placement.dx, placement.dy) +
-      (disc && isBoxOverDisc(disc, box, 0) ? offDiscWorth : 0);
+    const cost = costOf(placement, box, around);
     if (cost < bestCost) {
       bestCost = cost;
       best = placement;
@@ -163,17 +205,29 @@ const clampedInto = (
   return { dx, dy, scale };
 };
 
+const firstFittingArrangement = (
+  shapes: readonly SkyRoom[],
+  around: Surroundings,
+  isShadowAvoided: boolean,
+): FigurePlacement[] | null => {
+  for (const scale of SCALES) {
+    const placements = placeAll(shapes, around, { scale, isShadowAvoided });
+    if (placements) {
+      return placements;
+    }
+  }
+  return null;
+};
+
 export const arrangeFigures = (
   shapes: readonly SkyRoom[],
   around: Surroundings,
 ): FigurePlacement[] => {
-  for (const isShadowAvoided of [true, false]) {
-    for (const scale of SCALES) {
-      const placements = placeAll(shapes, around, { scale, isShadowAvoided });
-      if (placements) {
-        return placements;
-      }
-    }
+  const arrangement =
+    firstFittingArrangement(shapes, around, true) ??
+    firstFittingArrangement(shapes, around, false);
+  if (arrangement) {
+    return arrangement;
   }
   const smallest = SCALES.at(-1) ?? 1;
   return shapes.map((shape) => clampedInto(shape, around.room, smallest));

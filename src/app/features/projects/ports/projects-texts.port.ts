@@ -20,8 +20,6 @@ export interface ProjectsTexts {
   };
   readonly preview: {
     readonly label: string;
-    readonly bodies: string;
-    readonly body: (number: string, title: string) => string;
     readonly previous: (title: string) => string;
     readonly next: (title: string) => string;
     readonly terms: {

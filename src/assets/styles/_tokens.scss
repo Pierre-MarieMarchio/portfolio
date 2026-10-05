@@ -51,8 +51,10 @@
   --glass-blur-pane: blur(4px) brightness(0.7) saturate(1.08);
   --glass-shade-raised: blur(8px) brightness(0.55);
   --glass-lowered: 0.6;
-  --glass-handle: linear-gradient(var(--line), var(--line)) 50% 2px / 32px 3px
-    no-repeat;
+  --sheet-surface: oklch(0.28 0.02 262);
+  --sheet-grip: oklch(0.68 0.02 260);
+  --sheet-radius: 16px;
+  --sheet-shadow: 0 -8px 28px oklch(0 0 0 / 0.55);
   --window-bar-padding: 5px 5px 5px var(--s2);
   --window-footer-padding: var(--s2);
   --window-footer-gap: var(--s2) var(--s3);

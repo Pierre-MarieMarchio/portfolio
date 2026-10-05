@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { ClipboardService } from '@app/core/services';
+import { LanguageItem } from '@shared/ui/models';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { CONTACT_ADDRESSES, CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports';
@@ -14,13 +16,25 @@ import { provideTexts } from '@testing/fixtures/texts.fixture';
 const byIcon = (icon: string) =>
   CONTACT_ADDRESSES.find((address) => address.icon === icon);
 
-const setup = async ({ canCopy = true } = {}) => {
+const ENGLISH: LanguageItem = {
+  code: 'EN',
+  name: 'English',
+  lang: 'en',
+  route: '/en/projects',
+  current: false,
+};
+
+const setup = async ({
+  canCopy = true,
+  language = null as LanguageItem | null,
+} = {}) => {
   const { showModal } = stubDialogs();
   const copy = vi.fn(() => Promise.resolve(canCopy));
   const platform = new MobileNavPlatformDouble();
   TestBed.configureTestingModule({
     imports: [ContactMenuComponent],
     providers: [
+      provideRouter([{ path: '**', children: [] }]),
       provideTexts(),
       provideMobileNavPlatform(platform),
       { provide: ClipboardService, useValue: { copy } },
@@ -35,6 +49,7 @@ const setup = async ({ canCopy = true } = {}) => {
       label: texts.contact[address.icon],
     })),
   );
+  fixture.componentRef.setInput('language', language);
   const host = fixture.nativeElement as HTMLElement;
   await fixture.whenStable();
   const opener = host.querySelector<HTMLButtonElement>('.opener');
@@ -96,6 +111,24 @@ describe('ContactMenuComponent', () => {
       texts.contact.cv,
     ]);
     expect(rows.every((row) => row.querySelector('svg path'))).toBe(true);
+  });
+
+  it('ends with a row to the same page in the other language, when given one', async () => {
+    const { rows } = await setup({ language: ENGLISH });
+    const last = rows.at(-1);
+
+    expect(rows).toHaveLength(6);
+    expect(last?.tagName).toBe('A');
+    expect(last?.getAttribute('href')).toBe('/en/projects');
+    expect(last?.getAttribute('hreflang')).toBe('en');
+    expect(last?.getAttribute('lang')).toBe('en');
+    expect(last?.textContent?.trim()).toBe('ENEnglish');
+  });
+
+  it('offers no language row without a language', async () => {
+    const { rows } = await setup();
+
+    expect(rows).toHaveLength(5);
   });
 
   it('opens only the external addresses in a new tab', async () => {

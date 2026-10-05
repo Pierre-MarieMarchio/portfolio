@@ -1,8 +1,17 @@
 import { computed, inject, Service } from '@angular/core';
 import { injectStatewise } from 'ngx-statewise';
-import { ObservatoryView, ObservatoryWindow } from '../../models';
+import { DisplayFormatService } from '@app/core/services';
+import {
+  HeldSheet,
+  MinimizableWindow,
+  ObservatoryMinimized,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../../models';
 import {
   observatoryChapterChosen,
+  observatoryHeldSheetClosed,
+  observatoryHeldSheetEdited,
   observatoryEscaped,
   observatoryFiltered,
   observatoryHovered,
@@ -14,15 +23,18 @@ import {
   observatorySelected,
   observatorySteppedBack,
   observatoryWindowClosed,
+  observatoryWindowMinimized,
   observatoryWindowPrepared,
+  observatoryWindowsRestored,
 } from './observatory.action';
-import { ObservatoryState } from './observatory.state';
+import { NONE_MINIMIZED, ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
 import { dockedOf, keptOf, stepBack, windowOf } from '../../rules/view.rules';
 
 @Service()
 export class ObservatoryManager {
   private readonly state = inject(ObservatoryState);
+  private readonly display = inject(DisplayFormatService);
   private readonly statewise = injectStatewise(observatoryUpdater);
 
   public readonly view = this.state.view.asReadonly();
@@ -34,18 +46,43 @@ export class ObservatoryManager {
   public readonly preview = this.state.preview.asReadonly();
   public readonly lastPreview = this.state.lastPreview.asReadonly();
   public readonly lastSheet = this.state.lastSheet.asReadonly();
+  public readonly resume = this.state.resume.asReadonly();
   public readonly selected = this.state.selected.asReadonly();
   public readonly hovered = this.state.hovered.asReadonly();
   public readonly family = this.state.family.asReadonly();
 
-  public readonly showsList = computed(
+  public readonly sheetKey = this.state.sheetKey.asReadonly();
+
+  public readonly minimized = computed<ObservatoryMinimized>(() =>
+    this.display.format() === 'phone' ? NONE_MINIMIZED : this.state.minimized(),
+  );
+
+  public readonly held = computed<readonly HeldSheet[]>(() =>
+    this.display.format() === 'phone' ? [] : this.state.held(),
+  );
+
+  public readonly opensList = computed(
     () => this.view() === 'index' || this.pins().index,
   );
-  public readonly showsAbout = computed(
+  public readonly opensAbout = computed(
     () => this.view() === 'about' || this.pins().about,
   );
-  public readonly showsSheet = computed(
+  public readonly opensSheet = computed(
     () => windowOf(this.view()) === 'sheet' || this.pins().sheet,
+  );
+  public readonly headsSheet = computed(() =>
+    this.display.format() === 'phone'
+      ? this.opensSheet()
+      : windowOf(this.view()) === 'sheet',
+  );
+  public readonly showsList = computed(
+    () => this.opensList() && !this.minimized().index,
+  );
+  public readonly showsAbout = computed(
+    () => this.opensAbout() && !this.minimized().about,
+  );
+  public readonly showsSheet = computed(
+    () => this.opensSheet() && !this.minimized().sheet,
   );
   public readonly kept = computed(() =>
     keptOf({
@@ -58,6 +95,9 @@ export class ObservatoryManager {
     () =>
       this.preview() !== null &&
       (this.view() === 'home' || this.pins().preview),
+  );
+  public readonly shownPreview = computed(() =>
+    this.showsPreview() ? this.preview() : null,
   );
   public readonly docked = computed(() =>
     dockedOf({
@@ -77,7 +117,13 @@ export class ObservatoryManager {
   );
 
   public syncRoute(view: ObservatoryView, slug: string | null = null): void {
-    this.statewise.dispatch(observatoryRouteSynced({ view, slug }));
+    this.statewise.dispatch(
+      observatoryRouteSynced({
+        view,
+        slug,
+        canHoldSheets: this.display.format() !== 'phone',
+      }),
+    );
   }
 
   public prepare(window: ObservatoryWindow): void {
@@ -88,8 +134,48 @@ export class ObservatoryManager {
     this.statewise.dispatch(observatoryPinToggled(window));
   }
 
+  public minimize(window: MinimizableWindow): void {
+    this.statewise.dispatch(observatoryWindowMinimized(window));
+  }
+
+  public restore(windows: readonly MinimizableWindow[]): void {
+    this.statewise.dispatch(observatoryWindowsRestored(windows));
+  }
+
   public close(window: ObservatoryWindow): Promise<void> {
     return this.statewise.dispatchAsync(observatoryWindowClosed(window));
+  }
+
+  public closeSheet(key: number): Promise<void> {
+    return key === this.sheetKey()
+      ? this.close('sheet')
+      : this.statewise.dispatchAsync(observatoryHeldSheetClosed(key));
+  }
+
+  public togglePinSheet(key: number): void {
+    if (key === this.sheetKey()) {
+      this.togglePin('sheet');
+    } else {
+      void this.closeSheet(key);
+    }
+  }
+
+  public minimizeSheet(key: number): void {
+    if (key === this.sheetKey()) {
+      this.minimize('sheet');
+    } else {
+      this.statewise.dispatch(
+        observatoryHeldSheetEdited({ key, minimized: true }),
+      );
+    }
+  }
+
+  public chooseSheetChapter(key: number, chapter: number): void {
+    if (key === this.sheetKey()) {
+      this.chooseChapter(chapter);
+    } else {
+      this.statewise.dispatch(observatoryHeldSheetEdited({ key, chapter }));
+    }
   }
 
   public escape(): Promise<void> {
@@ -126,6 +212,10 @@ export class ObservatoryManager {
 
   public openPreview(slug: string): void {
     this.statewise.dispatch(observatoryPreviewOpened(slug));
+  }
+
+  public closePreview(): void {
+    this.statewise.dispatch(observatoryPreviewClosed());
   }
 
   public hover(slug: string | null): void {

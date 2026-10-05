@@ -1,0 +1,29 @@
+:host {
+  display: contents;
+}
+
+.grip {
+  position: absolute;
+  inset: 0 auto auto 50%;
+  z-index: 3;
+  width: 72px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  translate: -50% 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 36px;
+    height: 5px;
+    border-radius: 3px;
+    translate: -50% 0;
+    background: var(--sheet-grip);
+  }
+}

@@ -1,20 +1,23 @@
 @if (detail(); as detail) {
   <app-window
-    [label]="texts().sheet.label"
+    [label]="isPhone() ? texts().sheet.label : ''"
     size="l"
     [heading]="project()?.title ?? ''"
     [stableHeight]="true"
     [scrollKey]="scrollKey()"
     [scrollResetOn]="chapter()"
     [pinned]="pinned()"
+    [minimizable]="true"
     (pinToggled)="pinToggled.emit()"
+    (minimized)="minimized.emit()"
     [closeLabel]="closeLabel()"
     (closed)="closed.emit()"
   >
     <a
       before
       class="to-index"
-      [routerLink]="links.index()"
+      [attr.href]="links.index()"
+      (click)="toIndex($event)"
       [attr.aria-label]="texts().sheet.toIndexLabel"
       >{{ texts().sheet.toIndex }}</a
     >
@@ -86,9 +89,11 @@
     <ng-container footer>
       <p class="position">{{ shownChapter()?.heading }}</p>
       @if (nextChapter(); as label) {
-        <button type="button" class="next" (click)="advance()">
-          {{ label }}
-        </button>
+        @if (!isPhone()) {
+          <button type="button" class="next" (click)="advance()">
+            {{ label }}
+          </button>
+        }
       } @else if (nextProject(); as next) {
         <a class="next" [routerLink]="links.sheet(next.slug)">{{
           next.label

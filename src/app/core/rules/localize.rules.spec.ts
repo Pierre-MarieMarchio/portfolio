@@ -1,5 +1,5 @@
 import { langOfUrl } from '../models/lang.model';
-import { localize } from './localize.rules';
+import { bilingual, localize } from './localize.rules';
 
 describe('langOfUrl', () => {
   it.each([
@@ -19,10 +19,10 @@ describe('resolve', () => {
   const source = {
     slug: 'a',
     title: 'Same in both',
-    tag: { fr: 'publié', en: 'published' },
+    tag: bilingual('publié', 'published'),
     chapters: [
-      { paragraphs: [{ fr: 'Un', en: 'One' }, 'Deux · Two'] },
-      { figure: { kind: 'flow', steps: ['a', { fr: 'b', en: 'B' }] } },
+      { paragraphs: [bilingual('Un', 'One'), 'Deux · Two'] },
+      { figure: { kind: 'flow', steps: ['a', bilingual('b', 'B')] } },
     ],
     count: 3,
     missing: null,
@@ -43,9 +43,15 @@ describe('resolve', () => {
     expect(localize(source, 'fr').tag).toBe('publié');
   });
 
-  it('leaves an object with other keys beside fr and en as it is', () => {
-    const labels = { fr: 'Français', en: 'English', de: 'Deutsch' };
+  it('leaves a plain record of languages as it is, even beside a pair', () => {
+    const languages = { fr: 'Français', en: 'English' };
+    const source = { languages, label: bilingual('Un', 'One') };
 
-    expect(localize(labels, 'en')).toEqual(labels);
+    expect(localize(source, 'en')).toEqual({ languages, label: 'One' });
+    expect(localize(languages, 'en')).toEqual(languages);
+  });
+
+  it('keeps a pair of other types whole until it is read', () => {
+    expect(localize(bilingual(['a'], ['b']), 'en')).toEqual(['b']);
   });
 });

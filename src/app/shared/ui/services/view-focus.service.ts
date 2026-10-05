@@ -47,11 +47,11 @@ export class ViewFocusService {
       return;
     }
     const container = claim.within();
-    const heading = container
-      ? [...this.headings].find((each) => container.contains(each))
-      : undefined;
+    const heading =
+      [...this.headings].find((each) => container?.contains(each)) ??
+      container?.querySelector<HTMLElement>('[data-window-title]');
     heading?.focus({ preventScroll: true });
-    if (heading?.matches(':focus') === true) {
+    if (heading?.matches(':focus')) {
       this.claim = null;
     }
   }

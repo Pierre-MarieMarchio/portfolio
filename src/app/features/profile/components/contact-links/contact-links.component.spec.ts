@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { ClipboardService } from '@app/core/services';
 import { restoreDialogs, stubDialogs } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
@@ -13,12 +14,30 @@ const accessibleNameOf = (el: Element): string =>
     .map((id) => el.ownerDocument.getElementById(id)?.textContent)
     .join(' ');
 
-const setup = async ({ canCopy = true } = {}) => {
+const LANGUAGES = [
+  {
+    code: 'FR',
+    name: 'Français',
+    lang: 'fr',
+    route: '/projets',
+    current: true,
+  },
+  {
+    code: 'EN',
+    name: 'English',
+    lang: 'en',
+    route: '/en/projects',
+    current: false,
+  },
+];
+
+const setup = async ({ canCopy = true, withLanguages = false } = {}) => {
   stubDialogs();
   const copy = vi.fn(() => Promise.resolve(canCopy));
   TestBed.configureTestingModule({
     imports: [ContactLinksComponent],
     providers: [
+      provideRouter([]),
       provideTexts(),
       provideMobileNavPlatform(),
       { provide: ClipboardService, useValue: { copy } },
@@ -27,6 +46,9 @@ const setup = async ({ canCopy = true } = {}) => {
   const texts = TestBed.inject(PROFILE_TEXTS)();
   const fixture = TestBed.createComponent(ContactLinksComponent);
   fixture.componentRef.setInput('arrival', 'shown');
+  if (withLanguages) {
+    fixture.componentRef.setInput('languages', LANGUAGES);
+  }
   await fixture.whenStable();
   const host = fixture.nativeElement as HTMLElement;
   return {
@@ -44,6 +66,20 @@ describe('ContactLinksComponent', () => {
   afterEach(() => {
     restoreDialogs();
     vi.useRealTimers();
+  });
+
+  it('hands the other language to its menu, as the last row', async () => {
+    const { host } = await setup({ withLanguages: true });
+    const last = [...host.querySelectorAll('.action-row')].at(-1);
+
+    expect(last?.getAttribute('href')).toBe('/en/projects');
+    expect(last?.getAttribute('hreflang')).toBe('en');
+  });
+
+  it('has no language row when it is given no languages', async () => {
+    const { host } = await setup();
+
+    expect(host.querySelector('.action-row[hreflang]')).toBeNull();
   });
 
   it('shows each address as a labelled entry of the rail', async () => {

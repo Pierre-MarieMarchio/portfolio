@@ -1,4 +1,5 @@
 import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import {
@@ -6,23 +7,33 @@ import {
   provideProjects,
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
+import { resizeTo } from '@testing/doubles/browser.double';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 import { componentOf } from '@testing/fixtures/testbed.fixture';
+import { SessionHistoryService } from '@app/core/services';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
 import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
+import {
+  BottomSheetComponent,
+  PagerComponent,
+} from '@shared/mobile-nav/components';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
 import { FeaturedBarComponent } from '@app/features/projects/components';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
 import { MobileNavPlatformService } from '@app/features/observatory/services';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
-import { PAGES_TEXTS } from '@app/i18n';
+import { PAGES_TEXTS, ViewLinksService } from '@app/i18n';
 import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
+
+const NOTHING = (): void => {};
+
+const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
 const arrivals = (host: HTMLElement) =>
   ['#home', 'app-main-nav', 'app-featured-bar', 'app-social-links'].map(
@@ -57,6 +68,17 @@ const rankOf =
         ?.style.getPropertyValue('--stack'),
     );
 
+const minimizeFrom = async (
+  fixture: { whenStable: () => Promise<unknown> },
+  host: HTMLElement,
+  slot: string,
+): Promise<void> => {
+  host
+    .querySelector<HTMLButtonElement>(`.slot--${slot} button.minimize`)
+    ?.click();
+  await fixture.whenStable();
+};
+
 const openOf = (host: HTMLElement): boolean[] =>
   [...host.querySelectorAll<HTMLElement>('app-main-nav a')].map(
     (a) => a.dataset['open'] !== undefined,
@@ -76,18 +98,23 @@ describe('ObservatoryPageComponent', () => {
     options: {
       reducedMotion?: boolean;
       address?: string;
+      phone?: boolean;
+      entries?: typeof ENTRIES;
     } = {},
   ) => {
     stillObservatory((query) =>
       query === '(prefers-reduced-motion: reduce)'
         ? (options.reducedMotion ?? true)
-        : false,
+        : (options.phone ?? false) && TOUCH.has(query),
     );
+    if (options.phone) {
+      resizeTo(412, 915);
+    }
     TestBed.configureTestingModule({
       imports: [ObservatoryPageComponent],
       providers: [
         provideRouter([{ path: '**', children: [] }]),
-        provideProjects(ENTRIES, [ObservatoryEffect]),
+        provideProjects(options.entries ?? ENTRIES, [ObservatoryEffect]),
       ],
     });
     await loadProjects();
@@ -288,6 +315,26 @@ describe('ObservatoryPageComponent', () => {
     expect(host.querySelector('app-animation-toggle')).toBeNull();
   });
 
+  it('keeps the language switch in the page bar away from the phone', async () => {
+    const { host } = await mount();
+
+    expect(host.querySelectorAll('.bar app-language-switch a')).toHaveLength(1);
+  });
+
+  it('moves the language out of the page bar and into the last row of the contact menu on the phone', async () => {
+    const { host } = await mount({ phone: true });
+    const other = TestBed.inject(ViewLinksService)
+      .languages()
+      .find((language) => !language.current);
+    const rows = [...host.querySelectorAll('app-contact-menu .action-row')];
+    const last = rows.at(-1);
+
+    expect(host.querySelector('.bar a[hreflang]')).toBeNull();
+    expect(last?.getAttribute('href')).toBe(other?.route);
+    expect(last?.getAttribute('hreflang')).toBe(other?.lang);
+    expect(last?.textContent).toContain(other?.name);
+  });
+
   it.each([
     ['home', null, '/'],
     ['index', null, '/projets'],
@@ -423,6 +470,49 @@ describe('ObservatoryPageComponent', () => {
       'Known project',
     );
     expect(host.querySelector('app-not-found-window')).toBeNull();
+  });
+
+  it.each(['index', 'about', 'home'] as const)(
+    'keeps showing the project of a pinned sheet once the reader goes to %s, and back',
+    async (view) => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('sheet', KNOWN_SLUG);
+      station.togglePin('sheet');
+      await fixture.whenStable();
+
+      station.syncRoute(view);
+      await fixture.whenStable();
+      expect(host.querySelector('app-not-found-window')).toBeNull();
+      expect(host.querySelector('.slot--sheet h2')?.textContent).toContain(
+        'Known project',
+      );
+
+      station.syncRoute('sheet', KNOWN_SLUG);
+      await fixture.whenStable();
+      expect(host.querySelector('app-not-found-window')).toBeNull();
+      expect(host.querySelector('.slot--sheet h1')?.textContent).toContain(
+        'Known project',
+      );
+    },
+  );
+
+  it('keeps the pinned about and list windows filled once the reader goes elsewhere', async () => {
+    const { fixture, station, host } = await mount();
+    station.syncRoute('about');
+    station.togglePin('about');
+    station.syncRoute('index');
+    station.togglePin('index');
+    await fixture.whenStable();
+    const about = host.querySelector('.slot--about h2')?.textContent;
+
+    station.syncRoute('home');
+    await fixture.whenStable();
+
+    expect(about).toBeTruthy();
+    expect(host.querySelector('.slot--about h2')?.textContent).toBe(about);
+    expect(host.querySelector('.slot--index')?.textContent).toContain(
+      'Known project',
+    );
   });
 
   it('marks a pinned window the reader has left as docked, and brings it back', async () => {
@@ -633,7 +723,7 @@ describe('ObservatoryPageComponent', () => {
     host.remove();
   });
 
-  it('moves the focus to the view heading after a navigation', async () => {
+  it('moves the focus to the window title, or to the view heading, after a navigation', async () => {
     const { fixture, station, host } = await mount();
     document.body.append(host);
 
@@ -644,7 +734,7 @@ describe('ObservatoryPageComponent', () => {
     expect(document.activeElement?.closest('.slot')).toBe(
       host.querySelector('.slot--about'),
     );
-    expect(document.activeElement?.tagName).toBe('H1');
+    expect(document.activeElement?.matches('h2[data-window-title]')).toBe(true);
 
     station.syncRoute('home');
     await fixture.whenStable();
@@ -723,7 +813,7 @@ describe('ObservatoryPageComponent', () => {
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
 
-    expect(host.querySelector('app-project-preview')).not.toBeNull();
+    expect(host.querySelector('.slot--preview app-window')).not.toBeNull();
     expect(host.querySelector('app-featured-bar')).toBeNull();
   });
 
@@ -732,11 +822,11 @@ describe('ObservatoryPageComponent', () => {
     station.syncRoute('index');
     station.openPreview(KNOWN_SLUG);
     await fixture.whenStable();
-    expect(host.querySelector('app-project-preview')).toBeNull();
+    expect(host.querySelector('.slot--preview app-window')).toBeNull();
 
     station.togglePin('preview');
     await fixture.whenStable();
-    expect(host.querySelector('app-project-preview')).not.toBeNull();
+    expect(host.querySelector('.slot--preview app-window')).not.toBeNull();
   });
 
   it('names the preview slot with the id the orbit rule points its markers to', async () => {
@@ -813,6 +903,272 @@ describe('ObservatoryPageComponent', () => {
     });
   });
 
+  describe('minimizing a window from its bar', () => {
+    it('hides the window without closing it, and keeps its mark in the page bar', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('index');
+      await shownAfterFrames(fixture);
+      const slot = host.querySelector<HTMLElement>('.slot--index');
+
+      await minimizeFrom(fixture, host, 'index');
+
+      expect(slot?.dataset['shown']).toBe('false');
+      expect(slot?.hasAttribute('inert')).toBe(true);
+      expect(openOf(host)).toEqual([false, true, false]);
+      expect(station.view()).toBe('index');
+      expect(TestBed.inject(LayoutAnchorsService).list('panel')).not.toContain(
+        slot,
+      );
+    });
+
+    it('hands the focus to its entry in the page bar', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('about');
+      await shownAfterFrames(fixture);
+
+      await minimizeFrom(fixture, host, 'about');
+
+      expect(document.activeElement).toBe(
+        host.querySelector('app-main-nav a[href="/a-propos"]'),
+      );
+    });
+
+    it('brings it back in front from its entry, though the reader is on its page already', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('about');
+      station.togglePin('about');
+      station.syncRoute('index');
+      await shownAfterFrames(fixture);
+      const rank = rankOf(host);
+      await minimizeFrom(fixture, host, 'about');
+      const slot = host.querySelector<HTMLElement>('.slot--about');
+      expect(slot?.dataset['shown']).toBe('false');
+
+      host
+        .querySelector<HTMLElement>('app-main-nav a[href="/a-propos"]')
+        ?.click();
+      await shownAfterFrames(fixture);
+
+      expect(slot?.dataset['shown']).toBe('true');
+      expect(rank('about')).toBeGreaterThan(rank('index'));
+    });
+
+    it('finds the minimized sheet again from the Projets entry', async () => {
+      const { fixture, station, host } = await mount();
+      station.syncRoute('sheet', KNOWN_SLUG);
+      await shownAfterFrames(fixture);
+      await minimizeFrom(fixture, host, 'sheet');
+      const slot = host.querySelector<HTMLElement>('.slot--sheet');
+      expect(slot?.dataset['shown']).toBe('false');
+
+      host
+        .querySelector<HTMLElement>('app-main-nav a[href="/projets"]')
+        ?.click();
+      await shownAfterFrames(fixture);
+
+      expect(slot?.dataset['shown']).toBe('true');
+      expect(station.view()).toBe('sheet');
+    });
+
+    it('offers no minimize on the preview', async () => {
+      const { fixture, station, host } = await mount();
+      station.openPreview('known-project');
+      await fixture.whenStable();
+
+      expect(host.querySelector('.slot--preview button.minimize')).toBeNull();
+    });
+  });
+
+  describe('several sheets on the desktop', () => {
+    const SLUGS = ['alpha', 'beta', 'gamma'];
+    const SHEET_ENTRIES = SLUGS.map((slug) =>
+      sampleEntry({ project: { slug, title: `Title ${slug}` } }),
+    );
+
+    const mountSheets = async (isPhone = false) => {
+      const mounted = await mount({ entries: SHEET_ENTRIES, phone: isPhone });
+      const slots = (): HTMLElement[] => [
+        ...mounted.host.querySelectorAll<HTMLElement>('.slot--sheet'),
+      ];
+      const shown = (): string[] =>
+        slots()
+          .filter((slot) => slot.dataset['shown'] === 'true')
+          .map(
+            (slot) =>
+              slot.querySelector('[data-window-title]')?.textContent?.trim() ??
+              '',
+          );
+      const slotOf = (title: string): HTMLElement =>
+        slots().find(
+          (slot) =>
+            slot.querySelector('[data-window-title]')?.textContent?.trim() ===
+            title,
+        ) as HTMLElement;
+      const press = async (title: string, control: string): Promise<void> => {
+        slotOf(title).querySelector<HTMLButtonElement>(`.${control}`)?.click();
+        await mounted.fixture.whenStable();
+      };
+      const open = async (slug: string): Promise<void> => {
+        mounted.station.syncRoute('sheet', slug);
+        await shownAfterFrames(mounted.fixture);
+      };
+      return { ...mounted, slots, shown, slotOf, press, open };
+    };
+
+    it('keeps a pinned sheet on its project when another opens in front of it', async () => {
+      const { station, host, shown, slotOf, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+
+      await open('beta');
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+      expect(station.slug()).toBe('beta');
+      const rank = rankOf(host);
+      expect(rank('sheet')).toBeGreaterThan(0);
+      expect(
+        Number(slotOf('Title beta').style.getPropertyValue('--stack')),
+      ).toBeGreaterThan(
+        Number(slotOf('Title alpha').style.getPropertyValue('--stack')),
+      );
+    });
+
+    it('keeps every pinned sheet when the reader goes home, and opens another in front', async () => {
+      const { station, fixture, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+      await press('Title beta', 'pin');
+
+      station.syncRoute('home');
+      await shownAfterFrames(fixture);
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+
+      await open('gamma');
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta', 'Title gamma']);
+    });
+
+    it('names each window after its project, with a single h1 on the page', async () => {
+      const { host, slotOf, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      expect(
+        slotOf('Title alpha')
+          .querySelector('.window')
+          ?.getAttribute('aria-label'),
+      ).toBe('Title alpha, gardée ouverte');
+      expect(
+        slotOf('Title beta')
+          .querySelector('.window')
+          ?.getAttribute('aria-label'),
+      ).toBe('Title beta');
+      expect(
+        [...host.querySelectorAll('h1')].map((h) => h.textContent),
+      ).toEqual(['Title beta']);
+    });
+
+    it('puts a sheet that is opened again in front, without duplicating it', async () => {
+      const { station, slots, shown, slotOf, press, open } =
+        await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+      await press('Title beta', 'pin');
+      await open('gamma');
+      const count = slots().length;
+
+      await open('alpha');
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+      expect(
+        slots().filter(
+          (slot) =>
+            slot.querySelector('[data-window-title]')?.textContent?.trim() ===
+            'Title alpha',
+        ),
+      ).toHaveLength(1);
+      expect(slots().length).toBeLessThan(count);
+      expect(station.slug()).toBe('alpha');
+      expect(
+        Number(slotOf('Title alpha').style.getPropertyValue('--stack')),
+      ).toBeGreaterThan(
+        Number(slotOf('Title beta').style.getPropertyValue('--stack')),
+      );
+    });
+
+    it('closes a held sheet without leaving the page', async () => {
+      const { station, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      await press('Title alpha', 'close');
+
+      expect(shown()).toEqual(['Title beta']);
+      expect(station.slug()).toBe('beta');
+    });
+
+    it('reduces one sheet alone, and gives them all back from the Projets entry', async () => {
+      const { fixture, host, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      await press('Title alpha', 'minimize');
+
+      expect(shown()).toEqual(['Title beta']);
+      expect(openOf(host)).toEqual([false, true, false]);
+
+      host
+        .querySelector<HTMLElement>('app-main-nav a[href="/projets"]')
+        ?.click();
+      await shownAfterFrames(fixture);
+
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+    });
+
+    it('marks Projets while a held sheet stays open, back on the home page', async () => {
+      const { station, fixture, host, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+      await press('Title alpha', 'minimize');
+
+      station.syncRoute('home');
+      await shownAfterFrames(fixture);
+
+      expect(openOf(host)).toEqual([false, true, false]);
+    });
+
+    it('moves one sheet through its chapters without moving the others', async () => {
+      const { station, shown, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      await open('beta');
+
+      station.chooseSheetChapter(0, 1);
+
+      expect(station.held().map(({ chapter }) => chapter)).toEqual([1]);
+      expect(station.chapter()).toBe(0);
+      expect(shown()).toEqual(['Title alpha', 'Title beta']);
+    });
+
+    it('keeps one window on the phone, the pinned sheet turning to the next project', async () => {
+      const { station, slots, open, press } = await mountSheets(true);
+      await open('alpha');
+      await press('Title alpha', 'pin');
+
+      await open('beta');
+
+      expect(slots()).toHaveLength(1);
+      expect(station.held()).toEqual([]);
+    });
+  });
+
   describe('the order of the page', () => {
     it('reaches the page bar, the windows and the rest of the page before the moving planets', async () => {
       const { host } = await mount();
@@ -826,6 +1182,328 @@ describe('ObservatoryPageComponent', () => {
       for (const before of [bar, about, index, sheet, featured]) {
         expect(follows(before, scene)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
       }
+    });
+  });
+
+  describe('on the phone, the home is one sheet', () => {
+    const SLUGS = ['alpha', 'beta', 'gamma'];
+    const PHONE_ENTRIES = SLUGS.map((slug) =>
+      sampleEntry({ project: { slug, title: `Title ${slug}` } }),
+    );
+
+    const mountOnPhone = async (
+      options: { reducedMotion?: boolean; address?: string } = {},
+    ) => {
+      const mounted = await mount({
+        ...options,
+        phone: true,
+        entries: PHONE_ENTRIES,
+      });
+      const sheet = (): BottomSheetComponent =>
+        mounted.fixture.debugElement.query(
+          By.css('.slot--home app-bottom-sheet'),
+        ).componentInstance as BottomSheetComponent;
+      const cards = (): HTMLButtonElement[] => [
+        ...mounted.host.querySelectorAll<HTMLButtonElement>(
+          '.slot--home app-card-carousel .card',
+        ),
+      ];
+      return { ...mounted, sheet, cards };
+    };
+
+    it('holds the line and the cards in a sheet of the same component as the other pages, with the three detents', async () => {
+      const { host, sheet } = await mountOnPhone();
+
+      expect(sheet().detents()).toEqual(['folded', 'half', 'full']);
+      expect(sheet().detent()).toBe('half');
+      const home = host.querySelector('.slot--home');
+      expect(
+        home?.querySelector('app-home-title h1')?.textContent?.trim(),
+      ).toBe('Pierre-Marie Marchio · Développeur .NET et Angular');
+      expect(home?.querySelectorAll('app-card-carousel .card')).toHaveLength(3);
+    });
+
+    it('draws no separate preview: no slot, no pin, no numbered segments, no position counter', async () => {
+      const { fixture, station, host } = await mountOnPhone();
+      station.openPreview('beta');
+      await fixture.whenStable();
+
+      expect(host.querySelector('.slot--preview')).toBeNull();
+      expect(host.querySelector('app-segmented')).toBeNull();
+      expect(host.querySelector('app-window .meta')).toBeNull();
+      expect(host.querySelector('.slot--home app-window')).toBeNull();
+      expect(host.querySelector('.slot--home button[aria-pressed]')).toBeNull();
+    });
+
+    it('keeps a single h1, the home line, and no two-line title', async () => {
+      const { host } = await mountOnPhone();
+
+      expect([...host.querySelectorAll('h1')].map((h1) => h1.id)).toEqual([
+        'home-title',
+      ]);
+      expect(host.querySelector('app-home-title .name')).toBeNull();
+      expect(host.querySelector('.status')).toBeNull();
+    });
+
+    it('leaves the home slot on the sheet, for the focus to land in', async () => {
+      const { host } = await mountOnPhone();
+
+      expect(host.querySelector('.slot--home')?.querySelector('h1')).toBe(
+        host.querySelector('#home-title'),
+      );
+    });
+
+    it('draws the sheet on the home view only', async () => {
+      const { fixture, station, host } = await mountOnPhone();
+
+      station.syncRoute('about');
+      await fixture.whenStable();
+
+      expect(host.querySelector('.slot--home')).toBeNull();
+      expect(host.querySelectorAll('h1')).toHaveLength(1);
+    });
+
+    it('raises the sheet to full on the project of a touched card, and the scene closes in on it', async () => {
+      const { fixture, station, host, sheet, cards } = await mountOnPhone();
+
+      cards()[2]?.click();
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('gamma');
+      expect(sheet().detent()).toBe('full');
+      expect(sceneOf(fixture).preview()).toBe('gamma');
+      expect(
+        host.querySelector('.slot--home app-pager-page[data-current] h2')
+          ?.textContent,
+      ).toContain('Title gamma');
+    });
+
+    it('raises the sheet to full on the planet touched in the sky', async () => {
+      const { fixture, station, sheet } = await mountOnPhone();
+
+      sceneOf(fixture).bodyClicked.emit('beta');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('beta');
+      expect(sheet().detent()).toBe('full');
+    });
+
+    it('poses the project the reader stopped on when they pull the sheet up to full', async () => {
+      const { fixture, station, sheet } = await mountOnPhone();
+      station.hover('beta');
+
+      sheet().detent.set('full');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('beta');
+    });
+
+    it('turns to the neighbour project on a lateral swipe, the card and the scene following', async () => {
+      const { fixture, station, host, cards } = await mountOnPhone();
+      cards()[0]?.click();
+      await fixture.whenStable();
+      expect(station.preview()).toBe('alpha');
+
+      componentOf(fixture, PagerComponent).indexChange.emit(1);
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('beta');
+      expect(sceneOf(fixture).preview()).toBe('beta');
+      expect(
+        cards().findIndex((card) => card.hasAttribute('aria-current')),
+      ).toBe(1);
+      expect(
+        host.querySelector('.slot--home app-pager-page[data-current] h2')
+          ?.textContent,
+      ).toContain('Title beta');
+    });
+
+    it('lifts the project when the sheet comes down from full, whatever detent it lands on', async () => {
+      const { fixture, station, sheet, cards } = await mountOnPhone();
+      cards()[1]?.click();
+      await fixture.whenStable();
+
+      sheet().detent.set('half');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBeNull();
+      expect(sceneOf(fixture).preview()).toBeNull();
+
+      cards()[1]?.click();
+      await fixture.whenStable();
+      sheet().detent.set('folded');
+      await fixture.whenStable();
+
+      expect(station.preview()).toBeNull();
+      expect(sheet().detent()).toBe('folded');
+    });
+
+    it('has the handle of the other sheets, and no chevron', async () => {
+      const { fixture, host, sheet } = await mountOnPhone();
+      const grip = host.querySelector<HTMLButtonElement>(
+        '.slot--home app-home-title button.grip',
+      );
+
+      expect(grip?.getAttribute('aria-label')).toBe('Baisser la fenêtre');
+      expect(grip?.getAttribute('aria-expanded')).toBe('true');
+      expect(host.querySelector('.slot--home .fold')).toBeNull();
+      expect(host.querySelector('.slot--home app-home-title svg')).toBeNull();
+
+      const toggle = vi.spyOn(sheet(), 'toggle');
+
+      grip?.click();
+      expect(toggle).toHaveBeenCalledOnce();
+
+      sheet().detent.set('folded');
+      await fixture.whenStable();
+
+      expect(grip?.getAttribute('aria-label')).toBe('Remonter la fenêtre');
+      expect(grip?.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('says the posed project among the featured ones with dots under the preview, and follows the swipe', async () => {
+      const { fixture, host, cards } = await mountOnPhone();
+      const dots = (): HTMLButtonElement[] => [
+        ...host.querySelectorAll<HTMLButtonElement>(
+          '.slot--home app-pager ~ app-pager-dots .dot',
+        ),
+      ];
+      const current = (): number =>
+        dots().findIndex((dot) => dot.hasAttribute('aria-current'));
+
+      expect(dots()).toHaveLength(3);
+      cards()[1]?.click();
+      await fixture.whenStable();
+      expect(current()).toBe(1);
+
+      componentOf(fixture, PagerComponent).shownChange.emit(2);
+      await fixture.whenStable();
+
+      expect(current()).toBe(2);
+      expect(dots().every((dot) => dot.tabIndex === -1)).toBe(true);
+      expect(dots().map((dot) => dot.getAttribute('aria-label'))).toEqual([
+        'Page 1 sur 3',
+        'Page 2 sur 3',
+        'Page 3 sur 3',
+      ]);
+    });
+
+    it('leads to a project when its dot is touched, the card and the scene following', async () => {
+      const { fixture, station, host, sheet, cards } = await mountOnPhone();
+      cards()[0]?.click();
+      await fixture.whenStable();
+
+      host
+        .querySelectorAll<HTMLButtonElement>(
+          '.slot--home app-pager ~ app-pager-dots .dot',
+        )[2]
+        ?.click();
+      await fixture.whenStable();
+
+      expect(station.preview()).toBe('gamma');
+      expect(sceneOf(fixture).preview()).toBe('gamma');
+      expect(sheet().detent()).toBe('full');
+      expect(
+        cards().findIndex((card) => card.hasAttribute('aria-current')),
+      ).toBe(2);
+    });
+
+    it('comes down to half on the system back from full, and lifts the project', async () => {
+      vi.spyOn(
+        SessionHistoryService.prototype,
+        'hasCloseWatcher',
+      ).mockReturnValue(true);
+      const back: (() => void)[] = [];
+      vi.spyOn(
+        SessionHistoryService.prototype,
+        'watchClose',
+      ).mockImplementation((fn) => {
+        back.push(fn);
+        return NOTHING;
+      });
+      const { fixture, station, sheet, cards } = await mountOnPhone();
+      cards()[1]?.click();
+      await fixture.whenStable();
+      expect(sheet().detent()).toBe('full');
+
+      back.at(-1)?.();
+      await fixture.whenStable();
+
+      expect(sheet().detent()).toBe('half');
+      expect(station.preview()).toBeNull();
+    });
+
+    it('lowers the sheet to half when the sky is touched or escape is pressed', async () => {
+      const { fixture, station, sheet, cards } = await mountOnPhone();
+      cards()[1]?.click();
+      await fixture.whenStable();
+
+      await station.stepBack();
+      await fixture.whenStable();
+
+      expect(sheet().detent()).toBe('half');
+      expect(station.preview()).toBeNull();
+    });
+
+    it('shows the cards at half and the project at full, hiding the other from the tree', async () => {
+      const { fixture, host, cards } = await mountOnPhone();
+      const layers = (): boolean[] =>
+        [...host.querySelectorAll<HTMLElement>('.slot--home .layer')].map(
+          (layer) => layer.inert,
+        );
+      expect(layers()).toEqual([false, true]);
+
+      cards()[0]?.click();
+      await fixture.whenStable();
+
+      expect(layers()).toEqual([true, false]);
+    });
+
+    it('points the cards to the layer that holds the project', async () => {
+      const { host, cards } = await mountOnPhone();
+
+      const layer = host.querySelector('.slot--home .layer:last-child');
+      expect(layer?.id).toBe('preview-panel');
+      expect(cards().map((card) => card.getAttribute('aria-controls'))).toEqual(
+        ['preview-panel', 'preview-panel', 'preview-panel'],
+      );
+    });
+
+    it('anchors the scene on the cards at half and on the project at full', async () => {
+      const { fixture, host, cards } = await mountOnPhone();
+      const home = host.querySelector<HTMLElement>('.slot--home');
+      expect(home?.dataset['panel']).toBe('rule');
+
+      cards()[0]?.click();
+      await fixture.whenStable();
+
+      expect(home?.dataset['panel']).toBe('preview');
+    });
+
+    it('keeps the sheet held and inert while the intro plays, and lets it in with the rest', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, host } = await mountOnPhone({ reducedMotion: false });
+      const surface = host.querySelector<HTMLElement>('.slot--home .home');
+      expect(surface?.dataset['arrival']).toBe('held');
+      expect(surface?.inert).toBe(true);
+
+      vi.advanceTimersByTime(8700);
+      await fixture.whenStable();
+
+      expect(surface?.dataset['arrival']).toBe('shown');
+      expect(surface?.inert).toBe(false);
+    });
+
+    it('draws the desktop home unchanged: the title, the rule, and the preview slot', async () => {
+      const { fixture, station, host } = await mount({
+        entries: PHONE_ENTRIES,
+      });
+
+      expect(host.querySelector('.slot--home')).toBeNull();
+      expect(host.querySelector('app-home-title .name')).not.toBeNull();
+      station.openPreview('beta');
+      await fixture.whenStable();
+      expect(host.querySelector('.slot--preview app-window')).not.toBeNull();
     });
   });
 });

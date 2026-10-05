@@ -36,6 +36,7 @@ import { canvasResolution } from '../../rules/canvas-resolution.rules';
 import { PanelAnchor, sceneLayout } from '../../rules/scene-layout.rules';
 import { isSameList } from '../../rules/planets/same-nodes.rules';
 import { canMoveLayout } from '../../rules/layout-change.rules';
+import { settledRect } from '../../rules/rooms/settled-rect.rules';
 import { isDraggedClick } from '../../rules/figures/figure-target.rules';
 import { SceneTargetsService } from '../../services/scene-targets.service';
 import {
@@ -300,7 +301,7 @@ export class SpaceSceneComponent {
         continue;
       }
       anchors.push({
-        rect: element.getBoundingClientRect(),
+        rect: settledRect(element),
         opacity: this.canvas.token('opacity', element),
         role,
       });

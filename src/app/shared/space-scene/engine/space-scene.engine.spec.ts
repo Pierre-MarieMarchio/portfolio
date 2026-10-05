@@ -5,6 +5,7 @@ import { TurntableMotion } from './motions/turntable.motion';
 import { opening } from '../rules/camera/projection.rules';
 import { APPROACHES } from '../rules/camera/camera-frames.rules';
 import { TRAVELING_END } from '../rules/camera/traveling.rules';
+import { BARE_BOUNDS } from '@testing/fixtures/scene-layout.fixture';
 import { drivenHost, FRAME_MS } from '@testing/doubles/driven-host.double';
 import { seededRandom } from '@testing/doubles/seeded-random.double';
 import {
@@ -46,6 +47,7 @@ const layout = (bars: number | null): SceneLayout => ({
   bottomBarHeight: bars,
   approachEdge: null,
   closeUpEdge: null,
+  ...BARE_BOUNDS,
 });
 
 interface HandView {
@@ -836,7 +838,7 @@ describe('SpaceSceneEngine, beside the windows of a desktop, wherever they are',
     (_, direction, role, left) => {
       const layout = framedLayout([[left, 1396]], role);
       const framed = framedScene(layout, direction);
-      const before = framedScene({ ...layout, windows: undefined }, direction);
+      const before = framedScene({ ...layout, windows: [] }, direction);
 
       expect(framed.hole()).toEqual(before.hole());
       expect(framed.styles()).toEqual(before.styles());
@@ -848,7 +850,7 @@ describe('SpaceSceneEngine, beside the windows of a desktop, wherever they are',
     const [, direction, role, left] = CLOSE_UP_VIEW;
     const layout = framedLayout([[left, 1396]], role);
     const kept = framedScene(layout, direction).hole();
-    const before = framedScene({ ...layout, windows: undefined }, direction);
+    const before = framedScene({ ...layout, windows: [] }, direction);
     const crossed = before.hole();
 
     expect(crossed.x + crossed.radius).toBeGreaterThan(left);

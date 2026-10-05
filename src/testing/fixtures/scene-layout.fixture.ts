@@ -28,6 +28,29 @@ const rect = ([left, top, right, bottom]: Edges): PanelRect => ({
   opacity: 1,
 });
 
+export const BARE_BOUNDS: Pick<
+  SceneLayout,
+  | 'approachBandTop'
+  | 'closeUpBandTop'
+  | 'panelBandTop'
+  | 'sidePanelLeft'
+  | 'cornerPanelLeft'
+  | 'cornerBandTop'
+  | 'topBar'
+  | 'chrome'
+  | 'windows'
+> = {
+  approachBandTop: null,
+  closeUpBandTop: null,
+  panelBandTop: null,
+  sidePanelLeft: null,
+  cornerPanelLeft: null,
+  cornerBandTop: null,
+  topBar: null,
+  chrome: [],
+  windows: [],
+};
+
 export const UPRIGHT_PHONE = { width: 320, height: 568 };
 export const UPRIGHT_BAR: Edges = [0, 0, 320, 56];
 export const UPRIGHT_TITLE: Edges = [20, 68, 320, 207];
@@ -44,6 +67,7 @@ export const chromeLayout = (
   bottomBarHeight: null,
   approachEdge: null,
   closeUpEdge: null,
+  ...BARE_BOUNDS,
   chrome: chrome.map((box) => rect(box)),
   ...overrides,
 });

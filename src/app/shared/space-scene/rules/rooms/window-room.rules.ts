@@ -66,7 +66,7 @@ export const windowRoomOf = (
   layout: SceneLayout,
   last: WindowRoom | null,
 ): WindowRoom | null => {
-  const windows = layout.windows ?? [];
+  const windows = layout.windows;
   if (windows.length === 0) {
     return null;
   }

@@ -1,4 +1,5 @@
 import type { SceneLayout } from '../../models/scene-layout.model';
+import { BARE_BOUNDS } from '@testing/fixtures/scene-layout.fixture';
 import { REST_FRAME } from '../camera/camera-frames.rules';
 import {
   layoutInRoom,
@@ -25,6 +26,7 @@ const layoutWith = (
   bottomBarHeight: null,
   approachEdge: null,
   closeUpEdge: null,
+  ...BARE_BOUNDS,
   windows: spans.map(([left, right]) => ({
     left,
     top: 104,
@@ -68,9 +70,7 @@ describe('windowRoomOf', () => {
 
   it('has no room without a window', () => {
     expect(windowRoomOf(layoutWith([]), { left: 0, right: 700 })).toBeNull();
-    expect(
-      windowRoomOf({ ...layoutWith([]), windows: undefined }, null),
-    ).toBeNull();
+    expect(windowRoomOf({ ...layoutWith([]), windows: [] }, null)).toBeNull();
   });
 
   it('keeps the last room while a window covers the screen', () => {

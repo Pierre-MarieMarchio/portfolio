@@ -12,6 +12,7 @@ import {
 import * as holeFocusRules from '@shared/space-scene/rules/hole-focus.rules';
 import { drivenHost } from '../doubles/driven-host.double';
 import { recordingContext } from '../doubles/recording-canvas.double';
+import { BARE_BOUNDS } from './scene-layout.fixture';
 import { seededRandom } from '../doubles/seeded-random.double';
 
 const BRIGHT_BODIES = 4;
@@ -55,6 +56,9 @@ export const WIDE_LAYOUT: SceneLayout = {
   bottomBarHeight: 90,
   approachEdge: 780,
   closeUpEdge: 880,
+  ...BARE_BOUNDS,
+  panelBandTop: 640,
+  windows: [{ left: 780, top: 70, right: 1240, bottom: 640 }],
 };
 
 export interface SceneSetup {

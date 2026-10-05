@@ -16,15 +16,15 @@ export interface SceneLayout {
   readonly bottomBarHeight: number | null;
   readonly approachEdge: number | null;
   readonly closeUpEdge: number | null;
-  readonly approachBandTop?: number | null;
-  readonly closeUpBandTop?: number | null;
-  readonly panelBandTop?: number | null;
-  readonly sidePanelLeft?: number | null;
-  readonly cornerPanelLeft?: number | null;
-  readonly cornerBandTop?: number | null;
-  readonly topBar?: LayoutBox | null;
-  readonly chrome?: readonly PanelRect[];
-  readonly windows?: readonly LayoutBox[];
+  readonly approachBandTop: number | null;
+  readonly closeUpBandTop: number | null;
+  readonly panelBandTop: number | null;
+  readonly sidePanelLeft: number | null;
+  readonly cornerPanelLeft: number | null;
+  readonly cornerBandTop: number | null;
+  readonly topBar: LayoutBox | null;
+  readonly chrome: readonly PanelRect[];
+  readonly windows: readonly LayoutBox[];
 }
 
 export type ScenePanelRole =

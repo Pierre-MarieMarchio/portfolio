@@ -166,7 +166,7 @@ knowledge-commit: b299e1d
 - Slugs: projets/projects, a-propos/about, projet/project — `src/app/i18n/data/paths.data.ts:6`
 - An unknown address keeps its segments under the other language prefix — `src/app/i18n/rules/paths.rules.ts:28`
 - Every route loads its own catalogue before activating, or `of()` throws — `src/app/i18n/guards/catalog.guard.ts:6`, `src/app/i18n/services/catalog-loader.service.ts:24`
-- Head: title is "<title> · <site name>" ; no description means the tags are removed ; canonical + hreflang per language + x-default=fr, rewritten in full on every page — `src/app/core/services/head/document-head.service.ts:31`, :51, :76-88
+- Head: title is "<title> · <site name>" ; no description means the tags are removed ; canonical + hreflang per language + x-default=fr, rewritten in full on every page; every one of these addresses ends with `/`, the address Apache serves (it redirects the slash-less one), and `check:prerender` refuses one that does not — `src/app/core/services/head/document-head.service.ts:8`, `scripts/check-prerender.ts`
 - Sheet title is the project's title, else the generic sheet title ; description is the project's subject or null — `src/app/i18n/resolvers/page-head.resolver.ts:36`
 - Sheet slug unknown to the projects → not-found view — `src/app/pages/observatory/observatory-page.component.ts:241`
 - Body click: at the index it toggles the selection; at home it toggles the preview only for featured projects — `src/app/pages/observatory/observatory-page.component.ts:296-305`

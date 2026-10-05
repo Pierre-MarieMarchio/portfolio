@@ -129,9 +129,9 @@ describe('i18n', () => {
     expect(document.title).toBe(
       `${EN.pages.heads.about.title} · ${OWNER_NAME}`,
     );
-    expect(href('link[rel="canonical"]')).toMatch(/\/en\/about$/);
-    expect(href('link[hreflang="fr"]')).toMatch(/\/a-propos$/);
-    expect(href('link[hreflang="x-default"]')).toMatch(/\/a-propos$/);
+    expect(href('link[rel="canonical"]')).toMatch(/\/en\/about\/$/);
+    expect(href('link[hreflang="fr"]')).toMatch(/\/a-propos\/$/);
+    expect(href('link[hreflang="x-default"]')).toMatch(/\/a-propos\/$/);
   });
 
   it.each([

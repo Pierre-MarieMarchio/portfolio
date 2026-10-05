@@ -41,8 +41,8 @@
 }
 
 .term {
-  font-family: var(--mono);
-  font-size: var(--m3);
+  @include type.mono(var(--m3), null);
+
   color: var(--ink);
 }
 
@@ -66,8 +66,8 @@ figure {
 }
 
 .box {
-  font-family: var(--mono);
-  font-size: var(--m3);
+  @include type.mono(var(--m3), null);
+
   border: 1px solid var(--ink-2);
   border-radius: var(--radius);
   padding: 6px 10px;
@@ -93,14 +93,14 @@ figure {
 }
 
 .layer-name {
-  font-family: var(--mono);
-  font-size: var(--m3);
+  @include type.mono(var(--m3), null);
+
   font-weight: 500;
 }
 
 .layer-projects {
-  font-family: var(--mono);
-  font-size: var(--m4);
+  @include type.mono(var(--m4), null);
+
   color: var(--ink-2);
   overflow-wrap: anywhere;
 }

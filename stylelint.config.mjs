@@ -1,3 +1,12 @@
+const disallowedValues = {
+  '/.*/': ['/clamp\\(20px, 4vw, 44px\\)/'],
+  'border-radius': ['2px'],
+  'backdrop-filter': ['/blur\\(/'],
+};
+
+const message =
+  'Use the design token (src/assets/styles/_tokens.scss) or the shared mixin (src/assets/styles/mixins)';
+
 /** @type {import('stylelint').Config} */
 export default {
   extends: ['stylelint-config-standard-scss'],
@@ -6,6 +15,15 @@ export default {
     {
       files: ['src/assets/styles/_tokens.scss'],
       rules: { 'declaration-property-value-disallowed-list': null },
+    },
+    {
+      files: ['src/assets/styles/mixins/_type.scss'],
+      rules: {
+        'declaration-property-value-disallowed-list': [
+          disallowedValues,
+          { message },
+        ],
+      },
     },
   ],
   rules: {
@@ -34,12 +52,8 @@ export default {
     ],
 
     'declaration-property-value-disallowed-list': [
-      {
-        '/.*/': ['/clamp\\(20px, 4vw, 44px\\)/'],
-        'border-radius': ['2px'],
-        'backdrop-filter': ['/blur\\(/'],
-      },
-      { message: 'Use the design token (src/assets/styles/_tokens.scss)' },
+      { ...disallowedValues, 'font-family': ['/var\\(--mono\\)/'] },
+      { message },
     ],
   },
 };

@@ -24,7 +24,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/raisons/core-et-interface.md — `src/app/core/services/head/document-head.service.ts`
 
 - A page without description removes the previous one — `src/app/core/services/head/document-head.service.ts:51` — origin: docs/architecture/raisons/core-et-interface.md:128 @ b299e1d
-- Links are canonical, one hreflang per language and x-default as French, rewritten each page — `src/app/core/services/head/document-head.service.ts:84` — origin: docs/architecture/raisons/core-et-interface.md:130 @ b299e1d
+- Links are canonical, one hreflang per language and x-default as French, rewritten each page, each at the trailing-slash address the server answers — `src/app/core/services/head/document-head.service.ts:8` — origin: docs/architecture/raisons/core-et-interface.md:130 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-10-02 — Au téléphone, on passe d'un filtre de la liste à l'autre en balayant (D92, amende D57)
 

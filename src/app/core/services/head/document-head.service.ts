@@ -5,7 +5,10 @@ import { SITE_NAME } from '../../ports';
 
 declare const SITE_URL: string;
 
-const absoluteUrl = (path: string): string => `${SITE_URL}${path}`;
+const servedPath = (path: string): string =>
+  path.endsWith('/') ? path : `${path}/`;
+
+const absoluteUrl = (path: string): string => `${SITE_URL}${servedPath(path)}`;
 
 const OG_LOCALES: Readonly<Record<Lang, string>> = {
   fr: 'fr_FR',

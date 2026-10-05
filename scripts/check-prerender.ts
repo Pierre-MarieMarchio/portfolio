@@ -43,6 +43,19 @@ const englishAddressOf = (file: string): string => {
   return href.startsWith(siteAddress) ? href.slice(siteAddress.length) : '';
 };
 
+const servedFailures = (address: string, label: string): string[] => {
+  if (!address.endsWith('/')) {
+    return [`${label} ${address} does not end with /`];
+  }
+  if (!address.startsWith(siteAddress)) {
+    return [`${label} ${address} is not under ${siteAddress}`];
+  }
+  const directory = address.slice(siteAddress.length).replace(/^\//, '');
+  return existsSync(join(ROOT, directory, 'index.html'))
+    ? []
+    : [`${label} ${address} is not a prerendered index.html`];
+};
+
 const frenchPages = (): Page[] => [
   {
     path: '/',
@@ -52,21 +65,21 @@ const frenchPages = (): Page[] => [
     lacks: ['<app-window'],
   },
   {
-    path: '/projets',
+    path: '/projets/',
     file: join('projets', 'index.html'),
     lang: 'fr',
     holds: ['<app-project-list', '<app-window'],
     lacks: ['<app-home-title', '<app-intro-card'],
   },
   {
-    path: '/a-propos',
+    path: '/a-propos/',
     file: join('a-propos', 'index.html'),
     lang: 'fr',
     holds: ['<app-about-window', '<app-window'],
     lacks: ['<app-home-title', '<app-intro-card'],
   },
   ...sheets.map((slug): Page => ({
-    path: `/projet/${slug}`,
+    path: `/projet/${slug}/`,
     file: join('projet', slug, 'index.html'),
     lang: 'fr',
     holds: ['<app-project-detail', '<app-window'],
@@ -136,11 +149,23 @@ const presenceFailures = (
     .map((element) => `${element}> should not be there`),
 ];
 
+const addressFailures = (html: string): string[] => {
+  const canonicals = linksOf(html, 'canonical');
+  return [
+    ...when(canonicals.length !== 1, 'does not have exactly one canonical'),
+    ...canonicals.flatMap((href) => servedFailures(href, 'canonical')),
+    ...linksOf(html, 'alternate').flatMap((href) =>
+      servedFailures(href, 'hreflang'),
+    ),
+  ];
+};
+
 const pageFailures = (page: Page): string[] => {
   const html = readFileSync(join(ROOT, page.file), 'utf8');
   const otherLang = page.lang === 'fr' ? 'en' : 'fr';
   return [
     ...presenceFailures(page, html),
+    ...addressFailures(html),
     ...when(
       /<dialog[^>]*sopen[s=>]/.test(html),
       'a <dialog> is open before any reader asked',
@@ -228,6 +253,11 @@ const pageSitemapFailures = (page: Page, entries: string[]): string[] => {
   ];
 };
 
+const locFailures = (entry: string): string[] =>
+  [...entry.matchAll(/<loc>([^<]*)<\/loc>/g)].flatMap((match) =>
+    servedFailures(match[1] ?? '', '/sitemap.xml <loc>'),
+  );
+
 const sitemapFailures = (): string[] => {
   const sitemap = readIfExists('sitemap.xml');
   const entries = sitemap.split('<url>').slice(1);
@@ -239,6 +269,7 @@ const sitemapFailures = (): string[] => {
       entries.length !== PAGES.length,
       `/sitemap.xml: ${String(entries.length)} <url>, ${String(PAGES.length)} pages prerendered`,
     ),
+    ...entries.flatMap(locFailures),
     ...PAGES.flatMap((page) => pageSitemapFailures(page, entries)),
     ...when(/\/404</.test(sitemap), '/sitemap.xml: lists a not-found page'),
   ];

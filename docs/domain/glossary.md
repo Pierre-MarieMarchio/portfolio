@@ -25,12 +25,12 @@ knowledge-commit: b299e1d
 - designated (phone-named planet) -> `ObservatoryScene.designated` (`src/app/features/observatory/rules/scene-direction.rules.ts:20`)
 - part (about section, lit figure) -> `PARTS` (`src/app/features/profile/components/about-window/about-window.component.ts:23`)
 - contact address -> `ContactAddress` (`src/app/features/profile/models/contact.model.ts:3`)
-- staging / production target -> `TARGET` (`.github/workflows/ci.yml:131`)
+- staging / production target -> `TARGET` (`.github/workflows/ci.yml:113`)
 - arrival states `withheld` / `shown` / `timed` -> `data-arrival` host attribute (`src/app/features/observatory/components/home-title/home-title.component.ts:23`) styled at `src/app/features/observatory/components/home-title/home-title.component.scss:29`
 - withheld (arrival state: elements withheld until first gesture or end of crossing) -> `Entrance` model (`src/app/shared/ui/models/entrance.model.ts:1`)
-- crossing (intro duration before the rest arrives) -> `--arrival-at` (`src/assets/styles/_tokens.scss:65`), spec option `crossing` (`src/app/features/observatory/services/home-reveal.service.spec.ts:47`)
+- crossing (intro duration before the rest arrives) -> `--arrival-at` (`src/assets/styles/_tokens.scss:65`), spec option `crossing` (`src/app/features/observatory/services/home-reveal.service.spec.ts:48`)
 - phone media set -> `TOUCH` (`src/app/features/observatory/services/home-bottom-sheet.service.spec.ts:7`)
-- held sheet -> pinned sheet windows kept open with their project, minimizable by index (`tabs.minimizeSheet(0, bar)`), window-stack ids `sheet:<n>` — `src/app/features/observatory/services/tab-navigation.service.spec.ts:324`, `src/app/features/observatory/services/view-windows.service.spec.ts:134`
+- held sheet -> pinned sheet windows kept open with their project, minimizable by index (`tabs.minimizeSheet(0, bar)`), window-stack ids `sheet:<n>` — `src/app/features/observatory/services/tab-navigation.service.spec.ts:325`, `src/app/features/observatory/services/view-windows.service.spec.ts:134`
 - grip / handle -> `.bar button.grip` of the home title, held by `WINDOW_FOLD` — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:110`
 - dock -> `ObservatoryDockComponent` nav of pinned-and-left windows — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:40`
 - part (about) -> one of profile/skills/path/method pages of the about pager — `src/app/features/profile/components/about-window/about-window.component.spec.ts:35`
@@ -47,9 +47,9 @@ knowledge-commit: b299e1d
 - traveling (crossing) -> `Traveling` (`src/app/shared/space-scene/rules/camera/traveling.rules.ts:3`)
 - figure / constellation -> `Figure`, `CONSTELLATIONS` (`src/app/shared/space-scene/rules/figures/constellations.rules.ts:1`, `src/app/shared/space-scene/rules/figures/constellations.rules.ts:9`); comet -> `Comet` (`src/app/shared/space-scene/rules/sky/comets.rules.ts:4`); star field -> `StarField` (`src/app/shared/space-scene/rules/sky/star-field.rules.ts:31`)
 - planet focus -> `PlanetFocus` (`src/app/shared/space-scene/rules/planets/planet-focus.rules.ts:4`)
-- scene target -> `SceneTargetDirective` / `data-scene-target` (`src/app/shared/space-scene/directives/scene-target.directive.ts:7`); sky (empty background) -> `isOnSky` (`src/app/shared/space-scene/rules/gestures/sky-touch.rules.ts:7`)
-- turnable scene -> `TurnableScene` (`src/app/shared/space-scene/directives/turn-gesture.directive.ts:22`)
-- feature / shared library / zone -> `FEATURES`, `SHARED_LIBS`, `ZONES` (`eslint.config.ts:13`, `eslint.config.ts:28`, `eslint.config.ts:137`)
+- scene target -> `SceneTargetDirective` / `data-scene-target` (`src/app/shared/space-scene/directives/scene-target.directive.ts:8`); sky (empty background) -> `isOnSky` (`src/app/shared/space-scene/rules/gestures/sky-touch.rules.ts:7`)
+- turnable scene -> `TurnableScene` (`src/app/shared/space-scene/directives/turn-gesture.directive.ts:7`)
+- feature / shared library / zone -> `FEATURES`, `SHARED_LIBS`, `ZONES` (`eslint.config.ts:13`, `eslint.config.ts:28`, `eslint.config.ts:138`)
 - English draft -> `INTERFACE_DRAFTS`, `"enDraft"` (`src/testing/integration/drafts.spec.ts:7`, `src/testing/integration/drafts.spec.ts:12`)
 
 ## src/app/core/**,src/app/i18n/**,src/app/pages/**,src/app/shared/space-scene/engine/**,src/app/shared/space-scene/trackers/*
@@ -61,9 +61,9 @@ knowledge-commit: b299e1d
 - catalogue -> `Catalog` (`src/app/i18n/models/catalog.model.ts:32`)
 - addressed view (home/index/about/sheet) -> `AddressedView` (`src/app/i18n/data/paths.data.ts:4`)
 - owner/site name -> `OWNER_NAME` (`src/app/i18n/data/owner.data.ts:1`), `SITE_NAME` (`src/app/core/ports/site-name.port.ts:3`)
-- observatory (the screen) -> `ObservatoryPageComponent` (`src/app/pages/observatory/observatory-page.component.ts:213`)
+- observatory (the screen) -> `ObservatoryPageComponent` (`src/app/pages/observatory/observatory-page.component.ts:143`)
 - route marker -> `ObservatoryRouteComponent` (`src/app/pages/observatory/observatory-route.component.ts:24`)
-- planet (a project in the scene) -> `Planet` built at `src/app/pages/observatory/observatory-page.component.ts:230`
+- planet (a project in the scene) -> `Planet` built at `src/app/pages/observatory/observatory-page.component.ts:223`
 - engine host -> `EngineHost` (`src/app/shared/space-scene/engine/frame-loop.engine.ts:3`)
 - remote engine / scene worker -> `RemoteSceneEngine` (`src/app/shared/space-scene/engine/remote-scene.engine.ts:315`), `SceneWorkerEngine` (`src/app/shared/space-scene/engine/scene-worker.engine.ts:35`)
 - recorded node / node write -> `NodeRecorderEngine` (`src/app/shared/space-scene/engine/node-recorder.engine.ts:87`)
@@ -97,7 +97,7 @@ knowledge-commit: b299e1d
 - family -> `ProjectFamily`, `FamilyFilter` (`src/app/features/projects/models/project-family.model.ts:1`)
 - featured / vedette -> `Ranking.featured`, `FEATURED` (`src/app/features/projects/models/project.model.ts:33`)
 - catalog -> `ProjectCatalog` (`src/app/features/projects/models/project-catalog.model.ts:4`)
-- English draft -> `enDraft` key (`src/app/features/projects/rules/project-entry.rules.ts:68`)
+- English draft -> `enDraft` key (`src/app/features/projects/rules/project-entry.rules.ts:76`)
 - index / list, rule / featured bar, preview -> `ProjectListComponent`, `FeaturedBarComponent`, `ProjectPreviewComponent` (`src/app/features/projects/components/index.ts:1`)
 - frame mode / snap zone -> `FrameMode`, `FrameZone` (`src/app/shared/windows/models/window-frame.model.ts:38`)
 - kept window -> `KeptWindowDirective` (`src/app/shared/windows/directives/kept-window.directive.ts:22`)
@@ -111,21 +111,21 @@ knowledge-commit: b299e1d
 - lit -> `controls.lit` (`src/assets/styles/mixins/_controls.scss:23`), `[data-lit]` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:92`), `lit-row` (`src/app/features/projects/components/project-list/project-list.component.scss:12`)
 - cards (narrow index) -> `@container (width < 500px)` (`src/app/features/projects/components/project-list/project-list.component.scss:124`) ; phone featured cards -> `.cards` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:139`)
 - reading (featured bar caption line) -> `.reading` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:167`)
-- arrival (timed/held/shown) -> `data-arrival` + `arrival.*` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:21-27`, `src/app/shared/ui/models/entrance.model.ts:1`)
+- arrival (timed/withheld/shown) -> `data-arrival` + `arrival.*` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:21-27`, `src/app/shared/ui/models/entrance.model.ts:1`)
 - crowded -> `:host([data-crowded='true'])` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:197`)
 - facts row/term/value -> `facts.*` (`src/assets/styles/mixins/_facts.scss:1`)
 
 ## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/_,src/app/shared/space-scene/ports/_,src/app/shared/space-scene/services/*,src/app/shared/ui/**
 
 - detent (folded / half / full) -> `SheetDetent` (`src/app/shared/mobile-nav/models/bottom-sheet.model.ts:1`)
-- back layer -> `BackLayersService` (`src/app/shared/mobile-nav/services/back-layers.service.ts:19`), history key `mobileNavLayer` (`src/app/shared/mobile-nav/rules/back-layers.rules.ts:1`)
-- entrance (timed / held / shown) -> `Entrance` (`src/app/shared/ui/models/entrance.model.ts:1`)
+- back layer -> `BackLayersService` (`src/app/shared/mobile-nav/services/back-layers.service.ts:27`), history key `mobileNavLayer` (`src/app/shared/mobile-nav/rules/back-layers.rules.ts:1`)
+- entrance (timed / withheld / shown) -> `Entrance` (`src/app/shared/ui/models/entrance.model.ts:1`)
 - scene anchor -> `SceneAnchorKind` (`src/app/features/common/models/scene-anchors.model.ts:1`)
 - panel role -> `ScenePanelRole` (`src/app/shared/space-scene/models/scene-layout.model.ts:30`)
-- framing (rest / overview / aside / close-up / approach) -> `CameraFraming` (`src/app/shared/space-scene/models/scene.model.ts:5`)
-- presence (shown / held / hidden) -> `BodiesPresence` (`src/app/shared/space-scene/models/scene.model.ts:14`)
-- body -> `SceneBody` (`src/app/shared/space-scene/models/scene.model.ts:20`)
-- figures (constellations / comets) -> `SkyFigures` (`src/app/shared/space-scene/models/scene.model.ts:18`)
+- framing (rest / overview / aside / close-up / approach) -> `CameraFraming` (`src/app/shared/space-scene/models/scene.model.ts:6`)
+- presence (shown / withheld / hidden) -> `BodiesPresence` (`src/app/shared/space-scene/models/scene.model.ts:15`)
+- body -> `SceneBody` (`src/app/shared/space-scene/models/scene.model.ts:28`)
+- figures (constellations / comets) -> `SkyFigures` (`src/app/shared/space-scene/models/scene.model.ts:19`)
 - look -> `SceneLook` (`src/app/shared/space-scene/models/scene-look.model.ts:15`)
 - rail action -> `RailAction` (`src/app/shared/ui/models/rail-action.model.ts:1`)
-- swipe stops -> `SwipeStops` (`src/app/shared/mobile-nav/models/swipe.model.ts:17`)
+- swipe stops -> `SwipeStops` (`src/app/shared/mobile-nav/models/swipe.model.ts:18`)

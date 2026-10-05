@@ -23,7 +23,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/core/services/head/document-head.service.ts`
 
-- A page without description removes the previous one — `src/app/core/services/head/document-head.service.ts:51` — origin: docs/architecture/raisons/core-et-interface.md:128 @ b299e1d
+- A page without description removes the previous one — `src/app/core/services/head/document-head.service.ts:54` — origin: docs/architecture/raisons/core-et-interface.md:128 @ b299e1d
 - Links are canonical, one hreflang per language and x-default as French, rewritten each page, each at the trailing-slash address the server answers — `src/app/core/services/head/document-head.service.ts:8` — origin: docs/architecture/raisons/core-et-interface.md:130 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-10-02 — Au téléphone, on passe d'un filtre de la liste à l'autre en balayant (D92, amende D57)
@@ -36,7 +36,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/models/entrance.model.ts`
 
-- Entrance says where the rest of the home page stands during the opening crossing: timed, held or shown — `src/app/shared/ui/models/entrance.model.ts:1` — origin: docs/architecture/raisons/core-et-interface.md:198 @ b299e1d
+- Entrance says where the rest of the home page stands during the opening crossing: timed, withheld or shown — `src/app/shared/ui/models/entrance.model.ts:1` — origin: docs/architecture/raisons/core-et-interface.md:198 @ b299e1d
 - withheld: the script holds the element until the first gesture or the end of the crossing (arrival state, opposite of shown) — `src/app/shared/ui/models/entrance.model.ts:1` — origin: docs/architecture/raisons/core-et-interface.md:204 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/directives/hover-focus.directive.ts`

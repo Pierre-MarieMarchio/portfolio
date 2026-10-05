@@ -13,7 +13,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/organisation.md — La navigation du téléphone : `shared/mobile-nav/` (D57)
 
-- MobileNavLayoutService tells the library only whether the display is compact; mobile-nav reads the browser and history through core services, and the start of a navigation from the router's NavigationStart in BackLayersService — `src/app/features/observatory/services/mobile-nav-layout.service.ts:1`, `src/app/shared/mobile-nav/services/back-layers.service.ts:108` — origin: docs/architecture/organisation.md:473 @ b299e1d
+- MobileNavLayoutService tells the library only whether the display is compact; mobile-nav reads the browser and history through core services, and the start of a navigation from the router's NavigationStart in BackLayersService — `src/app/features/observatory/services/mobile-nav-layout.service.ts:6`, `src/app/shared/mobile-nav/services/back-layers.service.ts:154` — origin: docs/architecture/organisation.md:473 @ b299e1d
 
 ## docs/architecture/organisation.md — L'état : découpé selon ses actions
 
@@ -24,7 +24,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/organisation.md — Les composants
 
 - The intro card relies on UserPresenceService — `src/app/features/observatory/components/intro-card/intro-card.component.ts:26` — origin: docs/architecture/organisation.md:713 @ b299e1d
-- Skip button shows while arrival is held and calls arrive() directly — `src/app/features/observatory/components/intro-skip/intro-skip.component.html:1` — origin: docs/architecture/organisation.md:715 @ b299e1d
+- Skip button shows while arrival is withheld and calls arrive() directly — `src/app/features/observatory/components/intro-skip/intro-skip.component.html:1` — origin: docs/architecture/organisation.md:715 @ b299e1d
 - Dock links each docked window to its view, last sheet for the sheet and home for the preview — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.ts:27` — origin: docs/architecture/organisation.md:723 @ b299e1d
 - The dock is in the DOM at every format and only shown on phone — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.scss:5` — origin: docs/architecture/organisation.md:725 @ b299e1d
 
@@ -76,11 +76,11 @@ knowledge-commit: b299e1d
 ## docs/architecture/raisons/bureau-et-pages.md — `features/observatory/services/home-reveal.service.ts`
 
 - Home reveal waits for --arrival-at read from CSS — `src/app/features/observatory/services/home-reveal.service.ts:49` — origin: docs/architecture/raisons/bureau-et-pages.md:79 @ b299e1d
-- The arrival callback runs only when a held rest is released — `src/app/features/observatory/services/home-reveal.service.ts:54` — origin: docs/architecture/raisons/bureau-et-pages.md:83 @ b299e1d
+- The arrival callback runs only when a withheld rest is released — `src/app/features/observatory/services/home-reveal.service.ts:54` — origin: docs/architecture/raisons/bureau-et-pages.md:83 @ b299e1d
 - Off home the arrival is shown as soon as the view is read — `src/app/features/observatory/services/home-reveal.service.ts:23` — origin: docs/architecture/raisons/bureau-et-pages.md:85 @ b299e1d
 - Arrival is timed at the home prerender — `src/app/features/observatory/services/home-reveal.service.ts:19` — origin: docs/architecture/raisons/bureau-et-pages.md:88 @ b299e1d
 - isOpening lasts until home releases its rest and never comes back — `src/app/features/observatory/services/home-reveal.service.ts:27` — origin: docs/architecture/raisons/bureau-et-pages.md:89 @ b299e1d
-- Leaving home releases the held rest — `src/app/features/observatory/services/home-reveal.service.ts:33` — origin: docs/architecture/raisons/bureau-et-pages.md:92 @ b299e1d
+- Leaving home releases the withheld rest — `src/app/features/observatory/services/home-reveal.service.ts:33` — origin: docs/architecture/raisons/bureau-et-pages.md:92 @ b299e1d
 
 ## docs/architecture/raisons/bureau-et-pages.md — `features/observatory/components/home-title/`
 
@@ -149,7 +149,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au bureau, le contact se lit en mots, et l'adresse se copie (D79, amende D60)
 
-- D79 Copy the address on the desktop rail through CopyFeedbackService, shared with the phone sheet — `src/app/features/profile/components/contact-links/contact-links.component.ts:51` — origin: docs/architecture/decisions.md:2432 @ b299e1d
+- D79 Copy the address on the desktop rail through CopyFeedbackService, shared with the phone sheet — `src/app/features/profile/components/contact-links/contact-links.component.ts:52` — origin: docs/architecture/decisions.md:2432 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-10-02 — Au téléphone, chaque onglet garde sa place, et le retour mène à l'accueil avant de quitter le site (D91, amende D57 et D62)
 
@@ -167,12 +167,12 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/core/services/device/display-format.service.ts`
 
-- The desk that asks for publishOnRoot is always mounted: app-observatory-page sits outside the router-outlet (the call itself is at pages/observatory/observatory-page.component.ts:268, outside the zone) — `src/app/app.component.html:5` — origin: docs/architecture/raisons/core-et-interface.md:90 @ b299e1d
+- The desk that asks for publishOnRoot is always mounted: app-observatory-page sits outside the router-outlet (the call itself is at pages/observatory/observatory-page.component.ts:261, outside the zone) — `src/app/app.component.html:5` — origin: docs/architecture/raisons/core-et-interface.md:90 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/models/entrance.model.ts`
 
 - Entrance starts timed (no script yet); home-title defaults its arrival input to timed (home-title.component.ts:30) — `src/app/features/observatory/services/home-reveal.service.ts:19` — origin: docs/architecture/raisons/core-et-interface.md:202 @ b299e1d
-- held: the script holds the rest of home until the reader is present or --arrival-at elapses (whenPresent at :48) — `src/app/features/observatory/services/home-reveal.service.ts:47` — origin: docs/architecture/raisons/core-et-interface.md:204 @ b299e1d
+- withheld: the script holds the rest of home until the reader is present or --arrival-at elapses (whenPresent at :48) — `src/app/features/observatory/services/home-reveal.service.ts:47` — origin: docs/architecture/raisons/core-et-interface.md:204 @ b299e1d
 - shown: set when arrival is released, rising from that moment — `src/app/features/observatory/services/home-reveal.service.ts:65` — origin: docs/architecture/raisons/core-et-interface.md:206 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/services/view-focus.service.ts`
@@ -183,8 +183,8 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/directives/hover-focus.directive.ts`
 
-- An exit would pass for a reader gesture and stop the curtain: exited emits bodyHovered(null), and the page takes over the featured tour on every bodyHovered (pages/observatory/observatory-page.component.ts:310) — `src/app/features/observatory/components/planet-buttons/planet-buttons.component.ts:52` — origin: docs/architecture/raisons/core-et-interface.md:244 @ b299e1d
-- The planets double touch does not go through hover-focus: when cannotHover, the first click reveals (bodyHovered) and the next opens (onClick at :40) — `src/app/features/observatory/components/planet-buttons/planet-buttons.component.ts:58` — origin: docs/architecture/raisons/core-et-interface.md:246 @ b299e1d
+- An exit would pass for a reader gesture and stop the curtain: exited emits bodyHovered(null), and the page takes over the featured tour on every bodyHovered (pages/observatory/observatory-page.component.ts:292) — `src/app/features/observatory/components/planet-buttons/planet-buttons.component.ts:52` — origin: docs/architecture/raisons/core-et-interface.md:244 @ b299e1d
+- The planets double touch does not go through hover-focus: when cannotHover, the first click reveals (bodyHovered) and the next opens (onClick at :39) — `src/app/features/observatory/components/planet-buttons/planet-buttons.component.ts:58` — origin: docs/architecture/raisons/core-et-interface.md:246 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/windows/components/window/`
 
@@ -200,21 +200,21 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/assets/styles/mixins/_arrival.scss`
 
-- Without script the title rises on its own at --arrival-at (on-its-own); with script held (:30) then shown (:34) with its own delay — `src/app/features/observatory/components/home-title/home-title.component.scss:11` — origin: docs/architecture/raisons/core-et-interface.md:392 @ b299e1d
-- held($hide) keeps the title in place for the arrival focus: home-title includes held with $hide false — `src/app/features/observatory/components/home-title/home-title.component.scss:30` — origin: docs/architecture/raisons/core-et-interface.md:396 @ b299e1d
+- Without script the title rises on its own at --arrival-at (on-its-own); with script withheld (:30) then shown (:34) with its own delay — `src/app/features/observatory/components/home-title/home-title.component.scss:11` — origin: docs/architecture/raisons/core-et-interface.md:392 @ b299e1d
+- withheld($hide) keeps the title in place for the arrival focus: home-title includes withheld with $hide false — `src/app/features/observatory/components/home-title/home-title.component.scss:30` — origin: docs/architecture/raisons/core-et-interface.md:396 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — Le bilingue : un catalogue à l'exécution, l'adresse fixe la langue
 
-- The head service writes canonical, hreflang and og:locale — `src/app/core/services/head/document-head.service.ts:76` — origin: docs/architecture/decisions.md:159 @ b299e1d
+- The head service writes canonical, hreflang and og:locale — `src/app/core/services/head/document-head.service.ts:79` — origin: docs/architecture/decisions.md:159 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — La page de l'observatoire n'assemble plus que ce qui se croise (D50, amende D11 pour la page)
 
-- The observatory page keeps only cross-feature joins: Project to Planet, not-found sheet, typed filter, designated project, body click, start state from the address — `src/app/pages/observatory/observatory-page.component.ts:230` — origin: docs/architecture/decisions.md:1622 @ b299e1d
-- Escape is a one-line host binding — `src/app/pages/observatory/observatory-page.component.ts:209` — origin: docs/architecture/decisions.md:1641 @ b299e1d
+- The observatory page keeps only cross-feature joins: Project to Planet, not-found sheet, typed filter, designated project, body click, start state from the address — `src/app/pages/observatory/observatory-page.component.ts:223` — origin: docs/architecture/decisions.md:1622 @ b299e1d
+- Escape is a one-line host binding — `src/app/pages/observatory/observatory-page.component.ts:139` — origin: docs/architecture/decisions.md:1641 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — `pages/` ne garde que ses écrans, et l'atelier est défait (D83, amende D57 et défait « Atelier de composants en route de développement »)
 
-- The page provides MobileNavLayoutService and BackLayersService — `src/app/pages/observatory/observatory-page.component.ts:206` — origin: docs/architecture/decisions.md:2551 @ b299e1d
+- The page provides MobileNavLayoutService and BackLayersService — `src/app/pages/observatory/observatory-page.component.ts:136` — origin: docs/architecture/decisions.md:2551 @ b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/pages/observatory/observatory-page.component.ts`, le lien aux fenêtres
 
@@ -223,7 +223,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — L'arborescence est en place, avec quatre unités de passage (D19)
 
-- D19 carry-over: DesktopProjectsBinding becomes computeds of the page (the provider no longer exists; the page computes planets) — `src/app/pages/observatory/observatory-page.component.ts:167` — origin: docs/architecture/decisions.md:502 @ b299e1d
+- D19 carry-over: DesktopProjectsBinding becomes computeds of the page (the provider no longer exists; the page computes planets) — `src/app/pages/observatory/observatory-page.component.ts:160` — origin: docs/architecture/decisions.md:502 @ b299e1d
 - D19 carry-over: the two route leaves merge into one (a single empty ObservatoryRouteComponent) — `src/app/pages/observatory/observatory-route.component.ts:20` — origin: docs/architecture/decisions.md:505 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-24 — Une capture tolère 200 pixels, pas une position fractionnaire (D24)
@@ -241,18 +241,18 @@ knowledge-commit: b299e1d
 
 - D27: a dock (ObservatoryDockComponent) is placed in the page — `src/app/pages/observatory/observatory-page.component.html:269` — origin: docs/architecture/decisions.md:681 @ b299e1d
 - D27: the manager derives the docked list and the page reads it (observatory.docked()) — `src/app/pages/observatory/observatory-page.component.html:48` — origin: docs/architecture/decisions.md:683 @ b299e1d
-- D27: landscape, the page slots take the right half (width max(50vw, 324px), scss:202) — `src/app/pages/observatory/observatory-page.component.scss:211` — origin: docs/architecture/decisions.md:693 @ b299e1d
+- D27: landscape, the page slots take the right half (width max(50vw, 324px), scss:204) — `src/app/pages/observatory/observatory-page.component.scss:213` — origin: docs/architecture/decisions.md:693 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-25 — Au téléphone, le châssis tient dans le haut de l'écran (D27)
 
 - D27: on phone the page bar spans the top flat, no border, on a --paper fade — `src/app/pages/observatory/observatory-page.component.scss:129` — origin: docs/architecture/decisions.md:714 @ b299e1d
 - D27: the glass reserves a bottom band only when the dock has an entry, via --dock-reserve set by :has() — `src/app/pages/observatory/observatory-page.component.scss:125` — origin: docs/architecture/decisions.md:721 @ b299e1d
 - D27: on phone the scene loses its 380 px floor (min-height 380px elsewhere at scss:17) — `src/app/pages/observatory/observatory-page.component.scss:145` — origin: docs/architecture/decisions.md:724 @ b299e1d
-- D27/D30: landscape, the bar stays left of the glass (right: var(--glass-width)) — `src/app/pages/observatory/observatory-page.component.scss:206` — origin: docs/architecture/decisions.md:720 @ b299e1d
+- D27/D30: landscape, the bar stays left of the glass (right: var(--glass-width)) — `src/app/pages/observatory/observatory-page.component.scss:208` — origin: docs/architecture/decisions.md:720 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-25 — L'accueil se pose dans le ciel que le chrome laisse (D30, étend D29)
 
-- D30: landscape the glass takes at least 324 px and the bar sits left of it (--glass-width) — `src/app/pages/observatory/observatory-page.component.scss:198` — origin: docs/architecture/decisions.md:802 @ b299e1d
+- D30: landscape the glass takes at least 324 px and the bar sits left of it (--glass-width) — `src/app/pages/observatory/observatory-page.component.scss:200` — origin: docs/architecture/decisions.md:802 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-25 — Au doigt, on regarde l'objet de près (D32)
 
@@ -261,7 +261,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/decisions.md — 2026-09-27 — Au téléphone debout, l'accueil dit un nom à la fois, et les pages passent en onglets en bas (D38, amende D27 et D35)
 
 - app-main-nav registers with the scene as the chrome anchor — `src/app/pages/observatory/observatory-page.component.html:21` — origin: docs/architecture/decisions.md:1120 @ b299e1d
-- The designated planet comes from restingPickOf and is passed to the scene by the page — `src/app/pages/observatory/observatory-page.component.ts:207` — origin: docs/architecture/decisions.md:1130 @ b299e1d
+- The designated planet comes from restingPickOf and is passed to the scene by the page — `src/app/pages/observatory/observatory-page.component.ts:200` — origin: docs/architecture/decisions.md:1130 @ b299e1d
 - The designated featured project is the hovered one, else the last read, else the first — `src/app/features/projects/components/featured-bar/featured-bar.component.ts:93` — origin: docs/architecture/decisions.md:1124 @ b299e1d
 - restingPickOf rests on the last featured project read if it is featured, else on the first — `src/app/features/projects/rules/featured-pick.rules.ts:5` — origin: docs/architecture/decisions.md:1130 @ b299e1d
 - In phone portrait only, app-main-nav becomes a fixed bottom tab bar, equal tabs of at least --target, safe-area padding, --paper, a --line top rule, a 2px accent mark on the active tab (:99-117) — `src/app/shared/ui/components/main-nav/main-nav.component.scss:91` — origin: docs/architecture/decisions.md:1111 @ b299e1d
@@ -270,7 +270,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/decisions.md — 2026-09-27 — La traversée et la carte sont l'arrivée par l'accueil (D41)
 
 - A single signal decides for the scene, the arrival of the interface (revealed) — `src/app/pages/observatory/observatory-page.component.html:255` — origin: docs/architecture/decisions.md:1243 @ b299e1d
-- The desktop reads the view from the loaded address before its first render so the revealed signal is right from the first client frame — `src/app/pages/observatory/observatory-page.component.ts:266` — origin: docs/architecture/decisions.md:1245 @ b299e1d
+- The desktop reads the view from the loaded address before its first render so the revealed signal is right from the first client frame — `src/app/pages/observatory/observatory-page.component.ts:259` — origin: docs/architecture/decisions.md:1245 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-27 — À l'à-propos, les quatre figures se voient, se rangent au téléphone et se touchent (D42, étend D33)
 
@@ -281,7 +281,7 @@ knowledge-commit: b299e1d
 - KeptWindowDirective hides a window with inert, content-visibility hidden and data-shown — `src/app/shared/windows/directives/kept-window.directive.ts:17` — origin: docs/architecture/decisions.md:1925 @ b299e1d
 - A requested window shows one frame later (code nests two nextFrame calls) — origin: docs/architecture/decisions.md:1928 @ b299e1d — status: declared
 - Only the window of the current view carries the h1, the others an h2 — `src/app/features/projects/components/project-list/project-list.component.html:22` — origin: docs/architecture/decisions.md:1929 @ b299e1d
-- A returning window replays its rise — `src/app/shared/windows/components/window/window.component.ts:90` — origin: docs/architecture/decisions.md:1931 @ b299e1d
+- A returning window replays its rise — `src/app/shared/windows/components/window/window.component.ts:92` — origin: docs/architecture/decisions.md:1931 @ b299e1d
 - Another sheet starts back at the top — `src/app/features/projects/components/project-detail/project-detail.component.ts:138` — origin: docs/architecture/decisions.md:1932 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Les boutons de la fenêtre disent ce qu'ils font, au bureau comme au téléphone (D63)
@@ -295,10 +295,10 @@ knowledge-commit: b299e1d
 - WindowFrameDirective writes transform, size and data-frame — `src/app/shared/windows/directives/window-frame.directive.ts:55` — origin: docs/architecture/decisions.md:2036 @ b299e1d
 - Left and right edges snap to half screen and the top edge maximizes — `src/app/shared/windows/rules/window-frame.rules.ts:92` — origin: docs/architecture/decisions.md:2038 @ b299e1d
 - Resize goes from 320 x 200 — `src/app/shared/windows/rules/window-frame.rules.ts:14` — origin: docs/architecture/decisions.md:2041 @ b299e1d
-- Double click on the bar maximizes then restores — `src/app/shared/windows/components/window/window.component.ts:136` — origin: docs/architecture/decisions.md:2041 @ b299e1d
+- Double click on the bar maximizes then restores — `src/app/shared/windows/components/window/window.component.ts:138` — origin: docs/architecture/decisions.md:2041 @ b299e1d
 - Frame code loads apart through FormatCodeService for desktop and tablet — `src/app/shared/windows/directives/window-frame.directive.ts:74` — origin: docs/architecture/decisions.md:2044 @ b299e1d
 - DraggableDirective and FitHeightDirective are gone (no match in src) — `src/app/shared/windows/directives/index.ts:1` — origin: docs/architecture/decisions.md:2047 @ b299e1d
-- Folding the window into its bar remains only at phone (double press folds only when the fold port is active) — `src/app/shared/windows/components/window/window.component.ts:137` — origin: docs/architecture/decisions.md:2047 @ b299e1d
+- Folding the window into its bar remains only at phone (double press folds only when the fold port is active) — `src/app/shared/windows/components/window/window.component.ts:139` — origin: docs/architecture/decisions.md:2047 @ b299e1d
 - window-frame-tracker and window-controls-rules are two lazily loaded chunks — `src/app/shared/windows/directives/window-frame.directive.ts:38` — origin: docs/architecture/decisions.md:2056 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au bureau, une fenêtre gardée reste là, sa barre reste à portée, et sa hauteur ne saute plus (D68, amende D62 et D65)
@@ -315,7 +315,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/decisions.md — 2026-10-03 — Au bureau, la barre d'une fenêtre est celle d'un programme : Réduire, Épingler, Agrandir, Fermer (D101, amende D74 et D81)
 
 - Four buttons in order Minimize Pin Maximize Close — `src/app/shared/windows/components/window-controls/window-controls.component.ts:30` — origin: docs/architecture/decisions.md:3019 @ b299e1d
-- The home preview has only Pin and Close — `src/app/shared/windows/components/window/window.component.ts:75` — origin: docs/architecture/decisions.md:3021 @ b299e1d
+- The home preview has only Pin and Close — `src/app/shared/windows/components/window/window.component.ts:77` — origin: docs/architecture/decisions.md:3021 @ b299e1d
 - Snapping while dragging remains — `src/app/shared/windows/rules/window-frame.rules.ts:97` — origin: docs/architecture/decisions.md:3023 @ b299e1d
 - The window menu disappears with its code, its texts and left/right halves — `src/app/shared/windows/ports/window-texts.port.ts:8` — origin: docs/architecture/decisions.md:3022 @ b299e1d
 - D101: minimizing keeps the entry dot and the focus goes to that page-bar entry (focusRoute, called by features/observatory/services/tab-navigation.service.ts:96) — `src/app/shared/ui/components/main-nav/main-nav.component.ts:30` — origin: docs/architecture/decisions.md:3025 @ b299e1d
@@ -330,7 +330,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/windows/directives/double-press.directive.ts`
 
-- Double tap folds the window like double click — `src/app/shared/windows/components/window/window.component.ts:136` — origin: docs/architecture/raisons/core-et-interface.md:280 @ b299e1d
+- Double tap folds the window like double click — `src/app/shared/windows/components/window/window.component.ts:138` — origin: docs/architecture/raisons/core-et-interface.md:280 @ b299e1d
 - Two taps count within 350 ms and 24 px, more than 10 px is a drag — `src/app/shared/windows/directives/double-press.directive.ts:4` — origin: docs/architecture/raisons/core-et-interface.md:288 @ b299e1d
 - A press on a button or link does not count — `src/app/shared/windows/directives/double-press.directive.ts:40` — origin: docs/architecture/raisons/core-et-interface.md:290 @ b299e1d
 
@@ -372,7 +372,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au bureau, la barre d'une fenêtre ne garde qu'Agrandir et Fermer ; le reste passe dans le menu de la fenêtre (D74, amende D63 et D65)
 
-- The home preview has no double click that maximizes — `src/app/shared/windows/components/window/window.component.ts:75` — origin: docs/architecture/decisions.md:2298 @ b299e1d
+- The home preview has no double click that maximizes — `src/app/shared/windows/components/window/window.component.ts:77` — origin: docs/architecture/decisions.md:2298 @ b299e1d
 - Maximize and restore animate in 280 ms, without animation under reduced motion — `src/app/shared/windows/directives/window-frame.directive.ts:34` — origin: docs/architecture/decisions.md:2306 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au bureau, les fenêtres ne sélectionnent rien au glisser, restent au-dessus du rail, et F6 passe de l'une à l'autre (D78, amende D68 et D76)
@@ -384,7 +384,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au bureau, une fenêtre gardée se voit, le menu se lit comme un menu, et une fenêtre neuve se pose là où elle couvre le moins (D81, amende D74 et D76)
 
-- A window kept open carries a pin next to its title and its accessible name says kept open — `src/app/shared/windows/components/window/window.component.ts:84` — origin: docs/architecture/decisions.md:2486 @ b299e1d
+- A window kept open carries a pin next to its title and its accessible name says kept open — `src/app/shared/windows/components/window/window.component.ts:86` — origin: docs/architecture/decisions.md:2486 @ b299e1d
 - Double click maximizes from the whole bar except controls — `src/app/shared/windows/directives/double-press.directive.ts:68` — origin: docs/architecture/decisions.md:2494 @ b299e1d
 - WindowStackService.frontShownOf is gone, the stack gives all shown windows — `src/app/shared/windows/services/window-stack.service.ts:47` — origin: docs/architecture/decisions.md:2495 @ b299e1d
 
@@ -418,7 +418,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/shared/ui/components/social-links/`
 
-- The contact rail arrives with the rest of the home page following Entrance (timed, held, shown) — `src/app/shared/ui/components/social-links/social-links.component.ts:21` — origin: docs/architecture/raisons/core-et-interface.md:167 @ b299e1d
+- The contact rail arrives with the rest of the home page following Entrance (timed, withheld, shown) — `src/app/shared/ui/components/social-links/social-links.component.ts:21` — origin: docs/architecture/raisons/core-et-interface.md:167 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, la vitre garde son flou quand la caméra voyage (D67, amende D46)
 

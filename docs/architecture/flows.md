@@ -37,7 +37,7 @@ knowledge-commit: b299e1d
 ## Home intro and tour
 
 1. `HomeRevealService.start` holds the rest until presence or `--arrival-at` — `src/app/features/observatory/services/home-reveal.service.ts:42`
-2. Skip button calls `arrive()` while held — `src/app/features/observatory/components/intro-skip/intro-skip.component.html:2`
+2. Skip button calls `arrive()` while withheld — `src/app/features/observatory/components/intro-skip/intro-skip.component.html:2`
 3. `FeaturedTourService.play` waits 4200 ms then hovers each featured slug — `src/app/features/observatory/services/featured-tour.service.ts:21`
 
 ## Scene
@@ -52,49 +52,49 @@ knowledge-commit: b299e1d
 
 ## Copy contact address
 
-1. `ContactLinksComponent.copy()` / `ContactMenuComponent.copy()` — `src/app/features/profile/components/contact-links/contact-links.component.ts:56`
+1. `ContactLinksComponent.copy()` / `ContactMenuComponent.copy()` — `src/app/features/profile/components/contact-links/contact-links.component.ts:57`
 2. `CopyFeedbackService.copy` → `isCopied` 4 s → `<output>` announces — `src/app/features/profile/services/copy-feedback.service.ts:20`, `src/app/features/profile/components/contact-links/contact-links.component.html:13`
 
 ## CI / deploy
 
-1. Triggers: PR, push main/dev, dispatch; concurrency per ref — `.github/workflows/ci.yml:8`, `.github/workflows/ci.yml:18`
-2. Jobs lint (format, typecheck tools, lint, structure, comments), test (coverage artifact), build (base-href, SITE_URL define, build:finish, check:prerender, artifact with hidden files) — `.github/workflows/ci.yml:31`, `.github/workflows/ci.yml:47`, `.github/workflows/ci.yml:64`
-3. Sonar on PR and non-dev pushes, waits quality gate — `.github/workflows/ci.yml:84`
-4. Deploy: checks, staging closing (.htaccess rewrite, Basic auth, robots, no sitemap), htpasswd, lftp SFTP mirror with pinned host key — `.github/workflows/ci.yml:108`, `.github/workflows/ci.yml:186`, `.github/workflows/ci.yml:263`
+1. Triggers: PR, push main/dev, dispatch; concurrency per ref — `.github/workflows/ci.yml:3`, `.github/workflows/ci.yml:12`
+2. Jobs lint (format, typecheck tools, lint, structure, comments), test (coverage artifact), build (base-href, SITE_URL define, build:finish, check:prerender, artifact with hidden files) — `.github/workflows/ci.yml:21`, `.github/workflows/ci.yml:37`, `.github/workflows/ci.yml:54`
+3. Sonar on PR and non-dev pushes, waits quality gate — `.github/workflows/ci.yml:74`
+4. Deploy: checks, staging closing (.htaccess rewrite, Basic auth, robots, no sitemap), htpasswd, lftp SFTP mirror with pinned host key — `.github/workflows/ci.yml:94`, `.github/workflows/ci.yml:156`, `.github/workflows/ci.yml:209`
 
 ## A spec that renders an observatory component
 
 1. Provide French texts and links — `src/testing/fixtures/texts.fixture.ts:12`
 2. Put the format with `stubMedia` / `resizeTo` / `stubViewport` — `src/testing/doubles/browser.double.ts:19`, `src/testing/doubles/browser.double.ts:10`, `src/testing/doubles/browser.double.ts:5`
-3. Set tokens the global stylesheet would give (`--arrival-at`, `--intro-duration`) on `<html>` — `src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:14`, `src/app/features/observatory/components/intro-card/intro-card.component.spec.ts:15`
-4. Tear down in `afterEach` (`removeProperty`, `useRealTimers`, `unstubAllGlobals`) — `src/app/features/observatory/services/home-reveal.service.spec.ts:40`
+3. Set tokens the global stylesheet would give (`--arrival-at`, `--intro-duration`) on `<html>` — `src/app/features/observatory/components/intro-skip/intro-skip.component.spec.ts:15`, `src/app/features/observatory/components/intro-card/intro-card.component.spec.ts:16`
+4. Tear down in `afterEach` (`removeProperty`, `useRealTimers`, `unstubAllGlobals`) — `src/app/features/observatory/services/home-reveal.service.spec.ts:41`
 
 ## Local gate (`npm run check`)
 
-1. format:check, typecheck:tools (JS configs and scripts, `tsconfig.tools.json:19-24`) — `package.json:22`, `package.json:27`
-2. lint: ESLint then Stylelint, `--max-warnings 0` — `package.json:18`; ESLint first asserts folders vs lists — `eslint.config.ts:15-46`
+1. format:check, typecheck:tools (JS configs and scripts, `tsconfig.tools.json:15-20`) — `package.json:22`, `package.json:27`
+2. lint: ESLint then Stylelint, `--max-warnings 0` — `package.json:18`; ESLint first asserts folders vs lists — `eslint.config.ts:15-44`
 3. test: `ng test --watch=false` (Vitest runner, `angular.json:82`) — `package.json:16`
-4. build + `build:finish` — `package.json:12-13`; then check:prerender, check:structure --strict, check:comments src — `package.json:24`, `package.json:25`, `package.json:23`
+4. build + `build:finish` — `package.json:12-13`; then check:prerender, check:structure --strict, check:comments — `package.json:24`, `package.json:25`, `package.json:23`
 
 ## Commit
 
 1. Husky installed by `prepare` — `package.json:26`
 2. `commit-msg` hook runs commitlint on the message — `.husky/commit-msg:1`
-3. rule set = config-conventional, nothing else — `commitlint.config.ts:2`
+3. rule set = config-conventional, nothing else — `commitlint.config.ts:1`
 
 ## CI (.github/workflows/ci.yml, read to check claims; outside the zone globs)
 
-1. lint, test (coverage), build jobs in parallel — `.github/workflows/ci.yml:31`, `.github/workflows/ci.yml:47`, `.github/workflows/ci.yml:64`
-2. sonar after test, quality gate waited, skipped on dev pushes — `.github/workflows/ci.yml:88`, `.github/workflows/ci.yml:106`
-3. deploy on main/dev pushes and manual runs, from the build artifact, SFTP with pinned host key — `.github/workflows/ci.yml:110-118`, `.github/workflows/ci.yml:299`, `.github/workflows/ci.yml:307`
+1. lint, test (coverage), build jobs in parallel — `.github/workflows/ci.yml:21`, `.github/workflows/ci.yml:37`, `.github/workflows/ci.yml:54`
+2. sonar after test, quality gate waited, skipped on dev pushes — `.github/workflows/ci.yml:76`, `.github/workflows/ci.yml:92`
+3. deploy on main/dev pushes and manual runs, from the build artifact, SFTP with pinned host key — `.github/workflows/ci.yml:96-104`, `.github/workflows/ci.yml:244`, `.github/workflows/ci.yml:252`
 
 ## Turning the scene by drag
 
-1. window-level capturing `pointerdown` stops the click absorber; primary pointers go to `grab` — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:35-44`
-2. reject if no scene, non-left button, or not on sky — `:54` → `src/app/shared/space-scene/rules/gestures/sky-touch.rules.ts:7`
-3. `scene.grab` must accept; cursor `grabbing`; listeners for that pointer id — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:57-83`
-4. `pointermove` → `scene.turn`; `pointerup`/`pointercancel` → `release` — `:68`, `:75`, `:80`
-5. release: if it was a drag, absorb the next click — `:86-91`
+1. window-level capturing `pointerdown` stops the click absorber; primary pointers go to `grab` — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:20-29`
+2. reject if no scene, non-left button, or not on sky — `:39` → `src/app/shared/space-scene/rules/gestures/sky-touch.rules.ts:7`
+3. `scene.grab` must accept; cursor `grabbing`; listeners for that pointer id — `src/app/shared/space-scene/directives/turn-gesture.directive.ts:42-68`
+4. `pointermove` → `scene.turn`; `pointerup`/`pointercancel` → `release` — `:53`, `:58`, `:63`
+5. release: if it was a drag, absorb the next click — `:71-77`
 
 ## Registering a scene target
 
@@ -109,8 +109,8 @@ knowledge-commit: b299e1d
 
 1. `provideI18n` provides the text tokens, SITE_NAME and LINKS, and an initializer loads the catalogue of the current language — `src/app/i18n/providers/i18n.provider.ts:69`
 2. `LocaleService.path` falls back to `Location.path()` before the first navigation — `src/app/core/services/i18n/locale.service.ts:9`, :13
-3. `ObservatoryPageComponent` is mounted by AppComponent, outside the router (app.component.ts:9). Its constructor reads the view from the address, calls `syncRoute`, then `publishOnRoot` — `src/app/pages/observatory/observatory-page.component.ts:263-268`
-4. `afterNextRender` starts the home reveal, then the featured tour — `src/app/pages/observatory/observatory-page.component.ts:276-280`
+3. `ObservatoryPageComponent` is mounted by AppComponent, outside the router (app.component.html:5). Its constructor reads the view from the address, calls `syncRoute`, then `publishOnRoot` — `src/app/pages/observatory/observatory-page.component.ts:256-261`
+4. `afterNextRender` starts the home reveal, then the featured tour — `src/app/pages/observatory/observatory-page.component.ts:270-274`
 
 ## Navigation
 
@@ -129,7 +129,7 @@ knowledge-commit: b299e1d
 ## Frame loop
 
 1. `request()` → `wake()` → host.frame(tick) — `src/app/shared/space-scene/engine/space-scene.engine.ts:252`, `src/app/shared/space-scene/engine/frame-loop.engine.ts:38`
-2. tick → step → advance + draw ; it re-arms while not settled, held or turning — `src/app/shared/space-scene/engine/space-scene.engine.ts:280-288`
+2. tick → step → advance + draw ; it re-arms while not settled, gripped or turning — `src/app/shared/space-scene/engine/space-scene.engine.ts:280-288`
 
 ## One frame of the scene (body of `tick → step → advance + draw` named in knowledge-3)
 
@@ -162,13 +162,13 @@ knowledge-commit: b299e1d
 ## Build and post-build
 
 1. `ng build && build:finish` — `package.json:12`
-2. 404 pages moved to 404.html / en/404.html, noindex — `scripts/finish-build.ts:50`, `scripts/finish-build.ts:95`
-3. sitemap.xml and robots.txt from page-head links — `scripts/finish-build.ts:107`
-4. check:prerender reads dist — `scripts/check-prerender.ts:346`
+2. 404 pages moved to 404.html / en/404.html, noindex — `scripts/finish-build.ts:29`, `scripts/finish-build.ts:69`
+3. sitemap.xml and robots.txt from page-head links — `scripts/finish-build.ts:81`
+4. check:prerender reads dist — `scripts/check-prerender.ts:4`
 
 ## Desktop window drag
 
-1. WindowComponent hands section+bar after first render — `src/app/shared/windows/components/window/window.component.ts:100`
+1. WindowComponent hands section+bar after first render — `src/app/shared/windows/components/window/window.component.ts:102`
 2. Directive stores parts, lazy-loads tracker for desktop/tablet — `src/app/shared/windows/directives/window-frame.directive.ts:74`, `src/app/shared/windows/directives/window-frame.directive.ts:101`, `src/app/shared/windows/directives/window-frame.directive.ts:143`
 3. Tracker listens bar/edge pointerdown and window resize — `src/app/shared/windows/trackers/window-frame.tracker.ts:61`
 4. Grab creates WindowDragTracker — `src/app/shared/windows/trackers/window-frame.tracker.ts:193`
@@ -186,7 +186,7 @@ knowledge-commit: b299e1d
 
 1. Feature host sets `--window-body-padding` on a `display: contents` host — `src/app/features/projects/components/project-list/project-list.component.scss:5-8`
 2. `app-window` host is `display: contents` too, so the property inherits through — `src/app/shared/windows/components/window/window.component.scss:6`
-3. `.body` reads it with a fallback — `src/app/shared/windows/components/window/window.component.scss:104` ; overflow/overscroll the same way from the page slot — `src/app/pages/observatory/observatory-page.component.scss:151`, `src/app/pages/observatory/observatory-page.component.scss:186`
+3. `.body` reads it with a fallback — `src/app/shared/windows/components/window/window.component.scss:104` ; overflow/overscroll the same way from the page slot — `src/app/pages/observatory/observatory-page.component.scss:151`, `src/app/pages/observatory/observatory-page.component.scss:188`
 4. pager.in-window then inherits that overflow (`overflow-y: inherit`) — `src/assets/styles/mixins/_pager.scss:20`, `src/assets/styles/mixins/_pager.scss:29`
 
 ## Phone index swipe (CSS side)
@@ -199,7 +199,7 @@ knowledge-commit: b299e1d
 
 1. Host attribute from the `arrival` input — `src/app/features/projects/components/featured-bar/featured-bar.component.ts:41`, `src/app/features/projects/components/featured-bar/featured-bar.component.ts:50`
 2. timed: `rise` at `--arrival-at + 400ms` over 1300 ms — `src/app/features/projects/components/featured-bar/featured-bar.component.scss:11`, `src/assets/styles/mixins/_arrival.scss:10` ; `@keyframes rise` at `src/assets/styles/_motion.scss:1` ; `--arrival-at: 8700ms` at `src/assets/styles/_tokens.scss:65`, also read by TS `src/app/features/observatory/services/home-reveal.service.ts:49`
-3. held / shown — `src/app/features/projects/components/featured-bar/featured-bar.component.scss:21`, `src/app/features/projects/components/featured-bar/featured-bar.component.scss:25`
+3. withheld / shown — `src/app/features/projects/components/featured-bar/featured-bar.component.scss:21`, `src/app/features/projects/components/featured-bar/featured-bar.component.scss:25`
 
 ## Window stacking and frame animation (CSS side)
 
@@ -208,19 +208,19 @@ knowledge-commit: b299e1d
 
 ## Back closes an overlay (stacked mode)
 
-1. Overlay opens: `ActionMenuComponent.show` calls `backLayers.push` — `src/app/shared/mobile-nav/components/action-menu/action-menu.component.ts:112`
-2. Layer stacked, history entry pushed with depth — `src/app/shared/mobile-nav/services/back-layers.service.ts:64-69`
-3. Browser Back pops; `popped` reads depth, closes layers above — `src/app/shared/mobile-nav/services/back-layers.service.ts:106-117`
-4. Closing from UI instead goes back `stepsBack` and swallows the pop — `src/app/shared/mobile-nav/services/back-layers.service.ts:76-83`
-5. Leaving the page drops all layers via `onLeave` — `src/app/shared/mobile-nav/services/back-layers.service.ts:97`
+1. Overlay opens: `ActionMenuComponent.show` calls `backLayers.push` — `src/app/shared/mobile-nav/components/action-menu/action-menu.component.ts:116`
+2. Layer stacked, history entry pushed with depth — `src/app/shared/mobile-nav/services/back-layers.service.ts:76-82`
+3. Browser Back pops; `popped` reads depth, closes layers above — `src/app/shared/mobile-nav/services/back-layers.service.ts:191-202`
+4. Closing from UI instead goes back `stepsBack` and swallows the pop — `src/app/shared/mobile-nav/services/back-layers.service.ts:113-121`
+5. Leaving the page drops all layers via `onLeave` — `src/app/shared/mobile-nav/services/back-layers.service.ts:141`
 
 ## Bottom sheet drag to detent
 
-1. Touch start -> `ScrollReleaseDirective.pressed` — `src/app/shared/mobile-nav/directives/scroll-release.directive.ts:98`
-2. Lift off -> `released{speed,pull}` — `src/app/shared/mobile-nav/directives/scroll-release.directive.ts:111`
-3. `letGo` computes target detent or dismissal — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:142-160`
-4. `head` scrolls rail to the stop, `commit` writes CSS vars and `detent` model — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:227`, `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:277`
-5. `BackClaimService` claims Back when detent becomes full — `src/app/shared/mobile-nav/services/back-claim.service.ts:36-45`
+1. Touch start -> `ScrollReleaseDirective.pressed` — `src/app/shared/mobile-nav/directives/scroll-release.directive.ts:96`
+2. Lift off -> `released{speed,pull}` — `src/app/shared/mobile-nav/directives/scroll-release.directive.ts:109`
+3. `letGo` computes target detent or dismissal — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:151-169`
+4. `head` scrolls rail to the stop, `commit` writes CSS vars and `detent` model — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:223`, `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:276`
+5. `BackClaimService` claims Back when detent becomes full — `src/app/shared/mobile-nav/services/back-claim.service.ts:42-51`
 
 ## Scene engine creation
 
@@ -312,12 +312,12 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Au téléphone, « Contact » ouvre une feuille d'actions, et le retour la ferme d'abord (D60, amende D27)
 
-- D60: back closes the sheet before the view: with CloseWatcher the dialog receives it ; without it BackLayersService pushes a history entry on the same address (line 68) and takes it back when the page closes (line 97) — `src/app/shared/mobile-nav/services/back-layers.service.ts:34` — origin: docs/architecture/decisions.md:1877 @ b299e1d
+- D60: back closes the sheet before the view: with CloseWatcher the dialog receives it ; without it BackLayersService pushes a history entry on the same address (line 81) and takes it back when the page closes (line 141) — `src/app/shared/mobile-nav/services/back-layers.service.ts:46` — origin: docs/architecture/decisions.md:1877 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, une feuille se reconnaît, et le retour la baisse avant de quitter la page (D84, amende D57, D60 et D64)
 
-- D84: BackLayersService.claim creates a CloseWatcher per layer where the browser has one (watch, line 56), a history entry elsewhere (stack) ; a router navigation releases the layer in both cases (onLeave, lines 57 and 97) — `src/app/shared/mobile-nav/services/back-layers.service.ts:37` — origin: docs/architecture/decisions.md:2586 @ b299e1d
-- D84: push stays the dialog path (no-op when the browser closes on back) — `src/app/shared/mobile-nav/services/back-layers.service.ts:33` — origin: docs/architecture/decisions.md:2590 @ b299e1d
+- D84: BackLayersService.claim creates a CloseWatcher per layer where the browser has one (watch, line 55), a history entry elsewhere (stack) ; a router navigation releases the layer in both cases (onLeave, lines 69 and 141) — `src/app/shared/mobile-nav/services/back-layers.service.ts:49` — origin: docs/architecture/decisions.md:2586 @ b299e1d
+- D84: push stays the dialog path (no-op when the browser closes on back) — `src/app/shared/mobile-nav/services/back-layers.service.ts:45` — origin: docs/architecture/decisions.md:2590 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-10-02 — Au téléphone, chaque onglet garde sa place, et le retour mène à l'accueil avant de quitter le site (D91, amende D57 et D62)
 
@@ -325,9 +325,9 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-10-02 — Au téléphone, une navigation relâche la couche de retour d'une feuille sans la baisser (D94, amende D84)
 
-- D94: BackLayersService.claim takes a second callback for navigation (onLeave) which releases without changing the detent (back-claim.service.ts:70) — `src/app/shared/mobile-nav/services/back-layers.service.ts:37` — origin: docs/architecture/decisions.md:2849 @ b299e1d
-- D94: BackClaimService.follow tracks the sheet detent and visibility (wanted = active and full ; seen at line 54) — `src/app/shared/mobile-nav/services/back-claim.service.ts:32` — origin: docs/architecture/decisions.md:2850 @ b299e1d
-- D94: a hidden sheet (zero height under content-visibility) never retakes a layer (retake only when clientHeight > 0) — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:247` — origin: docs/architecture/decisions.md:2848 @ b299e1d
+- D94: BackLayersService.claim takes a second callback for navigation (onLeave) which releases without changing the detent (back-claim.service.ts:85) — `src/app/shared/mobile-nav/services/back-layers.service.ts:49` — origin: docs/architecture/decisions.md:2849 @ b299e1d
+- D94: BackClaimService.follow tracks the sheet detent and visibility (wanted = active and full ; seen at line 72) — `src/app/shared/mobile-nav/services/back-claim.service.ts:38` — origin: docs/architecture/decisions.md:2850 @ b299e1d
+- D94: a hidden sheet (zero height under content-visibility) never retakes a layer (retake only when clientHeight > 0) — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:243` — origin: docs/architecture/decisions.md:2848 @ b299e1d
 - #208 (ends the D94 known limit): a sheet still drawn retakes its layer one frame after the navigation ends, is cancelled or fails, not only on the next resize — `src/app/shared/mobile-nav/services/back-claim.service.ts:60`
 - #208: without a close watcher, the layer entries a cancelled or failed navigation leaves are adopted by the layers that retake them, and the rest is removed two frames later with one swallowed `history.back(n)`, so one layer never has two entries and no entry stays without a layer — `src/app/shared/mobile-nav/services/back-layers.service.ts:88`
 

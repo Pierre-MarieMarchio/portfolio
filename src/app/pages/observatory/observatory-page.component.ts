@@ -67,9 +67,9 @@ import { pathOf, ViewLinksService } from '@app/i18n';
 import {
   BottomSheetComponent,
   PagerComponent,
+  PagerDotsComponent,
   PagerPageComponent,
 } from '@shared/mobile-nav/components';
-import { PagerDotsComponent } from '@shared/mobile-nav/components/pager-dots/pager-dots.component';
 import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import type { LayoutBox } from '@shared/space-scene/models';

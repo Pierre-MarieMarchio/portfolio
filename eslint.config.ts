@@ -130,6 +130,7 @@ interface Zone {
   name: string;
   why: string;
   denies: string[];
+  dir?: string;
 }
 
 const ZONES: Zone[] = [
@@ -138,10 +139,12 @@ const ZONES: Zone[] = [
     name: 'core/',
     why: 'infrastructure: it must not know a business concept exists',
     denies: ['features', 'shared', 'i18n', 'pages', 'root'],
+    dir: 'core',
   },
   ...SHARED_LIBS.map((lib) => ({
     files: [`${APP}/shared/${lib}/**/*.ts`],
     name: `shared/${lib}/`,
+    dir: `shared/${lib}`,
     why: STANDALONE_LIBS.includes(lib) ? STANDALONE_WHY : LIBRARY_WHY,
     denies: [
       ...(STANDALONE_LIBS.includes(lib) ? ['core'] : []),
@@ -159,10 +162,12 @@ const ZONES: Zone[] = [
     name: 'features/common/',
     why: 'the shared kernel: it imports nothing from this repository at all',
     denies: ['core', 'shared', 'features', 'i18n', 'pages', 'root', 'escapes'],
+    dir: 'features/common',
   },
   ...FEATURES.map((feature) => ({
     files: [`${APP}/features/${feature}/**/*.ts`],
     name: `features/${feature}/`,
+    dir: `features/${feature}`,
     why: FEATURE_WHY,
     denies: [
       ...FEATURES.filter((other) => other !== feature),
@@ -176,14 +181,115 @@ const ZONES: Zone[] = [
     name: 'i18n/',
     why: 'the texts and the addresses: they serve the pages and know none',
     denies: ['pages', 'root'],
+    dir: 'i18n',
   },
   {
     files: [`${APP}/pages/**/*.ts`],
     name: 'pages/',
     why: 'composition: it may reach for any feature, never for the root that boots it',
     denies: ['root'],
+    dir: 'pages',
+  },
+  {
+    files: ['src/testing/**/*.ts'],
+    name: 'testing/',
+    why: 'the support of the specs: it reaches the zones the way a zone does',
+    denies: [],
   },
 ];
+
+type BarrelWhy = `bundle size: ${string}` | `internal unit: ${string}`;
+
+interface BarrelException {
+  path: string;
+  why: BarrelWhy;
+}
+
+const BARREL_EXCEPTIONS: BarrelException[] = [
+  {
+    path: '@app/i18n/data/en.data',
+    why: 'bundle size: the catalogs are loaded by import() on demand, and exporting them from @app/i18n moves them into the initial bundle (ng build initial total 544.60 kB to 551.81 kB)',
+  },
+  {
+    path: '@app/i18n/data/fr.data',
+    why: 'bundle size: the catalogs are loaded by import() on demand, and exporting them from @app/i18n moves them into the initial bundle (ng build initial total 544.60 kB to 551.81 kB)',
+  },
+  {
+    path: '@app/i18n/data/en-profile.data',
+    why: 'bundle size: the catalogs are loaded by import() on demand, and exporting them from @app/i18n moves them into the initial bundle (ng build initial total 544.60 kB to 551.81 kB)',
+  },
+  {
+    path: '@app/i18n/data/fr-profile.data',
+    why: 'bundle size: the catalogs are loaded by import() on demand, and exporting them from @app/i18n moves them into the initial bundle (ng build initial total 544.60 kB to 551.81 kB)',
+  },
+  {
+    path: '@shared/space-scene/engine/space-scene.engine',
+    why: 'internal unit: the engine is private to the scene library and loaded on demand; only the fixtures of its own specs reach for it',
+  },
+  {
+    path: '@shared/space-scene/engine/remote-scene.engine',
+    why: 'internal unit: the engine is private to the scene library and loaded on demand; only the fixtures of its own specs reach for it',
+  },
+  {
+    path: '@shared/space-scene/engine/scene-worker.engine',
+    why: 'internal unit: the engine is private to the scene library and loaded on demand; only the fixtures of its own specs reach for it',
+  },
+  {
+    path: '@shared/space-scene/rules/hole-focus.rules',
+    why: 'internal unit: the scene rules are private to the scene library; only the fixtures of its own specs reach for them',
+  },
+  {
+    path: '@shared/space-scene/rules/camera/camera-frames.rules',
+    why: 'internal unit: the scene rules are private to the scene library; only the fixtures of its own specs reach for them',
+  },
+  {
+    path: '@shared/space-scene/rules/figures/figure-room.rules',
+    why: 'internal unit: the scene rules are private to the scene library; only the fixtures of its own specs reach for them',
+  },
+  {
+    path: '@app/features/projects/data/projects.data.json',
+    why: 'internal unit: the raw file behind PROJECTS; only the drafts integration spec reads it, to count the drafts',
+  },
+];
+
+const aliasesOf = (dir: string): string[] =>
+  dir.startsWith('shared/')
+    ? [`@shared/${dir.slice('shared/'.length)}`, `@app/${dir}`]
+    : [`@app/${dir}`];
+
+const foldersOf = (dir: string): string[] =>
+  readdirSync(`${APP}/${dir}`, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+const escapeRegex = (text: string): string =>
+  text.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+
+const exceptionsIn = (dir: string, folder: string): string[] =>
+  BARREL_EXCEPTIONS.flatMap(({ path }) =>
+    aliasesOf(dir).flatMap((alias) =>
+      path.startsWith(`${alias}/${folder}/`)
+        ? [path.slice(`${alias}/${folder}/`.length)]
+        : [],
+    ),
+  );
+
+const barrelPatterns = (own: string | undefined, zones: Zone[]) =>
+  zones.flatMap(({ dir }) =>
+    dir === undefined || dir === own
+      ? []
+      : foldersOf(dir).map((folder) => {
+          const [barrel = ''] = aliasesOf(dir);
+          const allowed = exceptionsIn(dir, folder).map(escapeRegex);
+          const prefix = aliasesOf(dir).map(escapeRegex).join('|');
+          const except =
+            allowed.length > 0 ? `(?!(?:${allowed.join('|')})$)` : '';
+          return {
+            regex: `^(?:${prefix})/${folder}/${except}`,
+            message: `reaches past the barrel: import from '${barrel}/${folder}', or write the exception in BARREL_EXCEPTIONS (eslint.config.ts) with its why. See docs/conventions/code.md.`,
+          };
+        }),
+  );
 
 const GROUPS: Record<string, string[]> = {
   core: [
@@ -235,17 +341,22 @@ function zoneLaws({
   zones: Zone[];
   groups: Record<string, string[]>;
 }): Linter.Config[] {
-  return zones.map(({ files, name, why, denies }) => ({
+  return zones.map(({ files, name, why, denies, dir }) => ({
     files,
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
           patterns: [
-            {
-              group: denies.flatMap((denied) => groups[denied] ?? []),
-              message: `${name} — ${why}. See docs/architecture/organisation.md, §2.`,
-            },
+            ...(denies.length > 0
+              ? [
+                  {
+                    group: denies.flatMap((denied) => groups[denied] ?? []),
+                    message: `${name} — ${why}. See docs/architecture/organisation.md, §2.`,
+                  },
+                ]
+              : []),
+            ...barrelPatterns(dir, zones),
           ],
         },
       ],

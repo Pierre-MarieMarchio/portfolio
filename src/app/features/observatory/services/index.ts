@@ -5,3 +5,4 @@ export { MobileNavPlatformService } from './mobile-nav-platform.service';
 export { ProjectSheetService } from './project-sheet.service';
 export { TabNavigationService } from './tab-navigation.service';
 export { ViewWindowsService } from './view-windows.service';
+export { SceneSurroundingsService } from './scene-surroundings.service';

@@ -1,7 +1,4 @@
-import type {
-  LookableScene,
-  WindowEvents,
-} from '@shared/space-scene/models/scene-look.model';
+import type { LookableScene, WindowEvents } from '@shared/space-scene/models';
 
 export class LookableSceneDouble implements LookableScene {
   public readonly holds: [number, number][] = [];

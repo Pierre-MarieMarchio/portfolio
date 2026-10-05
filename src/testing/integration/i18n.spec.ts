@@ -15,11 +15,15 @@ import {
   ObservatoryEffect,
   ObservatoryManager,
 } from '@app/features/observatory/states';
-import { CatalogLoaderService, provideI18n, translatePath } from '@app/i18n';
+import {
+  CatalogLoaderService,
+  OWNER_NAME,
+  provideI18n,
+  translatePath,
+} from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
-import { OWNER_NAME } from '@app/i18n/data/owner.data';
-import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
+import { ObservatoryPageComponent } from '@app/pages/observatory';
 import { routes } from '@app/app.routes';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 

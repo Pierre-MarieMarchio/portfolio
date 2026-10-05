@@ -16,7 +16,7 @@ import {
   ObservatoryEffect,
   ObservatoryManager,
 } from '@app/features/observatory/states';
-import { ObservatoryPageComponent } from '@app/pages/observatory/observatory-page.component';
+import { ObservatoryPageComponent } from '@app/pages/observatory';
 
 const entries = (count: number): ProjectEntry[] =>
   Array.from({ length: count }, (_, index) =>

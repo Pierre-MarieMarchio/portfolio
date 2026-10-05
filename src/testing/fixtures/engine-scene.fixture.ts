@@ -7,8 +7,8 @@ import {
   SceneBody,
   SceneDirection,
   SceneInputs,
-} from '@shared/space-scene/models/scene.model';
-import { SceneLayout } from '@shared/space-scene/models/scene-layout.model';
+  SceneLayout,
+} from '@shared/space-scene/models';
 import * as holeFocusRules from '@shared/space-scene/rules/hole-focus.rules';
 import { drivenHost } from '../doubles/driven-host.double';
 import { recordingContext } from '../doubles/recording-canvas.double';

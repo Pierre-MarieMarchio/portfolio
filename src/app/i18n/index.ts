@@ -13,3 +13,4 @@ export {
   viewTitle,
 } from './resolvers/page-head.resolver';
 export { ViewLinksService } from './services/view-links.service';
+export { OWNER_NAME } from './data/owner.data';

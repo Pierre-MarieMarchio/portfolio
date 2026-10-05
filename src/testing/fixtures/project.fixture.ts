@@ -11,7 +11,7 @@ import {
   ProjectSource,
   RankedProject,
 } from '@app/features/projects/models';
-import { rank } from '@app/features/projects/rules/ranking.rules';
+import { rank } from '@app/features/projects/rules';
 import { provideTexts } from './texts.fixture';
 import { ProjectsRepositoryService } from '@app/features/projects/services';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';

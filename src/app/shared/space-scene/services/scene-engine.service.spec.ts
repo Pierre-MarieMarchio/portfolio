@@ -4,6 +4,7 @@ import { AnimatedCanvasService } from './animated-canvas.service';
 import { SceneEngineService } from './scene-engine.service';
 import { RemoteSceneEngine } from '../engine/remote-scene.engine';
 import { SpaceSceneEngine } from '../engine/space-scene.engine';
+import { injectInScope } from '@testing/fixtures/testbed.fixture';
 
 interface Browser {
   readonly offThread: boolean;
@@ -48,10 +49,6 @@ const setup = ({ offThread, worker }: Browser) => {
 };
 
 describe('SceneEngineService', () => {
-  afterEach(() => {
-    TestBed.resetTestingModule();
-  });
-
   it('draws the scene in a worker when the browser can draw off the page', async () => {
     const { engines, canvases, started } = setup({
       offThread: true,
@@ -66,27 +63,34 @@ describe('SceneEngineService', () => {
     );
   });
 
-  it('draws the scene in the page when the browser cannot, or when the worker will not start', async () => {
-    for (const browser of [
-      { offThread: false, worker: true },
-      { offThread: true, worker: false },
-    ]) {
+  it.each([
+    {
+      why: 'cannot draw off the page',
+      browser: { offThread: false, worker: true },
+    },
+    {
+      why: 'will not start its worker',
+      browser: { offThread: true, worker: false },
+    },
+  ])(
+    'draws the scene in the page when the browser $why',
+    async ({ browser }) => {
       const { engines, canvases } = setup(browser);
 
       expect(await engines.create(canvases, 1000)).toBeInstanceOf(
         SpaceSceneEngine,
       );
-      TestBed.resetTestingModule();
-    }
-  });
+    },
+  );
 
-  it('sizes the canvases itself only when the page draws them', async () => {
+  it('sizes the canvases itself when the page draws them', async () => {
     const inPage = setup({ offThread: false, worker: false });
     await inPage.engines.create(inPage.canvases, 1000);
     inPage.engines.fit(inPage.canvases, 640, 480);
     expect(inPage.canvases.matter.width).toBe(640);
-    TestBed.resetTestingModule();
+  });
 
+  it('leaves the canvases to the worker when it draws them', async () => {
     const inWorker = setup({ offThread: true, worker: true });
     await inWorker.engines.create(inWorker.canvases, 1000);
     inWorker.engines.fit(inWorker.canvases, 640, 480);
@@ -94,13 +98,14 @@ describe('SceneEngineService', () => {
   });
 
   it('stops its worker with the scene', async () => {
-    const { engines, canvases, started } = setup({
+    const { canvases, started } = setup({
       offThread: true,
       worker: true,
     });
+    const { instance: engines, destroy } = injectInScope(SceneEngineService);
     await engines.create(canvases, 1000);
 
-    TestBed.resetTestingModule();
+    destroy();
 
     expect(started.terminate).toHaveBeenCalledTimes(1);
   });

@@ -173,12 +173,13 @@ describe('ObservatorySceneComponent', () => {
     }
   });
 
-  it('offers no target on the sheet, only labels, and nothing on about', async () => {
+  it('offers no target on the sheet, only labels', async () => {
     const sheet = await mount({ view: 'sheet' });
     expect(sheet.buttons()).toHaveLength(0);
     expect(sheet.host.querySelectorAll('.label')).toHaveLength(5);
-    TestBed.resetTestingModule();
+  });
 
+  it('offers no target and no label on about', async () => {
     const about = await mount({ view: 'about' });
     expect(about.buttons()).toHaveLength(0);
     expect(about.host.querySelectorAll('.label')).toHaveLength(0);
@@ -197,11 +198,12 @@ describe('ObservatorySceneComponent', () => {
     expect(hovered).toEqual(['statewise']);
   });
 
-  it('is animated once running, unless the reader asked for less motion', async () => {
+  it('is animated once running', async () => {
     const moving = await mount();
     expect(moving.fixture.componentInstance.animated()).toBe(true);
-    TestBed.resetTestingModule();
+  });
 
+  it('is not animated when the reader asked for less motion', async () => {
     const still = await mount({ reducedMotion: true });
     expect(still.fixture.componentInstance.animated()).toBe(false);
   });

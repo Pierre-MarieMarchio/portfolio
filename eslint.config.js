@@ -361,6 +361,15 @@ export default defineConfig(
       complexity: 'off',
       'max-depth': 'off',
       'sonarjs/cognitive-complexity': 'off',
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'TestBed',
+          property: 'resetTestingModule',
+          message:
+            'Angular already resets the TestBed after each test: split the test, or build the instance to destroy in its own scope.',
+        },
+      ],
     },
   },
 

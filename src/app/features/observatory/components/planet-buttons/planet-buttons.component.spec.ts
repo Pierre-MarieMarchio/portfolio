@@ -117,13 +117,14 @@ describe('PlanetButtonsComponent', () => {
     expect(hovered).toEqual(['app', null, 'app', null]);
   });
 
-  it('takes two touches without hover: the first reveals, the second opens', async () => {
+  it('reveals a body at the first touch without hover', async () => {
     const first = await mount({ canHover: false });
     first.buttons()[1]?.click();
     expect(first.clicked).toEqual([]);
     expect(first.hovered).toEqual(['app']);
-    TestBed.resetTestingModule();
+  });
 
+  it('opens a body at the second touch without hover', async () => {
     const second = await mount({ canHover: false, hovered: 'app' });
     second.buttons()[1]?.click();
     expect(second.clicked).toEqual(['app']);

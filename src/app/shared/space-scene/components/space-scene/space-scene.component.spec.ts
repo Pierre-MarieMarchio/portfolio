@@ -95,7 +95,6 @@ const heldFrames = () => {
 
 describe('SpaceSceneComponent', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
   });
 

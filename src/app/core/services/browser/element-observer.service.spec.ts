@@ -11,6 +11,7 @@ describe('ElementObserverService', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    Reflect.deleteProperty(document.documentElement, 'onscrollsnapchanging');
   });
 
   it('is inert on the server: observes nothing', () => {
@@ -111,8 +112,6 @@ describe('ElementObserverService', () => {
     });
 
     expect(observer.hasSnapChanging()).toBe(true);
-
-    Reflect.deleteProperty(document.documentElement, 'onscrollsnapchanging');
   });
 
   it('waits for the animations of an element to end, in the browser', async () => {

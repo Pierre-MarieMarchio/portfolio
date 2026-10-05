@@ -435,7 +435,7 @@ describe('TabNavigationService', () => {
       expect(history.pushed).toHaveLength(1);
     });
 
-    it('leaves the history alone from the home, after the first entry, and outside the phone', () => {
+    it('leaves the history alone from the home, after the first entry', () => {
       const first = mount();
       touch();
       first.observatory.syncRoute('about');
@@ -443,8 +443,9 @@ describe('TabNavigationService', () => {
       touch();
       expect(first.history.replaced).toEqual([]);
       expect(first.history.pushed).toEqual([]);
-      TestBed.resetTestingModule();
+    });
 
+    it('leaves the history alone outside the phone', () => {
       const outside = mount({ isPhone: false });
       outside.observatory.syncRoute('about');
       touch();

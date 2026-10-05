@@ -1,4 +1,3 @@
-import { TestBed } from '@angular/core/testing';
 import { AnimatedCanvasService } from './animated-canvas.service';
 import { injectOn } from '@testing/fixtures/testbed.fixture';
 
@@ -22,7 +21,6 @@ class RefusedWorker {
 
 describe('AnimatedCanvasService', () => {
   afterEach(() => {
-    TestBed.resetTestingModule();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });

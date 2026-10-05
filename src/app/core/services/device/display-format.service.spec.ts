@@ -1,7 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { DisplayFormatService } from './display-format.service';
 import { resizeTo, stubMedia } from '@testing/doubles/browser.double';
-import { injectOn } from '@testing/fixtures/testbed.fixture';
+import {
+  injectInScope,
+  injectOn,
+  onPlatform,
+} from '@testing/fixtures/testbed.fixture';
 
 const TOUCH = new Set(['(pointer: coarse)', '(hover: none)']);
 
@@ -12,6 +16,7 @@ describe('DisplayFormatService', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
     delete document.documentElement.dataset['format'];
   });
 
@@ -28,7 +33,6 @@ describe('DisplayFormatService', () => {
     expect(matchMedia).not.toHaveBeenCalled();
     expect(addEventListener).not.toHaveBeenCalled();
     expect(document.documentElement.dataset['format']).toBeUndefined();
-    addEventListener.mockRestore();
   });
 
   it('reads the viewport and the pointer in the browser', () => {
@@ -78,9 +82,10 @@ describe('DisplayFormatService', () => {
   it('stops listening when destroyed', () => {
     stubMedia(TOUCH);
     resizeTo(390, 844);
-    const display = injectOn(DisplayFormatService, 'browser');
+    onPlatform('browser');
+    const { instance: display, destroy } = injectInScope(DisplayFormatService);
 
-    TestBed.resetTestingModule();
+    destroy();
     resizeTo(820, 1180);
 
     expect(display.format()).toBe('phone');

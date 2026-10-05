@@ -57,13 +57,14 @@ describe('ProjectChapterComponent', () => {
     expect(paragraphs).toEqual(['First paragraph.', 'Second one.']);
   });
 
-  it('lists the bullets with their term, and has no list without them', async () => {
+  it('lists the bullets with their term', async () => {
     const withBullets = await mount(FLOW);
     const bullet = withBullets.querySelector('.bullets li');
     expect(bullet?.querySelector('.term')?.textContent?.trim()).toBe('Terme');
     expect(bullet?.textContent).toContain('Explication');
+  });
 
-    TestBed.resetTestingModule();
+  it('has no list without bullets', async () => {
     const without = await mount(LAYERS);
     expect(without.querySelector('.bullets')).toBeNull();
   });

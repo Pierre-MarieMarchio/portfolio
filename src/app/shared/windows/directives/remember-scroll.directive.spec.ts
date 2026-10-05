@@ -42,6 +42,10 @@ const setup = async (saved: Readonly<Record<string, number>> = {}) => {
 };
 
 describe('RememberScrollDirective', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('puts the zone back where it was left under its key', async () => {
     const { zone } = await setup({ index: 120 });
 
@@ -71,16 +75,15 @@ describe('RememberScrollDirective', () => {
 
   it('leaves a new zone alone when nothing was saved under its key', async () => {
     const writes: number[] = [];
-    const set = vi
-      .spyOn(HTMLElement.prototype, 'scrollTop', 'set')
-      .mockImplementation((top: number) => {
+    vi.spyOn(HTMLElement.prototype, 'scrollTop', 'set').mockImplementation(
+      (top: number) => {
         writes.push(top);
-      });
+      },
+    );
 
     await setup();
 
     expect(writes).toEqual([]);
-    set.mockRestore();
   });
 
   it('writes nothing when the zone already sits where it should', async () => {

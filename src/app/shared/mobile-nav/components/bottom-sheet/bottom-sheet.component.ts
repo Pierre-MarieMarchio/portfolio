@@ -201,6 +201,7 @@ export class BottomSheetComponent {
         this.back.seen(isVisible);
       }),
     );
+    this.back.retakeOnArrival(() => this.rail().nativeElement.clientHeight > 0);
     this.isLanded = true;
   }
 

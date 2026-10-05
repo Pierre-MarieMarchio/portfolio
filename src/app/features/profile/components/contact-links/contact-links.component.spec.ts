@@ -111,6 +111,14 @@ describe('ContactLinksComponent', () => {
     }
   });
 
+  it('opens the CV in a new tab', async () => {
+    const { host } = await setup();
+    const cv = host.querySelector('a[href="Pierre-Marie-Marchio-CV.pdf"]');
+
+    expect(cv?.getAttribute('target')).toBe('_blank');
+    expect(cv?.getAttribute('rel')).toBe('noopener');
+  });
+
   it('places a button to copy the address right after the e-mail entry', async () => {
     const { items, texts } = await setup();
     const [mail, copyButton, linkedin] = items();

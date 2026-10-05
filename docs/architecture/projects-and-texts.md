@@ -35,8 +35,8 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/projets-et-textes.md — `features/projects/models/project.model.ts`
 
-- A Text is a plain string or a bilingual value — `src/app/features/projects/rules/project-entry.rules.ts:82` — origin: docs/architecture/raisons/projets-et-textes.md:18 @ b299e1d
-- Two projects never share a slug — `src/app/features/projects/rules/project-entry.rules.ts:252` — origin: docs/architecture/raisons/projets-et-textes.md:20 @ b299e1d
+- A Text is a plain string or a bilingual value — `src/app/features/projects/rules/project-entry.rules.ts:90` — origin: docs/architecture/raisons/projets-et-textes.md:18 @ b299e1d
+- Two projects never share a slug — `src/app/features/projects/rules/project-entry.rules.ts:260` — origin: docs/architecture/raisons/projets-et-textes.md:20 @ b299e1d
 - Facts are the single source read by rule, index, preview and sheet — `src/app/features/projects/models/project.model.ts:39` — origin: docs/architecture/raisons/projets-et-textes.md:28 @ b299e1d
 
 ## docs/architecture/raisons/projets-et-textes.md — `features/projects/models/project-detail.model.ts`
@@ -94,7 +94,7 @@ knowledge-commit: b299e1d
 ## docs/contenu.md — Changer les projets mis en avant
 
 - The featured projects on the home are the first of the rank (featured = place < featuredCount). — `src/app/features/projects/rules/ranking.rules.ts:12` — origin: docs/contenu.md:74 @ b299e1d
-- Their number is one value, the FEATURED token in projects.manager.ts (default factory 4, line 46). — `src/app/features/projects/states/projects/projects.manager.ts:44` — origin: docs/contenu.md:75 @ b299e1d
+- Their number is one value, the FEATURED token in projects.manager.ts (default factory 4, line 19). — `src/app/features/projects/states/projects/projects.manager.ts:44` — origin: docs/contenu.md:75 @ b299e1d
 - Preview and rule follow FEATURED (spec checks rule markers line 77, preview neighbours line 84, index rows line 101); curtain and featured planets not checked here. — `src/testing/integration/featured-count.spec.ts:77` — origin: docs/contenu.md:76 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — Un projet, un fichier : identité, faits et fiche ensemble

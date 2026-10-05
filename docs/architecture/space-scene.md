@@ -65,7 +65,7 @@ knowledge-commit: b299e1d
 - D103 on phone the tour emphasises while the camera aims the designated planet first — `src/app/features/observatory/rules/scene-direction.rules.ts:106` — origin: docs/architecture/decisions.md:3082 @ b299e1d
 - The scene distinguishes the emphasised planet (name and light) from the aimed planet (what the camera frames at rest) — `src/app/shared/space-scene/rules/scene-state.rules.ts:14` — origin: docs/architecture/decisions.md:3080 @ b299e1d
 - A panel animating in is measured at its final place and identical pieces no longer restart the reframing (not located in rules; layout-change.rules.ts only filters paint-only transitions) — origin: docs/architecture/decisions.md:3085 @ b299e1d — status: declared
-- D103: the scene distinguishes the highlighted planet (emphasised) from the aimed planet (aimed, line 31) — `src/app/shared/space-scene/models/scene.model.ts:30` — origin: docs/architecture/decisions.md:3080 @ b299e1d
+- D103: the scene distinguishes the highlighted planet (emphasised) from the aimed planet (aimed, line 39) — `src/app/shared/space-scene/models/scene.model.ts:38` — origin: docs/architecture/decisions.md:3080 @ b299e1d
 - D103: a panel animating in is measured at the place its animation will leave it, and identical pieces no longer relaunch reframing (mechanism not found in the zone files read) — origin: docs/architecture/decisions.md:3083 @ b299e1d — status: declared
 
 ## docs/architecture/organisation.md — 3.4 Les rôles permis dans chaque zone
@@ -127,8 +127,8 @@ knowledge-commit: b299e1d
 - The density share moves to its new value with a 0.55 s half-life (engine file, outside rules zone) — `src/app/shared/space-scene/engine/motions/grains.motion.ts:11` — origin: docs/architecture/decisions.md:658 @ b299e1d
 - D26: the grain reserve is drawn once, for the full density, at engine construction — `src/app/shared/space-scene/engine/space-scene.engine.ts:83` — origin: docs/architecture/decisions.md:656 @ b299e1d
 - D26: the lit share follows the viewport area (densityShare), recomputed on resize and eased with a 0.55 s half-life (grains.motion.ts:11 and :81) — `src/app/shared/space-scene/engine/space-scene.engine.ts:164` — origin: docs/architecture/decisions.md:657 @ b299e1d
-- D26: the phone golden PHONE_LAYOUT carries its bottom band, a close-up scene is added, five phone fingerprints (golden.spec.ts:326-331) — `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts:115` — origin: docs/architecture/decisions.md:659 @ b299e1d
-- SceneLayout carries the bottom band top (approachBandTop, closeUpBandTop), absent or null otherwise — `src/app/shared/space-scene/models/scene-layout.model.ts:19` — origin: docs/architecture/decisions.md:651 @ b299e1d
+- D26: the phone golden PHONE_LAYOUT carries its bottom band, a close-up scene is added, five phone fingerprints (golden.spec.ts:335-339) — `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts:115` — origin: docs/architecture/decisions.md:659 @ b299e1d
+- SceneLayout carries the bottom band top (approachBandTop, closeUpBandTop), null otherwise (every SceneLayout field is mandatory, #203) — `src/app/shared/space-scene/models/scene-layout.model.ts:19` — origin: docs/architecture/decisions.md:651 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-25 — Chaque vue cadre dans le ciel libre (D29, étend D26)
 
@@ -144,7 +144,7 @@ knowledge-commit: b299e1d
 - Home title, contact rail and dock register under a chrome role and with the two bars form SceneLayout.chrome — `src/app/shared/space-scene/rules/scene-layout.rules.ts:46` — origin: docs/architecture/decisions.md:794 @ b299e1d
 - D30: the home title and the dock register with the scene under the chrome role (html:269 for the dock) — `src/app/pages/observatory/observatory-page.component.html:35` — origin: docs/architecture/decisions.md:793 @ b299e1d
 - D30: the home rest goes through restInFreeSky when the layout is set — `src/app/shared/space-scene/engine/space-scene.engine.ts:134` — origin: docs/architecture/decisions.md:799 @ b299e1d
-- Home title, contact rail and dock register with the scene under a chrome role and with the two bars form SceneLayout.chrome (role chrome in ScenePanelRole :31 and SceneAnchorKind, scene-anchors.model.ts:12; used at observatory-page.component.html:35 and :269) — `src/app/shared/space-scene/models/scene-layout.model.ts:26` — origin: docs/architecture/decisions.md:793 @ b299e1d
+- Home title, contact rail and dock register with the scene under a chrome role and with the two bars form SceneLayout.chrome (role chrome in ScenePanelRole :31 and SceneAnchorKind, features/common/models/scene-anchors.model.ts:2; used at observatory-page.component.html:35 and :269) — `src/app/shared/space-scene/models/scene-layout.model.ts:26` — origin: docs/architecture/decisions.md:793 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-25 — Couché, le ciel commence sous la barre et finit à la vitre (D31, étend D29 et D30)
 
@@ -185,12 +185,12 @@ knowledge-commit: b299e1d
 - On phone the hole grows up to twice its radius while its disc holds in a free room 12 px from chrome, glass and edges (PLACING growth 2, margin 12) — `src/app/shared/space-scene/rules/focus/focus-rows.rules.ts:16` — origin: docs/architecture/decisions.md:974 @ b299e1d
 - Phone orbits adjust to the grown hole, no closer than 3.2 radii for the nearest nor 4.8 for the farthest — `src/app/shared/space-scene/rules/scene-bodies.rules.ts:176` — origin: docs/architecture/decisions.md:977 @ b299e1d
 - holeRoomBeside and closeUpClearOfChrome were removed (no occurrence under rules at HEAD; hole framing lives in hole-focus.rules.ts) — `src/app/shared/space-scene/rules/hole-focus.rules.ts:114` — origin: docs/architecture/decisions.md:1003 @ b299e1d
-- D35: the engine receives a format input that replaces touch, and touch derives from it (engine uses state.touch and state.phone, space-scene.engine.ts:98 and :275) — `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts:189` — origin: docs/architecture/decisions.md:969 @ b299e1d
+- D35: the engine receives a format input that replaces touch, and touch derives from it (engine uses state.touch and state.phone, space-scene.engine.ts:98 and :275) — `src/app/shared/space-scene/engine/space-scene.engine.golden.spec.ts:197` — origin: docs/architecture/decisions.md:969 @ b299e1d
 - D35: on phone each view grows the hole up to twice its radius within free sky, 12 px from chrome (hole-focus.rules.ts is outside the zone; engine only wires it at space-scene.engine.ts:96) — origin: docs/architecture/decisions.md:973 @ b299e1d — status: declared
-- D35: only the planet that counts is named (labels call isNamed(frame.focus) at planet-labels.renderer.ts:280; the rule is outside the zone) — origin: docs/architecture/decisions.md:979 @ b299e1d — status: declared
+- D35: only the planet that counts is named (labels call isNamed(frame.focus) at planet-labels.renderer.ts:281; the rule is outside the zone) — origin: docs/architecture/decisions.md:979 @ b299e1d — status: declared
 - D35: the scene writes where the target planet is drawn (data-target-x, data-target-y) — `src/app/shared/space-scene/engine/renderers/hole-mark.renderer.ts:12` — origin: docs/architecture/decisions.md:985 @ b299e1d
 - D35: holeRoomBeside and closeUpClearOfChrome are removed (no occurrence in src/; phone rules go through framing.holeFocus) — `src/app/shared/space-scene/engine/space-scene.engine.ts:325` — origin: docs/architecture/decisions.md:1003 @ b299e1d
-- The engine receives the format through a format input that replaces touch — `src/app/shared/space-scene/models/scene.model.ts:58` — origin: docs/architecture/decisions.md:970 @ b299e1d
+- The engine receives the format through a format input that replaces touch — `src/app/shared/space-scene/models/scene.model.ts:66` — origin: docs/architecture/decisions.md:970 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-27 — Au doigt, la scène dessine à 60 i/s au plus ; au téléphone, moins de pixels et de grains (D36)
 
@@ -202,7 +202,7 @@ knowledge-commit: b299e1d
 - A trail takes the nearest brightness step upward, never paler than its gradient (thickness step is rounded to nearest, not upward) — `src/app/shared/space-scene/rules/sky/trail-steps.rules.ts:13` — origin: docs/architecture/decisions.md:1033 @ b299e1d
 - The density floor is 0.42 — `src/app/shared/space-scene/rules/matter/grain-reserve.rules.ts:23` — origin: docs/architecture/decisions.md:1048 @ b299e1d
 - At touch formats the loop never draws two frames less than 10.5 ms apart — `src/app/shared/space-scene/engine/frame-loop.engine.ts:9` — origin: docs/architecture/decisions.md:1022 @ b299e1d
-- The time step covers the whole interval — `src/app/shared/space-scene/engine/frame-loop.engine.ts:60` — origin: docs/architecture/decisions.md:1025 @ b299e1d
+- The time step covers the whole interval — `src/app/shared/space-scene/engine/frame-loop.engine.ts:67` — origin: docs/architecture/decisions.md:1025 @ b299e1d
 - D36: on phone trails are grouped by tint, brightness step and width step, each group drawn in one stroke (:58-67, :37) — `src/app/shared/space-scene/engine/renderers/sky/trail-batch.renderer.ts:47` — origin: docs/architecture/decisions.md:1030 @ b299e1d
 - D36: trail batching is phone only; other formats keep one stroke per trail (strokeTrail) — `src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.ts:223` — origin: docs/architecture/decisions.md:1031 @ b299e1d
 - D36: the head is drawn at full brightness and the tail at a reduced light (TRAIL_TAIL_LIGHT; the half value lives in rules) — `src/app/shared/space-scene/engine/renderers/sky/trail-batch.renderer.ts:54` — origin: docs/architecture/decisions.md:1032 @ b299e1d
@@ -219,18 +219,18 @@ knowledge-commit: b299e1d
 ## docs/architecture/decisions.md — 2026-09-27 — À l'à-propos, les quatre figures se voient, se rangent au téléphone et se touchent (D42, étend D33)
 
 - In the about view an unlit figure draws at 45 percent (20 percent elsewhere); hovered on desktop 70 percent (figures.light unlit 0.2, unlitWhenShown 0.45, hovered 0.7) — `src/app/shared/space-scene/models/scene-config.model.ts:109` — origin: docs/architecture/decisions.md:1262 @ b299e1d
-- On phone the three unlit figures are arranged 10 px apart around the lit one — `src/app/shared/space-scene/rules/figures/phone-figures.rules.ts:49` — origin: docs/architecture/decisions.md:1267 @ b299e1d
+- On phone the three unlit figures are arranged 10 px apart around the lit one — `src/app/shared/space-scene/rules/figures/phone-figures.rules.ts:45` — origin: docs/architecture/decisions.md:1267 @ b299e1d
 - Common figure scale steps down from 1 to 0.42 only if needed (SCALES 1, 0.9 ... 0.42) — `src/app/shared/space-scene/rules/figures/figure-arrangement.rules.ts:29` — origin: docs/architecture/decisions.md:1269 @ b299e1d
 - A button per figure covers its box at least 44 x 44 px (figures.targetMin 44) — `src/app/shared/space-scene/models/scene-config.model.ts:106` — origin: docs/architecture/decisions.md:1276 @ b299e1d
 - A drag of more than 6 px is not a click (gestures.dragPx 6) — `src/app/shared/space-scene/models/scene-config.model.ts:95` — origin: docs/architecture/decisions.md:1284 @ b299e1d
 - Phone figure arrangement joins the phone lazy chunk (phone-figures.rules is a value import only of hole-focus.rules.ts; body-framing and constellations.renderer import it as type only) — `src/app/shared/space-scene/components/space-scene/space-scene.component.ts:47` — origin: docs/architecture/decisions.md:1275 @ b299e1d
-- In the about view an unlit figure is drawn at 45 percent (20 percent otherwise) and its stars 25 percent larger, the lit one unchanged — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:75` — origin: docs/architecture/decisions.md:1262 @ b299e1d
-- Outside the about view the fade restarts from the former 20 percent — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:110` — origin: docs/architecture/decisions.md:1264 @ b299e1d
-- The phone figure arrangement is part of the lazy phone chunk (read from frame.phoneRules, i.e. the hole-focus rules) — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:239` — origin: docs/architecture/decisions.md:1275 @ b299e1d
-- On the phone figures no longer drift nor follow parallax: placement comes from the phone arrangement instead of figurePoints — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:116` — origin: docs/architecture/decisions.md:1273 @ b299e1d
+- In the about view an unlit figure is drawn at 45 percent (20 percent otherwise) and its stars 25 percent larger, the lit one unchanged — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:74` — origin: docs/architecture/decisions.md:1262 @ b299e1d
+- Outside the about view the fade restarts from the former 20 percent — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:109` — origin: docs/architecture/decisions.md:1264 @ b299e1d
+- The phone figure arrangement is part of the lazy phone chunk (read from frame.phoneRules, i.e. the hole-focus rules) — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:238` — origin: docs/architecture/decisions.md:1275 @ b299e1d
+- On the phone figures no longer drift nor follow parallax: placement comes from the phone arrangement instead of figurePoints — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:115` — origin: docs/architecture/decisions.md:1273 @ b299e1d
 - One button per figure is positioned by transform from the drawing — `src/app/shared/space-scene/engine/renderers/sky/figure-targets.renderer.ts:9` — origin: docs/architecture/decisions.md:1277 @ b299e1d
 - An inert figure target is out of the tab order and aria-hidden — `src/app/shared/space-scene/engine/renderers/sky/figure-targets.renderer.ts:32` — origin: docs/architecture/decisions.md:1278 @ b299e1d
-- On desktop a hovered unlit figure rises to 70 percent (hovered light 0.7 in SCENE_CONFIG) — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:134` — origin: docs/architecture/decisions.md:1287 @ b299e1d
+- On desktop a hovered unlit figure rises to 70 percent (hovered light 0.7 in SCENE_CONFIG) — `src/app/shared/space-scene/engine/renderers/sky/constellations.renderer.ts:133` — origin: docs/architecture/decisions.md:1287 @ b299e1d
 - The loop no longer stops before the end of the figure fade even when paused (figures is an eased camera pose key at camera.motion.ts:39 but the pause path of frame-loop.engine.ts was not traced) — origin: docs/architecture/decisions.md:1288 @ b299e1d — status: declared
 - In the about view an unlit figure is drawn at 45 percent (20 percent before) — `src/app/shared/space-scene/models/scene-config.model.ts:51` — origin: docs/architecture/decisions.md:1261 @ b299e1d
 - One button per figure covers the figure box, at least 44 x 44 px — `src/app/shared/space-scene/models/scene-config.model.ts:106` — origin: docs/architecture/decisions.md:1276 @ b299e1d
@@ -257,9 +257,9 @@ knowledge-commit: b299e1d
 - The engine receives the desktop offset with its inputs (SceneInputs.pan) and lays it through the ZoomMotion.pan hook — `src/app/shared/space-scene/engine/motions/zoom.motion.ts:32` — origin: docs/architecture/decisions.md:1351 @ b299e1d
 - On desktop the wheel zooms within the pinch bounds [1, 3], one notch worth x1.1 (zoom bounds at :84) — `src/app/shared/space-scene/models/scene-config.model.ts:99` — origin: docs/architecture/decisions.md:1316 @ b299e1d
 - PhoneCodeService becomes FormatCodeService.load(formats, importer); the touch gestures load for phone and tablet, the sky look for desktop (:31) — `src/app/shared/space-scene/services/scene-look.service.ts:27` — origin: docs/architecture/decisions.md:1332 @ b299e1d
-- The zoom-gesture directive becomes ZoomGestureTracker in shared/space-scene/trackers; desktop wheel and middle click are SkyLookTracker (:17) — `src/app/shared/space-scene/services/scene-look.service.ts:11` — origin: docs/architecture/decisions.md:1338 @ b299e1d
+- The zoom-gesture directive becomes ZoomGestureTracker in shared/space-scene/trackers; desktop wheel and middle click are SkyLookTracker (:19) — `src/app/shared/space-scene/services/scene-look.service.ts:14` — origin: docs/architecture/decisions.md:1338 @ b299e1d
 - An effect of SpaceSceneComponent starts through SceneLookService the tracker of the current format once the engine and its code are there (start returns null until the code is loaded) — `src/app/shared/space-scene/services/scene-look.service.ts:36` — origin: docs/architecture/decisions.md:1347 @ b299e1d
-- The desktop pan offset is handed to the engine with its inputs (SceneInputs.pan) — `src/app/shared/space-scene/models/scene.model.ts:60` — origin: docs/architecture/decisions.md:1351 @ b299e1d
+- The desktop pan offset is handed to the engine with its inputs (SceneInputs.pan) — `src/app/shared/space-scene/models/scene.model.ts:68` — origin: docs/architecture/decisions.md:1351 @ b299e1d
 - The tracker is stopped at a format change and at destruction, and the pan offset is given back when the format leaves desktop (lives in SpaceSceneComponent, outside the zone) — origin: docs/architecture/decisions.md:1349 @ b299e1d — status: declared
 
 ## docs/architecture/decisions.md — 2026-09-28 — Au téléphone, le cadrage du trou garde ce que la planète n'a pas changé (D44, étend D35)
@@ -270,14 +270,14 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — La scène se dessine dans un worker (D47, amende D11)
 
-- Immediate answers gestures need (can look closer, same framing) come from the same rules applied in the page (zoom.rules canLookCloser/isSameFraming imported by remote-scene.engine.ts) — `src/app/shared/space-scene/engine/remote-scene.engine.ts:1` — origin: docs/architecture/decisions.md:1541 @ b299e1d
+- Immediate answers gestures need (can look closer, same framing) come from the same rules applied in the page (zoom.rules canLookCloser/isSameFraming imported by remote-scene.engine.ts) — `src/app/shared/space-scene/engine/remote-scene.engine.ts:4` — origin: docs/architecture/decisions.md:1541 @ b299e1d
 - scene.worker.ts runs SpaceSceneEngine unchanged on two OffscreenCanvas — `src/app/shared/space-scene/engine/scene-worker.engine.ts:75` — origin: docs/architecture/decisions.md:1532 @ b299e1d
 - In the worker NodeRecorderEngine records DOM writes that travel with each frame — `src/app/shared/space-scene/engine/node-recorder.engine.ts:106` — origin: docs/architecture/decisions.md:1536 @ b299e1d
 - RemoteSceneEngine lays the image and the writes in the same page frame — `src/app/shared/space-scene/engine/remote-scene.engine.ts:297` — origin: docs/architecture/decisions.md:1538 @ b299e1d
 - Immediate gesture answers come from the same rules applied in the page — `src/app/shared/space-scene/engine/remote-scene.engine.ts:220` — origin: docs/architecture/decisions.md:1540 @ b299e1d
 - SkyPanMotion lives in the worker and returns with each frame — `src/app/shared/space-scene/engine/scene-worker.engine.ts:235` — origin: docs/architecture/decisions.md:1543 @ b299e1d
 - Otherwise the engine runs in the page, loaded separately — `src/app/shared/space-scene/services/scene-engine.service.ts:85` — origin: docs/architecture/decisions.md:1544 @ b299e1d
-- When the browser can draw off the page (Worker, OffscreenCanvas with transferToImageBitmap, a bitmaprenderer canvas) SceneEngineService launches scene.worker (sceneWorker :49, bitmapContext :39, used at scene-engine.service.ts:104 and :134) — `src/app/shared/space-scene/services/animated-canvas.service.ts:30` — origin: docs/architecture/decisions.md:1529 @ b299e1d
+- When the browser can draw off the page (Worker, OffscreenCanvas with transferToImageBitmap, a bitmaprenderer canvas) SceneEngineService launches scene.worker (sceneWorker :49, bitmapContext :39, used at scene-engine.service.ts:104 and :143) — `src/app/shared/space-scene/services/animated-canvas.service.ts:30` — origin: docs/architecture/decisions.md:1529 @ b299e1d
 - Otherwise the engine runs in the page as before, loaded apart (dynamic import of space-scene.engine) — `src/app/shared/space-scene/services/scene-engine.service.ts:85` — origin: docs/architecture/decisions.md:1544 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Les réglages de la scène tiennent dans un fichier (D49)
@@ -312,13 +312,13 @@ knowledge-commit: b299e1d
 - When the free band changes side tilt and azimuth turn toward their mirror at 0.6 rad/s at most (mirrorTurnStep, defined in rules/rooms/window-room.rules.ts) — `src/app/shared/space-scene/rules/rooms/window-room.rules.ts:180` — origin: docs/architecture/decisions.md:2249 @ b299e1d
 - Each camera key settles on its target when less than half a pixel remains (settledStep) — `src/app/shared/space-scene/rules/camera/camera-frames.rules.ts:60` — origin: docs/architecture/decisions.md:2251 @ b299e1d
 - framing.rules.ts is filed under rules/camera/framing/ — `src/app/shared/space-scene/rules/camera/framing/framing.rules.ts:96` — origin: docs/architecture/decisions.md:2252 @ b299e1d
-- D72: the page passes the moving window rectangle to the scene through the optional port SCENE_WINDOW_DRAG (onDragging line 4 ; injected optional at space-scene.component.ts:59 ; provided by observatory-page.component.ts:142) — `src/app/shared/space-scene/ports/scene-window-drag.port.ts:8` — origin: docs/architecture/decisions.md:2247 @ b299e1d
+- D72: the page passes the moving window rectangle to the scene through the optional port SCENE_WINDOW_DRAG (onDragging line 5 ; injected optional at space-scene.component.ts:59 ; provided by observatory-page.component.ts:135) — `src/app/shared/space-scene/ports/scene-window-drag.port.ts:8` — origin: docs/architecture/decisions.md:2247 @ b299e1d
 - D72: during a drag the free band is re-read at most once per image (space-scene.component.ts:252 calls measureSoon on each drag event ; its throttle is outside the zone, not read) — origin: docs/architecture/decisions.md:2244 @ b299e1d — status: declared
 
 ## docs/architecture/decisions.md — 2026-09-28 — `core/` et `shared/` ne disent plus un mot du portfolio (D51)
 
 - In the scene isAbout became areFiguresShown after its figuresShown input and the unlit light of shown figures is unlitWhenShown (SceneState.figuresShown; renderer and config outside rules) — `src/app/shared/space-scene/rules/scene-state.rules.ts:20` — origin: docs/architecture/decisions.md:1650 @ b299e1d
-- D51: in the scene isAbout became areFiguresShown, named after its input figuresShown — `src/app/shared/space-scene/models/scene.model.ts:34` — origin: docs/architecture/decisions.md:1650 @ b299e1d
+- D51: in the scene isAbout became areFiguresShown, named after its input figuresShown — `src/app/shared/space-scene/models/scene.model.ts:42` — origin: docs/architecture/decisions.md:1650 @ b299e1d
 - D51: the light of unlit figures when shown is named unlitWhenShown — `src/app/shared/space-scene/models/scene-config.model.ts:51` — origin: docs/architecture/decisions.md:1651 @ b299e1d
 - In close-up the camera keeps the 0.55 s half-life while the step stays under 0.8 rad/s of yaw (closeUpTurnRate lives in models and engine, outside the rules zone; not checked) — origin: docs/architecture/decisions.md:2741 @ b299e1d — status: declared
 
@@ -353,7 +353,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/shared/space-scene/engine/motions/turntable.motion.ts`
 
-- The unheld platter is dragged with a lag DRAG_LAG — `src/app/shared/space-scene/engine/motions/turntable.motion.ts:169` — origin: docs/architecture/raisons/space-scene.md:363 @ b299e1d
+- The unheld platter is dragged with a lag DRAG_LAG — `src/app/shared/space-scene/engine/motions/turntable.motion.ts:170` — origin: docs/architecture/raisons/space-scene.md:363 @ b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/shared/space-scene/engine/motions/star-flow.motion.ts`
 
@@ -391,12 +391,12 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/shared/space-scene/ports/scene-window-drag.port.ts`
 
-- space-scene knows nothing of windows — `eslint.config.ts:150` — origin: docs/architecture/raisons/space-scene.md:616 @ b299e1d
+- space-scene knows nothing of windows — `eslint.config.ts:146` — origin: docs/architecture/raisons/space-scene.md:616 @ b299e1d
 - The rank is also the distance of the planet to the centre of the object (scene code outside this zone, not read). — origin: docs/contenu.md:11 @ b299e1d — status: declared
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, la vitre garde son flou quand la caméra voyage (D67, amende D46)
 
-- D67: the worker message announcing the camera travel is removed (absent ; FromSceneWorker is only SceneWorkerFrame) — `src/app/shared/space-scene/models/scene-worker.model.ts:107` — origin: docs/architecture/decisions.md:2101 @ b299e1d
+- D67: the worker message announcing the camera travel is removed (absent ; FromSceneWorker is only SceneWorkerFrame) — `src/app/shared/space-scene/models/scene-worker.model.ts:108` — origin: docs/architecture/decisions.md:2101 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au bureau, la planète visée s'arrête sous la souris (D75)
 

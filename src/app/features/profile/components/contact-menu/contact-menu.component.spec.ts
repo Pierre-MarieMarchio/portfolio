@@ -46,6 +46,7 @@ const setup = async ({
     'links',
     CONTACT_ADDRESSES.map((address) => ({
       ...address,
+      title: texts.contactTitle[address.icon],
       label: texts.contact[address.icon],
     })),
   );

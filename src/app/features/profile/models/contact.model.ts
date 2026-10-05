@@ -1,3 +1,3 @@
 import { SocialLink } from '@shared/ui/models';
 
-export type ContactAddress = Omit<SocialLink, 'label'>;
+export type ContactAddress = Omit<SocialLink, 'label' | 'title'>;

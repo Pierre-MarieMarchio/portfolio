@@ -4,7 +4,7 @@ import { draftsLeft } from '@app/core/rules';
 import { PROJECTS } from '@app/features/projects/data';
 import projectsJson from '@app/features/projects/data/projects.data.json';
 
-const INTERFACE_DRAFTS = 156;
+const INTERFACE_DRAFTS = 160;
 
 describe('English drafts', () => {
   it('counts interface catalogues and project drafts separately from JSON, totalling all pending reviews', () => {

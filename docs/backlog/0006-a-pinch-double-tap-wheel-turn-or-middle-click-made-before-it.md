@@ -3,6 +3,7 @@
 - **Id**: 0006
 - **Date**: 2026-10-05
 - **Status**: open
+- **Ticket**: [#206](https://github.com/Pierre-MarieMarchio/portfolio/issues/206)
 
 A pinch, double tap, wheel turn or middle click made before its code arrives is lost, neither held nor replayed (known limit)
 

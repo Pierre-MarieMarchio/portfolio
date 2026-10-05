@@ -3,6 +3,7 @@
 - **Id**: 0001
 - **Date**: 2026-10-05
 - **Status**: open
+- **Ticket**: [#202](https://github.com/Pierre-MarieMarchio/portfolio/issues/202)
 
 D105 remainder: a sheet opened beside a pinned one reframes the scene only on drag release (SceneWindowDrag lives in the page)
 

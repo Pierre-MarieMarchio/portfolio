@@ -5,13 +5,14 @@ import { ObservatoryManager } from '@app/features/observatory/states';
 import { HomeRevealService } from '../../services';
 import { OBSERVATORY_TEXTS } from '../../ports';
 import { stubMedia } from '@testing/doubles/browser.double';
+import { ARRIVAL_AT } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { IntroSkipComponent } from './intro-skip.component';
 
 const mount = async () => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   stubMedia(() => false);
-  document.documentElement.style.setProperty('--arrival-at', '8700ms');
+  document.documentElement.style.setProperty('--arrival-at', ARRIVAL_AT.css);
   TestBed.configureTestingModule({
     imports: [IntroSkipComponent],
     providers: [

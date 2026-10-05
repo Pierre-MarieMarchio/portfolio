@@ -9,7 +9,7 @@ describe('DocumentStylesService', () => {
   });
 
   it('is inert on the server: no token, no duration, no fonts', () => {
-    document.documentElement.style.setProperty('--probe', '8700ms');
+    document.documentElement.style.setProperty('--probe', '1234ms');
     const computed = vi.spyOn(window, 'getComputedStyle');
     const styles = injectOn(DocumentStylesService, 'server');
     const onFonts = vi.fn();
@@ -42,8 +42,8 @@ describe('DocumentStylesService', () => {
       return styles.duration('--probe');
     };
 
-    expect(read('8700ms')).toBe(8700);
-    expect(read('5.6s')).toBe(5600);
+    expect(read('1234ms')).toBe(1234);
+    expect(read('2.5s')).toBe(2500);
     expect(read('auto')).toBeNull();
     document.documentElement.style.removeProperty('--probe');
     expect(styles.duration('--probe')).toBeNull();

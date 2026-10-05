@@ -14,7 +14,7 @@ import {
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import type { ObservatoryWindow } from '../models';
 import { ObservatoryManager } from '../states';
-import { HomeSheetService } from './home-sheet.service';
+import { HomeBottomSheetService } from './home-bottom-sheet.service';
 import { TabNavigationService } from './tab-navigation.service';
 import { ViewWindowsService } from './view-windows.service';
 
@@ -31,7 +31,7 @@ const mount = (
       scrolled.includes(window as ObservatoryWindow),
     ),
   };
-  const homeSheet = {
+  const homeBottomSheet = {
     isPhone: signal(isPhone),
     isShown: signal(true),
     settle: vi.fn(),
@@ -46,7 +46,7 @@ const mount = (
         useValue: { navigateByUrl, events, url: '/projet/skyted' },
       },
       { provide: ViewWindowsService, useValue: windows },
-      { provide: HomeSheetService, useValue: homeSheet },
+      { provide: HomeBottomSheetService, useValue: homeBottomSheet },
       TabNavigationService,
     ],
   });
@@ -59,7 +59,7 @@ const mount = (
     events,
     history,
     windows,
-    homeSheet,
+    homeBottomSheet,
   };
 };
 
@@ -158,10 +158,11 @@ describe('TabNavigationService', () => {
     });
 
     it('follows the address plainly outside the phone, the current tab included', () => {
-      const { tabs, observatory, navigateByUrl, windows, homeSheet } = mount({
-        isPhone: false,
-        scrolled: ['about'],
-      });
+      const { tabs, observatory, navigateByUrl, windows, homeBottomSheet } =
+        mount({
+          isPhone: false,
+          scrolled: ['about'],
+        });
       observatory.syncRoute('about');
 
       tabs.choose('/a-propos');
@@ -169,7 +170,7 @@ describe('TabNavigationService', () => {
 
       expect(navigateByUrl.mock.calls).toEqual([['/a-propos'], ['/projets']]);
       expect(windows.scrollToTop).not.toHaveBeenCalled();
-      expect(homeSheet.settle).not.toHaveBeenCalled();
+      expect(homeBottomSheet.settle).not.toHaveBeenCalled();
     });
   });
 
@@ -377,22 +378,23 @@ describe('TabNavigationService', () => {
     });
 
     it('does nothing on a root already at the top', () => {
-      const { tabs, observatory, navigateByUrl, history, homeSheet } = mount();
+      const { tabs, observatory, navigateByUrl, history, homeBottomSheet } =
+        mount();
       observatory.syncRoute('index');
 
       tabs.choose('/projets');
 
       expect(navigateByUrl).not.toHaveBeenCalled();
       expect(history.steps).toEqual([]);
-      expect(homeSheet.settle).not.toHaveBeenCalled();
+      expect(homeBottomSheet.settle).not.toHaveBeenCalled();
     });
 
-    it('lowers the home sheet to half and goes nowhere', () => {
-      const { tabs, navigateByUrl, history, homeSheet } = mount();
+    it('lowers the home bottom sheet to half and goes nowhere', () => {
+      const { tabs, navigateByUrl, history, homeBottomSheet } = mount();
 
       tabs.choose('/');
 
-      expect(homeSheet.settle).toHaveBeenCalledWith('half');
+      expect(homeBottomSheet.settle).toHaveBeenCalledWith('half');
       expect(navigateByUrl).not.toHaveBeenCalled();
       expect(history.steps).toEqual([]);
     });
@@ -456,48 +458,48 @@ describe('TabNavigationService', () => {
 
   describe('leaving the home', () => {
     it('poses again the project that was posed once the home is shown', () => {
-      const { observatory, homeSheet } = mount();
+      const { observatory, homeBottomSheet } = mount();
       TestBed.tick();
       observatory.openPreview('skyted');
       touch();
-      homeSheet.isShown.set(false);
+      homeBottomSheet.isShown.set(false);
       TestBed.tick();
       observatory.closePreview();
 
-      homeSheet.isShown.set(true);
+      homeBottomSheet.isShown.set(true);
       TestBed.tick();
 
       expect(observatory.preview()).toBe('skyted');
     });
 
     it('poses nothing when nothing was posed at the last touch', () => {
-      const { observatory, homeSheet } = mount();
+      const { observatory, homeBottomSheet } = mount();
       TestBed.tick();
       observatory.openPreview('skyted');
       touch();
       observatory.closePreview();
       touch();
-      homeSheet.isShown.set(false);
+      homeBottomSheet.isShown.set(false);
       TestBed.tick();
 
-      homeSheet.isShown.set(true);
+      homeBottomSheet.isShown.set(true);
       TestBed.tick();
 
       expect(observatory.preview()).toBeNull();
     });
 
     it('poses again the card shown at half, which only the hover held', () => {
-      const { observatory, homeSheet } = mount();
+      const { observatory, homeBottomSheet } = mount();
       TestBed.tick();
       observatory.hover('skyted');
       touch();
       observatory.syncRoute('index');
-      homeSheet.isShown.set(false);
+      homeBottomSheet.isShown.set(false);
       TestBed.tick();
       expect(observatory.hovered()).toBeNull();
 
       observatory.syncRoute('home');
-      homeSheet.isShown.set(true);
+      homeBottomSheet.isShown.set(true);
       TestBed.tick();
 
       expect(observatory.hovered()).toBe('skyted');
@@ -505,15 +507,15 @@ describe('TabNavigationService', () => {
     });
 
     it('parks nothing outside the phone', () => {
-      const { observatory, homeSheet } = mount({ isPhone: false });
+      const { observatory, homeBottomSheet } = mount({ isPhone: false });
       TestBed.tick();
       observatory.openPreview('skyted');
       touch();
-      homeSheet.isShown.set(false);
+      homeBottomSheet.isShown.set(false);
       TestBed.tick();
       observatory.closePreview();
 
-      homeSheet.isShown.set(true);
+      homeBottomSheet.isShown.set(true);
       TestBed.tick();
 
       expect(observatory.preview()).toBeNull();

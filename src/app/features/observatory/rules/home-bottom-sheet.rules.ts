@@ -1,9 +1,9 @@
-import type { SheetDetent } from '@shared/mobile-nav/models';
+import type { BottomSheetDetent } from '@shared/mobile-nav/models';
 
 export function homeDetentAfter(
   isPosed: boolean,
-  previous: SheetDetent | undefined,
-): SheetDetent {
+  previous: BottomSheetDetent | undefined,
+): BottomSheetDetent {
   if (isPosed) {
     return 'full';
   }

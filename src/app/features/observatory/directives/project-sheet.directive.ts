@@ -7,14 +7,14 @@ import { ProjectSheetService } from '../services';
   providers: [ProjectSheetService],
 })
 export class ProjectSheetDirective {
-  private readonly sheet = inject(BottomSheetComponent, { self: true });
+  private readonly bottomSheet = inject(BottomSheetComponent, { self: true });
   private readonly opening = inject(ProjectSheetService);
 
   constructor() {
     effect(() => {
       if (this.opening.openings() > 0) {
         untracked(() => {
-          this.sheet.detent.set('full');
+          this.bottomSheet.detent.set('full');
         });
       }
     });

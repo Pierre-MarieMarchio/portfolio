@@ -1,23 +1,16 @@
 import { TAU } from '@app/core/helpers';
+import type { FigurePoint, PlacedFigure } from '../../../models/scene.model';
 import {
   holeDistance,
   ScreenHole,
 } from '../../../rules/camera/projection.rules';
 import type { Figure } from '../../../rules/figures/constellations.rules';
 import {
-  FigureName,
   figureLabelFont,
   figureLabelSpacing,
   figureNameAt,
 } from '../../../rules/figures/figure-label.rules';
 import type { Zone } from '../../../rules/panel-veil.rules';
-
-export type FigurePoint = readonly [number, number];
-
-export interface PlacedFigure {
-  readonly points: readonly FigurePoint[];
-  readonly name: FigureName | null;
-}
 
 export interface FigureLight {
   readonly on: number;

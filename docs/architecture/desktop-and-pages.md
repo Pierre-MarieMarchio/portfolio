@@ -5,7 +5,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/organisation.md — La fenêtre : `shared/windows/` (D20)
 
-- appWindowSheet in features/observatory/directives provides WINDOW_FOLD on the bottom sheet — `src/app/features/observatory/directives/window-sheet.directive.ts:7` — origin: docs/architecture/organisation.md:434 @ b299e1d
+- appBottomSheetFold in features/observatory/directives provides WINDOW_FOLD on the bottom sheet — `src/app/features/observatory/directives/bottom-sheet-fold.directive.ts:7` — origin: docs/architecture/organisation.md:434 @ b299e1d
 - Minimize and Pin only on desktop and tablet — `src/app/shared/windows/components/window/window.component.html:23` — origin: docs/architecture/organisation.md:410 @ b299e1d
 - WindowFrameDirective writes transform width height data-frame data-frame-animating — `src/app/shared/windows/directives/window-frame.directive.ts:55` — origin: docs/architecture/organisation.md:413 @ b299e1d
 - Height is bounded by --window-reserve or fixed when stable — `src/app/shared/windows/trackers/window-height.tracker.ts:4` — origin: docs/architecture/organisation.md:415 @ b299e1d

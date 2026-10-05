@@ -13,14 +13,14 @@ import { LINKS } from '@app/features/common';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { TABS, tabOf, tabOfWindow, windowsOfTab } from '../rules';
 import { parentOf, windowOf } from '../rules/view.rules';
-import { HomeSheetService } from './home-sheet.service';
+import { HomeBottomSheetService } from './home-bottom-sheet.service';
 import { ViewWindowsService } from './view-windows.service';
 
 @Service({ autoProvided: false })
 export class TabNavigationService {
   private readonly observatory = inject(ObservatoryManager);
   private readonly links = inject(LINKS);
-  private readonly homeSheet = inject(HomeSheetService);
+  private readonly homeBottomSheet = inject(HomeBottomSheetService);
   private readonly windows = inject(ViewWindowsService);
   private readonly history = inject(SessionHistoryService);
   private readonly router = inject(Router);
@@ -37,7 +37,7 @@ export class TabNavigationService {
       { capture: true },
     );
     effect(() => {
-      if (this.homeSheet.isShown()) {
+      if (this.homeBottomSheet.isShown()) {
         untracked(() => {
           if (this.parked !== null) {
             if (this.isParkedPosed) {
@@ -65,7 +65,7 @@ export class TabNavigationService {
   }
 
   public choose(address: string): void {
-    if (!this.homeSheet.isPhone()) {
+    if (!this.homeBottomSheet.isPhone()) {
       this.chooseOnDesktop(address);
       return;
     }
@@ -126,7 +126,7 @@ export class TabNavigationService {
   private restoreCurrentWindow(): void {
     const window = windowOf(this.observatory.view());
     if (
-      this.homeSheet.isPhone() ||
+      this.homeBottomSheet.isPhone() ||
       window === null ||
       window === 'preview' ||
       !this.observatory.minimized()[window]
@@ -151,7 +151,7 @@ export class TabNavigationService {
 
   private keepHomeBelow(): void {
     const view = this.observatory.view();
-    if (!this.homeSheet.isPhone()) {
+    if (!this.homeBottomSheet.isPhone()) {
       return;
     }
     if (view === 'home') {
@@ -170,7 +170,7 @@ export class TabNavigationService {
   private retouch(): void {
     const view = this.observatory.view();
     if (view === 'home') {
-      this.homeSheet.settle('half');
+      this.homeBottomSheet.settle('half');
     } else if (
       !this.windows.scrollToTop(windowOf(view)) &&
       parentOf(view) === 'index'

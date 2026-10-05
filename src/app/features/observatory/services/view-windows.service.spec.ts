@@ -177,7 +177,7 @@ describe('ViewWindowsService', () => {
   });
 
   describe('on the phone, where the preview has no window of its own', () => {
-    it('keeps the focus on the home title when a project is posed, the home sheet having no other heading to give', async () => {
+    it('keeps the focus on the home title when a project is posed, the home bottom sheet having no other heading to give', async () => {
       const { observatory, settle, focused } = await mount(true);
       expect(focused()).toBe('Home');
       const before = document.activeElement;

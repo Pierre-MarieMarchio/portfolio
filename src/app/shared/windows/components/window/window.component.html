@@ -2,10 +2,10 @@
   #frame
   class="window"
   [class.pane]="anchor() !== 'bottom'"
-  [class.sheet]="isHeld()"
+  [class.foldable]="isFoldable()"
   [attr.aria-label]="name()"
 >
-  @if (isHeld()) {
+  @if (isFoldable()) {
     <app-window-grip />
   }
   <div #bar class="titlebar" appDoublePress (doublePressed)="onDoublePress()">

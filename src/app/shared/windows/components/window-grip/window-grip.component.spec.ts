@@ -47,7 +47,7 @@ describe('WindowGripComponent', () => {
     expect(grip.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('asks the sheet to fold on a touch, and offers to raise the window once it is folded', async () => {
+  it('asks the window to fold on a touch, and offers to raise the window once it is folded', async () => {
     const { fold, toggle } = foldOf();
     const { fixture, grip } = await mount(fold);
 
@@ -59,7 +59,7 @@ describe('WindowGripComponent', () => {
     expect(grip.getAttribute('aria-expanded')).toBe('false');
   });
 
-  it('never reads as folded when the sheet is not held', async () => {
+  it('never reads as folded when the fold is not active', async () => {
     const { fold, isFolded } = foldOf(false);
     isFolded.set(true);
     const { grip } = await mount(fold);
@@ -67,7 +67,7 @@ describe('WindowGripComponent', () => {
     expect(grip.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('does nothing without a sheet to fold', async () => {
+  it('does nothing without a fold', async () => {
     const { fixture, grip } = await mount(null);
 
     grip.click();

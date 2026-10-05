@@ -28,7 +28,7 @@
       [items]="chapters()"
       (valueChange)="chapterChange.emit($event)"
     />
-    <div #sheet body class="sheet">
+    <div #body body class="body">
       <header>
         @if (current()) {
           <h1 tabindex="-1" appViewHeading>{{ project()?.title }}</h1>

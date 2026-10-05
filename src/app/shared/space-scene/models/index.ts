@@ -2,8 +2,10 @@ export { RESTING_DIRECTION } from './scene.model';
 export type {
   BodiesPresence,
   CameraFraming,
+  FigurePoint,
   FramingKind,
   LabelStyle,
+  PlacedFigure,
   SceneBody,
   SceneDirection,
   SceneInputs,

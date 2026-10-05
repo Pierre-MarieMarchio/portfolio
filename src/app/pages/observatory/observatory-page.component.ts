@@ -21,7 +21,7 @@ import {
 import {
   ProjectSheetDirective,
   ViewSlotDirective,
-  WindowSheetDirective,
+  BottomSheetFoldDirective,
 } from '@app/features/observatory/directives';
 import {
   OBSERVATORY_IDS,
@@ -41,7 +41,7 @@ import {
 import {
   FeaturedTourService,
   HomeRevealService,
-  HomeSheetService,
+  HomeBottomSheetService,
   MobileNavLayoutService,
   TabNavigationService,
   ViewWindowsService,
@@ -130,11 +130,11 @@ const boxOf = (rect: FrameRect): LayoutBox => ({
     WindowCycleDirective,
     WindowFrameDirective,
     ViewSlotDirective,
-    WindowSheetDirective,
+    BottomSheetFoldDirective,
   ],
   providers: [
     HomeRevealService,
-    HomeSheetService,
+    HomeBottomSheetService,
     FeaturedTourService,
     TabNavigationService,
     WindowStackService,
@@ -157,7 +157,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
   protected readonly links = inject(ViewLinksService);
   protected readonly observatoryTexts = inject(OBSERVATORY_TEXTS);
   protected readonly ids = OBSERVATORY_IDS;
-  protected readonly homeSheet = inject(HomeSheetService);
+  protected readonly homeBottomSheet = inject(HomeBottomSheetService);
   protected readonly tabs = inject(TabNavigationService);
   protected readonly anchor = SCENE_ANCHORS;
 
@@ -246,7 +246,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     () =>
       this.observatory.view() === 'home' &&
       this.observatory.preview() === null &&
-      !this.homeSheet.isPhone(),
+      !this.homeBottomSheet.isPhone(),
   );
 
   protected readonly canDeselect = computed(
@@ -266,7 +266,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     const loaded = viewAtAddress(locale.path(), (at) => pathOf(at, lang));
     this.observatory.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
-    this.homeSheet.follow(this.featuredSlugs, this.designated);
+    this.homeBottomSheet.follow(this.featuredSlugs, this.designated);
     const windows = inject(ViewWindowsService);
     effect(() => {
       if (this.arrival() === 'shown') {

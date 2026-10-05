@@ -6,14 +6,14 @@ import {
   SKY_NEUTRAL,
 } from '../../models/scene-constants.model';
 import { travelingElevation } from '../../rules/camera/projection.rules';
-import type { SkyCamera, SkyPan } from '../renderers/sky/star-sky.renderer';
+import type { SkyCamera, SkyOffset } from '../renderers/sky/star-sky.renderer';
 import { forgetTrail, Star } from '../../rules/sky/star-field.rules';
 
 const TRAIL_SIDEWAYS = 0.5;
 const BANK = 0.35;
 const LEAD = 0.3;
 const COAST = 0.15;
-export interface SkyFrame extends SkyPan {
+export interface SkyFrame extends SkyOffset {
   readonly cam: SkyCamera;
   readonly w: number;
   readonly h: number;

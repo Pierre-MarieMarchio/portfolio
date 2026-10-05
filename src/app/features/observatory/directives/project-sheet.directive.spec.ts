@@ -11,14 +11,14 @@ import { ProjectSheetDirective } from './project-sheet.directive';
   imports: [BottomSheetComponent, ProjectSheetDirective],
   template: `<app-bottom-sheet appProjectSheet>Contenu</app-bottom-sheet>`,
 })
-class SheetHost {
-  public readonly sheet = viewChild.required(BottomSheetComponent);
+class ProjectSheetHost {
+  public readonly bottomSheet = viewChild.required(BottomSheetComponent);
   public readonly shown = signal(true);
 }
 
 const mount = async () => {
   TestBed.configureTestingModule({
-    imports: [SheetHost],
+    imports: [ProjectSheetHost],
     providers: [
       provideStatewise(),
       provideMobileNavLayout(),
@@ -26,7 +26,7 @@ const mount = async () => {
     ],
   });
   const observatory = TestBed.inject(ObservatoryManager);
-  const fixture = TestBed.createComponent(SheetHost);
+  const fixture = TestBed.createComponent(ProjectSheetHost);
   await fixture.whenStable();
   const settle = async (...at: Parameters<ObservatoryManager['syncRoute']>) => {
     observatory.syncRoute(...at);
@@ -36,34 +36,34 @@ const mount = async () => {
 };
 
 describe('ProjectSheetDirective', () => {
-  it('leaves the sheet where it is while no project is opened', async () => {
+  it('leaves the bottom sheet where it is while no project is opened', async () => {
     const { fixture } = await mount();
 
-    expect(fixture.componentInstance.sheet().detent()).toBe('half');
+    expect(fixture.componentInstance.bottomSheet().detent()).toBe('half');
   });
 
-  it('raises the sheet to full when a project is opened, whatever the detent it was left at', async () => {
+  it('raises the bottom sheet to full when a project is opened, whatever the detent it was left at', async () => {
     const { fixture, settle } = await mount();
-    const { sheet } = fixture.componentInstance;
+    const { bottomSheet } = fixture.componentInstance;
     await settle('index');
     await settle('sheet', 'alpha');
-    sheet().detent.set('half');
+    bottomSheet().detent.set('half');
     await settle('index');
 
     await settle('sheet', 'beta');
 
-    expect(sheet().detent()).toBe('full');
+    expect(bottomSheet().detent()).toBe('full');
   });
 
   it('keeps the detent of a project held when the reader comes back to it', async () => {
     const { fixture, settle } = await mount();
-    const { sheet } = fixture.componentInstance;
+    const { bottomSheet } = fixture.componentInstance;
     await settle('sheet', 'alpha');
-    sheet().detent.set('half');
+    bottomSheet().detent.set('half');
     await settle('about');
 
     await settle('sheet', 'alpha');
 
-    expect(sheet().detent()).toBe('half');
+    expect(bottomSheet().detent()).toBe('half');
   });
 });

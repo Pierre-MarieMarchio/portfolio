@@ -146,11 +146,11 @@ h2 {
   }
 }
 
-.sheet {
-  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
-  background: var(--sheet-surface);
+.foldable {
+  border-radius: var(--bottom-sheet-radius) var(--bottom-sheet-radius) 0 0;
+  background: var(--bottom-sheet-surface);
   backdrop-filter: none;
-  box-shadow: var(--sheet-shadow);
+  box-shadow: var(--bottom-sheet-shadow);
 
   .titlebar {
     padding-block-start: 14px;

@@ -1,8 +1,8 @@
 import type {
-  SheetDetent,
-  SheetRoom,
-  SheetSample,
-  SheetStop,
+  BottomSheetDetent,
+  BottomSheetRoom,
+  BottomSheetSample,
+  BottomSheetStop,
 } from '../models/bottom-sheet.model';
 
 const REACH = 48;
@@ -16,21 +16,21 @@ export const isAtStop = (top: number, at: number): boolean =>
 
 export const isFelt = (
   isByUser: boolean,
-  from: SheetDetent | null,
-  to: SheetDetent,
+  from: BottomSheetDetent | null,
+  to: BottomSheetDetent,
 ): boolean => isByUser && from !== null && from !== to;
 
 export const stopsOf = (
-  detents: readonly SheetDetent[],
-  { peek, half, end }: SheetRoom,
-): SheetStop[] => {
+  detents: readonly BottomSheetDetent[],
+  { peek, half, end }: BottomSheetRoom,
+): BottomSheetStop[] => {
   const last = Math.max(end, 0);
-  const place: Readonly<Record<SheetDetent, number>> = {
+  const place: Readonly<Record<BottomSheetDetent, number>> = {
     folded: 0,
     half: Math.min(Math.max(half - peek, 0), last),
     full: last,
   };
-  const stops: SheetStop[] = [];
+  const stops: BottomSheetStop[] = [];
   for (const detent of detents) {
     const stop = { detent, at: place[detent] };
     const previous = stops.at(-1);
@@ -44,19 +44,19 @@ export const stopsOf = (
 };
 
 export const stopOf = (
-  stops: readonly SheetStop[],
-  detent: SheetDetent,
-): SheetStop | null =>
+  stops: readonly BottomSheetStop[],
+  detent: BottomSheetDetent,
+): BottomSheetStop | null =>
   stops.find((stop) => stop.detent === detent) ??
   stops.find((stop) => stop.detent === 'full') ??
   stops.at(-1) ??
   null;
 
 const nearestTo = (
-  stops: readonly SheetStop[],
+  stops: readonly BottomSheetStop[],
   place: number,
-): SheetStop | null =>
-  stops.reduce<SheetStop | null>(
+): BottomSheetStop | null =>
+  stops.reduce<BottomSheetStop | null>(
     (nearest, stop) =>
       !nearest || Math.abs(stop.at - place) < Math.abs(nearest.at - place)
         ? stop
@@ -65,16 +65,17 @@ const nearestTo = (
   );
 
 const beyond = (
-  stops: readonly SheetStop[],
+  stops: readonly BottomSheetStop[],
   from: number,
   direction: number,
-): SheetStop[] => stops.filter((stop) => (stop.at - from) * direction >= SLACK);
+): BottomSheetStop[] =>
+  stops.filter((stop) => (stop.at - from) * direction >= SLACK);
 
 const draggedTo = (
-  stops: readonly SheetStop[],
-  origin: SheetStop,
+  stops: readonly BottomSheetStop[],
+  origin: BottomSheetStop,
   travel: number,
-): SheetDetent => {
+): BottomSheetDetent => {
   const place = origin.at + travel;
   const next = nearestTo(beyond(stops, origin.at, Math.sign(travel)), place);
   if (!next) {
@@ -85,11 +86,11 @@ const draggedTo = (
 };
 
 export const detentAfter = (
-  from: SheetDetent,
+  from: BottomSheetDetent,
   travel: number,
   vy: number,
-  stops: readonly SheetStop[],
-): SheetDetent => {
+  stops: readonly BottomSheetStop[],
+): BottomSheetDetent => {
   const origin = stopOf(stops, from);
   if (!origin) {
     return from;
@@ -105,7 +106,7 @@ export const detentAfter = (
 };
 
 export const speedOf = (
-  samples: readonly SheetSample[],
+  samples: readonly BottomSheetSample[],
   at: number,
 ): number => {
   const recent = samples.filter((sample) => at - sample.at <= SPEED_WINDOW_MS);
@@ -116,15 +117,17 @@ export const speedOf = (
     : 0;
 };
 
-export const shadeFromOf = (stops: readonly SheetStop[]): number | null => {
+export const shadeFromOf = (
+  stops: readonly BottomSheetStop[],
+): number | null => {
   const full = stops.findIndex((stop) => stop.detent === 'full');
   const below = stops[full - 1];
   return full > 0 && below?.detent === 'half' ? below.at : null;
 };
 
 export const isDismissedBy = (
-  stops: readonly SheetStop[],
-  origin: SheetDetent,
+  stops: readonly BottomSheetStop[],
+  origin: BottomSheetDetent,
   top: number,
   pull: number,
 ): boolean => {

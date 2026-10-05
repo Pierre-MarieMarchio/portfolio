@@ -62,11 +62,11 @@ describe('RememberScrollDirective', () => {
 
   it('puts the zone where the new key was left when the key changes', async () => {
     const { fixture, host, zone, scrollTo, memory } = await setup({
-      'sheet:b': 40,
+      'detail:b': 40,
     });
     scrollTo(80);
 
-    host.key.set('sheet:b');
+    host.key.set('detail:b');
     await fixture.whenStable();
 
     expect(zone().scrollTop).toBe(40);
@@ -87,7 +87,7 @@ describe('RememberScrollDirective', () => {
   });
 
   it('writes nothing when the zone already sits where it should', async () => {
-    const { fixture, host, zone, scrollTo } = await setup({ 'sheet:b': 40 });
+    const { fixture, host, zone, scrollTo } = await setup({ 'detail:b': 40 });
     scrollTo(40);
     const writes: number[] = [];
     Object.defineProperty(zone(), 'scrollTop', {
@@ -96,7 +96,7 @@ describe('RememberScrollDirective', () => {
       configurable: true,
     });
 
-    host.key.set('sheet:b');
+    host.key.set('detail:b');
     await fixture.whenStable();
 
     expect(writes).toEqual([]);
@@ -127,9 +127,9 @@ describe('RememberScrollDirective', () => {
   });
 
   it('lets the new key win when the key and resetOn change together', async () => {
-    const { fixture, host, zone } = await setup({ 'sheet:b': 40 });
+    const { fixture, host, zone } = await setup({ 'detail:b': 40 });
 
-    host.key.set('sheet:b');
+    host.key.set('detail:b');
     host.chapter.set(1);
     await fixture.whenStable();
 

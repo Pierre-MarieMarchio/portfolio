@@ -1,6 +1,6 @@
-import { homeDetentAfter, posedSlugOf } from './home-sheet.rules';
+import { homeDetentAfter, posedSlugOf } from './home-bottom-sheet.rules';
 
-describe('home sheet rules', () => {
+describe('home bottom sheet rules', () => {
   describe('homeDetentAfter', () => {
     it('rises to full as soon as a project is posed', () => {
       expect(homeDetentAfter(true, undefined)).toBe('full');

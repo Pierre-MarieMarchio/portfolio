@@ -1,4 +1,4 @@
-$pressables: 'button, a[href], .sheet .titlebar';
+$pressables: 'button, a[href], .foldable .titlebar';
 
 @media (hover: none) and (pointer: coarse) {
   * {
@@ -9,12 +9,12 @@ $pressables: 'button, a[href], .sheet .titlebar';
     transition: filter var(--t);
   }
 
-  :is(button:not(:disabled), a[href], .sheet .titlebar):active {
+  :is(button:not(:disabled), a[href], .foldable .titlebar):active {
     filter: opacity(0.55);
     transition: none;
   }
 
-  .sheet .titlebar:has(:is(button, a):active) {
+  .foldable .titlebar:has(:is(button, a):active) {
     filter: none;
   }
 }

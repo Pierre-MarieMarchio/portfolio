@@ -142,3 +142,6 @@ export const BARREL_EXCEPTIONS: UnitException[] = [
     why: 'bundle size: the swipe service is loaded by import() on demand, and a barrel export moves it into the initial bundle (544.60 kB to 547.46 kB)',
   },
 ];
+
+export const EXPORTED_TYPE =
+  /^export (?:declare )?(?:abstract )?(?:const )?(?:interface|type|class|enum) (\w+)/gm;

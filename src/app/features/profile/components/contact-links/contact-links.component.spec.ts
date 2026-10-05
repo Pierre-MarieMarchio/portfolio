@@ -139,7 +139,7 @@ describe('ContactLinksComponent', () => {
     );
   });
 
-  it('copies the address and announces it, like the phone sheet', async () => {
+  it('copies the address and announces it, like the phone contact menu', async () => {
     const { host, copy, said, texts, stable } = await setup();
     const button = host.querySelector<HTMLButtonElement>('.rail button');
 

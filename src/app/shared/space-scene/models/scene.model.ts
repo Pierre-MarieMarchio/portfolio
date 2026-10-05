@@ -1,6 +1,7 @@
 import type { DisplayFormat } from '@app/core/models';
 import type { SkyPan } from '../engine/motions/zoom.motion';
 import type { HoleFocusRules } from '../rules/camera/framing/framing.rules';
+import type { FigureName } from '../rules/figures/figure-label.rules';
 
 export type CameraFraming =
   | { readonly kind: 'rest' }
@@ -16,6 +17,13 @@ export type BodiesPresence = 'shown' | 'held' | 'hidden';
 export type LabelStyle = 'names' | 'tags' | 'none';
 
 export type SkyFigures = 'constellations' | 'comets';
+
+export type FigurePoint = readonly [number, number];
+
+export interface PlacedFigure {
+  readonly points: readonly FigurePoint[];
+  readonly name: FigureName | null;
+}
 
 export interface SceneBody {
   readonly id: string;

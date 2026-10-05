@@ -1,22 +1,22 @@
-export type SheetDetent = 'folded' | 'half' | 'full';
+export type BottomSheetDetent = 'folded' | 'half' | 'full';
 
-export interface SheetStop {
-  readonly detent: SheetDetent;
+export interface BottomSheetStop {
+  readonly detent: BottomSheetDetent;
   readonly at: number;
 }
 
-export interface SheetRoom {
+export interface BottomSheetRoom {
   readonly peek: number;
   readonly half: number;
   readonly end: number;
 }
 
-export interface SheetSample {
+export interface BottomSheetSample {
   readonly top: number;
   readonly at: number;
 }
 
-export interface SheetRelease {
+export interface BottomSheetRelease {
   readonly speed: number;
   readonly pull: number;
 }

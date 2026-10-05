@@ -79,7 +79,7 @@ describe('HomeTitleComponent', () => {
     expect(host.querySelector('button')).toBeNull();
   });
 
-  describe('on the phone, as the handle line of the home sheet', () => {
+  describe('on the phone, as the handle line of the home bottom sheet', () => {
     it('is one line, made of the name and the trade already on the page, in a single h1', async () => {
       const { host } = await mountOnPhone();
 
@@ -97,7 +97,7 @@ describe('HomeTitleComponent', () => {
       expect(host.querySelector('h1')?.id).toBe('home-title');
     });
 
-    it('hands its bar to the sheet as the handle, and lets it go when it leaves', async () => {
+    it('hands its bar to the bottom sheet as the handle, and lets it go when it leaves', async () => {
       const { fixture, host, held, released } = await mountOnPhone();
 
       expect(held).toEqual([host.querySelector('.bar')]);
@@ -107,7 +107,7 @@ describe('HomeTitleComponent', () => {
       expect(released).toEqual(held);
     });
 
-    it('carries the same handle as the other sheets, and no chevron', async () => {
+    it('carries the same handle as the other bottom sheets, and no chevron', async () => {
       const { host } = await mountOnPhone();
 
       expect(host.querySelectorAll('button')).toHaveLength(1);
@@ -115,7 +115,7 @@ describe('HomeTitleComponent', () => {
       expect(host.querySelector('.fold, svg')).toBeNull();
     });
 
-    it('folds and unfolds the sheet from its handle, named for what it will do', async () => {
+    it('folds and unfolds the bottom sheet from its handle, named for what it will do', async () => {
       const { fixture, host, toggle, isFolded } = await mountOnPhone();
       const grip = host.querySelector<HTMLButtonElement>('button.grip');
 

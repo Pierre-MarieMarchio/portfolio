@@ -65,9 +65,9 @@ export class ProjectDetailComponent {
   public readonly listChosen = output();
   public readonly chapterChange = output<number>();
 
-  protected readonly scrollKey = computed(() => `sheet:${this.slug()}`);
+  protected readonly scrollKey = computed(() => `detail:${this.slug()}`);
 
-  private readonly sheet = viewChild<ElementRef<HTMLElement>>('sheet');
+  private readonly body = viewChild<ElementRef<HTMLElement>>('body');
 
   protected readonly detail = computed(() =>
     this.manager.detailOf(this.slug()),
@@ -122,16 +122,16 @@ export class ProjectDetailComponent {
 
   constructor() {
     effect((onCleanup) => {
-      const sheet = this.sheet()?.nativeElement;
-      if (!sheet) {
+      const body = this.body()?.nativeElement;
+      if (!body) {
         return;
       }
-      sheet.addEventListener('scroll', this.noteScroll, {
+      body.addEventListener('scroll', this.noteScroll, {
         capture: true,
         passive: true,
       });
       onCleanup(() => {
-        sheet.removeEventListener('scroll', this.noteScroll, { capture: true });
+        body.removeEventListener('scroll', this.noteScroll, { capture: true });
       });
     });
     let shown: string | null = null;

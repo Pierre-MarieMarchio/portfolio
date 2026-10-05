@@ -26,10 +26,10 @@ import { LayoutAnchorsService } from '@shared/ui/services';
 import { AboutWindowComponent } from '@app/features/profile/components';
 import { FeaturedBarComponent } from '@app/features/projects/components';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
-import { MobileNavPlatformService } from '@app/features/observatory/services';
+import { MobileNavLayoutService } from '@app/features/observatory/services';
 import { PROFILE_TEXTS } from '@app/features/profile/ports';
 import { PAGES_TEXTS, ViewLinksService } from '@app/i18n';
-import { MOBILE_NAV_PLATFORM } from '@shared/mobile-nav/ports';
+import { MOBILE_NAV_LAYOUT } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
 import { SHARED_TEXTS } from '@shared/ui/ports';
 import { ObservatoryPageComponent } from './observatory-page.component';
@@ -140,14 +140,12 @@ describe('ObservatoryPageComponent', () => {
     vi.unstubAllGlobals();
   });
 
-  it('provides the mobile-nav platform and back layers from its own tree, never from the root', async () => {
+  it('provides the mobile-nav layout and back layers from its own tree, never from the root', async () => {
     const { fixture } = await mount();
     const page = fixture.debugElement.injector;
 
-    expect(() => TestBed.inject(MOBILE_NAV_PLATFORM)).toThrow();
-    expect(page.get(MOBILE_NAV_PLATFORM)).toBeInstanceOf(
-      MobileNavPlatformService,
-    );
+    expect(() => TestBed.inject(MOBILE_NAV_LAYOUT)).toThrow();
+    expect(page.get(MOBILE_NAV_LAYOUT)).toBeInstanceOf(MobileNavLayoutService);
     expect(() => TestBed.inject(BackLayersService)).toThrow();
     expect(() => page.get(BackLayersService)).not.toThrow();
   });

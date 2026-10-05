@@ -1,5 +1,6 @@
 import type { OutputEmitterRef, Signal } from '@angular/core';
-import type { MobileNavPlatform } from '../ports/mobile-nav-platform.port';
+import type { ClockService, MediaPreferencesService } from '@app/core/services';
+import type { MobileNavLayout } from '../ports/mobile-nav-layout.port';
 
 export interface SwipeRelease {
   readonly travel: number;
@@ -22,7 +23,9 @@ export interface SwipeStops {
 
 export interface SwipeHost {
   readonly element: HTMLElement;
-  readonly platform: MobileNavPlatform;
+  readonly layout: MobileNavLayout;
+  readonly media: MediaPreferencesService;
+  readonly clock: ClockService;
   readonly appSwipeSteps: Signal<SwipeStops>;
   readonly stepped: OutputEmitterRef<number>;
   readonly afterRender: (callback: () => void) => () => void;

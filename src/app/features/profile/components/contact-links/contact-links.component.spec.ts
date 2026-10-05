@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ClipboardService } from '@app/core/services';
 import { restoreDialogs, stubDialogs } from '@testing/doubles/browser.double';
-import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+import { BackLayersService } from '@shared/mobile-nav/services';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { PROFILE_TEXTS } from '../../ports';
 import { ContactLinksComponent } from './contact-links.component';
@@ -39,7 +40,8 @@ const setup = async ({ canCopy = true, withLanguages = false } = {}) => {
     providers: [
       provideRouter([]),
       provideTexts(),
-      provideMobileNavPlatform(),
+      provideMobileNavLayout(),
+      BackLayersService,
       { provide: ClipboardService, useValue: { copy } },
     ],
   });

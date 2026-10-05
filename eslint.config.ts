@@ -27,8 +27,6 @@ if (onDisk.join() !== [...FEATURES].sort((a, b) => a.localeCompare(b)).join()) {
 
 const SHARED_LIBS = ['mobile-nav', 'space-scene', 'ui', 'windows'];
 
-const STANDALONE_LIBS = ['mobile-nav'];
-
 const libsOnDisk = readdirSync(`${APP}/shared`, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name)
@@ -122,9 +120,6 @@ const FEATURE_WHY =
 const LIBRARY_WHY =
   'a shared library, extractable as it stands: it may use core, and neither the portfolio nor another library';
 
-const STANDALONE_WHY =
-  'a shared library that stands alone: it imports nothing from this repository, core included, and reaches the browser and the texts through its ports';
-
 interface Zone {
   files: string[];
   name: string;
@@ -145,9 +140,8 @@ const ZONES: Zone[] = [
     files: [`${APP}/shared/${lib}/**/*.ts`],
     name: `shared/${lib}/`,
     dir: `shared/${lib}`,
-    why: STANDALONE_LIBS.includes(lib) ? STANDALONE_WHY : LIBRARY_WHY,
+    why: LIBRARY_WHY,
     denies: [
-      ...(STANDALONE_LIBS.includes(lib) ? ['core'] : []),
       ...SHARED_LIBS.filter((other) => other !== lib).map(
         (other) => `library:${other}`,
       ),

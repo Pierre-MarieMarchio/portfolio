@@ -8,9 +8,10 @@ import {
   input,
   output,
 } from '@angular/core';
+import { ClockService, MediaPreferencesService } from '@app/core/services';
 import type { SwipeHost, SwipeStops } from '../models/swipe.model';
 import type { SwipeStepsService } from '../services/swipe-steps.service';
-import { MOBILE_NAV_PLATFORM } from '../ports/mobile-nav-platform.port';
+import { MOBILE_NAV_LAYOUT } from '../ports/mobile-nav-layout.port';
 
 export const loadSwipeSteps = (): Promise<typeof SwipeStepsService> =>
   import('../services/swipe-steps.service').then(
@@ -19,7 +20,9 @@ export const loadSwipeSteps = (): Promise<typeof SwipeStepsService> =>
 
 @Directive({ selector: '[appSwipeSteps]' })
 export class SwipeStepsDirective implements SwipeHost {
-  public readonly platform = inject(MOBILE_NAV_PLATFORM);
+  public readonly layout = inject(MOBILE_NAV_LAYOUT);
+  public readonly media = inject(MediaPreferencesService);
+  public readonly clock = inject(ClockService);
   private readonly injector = inject(Injector);
   public readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -30,7 +33,7 @@ export class SwipeStepsDirective implements SwipeHost {
 
   constructor() {
     afterNextRender(() => {
-      if (this.platform.isCompact()) {
+      if (this.layout.isCompact()) {
         void loadSwipeSteps().then((create) => {
           this.injector.get(DestroyRef).onDestroy(new create(this).stop);
         });

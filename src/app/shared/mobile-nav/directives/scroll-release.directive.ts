@@ -10,22 +10,22 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import type { SheetRelease, SheetSample } from '../models/bottom-sheet.model';
-import { MOBILE_NAV_PLATFORM } from '../ports/mobile-nav-platform.port';
 import { speedOf } from '../rules/bottom-sheet.rules';
+import { ScrollEndService } from '../services/scroll-end.service';
 
-const SETTLE_MS = 120;
 const KEPT_SAMPLES = 12;
 const TOUCHES = ['touchstart', 'touchmove', 'touchend', 'touchcancel'] as const;
 
 @Directive({
   selector: '[appScrollRelease]',
+  providers: [ScrollEndService],
   host: {
     '(scroll)': 'onScroll($event)',
     '(scrollend)': 'settle()',
   },
 })
 export class ScrollReleaseDirective {
-  private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly scrollEnd = inject(ScrollEndService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -40,7 +40,6 @@ export class ScrollReleaseDirective {
   private samples: SheetSample[] = [];
   private startY = 0;
   private lastY = 0;
-  private stopTimer: () => void = () => {};
 
   constructor() {
     const listener = (event: Event): void => {
@@ -54,7 +53,6 @@ export class ScrollReleaseDirective {
       });
     }
     inject(DestroyRef).onDestroy(() => {
-      this.stopTimer();
       for (const type of TOUCHES) {
         this.element.removeEventListener(type, listener);
       }
@@ -71,16 +69,13 @@ export class ScrollReleaseDirective {
         { top: this.element.scrollTop, at: event.timeStamp },
       ].slice(-KEPT_SAMPLES);
     }
-    if (!this.platform.hasScrollEnd()) {
-      this.stopTimer();
-      this.stopTimer = this.platform.after(SETTLE_MS, () => {
-        this.settle();
-      });
-    }
+    this.scrollEnd.expect(() => {
+      this.settle();
+    });
   }
 
   protected settle(): void {
-    this.stopTimer();
+    this.scrollEnd.cancel();
     if (this.appScrollRelease() && !this.isTouching) {
       this.settled.emit();
     }

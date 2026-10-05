@@ -52,3 +52,71 @@ export class SessionHistoryDouble {
 export const provideSessionHistoryDouble = (
   history: SessionHistoryDouble,
 ): Provider => ({ provide: SessionHistoryService, useValue: history });
+
+export class HistoryStackDouble {
+  public hasWatcher = false;
+  public entries: unknown[] = [{ navigationId: 1 }];
+  public place = 0;
+  public readonly backs: number[] = [];
+  private pops: ((state: unknown) => void)[] = [];
+  private pendingPops: unknown[] = [];
+  private watchers: (() => void)[] = [];
+
+  public readonly state = (): unknown => this.entries[this.place];
+
+  public readonly push = (state: unknown): void => {
+    this.entries = [...this.entries.slice(0, this.place + 1), state];
+    this.place = this.entries.length - 1;
+  };
+
+  public readonly back = (steps: number): void => {
+    this.backs.push(steps);
+    this.place = Math.max(this.place - steps, 0);
+    this.pendingPops.push(this.entries[this.place]);
+  };
+
+  public readonly onPop = (fn: (state: unknown) => void) => {
+    this.pops.push(fn);
+    return () => {
+      this.pops = this.pops.filter((pop) => pop !== fn);
+    };
+  };
+
+  public readonly watchClose = (fn: () => void): (() => void) => {
+    this.watchers.push(fn);
+    return () => {
+      this.watchers = this.watchers.filter((watcher) => watcher !== fn);
+    };
+  };
+
+  public readonly hasCloseWatcher = (): boolean => this.hasWatcher;
+
+  public pressBack(): void {
+    const watcher = this.hasWatcher ? this.watchers.pop() : undefined;
+    if (watcher) {
+      watcher();
+      return;
+    }
+    this.place = Math.max(this.place - 1, 0);
+    this.pop(this.entries[this.place]);
+  }
+
+  public deliverPops(): void {
+    const pending = this.pendingPops;
+    this.pendingPops = [];
+    for (const state of pending) {
+      this.pop(state);
+    }
+  }
+
+  private pop(state: unknown): void {
+    for (const fn of this.pops) {
+      fn(state);
+    }
+  }
+}
+
+export const provideHistoryStack = (stack: HistoryStackDouble): Provider => ({
+  provide: SessionHistoryService,
+  useValue: stack,
+});

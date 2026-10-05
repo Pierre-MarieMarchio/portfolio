@@ -2,10 +2,28 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { SheetDetent } from '../../models/bottom-sheet.model';
 import { BottomSheetComponent } from './bottom-sheet.component';
+import { BackLayersService } from '../../services/back-layers.service';
+import { provideRouter, Router } from '@angular/router';
 import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
+  BrowserWindowService,
+  ClockService,
+  ElementObserverService,
+  HapticsService,
+  MediaPreferencesService,
+  SessionHistoryService,
+} from '@app/core/services';
+import {
+  BrowserWindowDouble,
+  ClockDouble,
+  ElementObserverDouble,
+  HapticsDouble,
+  MediaPreferencesDouble,
+} from '@testing/doubles/browser-services.double';
+import {
+  MobileNavLayoutDouble,
+  provideMobileNavLayout,
+} from '@testing/doubles/mobile-nav-layout.double';
+import { HistoryStackDouble } from '@testing/doubles/session-history.double';
 import { pointer } from '@testing/fixtures/pointer.fixture';
 import {
   componentOf,
@@ -68,14 +86,30 @@ const setup = async ({
   platform: where = 'browser',
   compact = true,
 }: { readonly platform?: Platform; readonly compact?: boolean } = {}) => {
-  const platform = new MobileNavPlatformDouble();
-  platform.compact.set(compact);
+  const layout = new MobileNavLayoutDouble();
+  const clock = new ClockDouble();
+  const observer = new ElementObserverDouble();
+  const media = new MediaPreferencesDouble();
+  const haptics = new HapticsDouble();
+  const browserWindow = new BrowserWindowDouble();
+  const history = new HistoryStackDouble();
+  layout.compact.set(compact);
   onPlatform(where);
   TestBed.configureTestingModule({
     imports: [SheetHost],
-    providers: [provideMobileNavPlatform(platform)],
+    providers: [
+      provideMobileNavLayout(layout),
+      BackLayersService,
+      provideRouter([{ path: '**', children: [] }]),
+      { provide: ClockService, useValue: clock },
+      { provide: ElementObserverService, useValue: observer },
+      { provide: MediaPreferencesService, useValue: media },
+      { provide: HapticsService, useValue: haptics },
+      { provide: BrowserWindowService, useValue: browserWindow },
+      { provide: SessionHistoryService, useValue: history },
+    ],
   });
-  const observed = vi.spyOn(platform, 'onResize');
+  const observed = vi.spyOn(observer, 'onResize');
   const fixture = TestBed.createComponent(SheetHost);
   await fixture.whenStable();
   const root = fixture.nativeElement as HTMLElement;
@@ -131,7 +165,13 @@ const setup = async ({
   };
   return {
     fixture,
-    platform,
+    clock,
+    observer,
+    media,
+    haptics,
+    browserWindow,
+    history,
+    leave: () => TestBed.inject(Router).navigateByUrl('/elsewhere'),
     observed,
     host,
     rail,
@@ -142,15 +182,15 @@ const setup = async ({
     top: () => top,
     lay: async (): Promise<void> => {
       sheet.hold(bar);
-      platform.resize();
-      platform.frame();
+      observer.resize();
+      clock.frame();
       await settle();
     },
     resize: async (height: number, content = END): Promise<void> => {
       room = height;
       end = content;
-      platform.resize();
-      platform.frame();
+      observer.resize();
+      clock.frame();
       await settle();
     },
     drag: async (moves: readonly (readonly [number, number])[], pull = 0) => {
@@ -184,11 +224,11 @@ const foldedSheet = async (isTransient: boolean) => {
 
 const risen = async (hasCloseWatcher: boolean) => {
   const setups = await setup();
-  setups.platform.hasCloseWatcher = hasCloseWatcher;
+  setups.history.hasWatcher = hasCloseWatcher;
   await setups.lay();
   setups.fixture.componentInstance.detent.set('full');
   await setups.fixture.whenStable();
-  setups.platform.frame();
+  setups.clock.frame();
   await setups.rest(END);
   return setups;
 };
@@ -277,8 +317,9 @@ describe('BottomSheetComponent', () => {
   });
 
   it('settles 120 ms after the last scroll where the browser has no scrollend', async () => {
-    const { platform, changes, lay, drag, rest, fixture } = await setup();
-    platform.knowsScrollEnd = false;
+    const { browserWindow, clock, changes, lay, drag, rest, fixture } =
+      await setup();
+    browserWindow.knowsScrollEnd = false;
     await lay();
 
     await drag([
@@ -290,7 +331,7 @@ describe('BottomSheetComponent', () => {
 
     expect(changes).toEqual([]);
 
-    platform.elapse(120);
+    clock.elapse(120);
     await fixture.whenStable();
 
     expect(changes).toEqual(['full']);
@@ -319,8 +360,8 @@ describe('BottomSheetComponent', () => {
   });
 
   it('goes and says so at once under reduced motion', async () => {
-    const { platform, sheet, scrollTo, changes, lay, fixture } = await setup();
-    platform.isReduced = true;
+    const { media, sheet, scrollTo, changes, lay, fixture } = await setup();
+    media.isReduced = true;
     await lay();
 
     sheet.toggle();
@@ -358,7 +399,7 @@ describe('BottomSheetComponent', () => {
 
   describe('vibration', () => {
     it('vibrates lightly once a drag lets it rest on another detent, and not before', async () => {
-      const { platform, lay, drag, rest } = await setup();
+      const { haptics, lay, drag, rest } = await setup();
       await lay();
 
       await drag([
@@ -367,36 +408,36 @@ describe('BottomSheetComponent', () => {
         [340, 200],
       ]);
 
-      expect(platform.vibrations).toEqual([]);
+      expect(haptics.vibrations).toEqual([]);
 
       await rest(END);
 
-      expect(platform.vibrations).toEqual([10]);
+      expect(haptics.vibrations).toEqual([10]);
     });
 
     it('vibrates once its handle is tapped to another detent', async () => {
-      const { platform, sheet, lay, rest } = await setup();
+      const { haptics, sheet, lay, rest } = await setup();
       await lay();
 
       sheet.toggle();
       await rest(0);
 
-      expect(platform.vibrations).toEqual([10]);
+      expect(haptics.vibrations).toEqual([10]);
     });
 
     it('vibrates when a reduced-motion drag or toggle is put there at once', async () => {
-      const { platform, sheet, lay, fixture } = await setup();
-      platform.isReduced = true;
+      const { haptics, media, sheet, lay, fixture } = await setup();
+      media.isReduced = true;
       await lay();
 
       sheet.toggle();
       await fixture.whenStable();
 
-      expect(platform.vibrations).toEqual([10]);
+      expect(haptics.vibrations).toEqual([10]);
     });
 
     it('stays still when a drag lets it rest where it was', async () => {
-      const { platform, lay, drag, rest } = await setup();
+      const { haptics, lay, drag, rest } = await setup();
       await lay();
 
       await drag([
@@ -406,29 +447,29 @@ describe('BottomSheetComponent', () => {
       ]);
       await rest(HALF - PEEK);
 
-      expect(platform.vibrations).toEqual([]);
+      expect(haptics.vibrations).toEqual([]);
     });
 
     it('stays still when the page sets the detent, and when it is resized', async () => {
-      const { fixture, platform, lay, rest, resize } = await setup();
+      const { fixture, clock, haptics, lay, rest, resize } = await setup();
       await lay();
 
       fixture.componentInstance.detent.set('full');
       await fixture.whenStable();
-      platform.frame();
+      clock.frame();
       await rest(END);
       await resize(600, 500);
 
-      expect(platform.vibrations).toEqual([]);
+      expect(haptics.vibrations).toEqual([]);
     });
 
     it('stays still on the first rest, and beyond the phone', async () => {
-      const { platform, sheet, lay } = await setup({ compact: false });
+      const { haptics, sheet, lay } = await setup({ compact: false });
       await lay();
 
       sheet.toggle();
 
-      expect(platform.vibrations).toEqual([]);
+      expect(haptics.vibrations).toEqual([]);
     });
   });
 
@@ -470,23 +511,23 @@ describe('BottomSheetComponent', () => {
 
   describe('back', () => {
     it('lowers a full sheet to half on back, through the history where the browser has no close watcher', async () => {
-      const { fixture, platform, host } = await risen(false);
+      const { fixture, history, host } = await risen(false);
 
-      expect(platform.entries).toHaveLength(2);
+      expect(history.entries).toHaveLength(2);
 
-      platform.pressBack();
+      history.pressBack();
       await fixture.whenStable();
 
       expect(host.dataset['detent']).toBe('half');
-      expect(platform.place).toBe(0);
+      expect(history.place).toBe(0);
     });
 
     it('lowers a full sheet to half on back through a close watcher where the browser has one', async () => {
-      const { fixture, platform, host } = await risen(true);
+      const { fixture, history, host } = await risen(true);
 
-      expect(platform.entries).toHaveLength(1);
+      expect(history.entries).toHaveLength(1);
 
-      platform.pressBack();
+      history.pressBack();
       await fixture.whenStable();
 
       expect(host.dataset['detent']).toBe('half');
@@ -495,37 +536,37 @@ describe('BottomSheetComponent', () => {
     it.each([true, false])(
       'keeps its detent when the router leaves, and leaves the next back alone while it is hidden, with a close watcher: %s',
       async (hasCloseWatcher) => {
-        const { fixture, platform, host } = await risen(hasCloseWatcher);
+        const { fixture, history, leave, host } = await risen(hasCloseWatcher);
 
-        platform.leave();
+        await leave();
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('full');
 
-        const backs = platform.backs.length;
-        platform.pressBack();
+        const backs = history.backs.length;
+        history.pressBack();
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('full');
-        expect(platform.backs).toHaveLength(backs);
+        expect(history.backs).toHaveLength(backs);
       },
     );
 
     it.each([true, false])(
       'takes a layer again when it is shown again at full after the router left, so that back lowers it first, with a close watcher: %s',
       async (hasCloseWatcher) => {
-        const { fixture, platform, host, resize } =
+        const { fixture, history, leave, host, resize } =
           await risen(hasCloseWatcher);
 
-        platform.leave();
-        platform.pushHistory({ navigationId: 2 });
+        await leave();
+        history.push({ navigationId: 2 });
         await resize(0);
         await resize(ROOM);
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('full');
 
-        platform.pressBack();
+        history.pressBack();
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('half');
@@ -535,17 +576,18 @@ describe('BottomSheetComponent', () => {
     it.each([true, false])(
       'takes a layer again when it is seen again at full with no change of size, so that back lowers it first, with a close watcher: %s',
       async (hasCloseWatcher) => {
-        const { fixture, platform, host } = await risen(hasCloseWatcher);
+        const { fixture, history, observer, leave, host } =
+          await risen(hasCloseWatcher);
 
-        platform.leave();
-        platform.pushHistory({ navigationId: 2 });
-        platform.sight(false);
-        platform.sight(true);
+        await leave();
+        history.push({ navigationId: 2 });
+        observer.sight(false);
+        observer.sight(true);
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('full');
 
-        platform.pressBack();
+        history.pressBack();
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('half');
@@ -555,33 +597,34 @@ describe('BottomSheetComponent', () => {
     it.each([true, false])(
       'takes no layer while it is out of sight, with a close watcher: %s',
       async (hasCloseWatcher) => {
-        const { fixture, platform, host } = await risen(hasCloseWatcher);
+        const { fixture, history, observer, leave, host } =
+          await risen(hasCloseWatcher);
 
-        platform.leave();
-        platform.sight(false);
+        await leave();
+        observer.sight(false);
         await fixture.whenStable();
 
-        const backs = platform.backs.length;
-        platform.pressBack();
+        const backs = history.backs.length;
+        history.pressBack();
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('full');
-        expect(platform.backs).toHaveLength(backs);
+        expect(history.backs).toHaveLength(backs);
       },
     );
 
     it('leaves the back to the page once the sheet is not full, and takes its entry back', async () => {
-      const { fixture, platform } = await risen(false);
+      const { fixture, history } = await risen(false);
 
       fixture.componentInstance.detent.set('half');
       await fixture.whenStable();
 
-      expect(platform.backs).toEqual([1]);
+      expect(history.backs).toEqual([1]);
     });
   });
 
   it('goes after the next frame to a detent set from outside', async () => {
-    const { fixture, platform, scrollTo, host, lay, rest } = await setup();
+    const { fixture, clock, scrollTo, host, lay, rest } = await setup();
     await lay();
 
     fixture.componentInstance.detent.set('full');
@@ -592,7 +635,7 @@ describe('BottomSheetComponent', () => {
       behavior: 'smooth',
     });
 
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).toHaveBeenLastCalledWith({ top: END, behavior: 'smooth' });
 
@@ -602,30 +645,30 @@ describe('BottomSheetComponent', () => {
   });
 
   it('drops a move toward a detent it is asked to leave before the next frame', async () => {
-    const { fixture, platform, scrollTo, host } = await risen(false);
+    const { fixture, clock, scrollTo, host } = await risen(false);
     scrollTo.mockClear();
 
     fixture.componentInstance.detent.set('half');
     await fixture.whenStable();
     fixture.componentInstance.detent.set('full');
     await fixture.whenStable();
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).not.toHaveBeenCalled();
     expect(host.dataset['detent']).toBe('full');
   });
 
   it('turns back toward the detent it rests on when asked for it again on the way to another', async () => {
-    const { fixture, platform, scrollTo, rail } = await risen(false);
+    const { fixture, clock, scrollTo, rail } = await risen(false);
 
     fixture.componentInstance.detent.set('half');
     await fixture.whenStable();
-    platform.frame();
+    clock.frame();
     rail.scrollTop = END - 0.5;
     scrollTo.mockClear();
     fixture.componentInstance.detent.set('full');
     await fixture.whenStable();
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).toHaveBeenLastCalledWith({ top: END, behavior: 'smooth' });
   });
@@ -680,12 +723,12 @@ describe('BottomSheetComponent', () => {
   });
 
   it('is inert on the server: it observes nothing and scrolls nothing', async () => {
-    const { host, observed, scrollTo, platform } = await setup({
+    const { host, observed, scrollTo, clock, observer } = await setup({
       platform: 'server',
     });
 
-    platform.resize();
-    platform.frame();
+    observer.resize();
+    clock.frame();
 
     expect(observed).not.toHaveBeenCalled();
     expect(scrollTo).not.toHaveBeenCalled();

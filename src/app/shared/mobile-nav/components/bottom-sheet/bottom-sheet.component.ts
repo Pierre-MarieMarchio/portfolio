@@ -14,10 +14,17 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import {
+  ClockService,
+  ElementObserverService,
+  HapticsService,
+  MediaPreferencesService,
+} from '@app/core/services';
 import { ScrollReleaseDirective } from '../../directives/scroll-release.directive';
 import type { SheetDetent, SheetStop } from '../../models/bottom-sheet.model';
-import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
+import { MOBILE_NAV_LAYOUT } from '../../ports/mobile-nav-layout.port';
 import { BackClaimService } from '../../services/back-claim.service';
+import { HandleTapService } from '../../services/handle-tap.service';
 import {
   detentAfter,
   isAtStop,
@@ -27,8 +34,6 @@ import {
   stopOf,
   stopsOf,
 } from '../../rules/bottom-sheet.rules';
-
-const CONTROLS = 'button, a, input, select, textarea, label';
 
 const SETTLE_VIBRATION_MS = 10;
 
@@ -46,7 +51,11 @@ const ignore = (): void => {};
   },
 })
 export class BottomSheetComponent {
-  private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly layout = inject(MOBILE_NAV_LAYOUT);
+  private readonly media = inject(MediaPreferencesService);
+  private readonly clock = inject(ClockService);
+  private readonly observer = inject(ElementObserverService);
+  private readonly haptics = inject(HapticsService);
   private readonly back = inject(BackClaimService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -65,7 +74,7 @@ export class BottomSheetComponent {
   public readonly transient = input(false);
   public readonly dismissed = output();
 
-  public readonly isActive = computed(() => this.platform.isCompact());
+  public readonly isActive = computed(() => this.layout.isCompact());
 
   private handle: HTMLElement | null = null;
   private committed: SheetDetent | null = null;
@@ -121,7 +130,7 @@ export class BottomSheetComponent {
 
   public hold(handle: HTMLElement): () => void {
     this.handle = handle;
-    const stop = this.platform.onResize(handle, () => {
+    const stop = this.observer.onResize(handle, () => {
       this.measureSoon();
     });
     return () => {
@@ -172,41 +181,27 @@ export class BottomSheetComponent {
   }
 
   private land(): void {
-    const onTap = (event: Event): void => {
-      this.tap(event);
-    };
-    this.element.addEventListener('pointerup', onTap, { capture: true });
-    this.stops.push(
-      () => {
-        this.element.removeEventListener('pointerup', onTap, {
-          capture: true,
-        });
+    const tap = new HandleTapService({
+      element: this.element,
+      handle: () => this.handle,
+      isFolded: () => this.isActive() && this.detent() === 'folded',
+      toggle: () => {
+        this.toggle();
       },
-      this.platform.onResize(this.rail().nativeElement, () => {
+    });
+    this.stops.push(
+      tap.stop,
+      this.observer.onResize(this.rail().nativeElement, () => {
         this.measureSoon();
       }),
-      this.platform.onResize(this.content().nativeElement, () => {
+      this.observer.onResize(this.content().nativeElement, () => {
         this.measureSoon();
       }),
-      this.platform.onVisible(this.rail().nativeElement, (isVisible) => {
+      this.observer.onVisible(this.rail().nativeElement, 0, (isVisible) => {
         this.back.seen(isVisible);
       }),
     );
     this.isLanded = true;
-  }
-
-  private tap(event: Event): void {
-    const target = event.target instanceof Element ? event.target : null;
-    if (
-      this.isActive() &&
-      this.detent() === 'folded' &&
-      target &&
-      this.handle?.contains(target) &&
-      !target.closest(CONTROLS)
-    ) {
-      event.stopPropagation();
-      this.toggle();
-    }
   }
 
   private ask(detent: SheetDetent): void {
@@ -216,7 +211,7 @@ export class BottomSheetComponent {
     if (!this.isLanded || (isAlready && !this.isHeading)) {
       return;
     }
-    this.stopFrame = this.platform.nextFrame(() => {
+    this.stopFrame = this.clock.nextFrame(() => {
       const stop = stopOf(this.stopsNow(), detent);
       if (stop) {
         this.head(stop);
@@ -228,7 +223,7 @@ export class BottomSheetComponent {
     const rail = this.rail().nativeElement;
     this.origin = stop.detent;
     const isThere = !this.isHeading && isAtStop(rail.scrollTop, stop.at);
-    const isInstant = this.platform.reducedMotion();
+    const isInstant = this.media.reducedMotion();
     this.isHeading = !isThere && !isInstant;
     if (!isThere) {
       rail.scrollTo({
@@ -243,7 +238,7 @@ export class BottomSheetComponent {
 
   private measureSoon(): void {
     this.stopMeasure();
-    this.stopMeasure = this.platform.nextFrame(() => {
+    this.stopMeasure = this.clock.nextFrame(() => {
       if (this.rail().nativeElement.clientHeight > 0) {
         this.back.retake();
       }
@@ -282,7 +277,7 @@ export class BottomSheetComponent {
       this.element.style.setProperty('--mnav-sheet-band', band);
     }
     if (isFelt(this.isByUser, this.committed, stop.detent)) {
-      this.platform.vibrate(SETTLE_VIBRATION_MS);
+      this.haptics.vibrate(SETTLE_VIBRATION_MS);
     }
     this.isByUser = false;
     this.committed = stop.detent;

@@ -69,7 +69,7 @@ export class SwipeStepsService {
       event.isPrimary &&
       event.pointerType !== 'mouse' &&
       !this.isSettling &&
-      this.host.platform.isCompact()
+      this.host.layout.isCompact()
     ) {
       this.gesture = {
         id: event.pointerId,
@@ -91,7 +91,7 @@ export class SwipeStepsService {
       return;
     }
     gesture.travel = dx;
-    if (!this.host.platform.reducedMotion()) {
+    if (!this.host.media.reducedMotion()) {
       this.followNextFrame(gesture, dx);
     }
   }
@@ -110,7 +110,7 @@ export class SwipeStepsService {
 
   private followNextFrame(gesture: Gesture, dx: number): void {
     this.stopFrame();
-    this.stopFrame = this.host.platform.nextFrame(() => {
+    this.stopFrame = this.host.clock.nextFrame(() => {
       const { pane, at } = followOf(
         dx,
         gesture.area.clientWidth,
@@ -139,7 +139,7 @@ export class SwipeStepsService {
             index,
             count,
           });
-    if (this.host.platform.reducedMotion()) {
+    if (this.host.media.reducedMotion()) {
       this.emit(step);
       return;
     }
@@ -150,7 +150,7 @@ export class SwipeStepsService {
         '--swipe-pane': 0,
         '--swipe-at': index,
       });
-      this.stopWait = this.host.platform.after(SETTLE_MS, () => {
+      this.stopWait = this.host.clock.after(SETTLE_MS, () => {
         this.clear();
       });
       return;
@@ -179,7 +179,7 @@ export class SwipeStepsService {
       }
     };
     const stopRender = this.host.afterRender(run);
-    const stopTimer = this.host.platform.after(SWAP_WAIT_MS, run);
+    const stopTimer = this.host.clock.after(SWAP_WAIT_MS, run);
     stop = () => {
       stopRender();
       stopTimer();
@@ -191,7 +191,7 @@ export class SwipeStepsService {
     this.set({ '--swipe-t': null, '--swipe-pane': pane });
     this.host.element.getBoundingClientRect();
     this.set({ '--swipe-t': SETTLE_TIME, '--swipe-pane': 0 });
-    this.stopWait = this.host.platform.after(SETTLE_MS, () => {
+    this.stopWait = this.host.clock.after(SETTLE_MS, () => {
       this.clear();
     });
   }

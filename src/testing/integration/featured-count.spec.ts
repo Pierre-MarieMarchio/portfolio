@@ -7,7 +7,7 @@ import {
 } from '@testing/fixtures/project.fixture';
 import { stillObservatory } from '@testing/fixtures/observatory.fixture';
 import { componentOf } from '@testing/fixtures/testbed.fixture';
-import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 import { ProjectEntry } from '@app/features/projects/models';
 import { FEATURED } from '@app/features/projects/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
@@ -36,7 +36,7 @@ const mount = async (featured: number, total: number) => {
       provideRouter([{ path: '**', children: [] }]),
       provideProjects(entries(total), [ObservatoryEffect]),
       { provide: FEATURED, useValue: featured },
-      provideMobileNavPlatform(),
+      provideMobileNavLayout(),
     ],
   });
   await loadProjects();

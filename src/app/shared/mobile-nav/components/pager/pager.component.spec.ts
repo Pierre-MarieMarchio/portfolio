@@ -3,9 +3,17 @@ import { TestBed } from '@angular/core/testing';
 import { PagerComponent } from './pager.component';
 import { PagerPageComponent } from '../pager-page/pager-page.component';
 import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
+  BrowserWindowService,
+  ClockService,
+  ElementObserverService,
+  MediaPreferencesService,
+} from '@app/core/services';
+import {
+  BrowserWindowDouble,
+  ClockDouble,
+  ElementObserverDouble,
+  MediaPreferencesDouble,
+} from '@testing/doubles/browser-services.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { fireTouch, swipe } from '@testing/fixtures/pointer.fixture';
 
@@ -51,10 +59,19 @@ const layOut = (pager: HTMLElement, width: number): void => {
 };
 
 const setup = async ({ index = 0 } = {}) => {
-  const platform = new MobileNavPlatformDouble();
+  const clock = new ClockDouble();
+  const observer = new ElementObserverDouble();
+  const media = new MediaPreferencesDouble();
+  const browserWindow = new BrowserWindowDouble();
   TestBed.configureTestingModule({
     imports: [PagerHost],
-    providers: [provideTexts(), provideMobileNavPlatform(platform)],
+    providers: [
+      provideTexts(),
+      { provide: ClockService, useValue: clock },
+      { provide: ElementObserverService, useValue: observer },
+      { provide: MediaPreferencesService, useValue: media },
+      { provide: BrowserWindowService, useValue: browserWindow },
+    ],
   });
   const fixture = TestBed.createComponent(PagerHost);
   fixture.componentInstance.index.set(index);
@@ -78,7 +95,10 @@ const setup = async ({ index = 0 } = {}) => {
   const pages = [...host.querySelectorAll<HTMLElement>('app-pager-page')];
   return {
     fixture,
-    platform,
+    clock,
+    observer,
+    media,
+    browserWindow,
     pager,
     scrollTo,
     changes: fixture.componentInstance.changes,
@@ -104,7 +124,7 @@ const swipeFrom = async (
   gesture: { dx?: number; dy?: number; ms?: number },
 ) => {
   const harness = await setup({ index: page });
-  harness.platform.frame();
+  harness.clock.frame();
   await harness.rest(page * WIDTH);
   harness.scrollTo.mockClear();
   swipe(harness.pager, gesture);
@@ -204,29 +224,29 @@ describe('PagerComponent', () => {
   });
 
   it('shows the page the browser announces as its next snap target, before the scroll ends', async () => {
-    const { platform, pager, fixture, current } = await setup();
+    const { observer, pager, fixture, current } = await setup();
     const pages = [
       ...(fixture.nativeElement as HTMLElement).querySelectorAll(
         'app-pager-page',
       ),
     ];
 
-    platform.snapTo(pager, pages[2] ?? null);
+    observer.snapTo(pager, pages[2] ?? null);
     await fixture.whenStable();
 
     expect(current()).toBe(2);
   });
 
   it('follows only the snap announcements once the browser makes them, ignoring the nearest guess from scroll', async () => {
-    const { platform, pager, fixture, current, rest } = await setup();
-    platform.knowsSnapChanging = true;
+    const { observer, pager, fixture, current, rest } = await setup();
+    observer.knowsSnapChanging = true;
     const pages = [
       ...(fixture.nativeElement as HTMLElement).querySelectorAll(
         'app-pager-page',
       ),
     ];
 
-    platform.snapTo(pager, pages[2] ?? null);
+    observer.snapTo(pager, pages[2] ?? null);
     await rest(WIDTH, ['scroll']);
 
     expect(current()).toBe(2);
@@ -251,7 +271,7 @@ describe('PagerComponent', () => {
   });
 
   it('never scrolls to a page set from outside while a finger is on the pager, but catches up once it lifts', async () => {
-    const { platform, pager, scrollTo, pointTo } = await setup();
+    const { clock, pager, scrollTo, pointTo } = await setup();
 
     pager.dispatchEvent(new Event('touchstart'));
     await pointTo(2);
@@ -259,7 +279,7 @@ describe('PagerComponent', () => {
     expect(scrollTo).not.toHaveBeenCalled();
 
     pager.dispatchEvent(new Event('touchend'));
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).toHaveBeenCalledWith({
       left: 2 * WIDTH,
@@ -268,13 +288,13 @@ describe('PagerComponent', () => {
   });
 
   it('keeps a realignment off while the scroll has not ended, and catches up once it does', async () => {
-    const { platform, pager, scrollTo, rest } = await setup();
+    const { observer, pager, scrollTo, rest } = await setup();
     await rest(2 * WIDTH);
     scrollTo.mockClear();
 
     pager.dispatchEvent(new Event('scroll'));
     layOut(pager, 400);
-    platform.resize();
+    observer.resize();
 
     expect(scrollTo).not.toHaveBeenCalled();
 
@@ -294,7 +314,7 @@ describe('PagerComponent', () => {
   });
 
   it('scrolls smoothly, after the next frame, to a page set from outside, and does not echo it', async () => {
-    const { platform, scrollTo, changes, shown, current, rest, pointTo } =
+    const { clock, scrollTo, changes, shown, current, rest, pointTo } =
       await setup();
 
     await pointTo(2);
@@ -302,7 +322,7 @@ describe('PagerComponent', () => {
     expect(scrollTo).not.toHaveBeenCalled();
     expect(current()).toBe(2);
 
-    platform.frame();
+    clock.frame();
 
     expect(scrollTo).toHaveBeenCalledWith({
       left: 2 * WIDTH,
@@ -318,10 +338,10 @@ describe('PagerComponent', () => {
   });
 
   it('reaches the page it was heading to without ever showing the pages a programmed scroll crosses', async () => {
-    const { platform, changes, shown, current, rest, pointTo } = await setup();
+    const { clock, changes, shown, current, rest, pointTo } = await setup();
 
     await pointTo(3);
-    platform.frame();
+    clock.frame();
 
     expect(current()).toBe(3);
 
@@ -335,10 +355,10 @@ describe('PagerComponent', () => {
   });
 
   it('lets a finger take over from a programmed scroll, resuming ordinary tracking', async () => {
-    const { platform, pager, changes, current, rest, pointTo } = await setup();
+    const { clock, pager, changes, current, rest, pointTo } = await setup();
 
     await pointTo(3);
-    platform.frame();
+    clock.frame();
     pager.dispatchEvent(new Event('touchstart'));
 
     await rest(WIDTH, ['scroll']);
@@ -361,11 +381,11 @@ describe('PagerComponent', () => {
   });
 
   it('jumps to the page without animation under reduced motion', async () => {
-    const { platform, scrollTo, current, pointTo, fixture } = await setup();
-    platform.isReduced = true;
+    const { clock, media, scrollTo, current, pointTo, fixture } = await setup();
+    media.isReduced = true;
 
     await pointTo(3);
-    platform.frame();
+    clock.frame();
     await fixture.whenStable();
 
     expect(scrollTo).toHaveBeenCalledWith({
@@ -376,46 +396,46 @@ describe('PagerComponent', () => {
   });
 
   it('settles 120 ms after the last scroll where the browser has no scrollend', async () => {
-    const { platform, fixture, changes, rest } = await setup();
-    platform.knowsScrollEnd = false;
+    const { browserWindow, clock, fixture, changes, rest } = await setup();
+    browserWindow.knowsScrollEnd = false;
 
     await rest(WIDTH, ['scroll']);
     await rest(2 * WIDTH, ['scroll']);
-    platform.elapse(119);
+    clock.elapse(119);
 
     expect(changes).toEqual([]);
 
-    platform.elapse(120);
+    clock.elapse(120);
     await fixture.whenStable();
 
     expect(changes).toEqual([2]);
   });
 
   it('stays on its page when its width changes', async () => {
-    const { platform, pager, scrollTo, rest } = await setup();
+    const { observer, pager, scrollTo, rest } = await setup();
     await rest(2 * WIDTH);
-    platform.resize();
+    observer.resize();
     scrollTo.mockClear();
 
     layOut(pager, 400);
-    platform.resize();
+    observer.resize();
 
     expect(scrollTo).toHaveBeenCalledWith({ left: 800, behavior: 'instant' });
   });
 
   it('keeps its page when it is shown again after a width of 0', async () => {
-    const { platform, pager, scrollTo, changes, rest } = await setup();
+    const { observer, pager, scrollTo, changes, rest } = await setup();
     await rest(2 * WIDTH);
-    platform.resize();
+    observer.resize();
     scrollTo.mockClear();
 
     layOut(pager, 0);
-    platform.resize();
+    observer.resize();
     await rest(0);
     expect(scrollTo).not.toHaveBeenCalled();
 
     layOut(pager, WIDTH);
-    platform.resize();
+    observer.resize();
 
     expect(scrollTo).toHaveBeenCalledWith({
       left: 2 * WIDTH,
@@ -496,9 +516,9 @@ describe('PagerComponent', () => {
 
     it('jumps without animation under reduced motion', async () => {
       const harness = await setup({ index: 1 });
-      harness.platform.frame();
+      harness.clock.frame();
       await harness.rest(WIDTH);
-      harness.platform.isReduced = true;
+      harness.media.isReduced = true;
       harness.scrollTo.mockClear();
 
       swipe(harness.pager, { dx: -60 });

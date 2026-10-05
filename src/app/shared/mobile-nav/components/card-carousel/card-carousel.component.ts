@@ -17,12 +17,16 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
+import {
+  ClockService,
+  ElementObserverService,
+  MediaPreferencesService,
+} from '@app/core/services';
 import { cardAt, centredOffset } from '../../rules/carousel.rules';
 import { clampPage, indexOfChild, isAt } from '../../rules/pager.rules';
+import { ScrollEndService } from '../../services/scroll-end.service';
 import { PagerDotsComponent } from '../pager-dots/pager-dots.component';
 
-const SETTLE_MS = 120;
 const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
 
 interface CardContext<T> {
@@ -33,6 +37,7 @@ interface CardContext<T> {
 @Component({
   selector: 'app-card-carousel',
   imports: [NgTemplateOutlet, PagerDotsComponent],
+  providers: [ScrollEndService],
   templateUrl: './card-carousel.component.html',
   styleUrl: './card-carousel.component.scss',
   host: {
@@ -41,7 +46,10 @@ interface CardContext<T> {
   },
 })
 export class CardCarouselComponent<T> {
-  private readonly platform = inject(MOBILE_NAV_PLATFORM);
+  private readonly media = inject(MediaPreferencesService);
+  private readonly clock = inject(ClockService);
+  private readonly observer = inject(ElementObserverService);
+  private readonly scrollEnd = inject(ScrollEndService);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -67,7 +75,6 @@ export class CardCarouselComponent<T> {
   );
 
   private stopFrame: () => void = () => {};
-  private stopTimer: () => void = () => {};
   private stopSnap: () => void = () => {};
   private stopTouch: () => void = () => {};
   private isHeading = false;
@@ -85,7 +92,7 @@ export class CardCarouselComponent<T> {
         });
       }
     });
-    const stopResize = this.platform.onResize(this.element, () => {
+    const stopResize = this.observer.onResize(this.element, () => {
       this.realign();
     });
     const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -94,7 +101,7 @@ export class CardCarouselComponent<T> {
       if (!track) {
         return;
       }
-      this.stopSnap = this.platform.onSnapChanging(track, (target) => {
+      this.stopSnap = this.observer.onSnapChanging(track, (target) => {
         this.showNearest(indexOfChild(track, target));
       });
       if (isBrowser) {
@@ -113,20 +120,15 @@ export class CardCarouselComponent<T> {
       this.stopSnap();
       this.stopTouch();
       this.stopFrame();
-      this.stopTimer();
     });
   }
 
   protected onScroll(): void {
     this.isScrolling = true;
-    if (!this.platform.hasSnapChanging()) {
+    if (!this.observer.hasSnapChanging()) {
       this.showNearest(cardAt(this.scrollLeft(), this.offsets()));
     }
-    if (this.platform.hasScrollEnd()) {
-      return;
-    }
-    this.stopTimer();
-    this.stopTimer = this.platform.after(SETTLE_MS, () => {
+    this.scrollEnd.expect(() => {
       this.settle();
     });
   }
@@ -144,7 +146,7 @@ export class CardCarouselComponent<T> {
   };
 
   protected settle(): void {
-    this.stopTimer();
+    this.scrollEnd.cancel();
     if (this.isHeading) {
       return;
     }
@@ -163,7 +165,7 @@ export class CardCarouselComponent<T> {
       return;
     }
     this.headingTo.set(target);
-    this.scrollTo(target, this.platform.reducedMotion() ? 'instant' : 'smooth');
+    this.scrollTo(target, this.media.reducedMotion() ? 'instant' : 'smooth');
   }
 
   private showNearest(place: number | null): void {
@@ -211,7 +213,7 @@ export class CardCarouselComponent<T> {
     }
     this.isHeading = true;
     this.headingTo.set(target);
-    this.stopFrame = this.platform.nextFrame(() => {
+    this.stopFrame = this.clock.nextFrame(() => {
       this.isHeading = false;
       this.head(target);
     });
@@ -222,7 +224,7 @@ export class CardCarouselComponent<T> {
       this.commit(target);
       return;
     }
-    const isInstant = this.settled() === null || this.platform.reducedMotion();
+    const isInstant = this.settled() === null || this.media.reducedMotion();
     this.scrollTo(target, isInstant ? 'instant' : 'smooth');
     if (isInstant) {
       this.commit(target);

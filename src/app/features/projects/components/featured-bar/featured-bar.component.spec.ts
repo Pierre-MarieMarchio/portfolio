@@ -8,7 +8,7 @@ import { rowLabel } from '../../rules/project-labels.rules';
 import { FeaturedBarComponent } from './featured-bar.component';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
-import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 import { CardCarouselComponent } from '@shared/mobile-nav/components';
 
 const markerButtons = (host: HTMLElement): HTMLButtonElement[] => [
@@ -57,11 +57,7 @@ describe('FeaturedBarComponent', () => {
   }) => {
     TestBed.configureTestingModule({
       imports: [FeaturedBarComponent],
-      providers: [
-        provideTexts(),
-        provideRouter([]),
-        provideMobileNavPlatform(),
-      ],
+      providers: [provideTexts(), provideRouter([]), provideMobileNavLayout()],
     });
 
     const fixture = TestBed.createComponent(FeaturedBarComponent);

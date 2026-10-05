@@ -2,10 +2,8 @@ import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { BottomSheetComponent } from '@shared/mobile-nav/components';
-import {
-  MobileNavPlatformDouble,
-  provideMobileNavPlatform,
-} from '@testing/doubles/mobile-nav-platform.double';
+import { BackLayersService } from '@shared/mobile-nav/services';
+import { provideMobileNavLayout } from '@testing/doubles/mobile-nav-layout.double';
 import { ObservatoryManager } from '../states';
 import { ProjectSheetDirective } from './project-sheet.directive';
 
@@ -19,10 +17,13 @@ class SheetHost {
 }
 
 const mount = async () => {
-  const platform = new MobileNavPlatformDouble();
   TestBed.configureTestingModule({
     imports: [SheetHost],
-    providers: [provideStatewise(), provideMobileNavPlatform(platform)],
+    providers: [
+      provideStatewise(),
+      provideMobileNavLayout(),
+      BackLayersService,
+    ],
   });
   const observatory = TestBed.inject(ObservatoryManager);
   const fixture = TestBed.createComponent(SheetHost);

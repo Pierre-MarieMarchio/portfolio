@@ -12,8 +12,9 @@ chapitres et sections se feuillettent du doigt. La scène, les fenêtres et la
 navigation du téléphone sont des librairies maison, dans `shared/`.
 
 La documentation de référence est dans `docs/` : l'architecture dans
-`docs/architecture/` (organisation, décisions, raisons), le contenu dans
-[`docs/contenu.md`](docs/contenu.md).
+`docs/architecture/` (couches, fluxs, librairies, scène, pages), les conventions
+dans `docs/conventions/` (code, outils), le domaine dans `docs/domain/` (contenu,
+règles métier, glossaire), et les décisions dans [`docs/ADR.md`](docs/ADR.md).
 
 ## Démarrer
 
@@ -30,7 +31,7 @@ npm start          # http://localhost:4200
 | `npm test`                | Vitest + jsdom, une passe                                                                                 |
 | `npm run test:coverage`   | la même passe avec la couverture, rapport lcov dans `coverage/`                                           |
 | `npm run lint`            | ESLint, dont la loi de dépendance, puis Stylelint, zéro avertissement                                     |
-| `npm run check:structure` | la nomenclature d'`organisation.md` §3 ; échoue sur un écart                                              |
+| `npm run check:structure` | l'arborescence, les suffixes de rôle et les noms ; échoue sur un écart                                    |
 | `npm run check:comments`  | aucun commentaire dans le code (D10) ; échoue en listant ceux qui restent                                 |
 | `npm run check`           | format:check → typecheck:tools → lint → test → build → check:prerender → check:structure → check:comments |
 
@@ -49,11 +50,12 @@ envoie l'artefact du build tel quel, sans second build (D48), par SFTP avec la
 clé du serveur épinglée (D97).
 
 L'adresse du site et la base de la route sont des variables de build :
-`SITE_URL` et `BASE_HREF`. Le déploiement place les pages 404 prérendues
-en français et en anglais (`404.html`, `en/404.html`), écrit `sitemap.xml` et
-`robots.txt` à partir des liens `canonical` et `alternate` des pages, et
-envoie un `.htaccess` qui gère les redirections, le cache et la compression
-(D95). En local, `ng build --base-href /x/ --define "SITE_URL=\"https://…\""`.
+`SITE_URL` et `BASE_HREF`. La cible `build:finish` place les pages 404
+prérendues en français et en anglais (`404.html`, `en/404.html`), écrit
+`sitemap.xml` et `robots.txt` à partir des liens `canonical` et `alternate`
+des pages. Le déploiement envoie l'artefact du build et place un `.htaccess`
+qui gère les redirections, le cache et la compression (D95). En local,
+`ng build --base-href /x/ --define "SITE_URL=\"https://…\""`.
 
 ## Les couches
 
@@ -95,13 +97,16 @@ src/app/
     observatory/
       components/        la scène de l'observatoire, la carte d'ouverture, le titre,
                          la fenêtre « adresse inconnue », la pause, le dock
-      services/          la révélation de l'accueil, le tour des vedettes, la
-                         fenêtre de la vue (premier plan, focus)
-      directives/        le créneau d'une fenêtre de la vue
+      services/          la révélation de l'accueil, le tour des vedettes,
+                         les fenêtres (premier plan, focus), les feuilles du
+                         téléphone, la navigation aux onglets, la plateforme mobile
+      directives/        le créneau des fenêtres, celui de la feuille projet,
+                         celui de la feuille fenêtre
       models/ ports/ rules/ states/observatory/ states/animation/
     profile/
       components/        la fenêtre « à propos », le rail de contact et,
                          au téléphone, le menu « Contact »
+      services/          le retour au copier-coller
       data/ models/ ports/
   pages/                 composition : un dossier par écran
     observatory/         l'écran de l'observatoire et sa feuille de route
@@ -113,7 +118,7 @@ src/testing/             ce qui ne part pas en production
 Une feature ne crée un sous-dossier (`guards/`, `ports/`, `interceptors/`…)
 que lorsqu'elle a de quoi le remplir. `data/` contient le contenu livré avec le
 site ; seul le repository le lit. **Ajouter ou changer un projet** : voir
-[`docs/contenu.md`](docs/contenu.md).
+[`docs/domain/content.md`](docs/domain/content.md).
 
 ## La loi de dépendance
 
@@ -150,9 +155,10 @@ restent à l'intérieur d'une zone.
 ## L'état
 
 Flux ngx-statewise : action → updater (synchrone, seul à écrire l'état) →
-effect (asynchrone) → éventuellement d'autres actions. Les composants et les
-pages ne parlent qu'aux **managers**. Un concept d'état = cinq fichiers dans
-`states/<concept>/` : `.action`, `.state`, `.updater`, `.effect`, `.manager`.
+éventuellement effect (asynchrone) → éventuellement d'autres actions. Les
+composants et les pages ne parlent qu'aux **managers**. Un concept d'état
+a pour minimum `.action`, `.state`, `.updater` et `.manager` dans
+`states/<concept>/` ; un `.effect` s'ajoute si l'état a besoin d'asynchrone.
 
 On dérive plutôt que de stocker : l'état garde un **slug** et l'écran en dérive
 le projet (`manager.find(slug)`), jamais une copie. Ce que le lecteur regarde
@@ -190,7 +196,7 @@ toujours écrite (vérifiée par le lint), sélecteurs préfixés `app-`. Une cl
 porte le suffixe de son fichier (D7) : `document-head.service.ts` /
 `DocumentHeadService`, `route-head.strategy.ts` / `RouteHeadStrategy`. La
 liste des suffixes et des dossiers de rôle est dans
-`docs/architecture/organisation.md` §3, et `check-structure.mjs` la tient.
+`docs/conventions/code.md`, et `check-structure.mjs` la tient.
 
 Chaque composant a son dossier, à son nom (`featured-bar/featured-bar.component.*`).
 Une entrée et la sortie qui la change forment une paire `x` / `xChange`
@@ -202,16 +208,15 @@ Une entrée et la sortie qui la change forment une paire `x` / `xChange`
 clic rend.
 
 Le code ne porte aucun commentaire (D10) : les noms disent le _quoi_, le
-journal `docs/architecture/decisions.md` le _pourquoi_, et chaque comportement
+journal `docs/ADR.md` le _pourquoi_, et chaque comportement
 est tenu par un spec.
 
 Le lint borne aussi la taille et la forme du code : 300 lignes par fichier,
-60 par fonction, complexité 10, profondeur 3, 4 paramètres, et, dans les
+40 par fonction, complexité 8, profondeur 2, 4 paramètres, et, dans les
 gabarits, une complexité conditionnelle de 4 et cyclomatique de 12. Les noms
 suivent `NAMES` (`eslint.config.js`). Stylelint (`stylelint.config.mjs`) vérifie
-les `.scss`, et laisse la mise en forme à Prettier. Une règle que le code
-enfreint encore est un avertissement : l'étape du plan d'audit qui la résout la
-passe en erreur.
+les `.scss`, et laisse la mise en forme à Prettier. Zéro avertissement : toute
+règle enfreinte est une erreur qui échoue le lint.
 
 **Les styles.** Les jetons sont dans `src/assets/styles/_tokens.scss` : une
 valeur partagée (gouttière, cibles, rayons, flou, durée) s'y écrit une fois, et

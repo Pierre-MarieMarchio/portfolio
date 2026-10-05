@@ -10,24 +10,24 @@ export class ElementObserverService {
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  public onResize(el: Element, fn: () => void): () => void {
+  public onResize(element: Element, callback: () => void): () => void {
     const view = this.view();
     if (!view || typeof view.ResizeObserver !== 'function') {
       return () => {};
     }
     const observer = new view.ResizeObserver(() => {
-      fn();
+      callback();
     });
-    observer.observe(el);
+    observer.observe(element);
     return () => {
       observer.disconnect();
     };
   }
 
   public onVisible(
-    el: Element,
+    element: Element,
     threshold: number,
-    fn: (isVisible: boolean) => void,
+    callback: (isVisible: boolean) => void,
   ): () => void {
     const view = this.view();
     if (!view || typeof view.IntersectionObserver !== 'function') {
@@ -37,30 +37,30 @@ export class ElementObserverService {
       (entries) => {
         const entry = entries[0];
         if (entry) {
-          fn(entry.isIntersecting);
+          callback(entry.isIntersecting);
         }
       },
       { threshold },
     );
-    observer.observe(el);
+    observer.observe(element);
     return () => {
       observer.disconnect();
     };
   }
 
   public onSnapChanging(
-    el: Element,
-    fn: (target: Element | null) => void,
+    element: Element,
+    callback: (target: Element | null) => void,
   ): () => void {
-    if (!this.supportsSnapChanging(el)) {
+    if (!this.supportsSnapChanging(element)) {
       return () => {};
     }
     const listener = (event: Event): void => {
-      fn((event as SnapChangingEvent).snapTargetInline);
+      callback((event as SnapChangingEvent).snapTargetInline);
     };
-    el.addEventListener('scrollsnapchanging', listener);
+    element.addEventListener('scrollsnapchanging', listener);
     return () => {
-      el.removeEventListener('scrollsnapchanging', listener);
+      element.removeEventListener('scrollsnapchanging', listener);
     };
   }
 
@@ -68,12 +68,12 @@ export class ElementObserverService {
     return this.supportsSnapChanging(this.document.documentElement);
   }
 
-  public async whenStill(el: Element): Promise<void> {
-    if (!this.isBrowser || typeof el.getAnimations !== 'function') {
+  public async whenStill(element: Element): Promise<void> {
+    if (!this.isBrowser || typeof element.getAnimations !== 'function') {
       return;
     }
     await Promise.allSettled(
-      el.getAnimations().map((animation) => animation.finished),
+      element.getAnimations().map((animation) => animation.finished),
     );
   }
 
@@ -81,7 +81,7 @@ export class ElementObserverService {
     return this.isBrowser ? this.document.defaultView : null;
   }
 
-  private supportsSnapChanging(el: Element): boolean {
-    return 'onscrollsnapchanging' in el;
+  private supportsSnapChanging(element: Element): boolean {
+    return 'onscrollsnapchanging' in element;
   }
 }

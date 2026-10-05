@@ -8,11 +8,11 @@ export class DocumentStylesService {
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  public token(name: string, el?: Element): string {
+  public token(name: string, element?: Element): string {
     const view = this.isBrowser ? this.document.defaultView : null;
     return view
       ? view
-          .getComputedStyle(el ?? this.document.documentElement)
+          .getComputedStyle(element ?? this.document.documentElement)
           .getPropertyValue(name)
           .trim()
       : '';
@@ -27,7 +27,7 @@ export class DocumentStylesService {
     return match[2] === 's' ? value * 1000 : value;
   }
 
-  public fontsReady(fn: () => void): void {
+  public fontsReady(callback: () => void): void {
     if (!this.isBrowser) {
       return;
     }
@@ -36,7 +36,7 @@ export class DocumentStylesService {
       return;
     }
     void fonts.ready.then(() => {
-      fn();
+      callback();
     });
   }
 }

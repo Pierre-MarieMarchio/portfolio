@@ -15,10 +15,3 @@ export type {
   WindowControlView,
   WindowParts,
 } from './window-frame.model';
-export type {
-  WindowMenuAction,
-  WindowMenuActionId,
-  WindowMenuCode,
-  WindowMenuHost,
-  WindowMenuTracking,
-} from './window-menu.model';

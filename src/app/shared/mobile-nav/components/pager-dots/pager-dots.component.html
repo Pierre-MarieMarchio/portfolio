@@ -1,0 +1,12 @@
+<div class="dots">
+  @for (dot of places(count()); track dot) {
+    <button
+      type="button"
+      class="dot"
+      tabindex="-1"
+      [attr.aria-label]="texts().pageOf(dot + 1, count())"
+      [attr.aria-current]="dot === current() || null"
+      (click)="chosen.emit(dot)"
+    ></button>
+  }
+</div>

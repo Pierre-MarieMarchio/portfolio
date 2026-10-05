@@ -6,3 +6,11 @@
 
 *.jpg binary
 *.png binary
+*.sh text eol=lf
+.claude/guards text eol=lf
+.claude/sections text eol=lf
+.claude/labels text eol=lf
+.claude/shipped text eol=lf
+.claude/manifest text eol=lf
+.claude/skills/onboard/hooks-system.json text eol=lf
+

@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
+import { DisplayFormatService } from '@app/core/services';
 import { LINKS } from '@app/features/common';
 import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
@@ -18,14 +19,12 @@ import {
 import { SegmentedComponent } from '@shared/ui/components';
 import { SegmentedItem } from '@shared/ui/models';
 import { WindowComponent } from '@shared/windows/components';
-import { ViewHeadingDirective } from '@shared/ui/directives';
 
 const PARTS = ['profile', 'skills', 'path', 'method'] as const;
 
 @Component({
   selector: 'app-about-window',
   imports: [
-    ViewHeadingDirective,
     PagerComponent,
     PagerPageComponent,
     RouterLink,
@@ -41,12 +40,17 @@ export class AboutWindowComponent {
   public readonly closeLabel = input('');
   public readonly part = input(0);
 
+  public readonly minimized = output();
   public readonly pinToggled = output();
   public readonly closed = output();
   public readonly partChange = output<number>();
 
   protected readonly texts = inject(PROFILE_TEXTS);
   protected readonly links = inject(LINKS);
+  private readonly display = inject(DisplayFormatService);
+  protected readonly isPhone = computed(
+    () => this.display.format() === 'phone',
+  );
   protected readonly email = CONTACT_EMAIL;
   protected readonly mailto = `mailto:${CONTACT_EMAIL}`;
 

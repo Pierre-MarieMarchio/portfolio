@@ -1,5 +1,4 @@
 import { inject, Service } from '@angular/core';
-import { Router } from '@angular/router';
 import { createEffect } from 'ngx-statewise';
 import { LINKS } from '@app/features/common';
 import {
@@ -9,11 +8,14 @@ import {
   observatorySteppedBack,
   observatoryWindowClosed,
 } from './observatory.action';
+import { Router } from '@angular/router';
+import { SessionHistoryService } from '@app/core/services';
 import { ObservatoryState } from './observatory.state';
 import { closeTargetOf, ParentView, stepBack } from '../../rules/view.rules';
 
 @Service()
 export class ObservatoryEffect {
+  private readonly history = inject(SessionHistoryService);
   private readonly router = inject(Router);
   private readonly state = inject(ObservatoryState);
   private readonly links = inject(LINKS);
@@ -54,9 +56,10 @@ export class ObservatoryEffect {
   }
 
   private async go(view: ParentView): Promise<undefined> {
-    await this.router.navigateByUrl(
-      view === 'home' ? this.links.home() : this.links.index(),
-    );
+    const parent = view === 'home' ? this.links.home() : this.links.index();
+    if (!this.history.backTo(parent)) {
+      await this.router.navigateByUrl(parent, { replaceUrl: true });
+    }
     return undefined;
   }
 }

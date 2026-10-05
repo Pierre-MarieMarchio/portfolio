@@ -12,10 +12,26 @@ export type ObservatoryWindow = (typeof OBSERVATORY_WINDOWS)[number];
 
 export type ViewSlot = ObservatoryWindow | 'home';
 
+export type MinimizableWindow = Exclude<ObservatoryWindow, 'preview'>;
+
 export type ObservatoryPins = Readonly<Record<ObservatoryWindow, boolean>>;
+
+export type ObservatoryMinimized = Readonly<Record<MinimizableWindow, boolean>>;
+
+export interface HeldSheet {
+  readonly key: number;
+  readonly slug: string;
+  readonly chapter: number;
+  readonly minimized: boolean;
+}
 
 export interface Planet {
   readonly slug: string;
   readonly title: string;
   readonly short: string;
+}
+
+export interface ResumePoint {
+  readonly slug: string;
+  readonly chapter: number;
 }

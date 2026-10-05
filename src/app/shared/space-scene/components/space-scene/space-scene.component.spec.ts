@@ -7,7 +7,10 @@ import { pointer } from '@testing/fixtures/pointer.fixture';
 import { SkyPanMotion } from '../../engine/motions/sky-pan.motion';
 import { SpaceSceneEngine } from '../../engine/space-scene.engine';
 import type { SceneLook, StartLook } from '../../models/scene-look.model';
-import { SCENE_SURROUNDINGS } from '../../ports/scene-surroundings.port';
+import {
+  SCENE_SURROUNDINGS,
+  ScenePanel,
+} from '../../ports/scene-surroundings.port';
 import * as holeFocus from '../../rules/hole-focus.rules';
 import { loadSkyLook, loadTouchLook } from '../../services/scene-look.service';
 import { loadHoleFocus, SpaceSceneComponent } from './space-scene.component';
@@ -18,7 +21,10 @@ const lookDouble = (pan: SkyPanMotion | null) => {
   return { start, stop };
 };
 
-const mount = async (start: DisplayFormat = 'desktop') => {
+const mount = async (
+  start: DisplayFormat = 'desktop',
+  panels: () => readonly ScenePanel[] = () => [],
+) => {
   const code = signal<typeof holeFocus | null>(null);
   const touchCode = signal<StartLook | null>(null);
   const deskCode = signal<StartLook | null>(null);
@@ -42,7 +48,7 @@ const mount = async (start: DisplayFormat = 'desktop') => {
       { provide: DisplayFormatService, useValue: { format } },
       {
         provide: SCENE_SURROUNDINGS,
-        useValue: { panels: () => [], lines: () => [] },
+        useValue: { panels, lines: () => [] },
       },
     ],
   });
@@ -168,6 +174,34 @@ describe('SpaceSceneComponent', () => {
     flush();
 
     expect(laid).toHaveBeenCalledTimes(1);
+  });
+
+  it('lays a panel out where its entrance will leave it, then lets the entrance carry on', async () => {
+    const flush = heldFrames();
+    const entrance = { currentTime: 300 as CSSNumberish | null };
+    const element = document.createElement('div');
+    element.getAnimations = () =>
+      [
+        {
+          get currentTime() {
+            return entrance.currentTime;
+          },
+          set currentTime(value) {
+            entrance.currentTime = value;
+          },
+          effect: { getComputedTiming: () => ({ endTime: 1000 }) },
+        },
+      ] as unknown as Animation[];
+    element.getBoundingClientRect = () =>
+      new DOMRect(0, entrance.currentTime === 1000 ? 6 : 18, 100, 44);
+    await mount('phone', () => [{ element, role: 'chrome' }]);
+    const laid = vi.spyOn(SpaceSceneEngine.prototype, 'setLayout');
+
+    globalThis.dispatchEvent(transitionEnd('height'));
+    flush();
+
+    expect(laid.mock.calls[0]?.[0].panels[0]?.top).toBe(6);
+    expect(entrance.currentTime).toBe(300);
   });
 
   it('does not lay the panels out again when only a colour ends its transition', async () => {

@@ -104,4 +104,73 @@ describe('BackLayersService', () => {
     expect(platform.backs).toEqual([]);
     expect(onBack).not.toHaveBeenCalled();
   });
+
+  it('claims a layer through the history where the browser has no close watcher', () => {
+    const { platform, layers } = setup();
+    const onBack = vi.fn();
+
+    layers.claim(onBack, vi.fn());
+    platform.pressBack();
+
+    expect(platform.entries).toHaveLength(2);
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('claims a layer through a close watcher, without touching the history, where the browser has one', () => {
+    const { platform, layers } = setup({ hasCloseWatcher: true });
+    const onBack = vi.fn();
+
+    layers.claim(onBack, vi.fn());
+    platform.pressBack();
+
+    expect(platform.entries).toHaveLength(1);
+    expect(platform.backs).toEqual([]);
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('gives each claimed layer its own close watcher, the last one closing first', () => {
+    const { platform, layers } = setup({ hasCloseWatcher: true });
+    const closed: string[] = [];
+    layers.claim(() => closed.push('lower'), vi.fn());
+    layers.claim(() => closed.push('upper'), vi.fn());
+
+    platform.pressBack();
+    platform.pressBack();
+
+    expect(closed).toEqual(['upper', 'lower']);
+  });
+
+  it('no longer hears the back of a claimed layer once it is released, with or without a close watcher', () => {
+    for (const hasCloseWatcher of [true, false]) {
+      TestBed.resetTestingModule();
+      const { platform, layers } = setup({ hasCloseWatcher });
+      const onBack = vi.fn();
+
+      layers.claim(onBack, vi.fn())();
+      platform.deliverPops();
+      platform.pressBack();
+
+      expect(onBack).not.toHaveBeenCalled();
+    }
+  });
+
+  it('lets go of a claimed layer when the router leaves the view, without closing it, with or without a close watcher', () => {
+    for (const hasCloseWatcher of [true, false]) {
+      TestBed.resetTestingModule();
+      const { platform, layers } = setup({ hasCloseWatcher });
+      const onBack = vi.fn();
+      const onLeave = vi.fn();
+      layers.claim(onBack, onLeave);
+
+      platform.leave();
+
+      expect(onLeave).toHaveBeenCalledOnce();
+      expect(onBack).not.toHaveBeenCalled();
+
+      platform.pressBack();
+
+      expect(onBack).not.toHaveBeenCalled();
+      expect(onLeave).toHaveBeenCalledOnce();
+    }
+  });
 });

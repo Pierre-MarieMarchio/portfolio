@@ -4,7 +4,7 @@ export type {
   DetailSource,
   ProjectDetail,
 } from './project-detail.model';
-export { FAMILIES } from './project-family.model';
+export { FAMILIES, PROJECT_FAMILIES } from './project-family.model';
 export type { FamilyFilter, ProjectFamily } from './project-family.model';
 export type {
   FactsSource,

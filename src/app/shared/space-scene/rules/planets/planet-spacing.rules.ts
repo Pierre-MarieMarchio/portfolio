@@ -22,12 +22,21 @@ const repelOnce = (
   gap: number,
 ): void => {
   for (let i = 0; i < count; i++) {
-    const first = points[i];
-    for (let j = i + 1; j < count; j++) {
-      const second = points[j];
-      if (first && second) {
-        separate(first, second, gap);
-      }
+    repelFrom(points, i, count, gap);
+  }
+};
+
+const repelFrom = (
+  points: readonly ScreenPoint[],
+  index: number,
+  count: number,
+  gap: number,
+): void => {
+  const first = points[index];
+  for (let j = index + 1; j < count; j++) {
+    const second = points[j];
+    if (first && second) {
+      separate(first, second, gap);
     }
   }
 };

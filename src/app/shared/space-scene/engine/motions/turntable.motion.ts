@@ -138,24 +138,36 @@ export class TurntableMotion {
     orbits: readonly { readonly rb: number }[],
   ): boolean {
     const held = this.grip ? this.rotors[this.grip.rotor] : null;
-    if (held && dt > 0) {
-      const measured = (held.angle - this.heldAngle) / dt;
-      held.speed += (measured - held.speed) * (1 - Math.pow(0.5, dt / 0.05));
-      this.heldAngle = held.angle;
-    }
+    this.measureHeld(held, dt);
     const driver = this.rotors[this.driver];
     const driven = this.rotors[this.driver === 'disk' ? 'orbits' : 'disk'];
+    this.dragDriven(driver, driven, dt, isReduced);
+    const isDriverTurning = isTurningAfterCoast(driver, held, dt, true);
+    const isDrivenTurning = isTurningAfterCoast(driven, held, dt, false);
+    this.share(orbits);
+    return held !== null || isDriverTurning || isDrivenTurning;
+  }
+
+  private measureHeld(
+    held: { angle: number; speed: number } | null,
+    dt: number,
+  ): void {
+    if (!held || dt <= 0) {
+      return;
+    }
+    const measured = (held.angle - this.heldAngle) / dt;
+    held.speed += (measured - held.speed) * (1 - Math.pow(0.5, dt / 0.05));
+    this.heldAngle = held.angle;
+  }
+
+  private dragDriven(
+    driver: RotorState,
+    driven: { angle: number; speed: number },
+    dt: number,
+    isReduced: boolean,
+  ): void {
     const drag = isReduced ? 1 : 1 - Math.exp(-dt / DRAG_LAG);
     driven.speed += (driver.speed * DRAG_RATIO - driven.speed) * drag;
-    let isTurning = held !== null;
-    for (const rotor of [driver, driven]) {
-      if (rotor !== held) {
-        drift(rotor, dt, rotor === driver);
-        isTurning = rotor.speed !== 0 || isTurning;
-      }
-    }
-    this.share(orbits);
-    return isTurning;
   }
 
   private share(orbits: readonly { readonly rb: number }[]): void {
@@ -172,11 +184,15 @@ export class TurntableMotion {
   }
 }
 
-function drift(
+function isTurningAfterCoast(
   rotor: { angle: number; speed: number },
+  held: { angle: number; speed: number } | null,
   dt: number,
   isDriving: boolean,
-): void {
+): boolean {
+  if (rotor === held) {
+    return false;
+  }
   rotor.angle += rotor.speed * dt;
   if (isDriving) {
     rotor.speed *= Math.pow(0.5, dt / HAND_FRICTION);
@@ -184,6 +200,7 @@ function drift(
   if (Math.abs(rotor.speed) < 0.01) {
     rotor.speed = 0;
   }
+  return rotor.speed !== 0;
 }
 
 function angleFrom(point: PlanePoint | null): number | null {

@@ -18,9 +18,9 @@ import {
   viewChildren,
 } from '@angular/core';
 import { MOBILE_NAV_PLATFORM } from '../../ports/mobile-nav-platform.port';
-import { MOBILE_NAV_TEXTS } from '../../ports/mobile-nav-texts.port';
 import { cardAt, centredOffset } from '../../rules/carousel.rules';
 import { clampPage, indexOfChild, isAt } from '../../rules/pager.rules';
+import { PagerDotsComponent } from '../pager-dots/pager-dots.component';
 
 const SETTLE_MS = 120;
 const TOUCHES = ['touchstart', 'touchend', 'touchcancel'] as const;
@@ -32,7 +32,7 @@ interface CardContext<T> {
 
 @Component({
   selector: 'app-card-carousel',
-  imports: [NgTemplateOutlet],
+  imports: [NgTemplateOutlet, PagerDotsComponent],
   templateUrl: './card-carousel.component.html',
   styleUrl: './card-carousel.component.scss',
   host: {
@@ -44,7 +44,6 @@ export class CardCarouselComponent<T> {
   private readonly platform = inject(MOBILE_NAV_PLATFORM);
   private readonly element =
     inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
-  protected readonly texts = inject(MOBILE_NAV_TEXTS);
 
   public readonly items = input.required<readonly T[]>();
   public readonly active = input(0);

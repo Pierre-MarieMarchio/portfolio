@@ -1,8 +1,11 @@
 import { Service, signal } from '@angular/core';
 import {
+  HeldSheet,
+  ObservatoryMinimized,
   ObservatoryPins,
   ObservatoryView,
   ObservatoryWindow,
+  ResumePoint,
 } from '../../models';
 
 export const NO_PINS: ObservatoryPins = {
@@ -10,6 +13,12 @@ export const NO_PINS: ObservatoryPins = {
   sheet: false,
   about: false,
   preview: false,
+};
+
+export const NONE_MINIMIZED: ObservatoryMinimized = {
+  index: false,
+  sheet: false,
+  about: false,
 };
 
 @Service()
@@ -20,9 +29,13 @@ export class ObservatoryState {
   public readonly section = signal(0);
   public readonly visited = signal<readonly string[]>([]);
   public readonly pins = signal<ObservatoryPins>(NO_PINS);
+  public readonly minimized = signal<ObservatoryMinimized>(NONE_MINIMIZED);
+  public readonly held = signal<readonly HeldSheet[]>([]);
+  public readonly sheetKey = signal(0);
   public readonly preview = signal<string | null>(null);
   public readonly lastPreview = signal<string | null>(null);
   public readonly lastSheet = signal<string | null>(null);
+  public readonly resume = signal<ResumePoint | null>(null);
   public readonly selected = signal<string | null>(null);
   public readonly hovered = signal<string | null>(null);
   public readonly family = signal('all');

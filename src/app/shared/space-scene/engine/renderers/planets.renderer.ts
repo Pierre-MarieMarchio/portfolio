@@ -119,38 +119,42 @@ export class PlanetsRenderer {
     planet: PlanetOnScreen,
     frame: SceneFrame,
   ): void {
-    const labels = this.labels;
-    if (frame.marks <= 0.02) {
-      labels.hide(i);
+    const rise = rising(frame.focus, i);
+    if (frame.marks <= 0.02 || rise <= 0.002) {
+      this.labels.hide(i);
       return;
     }
-    const { sx, sy } = planet;
+    const isOutside = isOffFrame(frame, planet.sx, planet.sy);
+    const isCovered =
+      isOutside || isUnderPanel(frame.zones, planet.sx, planet.sy, frame.dpr);
+    this.writeReach(i, planet, frame, isCovered);
+    if (isOutside) {
+      return;
+    }
+    const body = this.shape(i, planet, frame, rise);
+    body.isCovered = isCovered;
+    this.drawBody(body, frame);
+    if (this.labels.hasLabel(i)) {
+      this.labels.label(body, frame);
+    }
+  }
+
+  private writeReach(
+    i: number,
+    planet: PlanetOnScreen,
+    frame: SceneFrame,
+    isCovered: boolean,
+  ): void {
     const dpr = frame.dpr;
-    const isOutside = isOffFrame(frame, sx, sy);
-    const isCovered = isOutside || isUnderPanel(frame.zones, sx, sy, dpr);
-    const vn = rising(frame.focus, i);
-    if (vn <= 0.002) {
-      labels.hide(i);
-      return;
-    }
     const isEmphasised = !frame.state.phone && frame.focus.emphasised === i;
-    labels.writeButton(
+    this.labels.writeButton(
       i,
-      `translate(${String(sx / dpr)}px,${String(sy / dpr)}px)`,
+      `translate(${String(planet.sx / dpr)}px,${String(planet.sy / dpr)}px)`,
       isCovered,
       isEmphasised,
     );
     if (isCovered) {
-      labels.writeLabel(i, null, '0');
-      if (isOutside) {
-        return;
-      }
-    }
-    const body = this.shape(i, planet, frame, vn);
-    body.isCovered = isCovered;
-    this.drawBody(body, frame);
-    if (labels.hasLabel(i)) {
-      labels.label(body, frame);
+      this.labels.writeLabel(i, null, '0');
     }
   }
 

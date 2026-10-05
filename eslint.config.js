@@ -317,10 +317,11 @@ export default defineConfig(
       ],
       'max-lines-per-function': [
         'error',
-        { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
+        { max: 40, skipBlankLines: true, skipComments: true, IIFEs: true },
       ],
-      complexity: ['error', 10],
-      'max-depth': ['error', 3],
+      complexity: ['error', 8],
+      'max-depth': ['error', 2],
+      'sonarjs/cognitive-complexity': ['error', 10],
       'max-params': ['error', 4],
       '@typescript-eslint/prefer-readonly': 'error',
       '@typescript-eslint/naming-convention': ['error', ...NAMES],
@@ -333,11 +334,33 @@ export default defineConfig(
   },
 
   {
+    files: ['scripts/**/*.mjs'],
+    plugins: { sonarjs },
+    rules: {
+      'max-lines': [
+        'error',
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+      'max-lines-per-function': [
+        'error',
+        { max: 40, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
+      complexity: ['error', 8],
+      'max-depth': ['error', 2],
+      'max-params': ['error', 4],
+      'sonarjs/cognitive-complexity': ['error', 10],
+    },
+  },
+
+  {
     files: ['src/**/*.spec.ts', 'src/testing/**/*.ts'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       'max-lines': 'off',
       'max-lines-per-function': 'off',
+      complexity: 'off',
+      'max-depth': 'off',
+      'sonarjs/cognitive-complexity': 'off',
     },
   },
 

@@ -2,7 +2,7 @@
 
 - **Id**: 0001
 - **Date**: 2026-10-05
-- **Status**: open
+- **Status**: closed
 - **Ticket**: [#202](https://github.com/Pierre-MarieMarchio/portfolio/issues/202)
 
 D105 remainder: a sheet opened beside a pinned one reframes the scene only on drag release (SceneWindowDrag lives in the page)
@@ -12,3 +12,5 @@ D105 remainder: a detail opened next to a pinned one reframes the scene only on 
 origin: docs/architecture/decisions.md:3158 @ b299e1d — status: declared
 
 origin: docs/architecture/decisions.md:3158 @ b299e1d
+
+Closed by #202: the page now follows every window frame as it appears or goes, so a sheet opened beside a pinned one reframes the scene while it is dragged.

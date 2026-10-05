@@ -72,9 +72,8 @@ import {
 } from '@shared/mobile-nav/components';
 import { MOBILE_NAV_LAYOUT } from '@shared/mobile-nav/ports';
 import { BackLayersService } from '@shared/mobile-nav/services';
-import type { LayoutBox } from '@shared/space-scene/models';
-import { SCENE_WINDOW_DRAG, SceneWindowDrag } from '@shared/space-scene/ports';
-import type { FrameRect } from '@shared/windows/models';
+import { SCENE_WINDOW_DRAG } from '@shared/space-scene/ports';
+import { WindowDragFeedService } from '@shared/space-scene/services';
 import {
   LanguageSwitchComponent,
   MainNavComponent,
@@ -91,13 +90,6 @@ import {
   WindowFrameDirective,
 } from '@shared/windows/directives';
 import { WindowStackService } from '@shared/windows/services';
-
-const boxOf = (rect: FrameRect): LayoutBox => ({
-  left: rect.x,
-  top: rect.y,
-  right: rect.x + rect.width,
-  bottom: rect.y + rect.height,
-});
 
 @Component({
   selector: 'app-observatory-page',
@@ -139,7 +131,8 @@ const boxOf = (rect: FrameRect): LayoutBox => ({
     TabNavigationService,
     WindowStackService,
     ViewWindowsService,
-    { provide: SCENE_WINDOW_DRAG, useExisting: ObservatoryPageComponent },
+    WindowDragFeedService,
+    { provide: SCENE_WINDOW_DRAG, useExisting: WindowDragFeedService },
     { provide: MOBILE_NAV_LAYOUT, useClass: MobileNavLayoutService },
     BackLayersService,
   ],
@@ -147,7 +140,7 @@ const boxOf = (rect: FrameRect): LayoutBox => ({
   templateUrl: './observatory-page.component.html',
   styleUrl: './observatory-page.component.scss',
 })
-export class ObservatoryPageComponent implements SceneWindowDrag {
+export class ObservatoryPageComponent {
   private readonly framedWindows = viewChildren(WindowFrameDirective);
   private readonly featuredTour = inject(FeaturedTourService);
   private readonly homeReveal = inject(HomeRevealService);
@@ -266,6 +259,7 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
     const loaded = viewAtAddress(locale.path(), (at) => pathOf(at, lang));
     this.observatory.syncRoute(loaded.view, loaded.slug);
     inject(DisplayFormatService).publishOnRoot();
+    inject(WindowDragFeedService).follow(this.framedWindows);
     this.homeBottomSheet.follow(this.featuredSlugs, this.designated);
     const windows = inject(ViewWindowsService);
     effect(() => {
@@ -278,17 +272,6 @@ export class ObservatoryPageComponent implements SceneWindowDrag {
         this.featuredTour.play(() => this.featuredSlugs());
       });
     });
-  }
-
-  public onDragging(handler: (rect: LayoutBox | null) => void): () => void {
-    const stops = this.framedWindows().map((framed) =>
-      framed.onLive((rect) => handler(rect && boxOf(rect))),
-    );
-    return () => {
-      for (const stop of stops) {
-        stop();
-      }
-    };
   }
 
   protected onEscape(): void {

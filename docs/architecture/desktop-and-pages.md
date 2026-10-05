@@ -218,9 +218,8 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/pages/observatory/observatory-page.component.ts`, le lien aux fenêtres
 
-- The page provides SCENE_WINDOW_DRAG to itself with useExisting — `src/app/pages/observatory/observatory-page.component.ts:205` — origin: docs/architecture/raisons/space-scene.md:625 @ b299e1d
-- onDragging subscribes to each window onLive rect and forwards it — `src/app/pages/observatory/observatory-page.component.ts:285` — origin: docs/architecture/raisons/space-scene.md:628 @ b299e1d
-- The observatory page provides SCENE_WINDOW_DRAG to itself with useExisting — `src/app/pages/observatory/observatory-page.component.ts:142` — origin: docs/architecture/raisons/space-scene.md:625 @ b299e1d
+- The page provides WindowDragFeedService as SCENE_WINDOW_DRAG (useExisting) and hands it its window frames as a signal — `src/app/pages/observatory/observatory-page.component.ts:135`, `src/app/pages/observatory/observatory-page.component.ts:262` — origin: docs/architecture/raisons/space-scene.md:625 @ b299e1d
+- The feed subscribes to each frame's onLive rect and follows the frame set as it changes, so a window opened during a drag (a sheet beside a pinned one) is heard too (#202) — `src/app/shared/space-scene/services/window-drag-feed.service.ts:29` — origin: docs/architecture/raisons/space-scene.md:628 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — L'arborescence est en place, avec quatre unités de passage (D19)
 

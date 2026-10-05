@@ -8,3 +8,5 @@ export {
   loadTouchLook,
   SceneLookService,
 } from './scene-look.service';
+export { WindowDragFeedService } from './window-drag-feed.service';
+export type { DragSource } from './window-drag-feed.service';

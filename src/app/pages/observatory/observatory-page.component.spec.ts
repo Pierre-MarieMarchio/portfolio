@@ -12,6 +12,7 @@ import {
   ARRIVAL_AT,
   stillObservatory,
 } from '@testing/fixtures/observatory.fixture';
+import { firePointer } from '@testing/fixtures/pointer.fixture';
 import { componentOf } from '@testing/fixtures/testbed.fixture';
 import { SessionHistoryService } from '@app/core/services';
 import { ObservatoryEffect } from '@app/features/observatory/states';
@@ -22,6 +23,7 @@ import {
   BottomSheetComponent,
   PagerComponent,
 } from '@shared/mobile-nav/components';
+import { SCENE_WINDOW_DRAG } from '@shared/space-scene/ports';
 import { LayoutAnchorsService } from '@shared/ui/services';
 import { AboutWindowComponent } from '@app/features/profile/components';
 import { FeaturedBarComponent } from '@app/features/projects/components';
@@ -1040,6 +1042,32 @@ describe('ObservatoryPageComponent', () => {
       ).toBeGreaterThan(
         Number(slotOf('Title alpha').style.getPropertyValue('--stack')),
       );
+    });
+
+    it('follows a sheet that opens beside a pinned one while the scene already listens for drags', async () => {
+      const { fixture, slotOf, press, open } = await mountSheets();
+      await open('alpha');
+      await press('Title alpha', 'pin');
+      const heard = vi.fn();
+      const stop = fixture.debugElement.injector
+        .get(SCENE_WINDOW_DRAG)
+        .onDragging(heard);
+      await open('beta');
+      const slot = slotOf('Title beta');
+      slot.getBoundingClientRect = () => new DOMRect(100, 100, 400, 300);
+      const bar = slot.querySelector('.titlebar h2') as Element;
+
+      firePointer(bar, 'pointerdown', { kind: 'mouse', x: 120, y: 110 });
+      firePointer(window, 'pointermove', { kind: 'mouse', x: 160, y: 140 });
+      firePointer(window, 'pointerup', { kind: 'mouse', x: 160, y: 140 });
+
+      expect(heard).toHaveBeenCalled();
+      heard.mockClear();
+      stop();
+      firePointer(bar, 'pointerdown', { kind: 'mouse', x: 160, y: 140 });
+      firePointer(window, 'pointermove', { kind: 'mouse', x: 200, y: 160 });
+      firePointer(window, 'pointerup', { kind: 'mouse', x: 200, y: 160 });
+      expect(heard).not.toHaveBeenCalled();
     });
 
     it('keeps every pinned sheet when the reader goes home, and opens another in front', async () => {

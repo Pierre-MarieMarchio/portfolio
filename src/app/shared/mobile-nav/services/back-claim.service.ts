@@ -7,7 +7,7 @@ import {
   untracked,
   WritableSignal,
 } from '@angular/core';
-import type { SheetDetent } from '../models/bottom-sheet.model';
+import type { BottomSheetDetent } from '../models/bottom-sheet.model';
 import { BackLayersService } from './back-layers.service';
 
 const ignore = (): void => {};
@@ -27,7 +27,7 @@ export class BackClaimService {
 
   public follow(
     isActive: () => boolean,
-    detent: WritableSignal<SheetDetent>,
+    detent: WritableSignal<BottomSheetDetent>,
   ): void {
     this.wanted = computed(() => isActive() && detent() === 'full');
     this.lower = () => {

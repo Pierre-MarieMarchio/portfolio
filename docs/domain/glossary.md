@@ -19,7 +19,7 @@ knowledge-commit: b299e1d
 - kept / seen -> `keptOf` (`src/app/features/observatory/rules/view.rules.ts:115`), `seen` (`src/app/features/observatory/states/observatory/observatory.state.ts:42`)
 - step back -> `stepBack` (`src/app/features/observatory/rules/view.rules.ts:73`)
 - tab -> `Tab` (`src/app/features/observatory/rules/tabs.rules.ts:3`)
-- detent / posed (phone home sheet) -> `homeDetentAfter`, `posedSlugOf` (`src/app/features/observatory/rules/home-sheet.rules.ts:3`)
+- detent / posed (phone home sheet) -> `homeDetentAfter`, `posedSlugOf` (`src/app/features/observatory/rules/home-bottom-sheet.rules.ts:3`)
 - curtain / featured tour -> `FeaturedTourService` (`src/app/features/observatory/services/featured-tour.service.ts:9`)
 - arrival / reveal / entrance -> `HomeRevealService.arrival` (`src/app/features/observatory/services/home-reveal.service.ts:23`)
 - designated (phone-named planet) -> `ObservatoryScene.designated` (`src/app/features/observatory/rules/scene-direction.rules.ts:20`)
@@ -28,7 +28,7 @@ knowledge-commit: b299e1d
 - staging / production target -> `TARGET` (`.github/workflows/ci.yml:131`)
 - arrival states `held` / `shown` / `timed` -> `data-arrival` host attribute (`src/app/features/observatory/components/home-title/home-title.component.ts:23`) styled at `src/app/features/observatory/components/home-title/home-title.component.scss:29`
 - crossing (intro duration before the rest arrives) -> `--arrival-at` (`src/assets/styles/_tokens.scss:65`), spec option `crossing` (`src/app/features/observatory/services/home-reveal.service.spec.ts:47`)
-- phone media set -> `TOUCH` (`src/app/features/observatory/services/home-sheet.service.spec.ts:7`)
+- phone media set -> `TOUCH` (`src/app/features/observatory/services/home-bottom-sheet.service.spec.ts:7`)
 - held sheet -> pinned sheet windows kept open with their project, minimizable by index (`tabs.minimizeSheet(0, bar)`), window-stack ids `sheet:<n>` — `src/app/features/observatory/services/tab-navigation.service.spec.ts:324`, `src/app/features/observatory/services/view-windows.service.spec.ts:134`
 - grip / handle -> `.bar button.grip` of the home title, held by `WINDOW_FOLD` — `src/app/features/observatory/components/home-title/home-title.component.spec.ts:110`
 - dock -> `ObservatoryDockComponent` nav of pinned-and-left windows — `src/app/features/observatory/components/observatory-dock/observatory-dock.component.spec.ts:40`
@@ -71,7 +71,7 @@ knowledge-commit: b299e1d
 - star pass (one star's per-frame placement) -> `StarPass` (`src/app/shared/space-scene/engine/motions/star-flow.motion.ts:37`)
 - sky frame (per-frame sky parameters: flight run, speed, voyage, lens) -> `SkyFrame` (`src/app/shared/space-scene/engine/motions/star-flow.motion.ts:16`)
 - sky camera -> `SkyCamera` (`src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.ts:23`)
-- `SkyPan` is two different types: the sky offset {panX, panY} (`src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.ts:41`, used by constellations) and the pan motion contract (`src/app/shared/space-scene/engine/motions/zoom.motion.ts:14`, implemented by `SkyPanMotion`)
+- `SkyOffset` is the sky offset {panX, panY} (`src/app/shared/space-scene/engine/renderers/sky/star-sky.renderer.ts:41`, used by constellations); `SkyPan` is the pan motion contract in `ZoomMotion` (`src/app/shared/space-scene/engine/motions/zoom.motion.ts:14`, implemented by `SkyPanMotion`)
 - crossing / traveling (the opening camera journey) -> `TRAVELING_END`, `traveling` used in `ClockMotion` (`src/app/shared/space-scene/engine/motions/clock.motion.ts:5-9`)
 - landed (opened on a view other than the crossing) -> `opensLanded` (`src/app/shared/space-scene/engine/motions/scene.motion.ts:23`)
 - marks (planets, orbits, labels visibility) / figures (constellations or comets visibility) -> pose keys `marks`, `figures` (`src/app/shared/space-scene/engine/motions/camera.motion.ts:42-51`)
@@ -84,7 +84,7 @@ knowledge-commit: b299e1d
 - reach (button position/coverage of a planet) -> `PlanetsRenderer.writeReach` (`src/app/shared/space-scene/engine/renderers/planets.renderer.ts:142`)
 - tag vs name (two label modes) -> `PlanetLabelsRenderer.tag` / `.name` (`src/app/shared/space-scene/engine/renderers/planet-labels.renderer.ts:253`, :276)
 - docked / kept / pinned window -> `observatory.docked()`, `kept()`, `pins()` in `src/app/pages/observatory/observatory-page.component.html:48`, :51, :55
-- detent (folded / half / full of a bottom sheet) -> `homeSheet.detent()` (`src/app/pages/observatory/observatory-page.component.html:163`)
+- detent (folded / half / full of a bottom sheet) -> `homeBottomSheet.detent()` (`src/app/pages/observatory/observatory-page.component.html:163`)
 - void (transparent step-back button over the scene) -> `.void` (`src/app/pages/observatory/observatory-page.component.html:213`)
 
 ## public/_,scripts/_,src/*,src/app/features/projects/**,src/app/shared/windows/**,src/assets/**
@@ -104,7 +104,7 @@ knowledge-commit: b299e1d
 - reserve -> CSS var `--window-reserve` (`src/app/shared/windows/trackers/window-frame.tracker.ts:27`)
 - glass / vitre -> `controls.glass`, `--vitre*` (`src/assets/styles/mixins/_controls.scss:4`, `src/assets/styles/_tokens.scss:14-16`)
 - pane (phone window not anchored bottom) -> `.pane` (`src/app/shared/windows/components/window/window.component.scss:122`)
-- sheet (held window, bottom sheet) -> `.sheet` in window (`src/app/shared/windows/components/window/window.component.scss:149`) ; NOT the same as `.sheet` of project-detail (`src/app/features/projects/components/project-detail/project-detail.component.scss:12`), which is the fiche body
+- sheet (project sheet only; project detail window) -> `ProjectDetailComponent` (`src/app/features/projects/components/project-detail/project-detail.component.ts`), body `.body` and scroll key `detail:<slug>` (`src/app/features/projects/components/project-detail/project-detail.component.scss:12`) ; held window (pinned sheet windows) -> `.foldable` in window (`src/app/shared/windows/components/window/window.component.ts:43`), `isFoldable()` signal ; distinct UI term: bottom sheet -> `.bottom-sheet` (`src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:48`)
 - grip -> `.grip` (`src/app/shared/windows/components/window-grip/window-grip.component.scss:5`)
 - marker / square / dot -> `controls.marker` (`src/assets/styles/mixins/_controls.scss:17`)
 - lit -> `controls.lit` (`src/assets/styles/mixins/_controls.scss:23`), `[data-lit]` (`src/app/features/projects/components/featured-bar/featured-bar.component.scss:92`), `lit-row` (`src/app/features/projects/components/project-list/project-list.component.scss:12`)

@@ -9,7 +9,10 @@ import {
   output,
   PLATFORM_ID,
 } from '@angular/core';
-import type { SheetRelease, SheetSample } from '../models/bottom-sheet.model';
+import type {
+  BottomSheetRelease,
+  BottomSheetSample,
+} from '../models/bottom-sheet.model';
 import { speedOf } from '../rules/bottom-sheet.rules';
 import { ScrollEndService } from '../services/scroll-end.service';
 
@@ -32,12 +35,12 @@ export class ScrollReleaseDirective {
   public readonly appScrollRelease = input(false);
 
   public readonly pressed = output();
-  public readonly released = output<SheetRelease>();
+  public readonly released = output<BottomSheetRelease>();
   public readonly settled = output();
 
   public isTouching = false;
 
-  private samples: SheetSample[] = [];
+  private samples: BottomSheetSample[] = [];
   private startY = 0;
   private lastY = 0;
 

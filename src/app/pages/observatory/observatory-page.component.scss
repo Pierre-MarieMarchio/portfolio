@@ -149,7 +149,7 @@ $contact-room: calc(3 * (var(--target) + var(--s1)));
     inset: 0;
     width: auto;
     --window-body-overscroll: auto;
-    --mnav-sheet-room: calc(100svh - var(--floor, 0px));
+    --mnav-bottom-sheet-room: calc(100svh - var(--floor, 0px));
   }
 
   .slot:has(> [data-detent='folded']) {
@@ -177,9 +177,11 @@ $contact-room: calc(3 * (var(--target) + var(--s1)));
     top: calc(var(--glass-lowered) * 100%);
     bottom: var(--floor);
 
-    --mnav-sheet-top: calc(var(--head-bottom, 0px) + var(--s1));
-    --mnav-sheet-half: calc((1 - var(--glass-lowered)) * 100svh - var(--floor));
-    --mnav-sheet-shade: var(--glass-shade-raised);
+    --mnav-bottom-sheet-top: calc(var(--head-bottom, 0px) + var(--s1));
+    --mnav-bottom-sheet-half: calc(
+      (1 - var(--glass-lowered)) * 100svh - var(--floor)
+    );
+    --mnav-bottom-sheet-shade: var(--glass-shade-raised);
   }
 
   .slot:not(:has(> [data-detent='full'])) {
@@ -210,11 +212,11 @@ $glass-landscape-min: 324px;
   .slot {
     left: calc(100% - var(--glass-width));
 
-    --mnav-sheet-half: 100%;
+    --mnav-bottom-sheet-half: 100%;
   }
 
   .slot--home {
-    --mnav-sheet-half: 50%;
+    --mnav-bottom-sheet-half: 50%;
   }
 }
 
@@ -222,9 +224,9 @@ $glass-landscape-min: 324px;
   flex: auto;
   overflow: clip;
   border-top: 1px solid var(--line);
-  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
-  background: var(--sheet-surface);
-  box-shadow: var(--sheet-shadow);
+  border-radius: var(--bottom-sheet-radius) var(--bottom-sheet-radius) 0 0;
+  background: var(--bottom-sheet-surface);
+  box-shadow: var(--bottom-sheet-shadow);
   pointer-events: auto;
   animation: rise 1300ms calc(var(--arrival-at) + 400ms) both;
 }

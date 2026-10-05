@@ -1,9 +1,11 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, posix, relative, sep } from 'node:path';
+import { exportedBy } from './barrel-exports.ts';
 import {
   BARREL_EXCEPTIONS,
   CLASS_SUFFIXES,
   ENGINE_ZONES,
+  EXPORTED_TYPE,
   EXTENSIONS_OF,
   ROLES_IN,
   ROLE_OF,
@@ -247,37 +249,6 @@ const crowdedFolders = (paths: string[]): string[] => {
     );
 };
 
-const EXPORT_FROM = /export\s[^;]*?from\s*'([^']+)'/gs;
-
-const exportTarget = (
-  index: string,
-  specifier: string,
-  known: Set<string>,
-): string | undefined => {
-  const base = posix.join(dirname(index), specifier);
-  return [`${base}.ts`, `${base}/index.ts`].find((path) => known.has(path));
-};
-
-const exportedBy = (
-  index: string,
-  known: Set<string>,
-  seen = new Set<string>(),
-): Set<string> => {
-  if (seen.has(index)) {
-    return seen;
-  }
-  seen.add(index);
-  for (const [, specifier = ''] of readFileSync(index, 'utf8').matchAll(
-    EXPORT_FROM,
-  )) {
-    const target = exportTarget(index, specifier, known);
-    if (target) {
-      exportedBy(target, known, seen);
-    }
-  }
-  return seen;
-};
-
 const barrelErrors = (paths: string[]): string[] => {
   const known = new Set(paths);
   const units = paths
@@ -299,6 +270,23 @@ const barrelErrors = (paths: string[]): string[] => {
     });
 };
 
+const duplicateNameErrors = (paths: string[]): string[] => {
+  const declaredIn = new Map<string, string[]>();
+  for (const path of paths.filter(isBarrelUnit)) {
+    for (const [, name = ''] of readFileSync(path, 'utf8').matchAll(
+      EXPORTED_TYPE,
+    )) {
+      declaredIn.set(name, [...(declaredIn.get(name) ?? []), path]);
+    }
+  }
+  return [...declaredIn]
+    .filter(([, files]) => files.length > 1)
+    .map(
+      ([name, files]) =>
+        `${name}: exported by ${files.join(' and ')}: one name means one thing, rename one`,
+    );
+};
+
 const appFiles = filesUnder(APP);
 const testingFiles = filesUnder(TESTING);
 
@@ -310,6 +298,7 @@ const findings = [
     testingFileErrors(path).map((error) => `${path}: ${error}`),
   ),
   ...barrelErrors(appFiles),
+  ...duplicateNameErrors(appFiles),
   ...crowdedFolders([...appFiles, ...testingFiles]),
   ...[...emptyDirsUnder(APP), ...emptyDirsUnder(TESTING)].map(
     (dir) => `${dir}/: empty`,

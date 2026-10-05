@@ -1,5 +1,5 @@
 import { SCENE_CONFIG } from '../../../models/scene-config.model';
-import type { SkyPan } from './star-sky.renderer';
+import type { SkyOffset } from './star-sky.renderer';
 import type { SceneFrame } from '../../../rules/scene-frame.rules';
 import type { ScreenHole } from '../../../rules/camera/projection.rules';
 import {
@@ -22,6 +22,7 @@ import {
   DrawnDisc,
 } from '../../../rules/camera/pointer.rules';
 import type { Zone } from '../../../rules/panel-veil.rules';
+import type { FigurePoint, PlacedFigure } from '../../../models/scene.model';
 import { PAN_PARALLAX, SKY_DRIFT } from '../../../models/scene-constants.model';
 import type { PhoneFigures } from '../../../rules/figures/phone-figures.rules';
 import {
@@ -33,9 +34,7 @@ import { FigureTargetsRenderer } from './figure-targets.renderer';
 import {
   drawFigureStars,
   FigureLight,
-  FigurePoint,
   nameFigure,
-  PlacedFigure,
   strokeFigure,
 } from './figure-strokes.renderer';
 
@@ -211,7 +210,7 @@ export class ConstellationsRenderer {
     private readonly targets: FigureTargetsRenderer,
   ) {}
 
-  public draw(frame: SceneFrame, pan: SkyPan): void {
+  public draw(frame: SceneFrame, pan: SkyOffset): void {
     drawConstellations(this.ctx, this.targets, {
       w: frame.w,
       h: frame.h,

@@ -84,7 +84,7 @@ describe('ProjectPreviewComponent', () => {
     );
   });
 
-  describe('on the phone, where the home sheet gives it a page to itself', () => {
+  describe('on the phone, where the home bottom sheet gives it a page to itself', () => {
     it('draws the project as a page, with no window around it', async () => {
       const { host } = await mountOnPhone('proj-2');
 

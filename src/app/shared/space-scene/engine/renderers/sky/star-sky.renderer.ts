@@ -38,7 +38,7 @@ export interface SkyCamera {
   readonly phone: boolean;
 }
 
-export interface SkyPan {
+export interface SkyOffset {
   readonly panX: number;
   readonly panY: number;
 }
@@ -131,7 +131,7 @@ export class StarSkyRenderer {
     w: number,
     h: number,
     cam: SkyCamera,
-  ): SkyPan {
+  ): SkyOffset {
     ctx.clearRect(0, 0, w, h);
     if (this.builtW !== w || this.builtH !== h) {
       this.build(w, h, cam);

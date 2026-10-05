@@ -68,9 +68,11 @@ export class WindowComponent {
   public readonly pinToggled = output();
   public readonly closed = output();
 
-  protected readonly isHeld = computed(() => this.fold?.isActive() ?? false);
+  protected readonly isFoldable = computed(
+    () => this.fold?.isActive() ?? false,
+  );
   protected readonly folded = computed(
-    () => this.isHeld() && (this.fold?.isFolded() ?? false),
+    () => this.isFoldable() && (this.fold?.isFolded() ?? false),
   );
   protected readonly maximizable = computed(() => !this.preview());
   protected readonly isFramed = computed(
@@ -134,7 +136,7 @@ export class WindowComponent {
   }
 
   protected onDoublePress(): void {
-    if (this.isHeld()) {
+    if (this.isFoldable()) {
       this.toggleFold();
     } else if (this.frame?.isActive() && this.maximizable()) {
       this.frame.toggleMaximize();

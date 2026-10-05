@@ -9,7 +9,7 @@
   --window-body-padding: var(--s3) var(--s2) 0 var(--s2);
 }
 
-.sheet {
+.body {
   @include pager.in-window;
 }
 

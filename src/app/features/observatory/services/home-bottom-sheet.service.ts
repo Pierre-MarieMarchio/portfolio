@@ -1,8 +1,8 @@
 import { computed, inject, linkedSignal, Service, signal } from '@angular/core';
 import { DisplayFormatService } from '@app/core/services';
 import { ObservatoryManager } from '@app/features/observatory/states';
-import type { SheetDetent } from '@shared/mobile-nav/models';
-import { homeDetentAfter, posedSlugOf } from '../rules/home-sheet.rules';
+import type { BottomSheetDetent } from '@shared/mobile-nav/models';
+import { homeDetentAfter, posedSlugOf } from '../rules/home-bottom-sheet.rules';
 
 interface Featured {
   readonly slugs: () => readonly string[];
@@ -12,7 +12,7 @@ interface Featured {
 const NONE: Featured = { slugs: () => [], resting: () => null };
 
 @Service({ autoProvided: false })
-export class HomeSheetService {
+export class HomeBottomSheetService {
   private readonly observatory = inject(ObservatoryManager);
   private readonly display = inject(DisplayFormatService);
   private readonly featured = signal<Featured>(NONE);
@@ -31,7 +31,7 @@ export class HomeSheetService {
     this.observatory.preview() === null ? 'rule' : 'preview',
   );
 
-  public readonly detent = linkedSignal<boolean, SheetDetent>({
+  public readonly detent = linkedSignal<boolean, BottomSheetDetent>({
     source: () => this.observatory.preview() !== null,
     computation: (isPosed, previous) =>
       homeDetentAfter(isPosed, previous?.value),
@@ -63,7 +63,7 @@ export class HomeSheetService {
     this.featured.set({ slugs, resting });
   }
 
-  public settle(detent: SheetDetent): void {
+  public settle(detent: BottomSheetDetent): void {
     this.detent.set(detent);
     if (detent !== 'full') {
       if (this.observatory.preview() !== null) {

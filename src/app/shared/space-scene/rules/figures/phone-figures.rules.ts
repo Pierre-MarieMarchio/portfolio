@@ -1,3 +1,4 @@
+import type { FigurePoint, PlacedFigure } from '../../models/scene.model';
 import { diskOnScreen, DrawnDisc, drawnDisc } from '../camera/pointer.rules';
 import type { SceneFrame } from '../scene-frame.rules';
 import { CONSTELLATIONS, Figure } from './constellations.rules';
@@ -22,7 +23,7 @@ import {
   SkyShadow,
 } from './figure-arrangement.rules';
 
-type FigurePoints = readonly (readonly [number, number])[];
+type FigurePoints = readonly FigurePoint[];
 
 export interface FigureLayout {
   readonly placements: readonly (readonly FigurePlacement[])[];
@@ -31,11 +32,6 @@ export interface FigureLayout {
   readonly shapes: readonly SkyRoom[];
   readonly sizes: readonly NameSize[];
   readonly room: SkyRoom;
-}
-
-export interface PlacedFigure {
-  readonly points: readonly (readonly [number, number])[];
-  readonly name: FigureName | null;
 }
 
 interface PhoneSky {

@@ -1,4 +1,7 @@
-import type { SheetDetent, SheetStop } from '../models/bottom-sheet.model';
+import type {
+  BottomSheetDetent,
+  BottomSheetStop,
+} from '../models/bottom-sheet.model';
 import {
   detentAfter,
   isDismissedBy,
@@ -8,19 +11,19 @@ import {
   stopsOf,
 } from './bottom-sheet.rules';
 
-const THREE: readonly SheetStop[] = [
+const THREE: readonly BottomSheetStop[] = [
   { detent: 'folded', at: 0 },
   { detent: 'half', at: 260 },
   { detent: 'full', at: 660 },
 ];
 
-const TWO: readonly SheetStop[] = [
+const TWO: readonly BottomSheetStop[] = [
   { detent: 'folded', at: 0 },
   { detent: 'half', at: 300 },
 ];
 
 describe('detentAfter', () => {
-  it.each<[SheetDetent, number, number, SheetDetent]>([
+  it.each<[BottomSheetDetent, number, number, BottomSheetDetent]>([
     ['half', 0, 0, 'half'],
     ['half', -63, 0, 'half'],
     ['half', -64, 0, 'folded'],
@@ -49,7 +52,7 @@ describe('detentAfter', () => {
     },
   );
 
-  it.each<[SheetDetent, number, number, SheetDetent]>([
+  it.each<[BottomSheetDetent, number, number, BottomSheetDetent]>([
     ['half', -64, 0, 'folded'],
     ['half', 40, 1, 'half'],
     ['folded', 48, 0, 'half'],
@@ -66,7 +69,7 @@ describe('detentAfter', () => {
 });
 
 describe('stopsOf', () => {
-  it.each<[readonly SheetDetent[], number, readonly SheetStop[]]>([
+  it.each<[readonly BottomSheetDetent[], number, readonly BottomSheetStop[]]>([
     [['folded', 'half', 'full'], 660, THREE],
     [
       ['folded', 'half', 'full'],
@@ -162,7 +165,7 @@ describe('speedOf', () => {
 });
 
 describe('isDismissedBy', () => {
-  it.each<[SheetDetent, number, number, boolean]>([
+  it.each<[BottomSheetDetent, number, number, boolean]>([
     ['folded', 0, 64, true],
     ['folded', 0, 200, true],
     ['folded', 0, 63, false],
@@ -177,7 +180,7 @@ describe('isDismissedBy', () => {
     },
   );
 
-  it('never dismisses a sheet without stops', () => {
+  it('never dismisses a bottom sheet without stops', () => {
     expect(isDismissedBy([], 'folded', 0, 200)).toBe(false);
   });
 
@@ -188,7 +191,7 @@ describe('isDismissedBy', () => {
 });
 
 describe('isFelt', () => {
-  it.each<[boolean, SheetDetent | null, SheetDetent, boolean]>([
+  it.each<[boolean, BottomSheetDetent | null, BottomSheetDetent, boolean]>([
     [true, 'half', 'full', true],
     [true, 'half', 'half', false],
     [true, null, 'half', false],

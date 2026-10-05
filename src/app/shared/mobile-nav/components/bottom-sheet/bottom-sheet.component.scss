@@ -9,20 +9,20 @@
   display: none;
 }
 
-@keyframes sheet-shade {
+@keyframes bottom-sheet-shade {
   from {
     backdrop-filter: none;
   }
 
   to {
-    backdrop-filter: var(--mnav-sheet-shade, none);
+    backdrop-filter: var(--mnav-bottom-sheet-shade, none);
   }
 }
 
 :host([data-active]) {
   display: block;
   flex: 0 0 auto;
-  height: var(--mnav-sheet-band, auto);
+  height: var(--mnav-bottom-sheet-band, auto);
   pointer-events: none;
 
   .rail {
@@ -30,7 +30,7 @@
     inset: auto 0 0;
     display: flex;
     flex-direction: column;
-    height: var(--mnav-sheet-room, 100%);
+    height: var(--mnav-bottom-sheet-room, 100%);
     overflow: hidden auto;
     overscroll-behavior: contain;
     scrollbar-width: none;
@@ -41,25 +41,25 @@
     top: 0;
     display: block;
     width: 0;
-    height: var(--mnav-sheet-half, 50%);
+    height: var(--mnav-bottom-sheet-half, 50%);
     visibility: hidden;
   }
 
   .lead {
     display: block;
-    flex: 0 0 calc(100% - var(--mnav-sheet-peek, 0%));
+    flex: 0 0 calc(100% - var(--mnav-bottom-sheet-peek, 0%));
   }
 
   .content {
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
-    height: calc(100% - var(--mnav-sheet-top, 0%));
+    height: calc(100% - var(--mnav-bottom-sheet-top, 0%));
   }
 }
 
 :host([data-active][data-rising]) .lead {
-  animation: sheet-shade linear both;
-  animation-range: var(--mnav-sheet-shade-from, 0%) 100%;
+  animation: bottom-sheet-shade linear both;
+  animation-range: var(--mnav-bottom-sheet-shade-from, 0%) 100%;
   animation-timeline: scroll(nearest y);
 }

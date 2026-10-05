@@ -21,7 +21,7 @@ import {
   MediaPreferencesService,
 } from '@app/core/services';
 import { ScrollReleaseDirective } from '../../directives/scroll-release.directive';
-import type { SheetDetent, SheetStop } from '../../models/bottom-sheet.model';
+import type { BottomSheetDetent, BottomSheetStop } from '../../models';
 import { MOBILE_NAV_LAYOUT } from '../../ports/mobile-nav-layout.port';
 import { BackClaimService } from '../../services/back-claim.service';
 import { HandleTapService } from '../../services/handle-tap.service';
@@ -65,20 +65,20 @@ export class BottomSheetComponent {
   private readonly content =
     viewChild.required<ElementRef<HTMLElement>>('content');
 
-  public readonly detents = input<readonly SheetDetent[]>([
+  public readonly detents = input<readonly BottomSheetDetent[]>([
     'folded',
     'half',
     'full',
   ]);
-  public readonly detent = model<SheetDetent>('half');
+  public readonly detent = model<BottomSheetDetent>('half');
   public readonly transient = input(false);
   public readonly dismissed = output();
 
   public readonly isActive = computed(() => this.layout.isCompact());
 
   private handle: HTMLElement | null = null;
-  private committed: SheetDetent | null = null;
-  private origin: SheetDetent = 'half';
+  private committed: BottomSheetDetent | null = null;
+  private origin: BottomSheetDetent = 'half';
   private peek = 0;
   private shadeFrom: number | null = null;
   private band = '';
@@ -204,7 +204,7 @@ export class BottomSheetComponent {
     this.isLanded = true;
   }
 
-  private ask(detent: SheetDetent): void {
+  private ask(detent: BottomSheetDetent): void {
     this.origin = detent;
     this.stopFrame();
     const isAlready = [null, detent].includes(this.committed);
@@ -219,7 +219,7 @@ export class BottomSheetComponent {
     });
   }
 
-  private head(stop: SheetStop): void {
+  private head(stop: BottomSheetStop): void {
     const rail = this.rail().nativeElement;
     this.origin = stop.detent;
     const isThere = !this.isHeading && isAtStop(rail.scrollTop, stop.at);
@@ -257,7 +257,10 @@ export class BottomSheetComponent {
     const peek = this.peekNow();
     if (Math.abs(peek - this.peek) >= 0.5) {
       this.peek = peek;
-      this.element.style.setProperty('--mnav-sheet-peek', `${String(peek)}px`);
+      this.element.style.setProperty(
+        '--mnav-bottom-sheet-peek',
+        `${String(peek)}px`,
+      );
     }
     const stop = stopOf(this.stopsNow(), this.committed ?? this.detent());
     if (!stop) {
@@ -269,12 +272,12 @@ export class BottomSheetComponent {
     this.commit(stop);
   }
 
-  private commit(stop: SheetStop): void {
+  private commit(stop: BottomSheetStop): void {
     this.origin = stop.detent;
     const band = `${String(this.peek + stop.at)}px`;
     if (band !== this.band) {
       this.band = band;
-      this.element.style.setProperty('--mnav-sheet-band', band);
+      this.element.style.setProperty('--mnav-bottom-sheet-band', band);
     }
     if (isFelt(this.isByUser, this.committed, stop.detent)) {
       this.haptics.vibrate(SETTLE_VIBRATION_MS);
@@ -286,7 +289,7 @@ export class BottomSheetComponent {
     }
   }
 
-  private stopsNow(): SheetStop[] {
+  private stopsNow(): BottomSheetStop[] {
     const content = this.content().nativeElement;
     const stops = stopsOf(this.detents(), {
       peek: this.peek,
@@ -301,7 +304,7 @@ export class BottomSheetComponent {
       this.shadeFrom = from;
       this.element.toggleAttribute('data-rising', from !== null);
       this.element.style.setProperty(
-        '--mnav-sheet-shade-from',
+        '--mnav-bottom-sheet-shade-from',
         `${String(from ?? 0)}px`,
       );
     }

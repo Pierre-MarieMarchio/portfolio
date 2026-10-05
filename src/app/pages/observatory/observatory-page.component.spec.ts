@@ -1186,7 +1186,7 @@ describe('ObservatoryPageComponent', () => {
     });
   });
 
-  describe('on the phone, the home is one sheet', () => {
+  describe('on the phone, the home is a bottom sheet', () => {
     const SLUGS = ['alpha', 'beta', 'gamma'];
     const PHONE_ENTRIES = SLUGS.map((slug) =>
       sampleEntry({ project: { slug, title: `Title ${slug}` } }),
@@ -1200,7 +1200,7 @@ describe('ObservatoryPageComponent', () => {
         phone: true,
         entries: PHONE_ENTRIES,
       });
-      const sheet = (): BottomSheetComponent =>
+      const homeBottomSheet = (): BottomSheetComponent =>
         mounted.fixture.debugElement.query(
           By.css('.slot--home app-bottom-sheet'),
         ).componentInstance as BottomSheetComponent;
@@ -1209,14 +1209,14 @@ describe('ObservatoryPageComponent', () => {
           '.slot--home app-card-carousel .card',
         ),
       ];
-      return { ...mounted, sheet, cards };
+      return { ...mounted, homeBottomSheet, cards };
     };
 
-    it('holds the line and the cards in a sheet of the same component as the other pages, with the three detents', async () => {
-      const { host, sheet } = await mountOnPhone();
+    it('holds the line and the cards in a bottom sheet of the same component as the other pages, with the three detents', async () => {
+      const { host, homeBottomSheet } = await mountOnPhone();
 
-      expect(sheet().detents()).toEqual(['folded', 'half', 'full']);
-      expect(sheet().detent()).toBe('half');
+      expect(homeBottomSheet().detents()).toEqual(['folded', 'half', 'full']);
+      expect(homeBottomSheet().detent()).toBe('half');
       const home = host.querySelector('.slot--home');
       expect(
         home?.querySelector('app-home-title h1')?.textContent?.trim(),
@@ -1246,7 +1246,7 @@ describe('ObservatoryPageComponent', () => {
       expect(host.querySelector('.status')).toBeNull();
     });
 
-    it('leaves the home slot on the sheet, for the focus to land in', async () => {
+    it('leaves the home slot on the home bottom sheet, for the focus to land in', async () => {
       const { host } = await mountOnPhone();
 
       expect(host.querySelector('.slot--home')?.querySelector('h1')).toBe(
@@ -1254,7 +1254,7 @@ describe('ObservatoryPageComponent', () => {
       );
     });
 
-    it('draws the sheet on the home view only', async () => {
+    it('draws the home bottom sheet on the home view only', async () => {
       const { fixture, station, host } = await mountOnPhone();
 
       station.syncRoute('about');
@@ -1264,14 +1264,15 @@ describe('ObservatoryPageComponent', () => {
       expect(host.querySelectorAll('h1')).toHaveLength(1);
     });
 
-    it('raises the sheet to full on the project of a touched card, and the scene closes in on it', async () => {
-      const { fixture, station, host, sheet, cards } = await mountOnPhone();
+    it('raises the home bottom sheet to full on the project of a touched card, and the scene closes in on it', async () => {
+      const { fixture, station, host, homeBottomSheet, cards } =
+        await mountOnPhone();
 
       cards()[2]?.click();
       await fixture.whenStable();
 
       expect(station.preview()).toBe('gamma');
-      expect(sheet().detent()).toBe('full');
+      expect(homeBottomSheet().detent()).toBe('full');
       expect(sceneOf(fixture).preview()).toBe('gamma');
       expect(
         host.querySelector('.slot--home app-pager-page[data-current] h2')
@@ -1279,21 +1280,21 @@ describe('ObservatoryPageComponent', () => {
       ).toContain('Title gamma');
     });
 
-    it('raises the sheet to full on the planet touched in the sky', async () => {
-      const { fixture, station, sheet } = await mountOnPhone();
+    it('raises the home bottom sheet to full on the planet touched in the sky', async () => {
+      const { fixture, station, homeBottomSheet } = await mountOnPhone();
 
       sceneOf(fixture).bodyClicked.emit('beta');
       await fixture.whenStable();
 
       expect(station.preview()).toBe('beta');
-      expect(sheet().detent()).toBe('full');
+      expect(homeBottomSheet().detent()).toBe('full');
     });
 
-    it('poses the project the reader stopped on when they pull the sheet up to full', async () => {
-      const { fixture, station, sheet } = await mountOnPhone();
+    it('poses the project the reader stopped on when they pull the home bottom sheet up to full', async () => {
+      const { fixture, station, homeBottomSheet } = await mountOnPhone();
       station.hover('beta');
 
-      sheet().detent.set('full');
+      homeBottomSheet().detent.set('full');
       await fixture.whenStable();
 
       expect(station.preview()).toBe('beta');
@@ -1319,12 +1320,12 @@ describe('ObservatoryPageComponent', () => {
       ).toContain('Title beta');
     });
 
-    it('lifts the project when the sheet comes down from full, whatever detent it lands on', async () => {
-      const { fixture, station, sheet, cards } = await mountOnPhone();
+    it('lifts the project when the home bottom sheet comes down from full, whatever detent it lands on', async () => {
+      const { fixture, station, homeBottomSheet, cards } = await mountOnPhone();
       cards()[1]?.click();
       await fixture.whenStable();
 
-      sheet().detent.set('half');
+      homeBottomSheet().detent.set('half');
       await fixture.whenStable();
 
       expect(station.preview()).toBeNull();
@@ -1332,15 +1333,15 @@ describe('ObservatoryPageComponent', () => {
 
       cards()[1]?.click();
       await fixture.whenStable();
-      sheet().detent.set('folded');
+      homeBottomSheet().detent.set('folded');
       await fixture.whenStable();
 
       expect(station.preview()).toBeNull();
-      expect(sheet().detent()).toBe('folded');
+      expect(homeBottomSheet().detent()).toBe('folded');
     });
 
-    it('has the handle of the other sheets, and no chevron', async () => {
-      const { fixture, host, sheet } = await mountOnPhone();
+    it('has the handle of the other bottom sheets, and no chevron', async () => {
+      const { fixture, host, homeBottomSheet } = await mountOnPhone();
       const grip = host.querySelector<HTMLButtonElement>(
         '.slot--home app-home-title button.grip',
       );
@@ -1350,12 +1351,12 @@ describe('ObservatoryPageComponent', () => {
       expect(host.querySelector('.slot--home .fold')).toBeNull();
       expect(host.querySelector('.slot--home app-home-title svg')).toBeNull();
 
-      const toggle = vi.spyOn(sheet(), 'toggle');
+      const toggle = vi.spyOn(homeBottomSheet(), 'toggle');
 
       grip?.click();
       expect(toggle).toHaveBeenCalledOnce();
 
-      sheet().detent.set('folded');
+      homeBottomSheet().detent.set('folded');
       await fixture.whenStable();
 
       expect(grip?.getAttribute('aria-label')).toBe('Remonter la fenêtre');
@@ -1390,7 +1391,8 @@ describe('ObservatoryPageComponent', () => {
     });
 
     it('leads to a project when its dot is touched, the card and the scene following', async () => {
-      const { fixture, station, host, sheet, cards } = await mountOnPhone();
+      const { fixture, station, host, homeBottomSheet, cards } =
+        await mountOnPhone();
       cards()[0]?.click();
       await fixture.whenStable();
 
@@ -1403,7 +1405,7 @@ describe('ObservatoryPageComponent', () => {
 
       expect(station.preview()).toBe('gamma');
       expect(sceneOf(fixture).preview()).toBe('gamma');
-      expect(sheet().detent()).toBe('full');
+      expect(homeBottomSheet().detent()).toBe('full');
       expect(
         cards().findIndex((card) => card.hasAttribute('aria-current')),
       ).toBe(2);
@@ -1422,27 +1424,27 @@ describe('ObservatoryPageComponent', () => {
         back.push(fn);
         return NOTHING;
       });
-      const { fixture, station, sheet, cards } = await mountOnPhone();
+      const { fixture, station, homeBottomSheet, cards } = await mountOnPhone();
       cards()[1]?.click();
       await fixture.whenStable();
-      expect(sheet().detent()).toBe('full');
+      expect(homeBottomSheet().detent()).toBe('full');
 
       back.at(-1)?.();
       await fixture.whenStable();
 
-      expect(sheet().detent()).toBe('half');
+      expect(homeBottomSheet().detent()).toBe('half');
       expect(station.preview()).toBeNull();
     });
 
-    it('lowers the sheet to half when the sky is touched or escape is pressed', async () => {
-      const { fixture, station, sheet, cards } = await mountOnPhone();
+    it('lowers the home bottom sheet to half when the sky is touched or escape is pressed', async () => {
+      const { fixture, station, homeBottomSheet, cards } = await mountOnPhone();
       cards()[1]?.click();
       await fixture.whenStable();
 
       await station.stepBack();
       await fixture.whenStable();
 
-      expect(sheet().detent()).toBe('half');
+      expect(homeBottomSheet().detent()).toBe('half');
       expect(station.preview()).toBeNull();
     });
 
@@ -1481,7 +1483,7 @@ describe('ObservatoryPageComponent', () => {
       expect(home?.dataset['panel']).toBe('preview');
     });
 
-    it('keeps the sheet held and inert while the intro plays, and lets it in with the rest', async () => {
+    it('keeps the home bottom sheet held and inert while the intro plays, and lets it in with the rest', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mountOnPhone({ reducedMotion: false });
       const surface = host.querySelector<HTMLElement>('.slot--home .home');

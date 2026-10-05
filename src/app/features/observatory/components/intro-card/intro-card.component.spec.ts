@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { OBSERVATORY_TEXTS } from '../../ports';
 import { IntroCardComponent } from './intro-card.component';
 import { stubMedia } from '@testing/doubles/browser.double';
+import { INTRO_DURATION } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
 const mount = async (
@@ -12,7 +13,10 @@ const mount = async (
     (query) =>
       query === '(prefers-reduced-motion: reduce)' && !!options.reducedMotion,
   );
-  document.documentElement.style.setProperty('--intro-duration', '5600ms');
+  document.documentElement.style.setProperty(
+    '--intro-duration',
+    INTRO_DURATION.css,
+  );
   TestBed.configureTestingModule({
     imports: [IntroCardComponent],
     providers: [
@@ -54,11 +58,11 @@ describe('IntroCardComponent', () => {
     expect(brandAt).toBeGreaterThan(roleAt);
   });
 
-  it('keeps the card up to 5599 ms, and removes it at 5600 ms', async () => {
+  it('keeps the card up to the last millisecond of the intro, and removes it at its end', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const { host, fixture } = await mount();
 
-    vi.advanceTimersByTime(5599);
+    vi.advanceTimersByTime(INTRO_DURATION.ms - 1);
     await fixture.whenStable();
     expect(host.querySelector('.card')).not.toBeNull();
 

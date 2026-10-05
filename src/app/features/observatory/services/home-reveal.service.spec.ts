@@ -5,6 +5,7 @@ import { ObservatoryView } from '@app/features/observatory/models';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { HomeRevealService } from './home-reveal.service';
 import { stubMedia } from '@testing/doubles/browser.double';
+import { ARRIVAL_AT } from '@testing/fixtures/observatory.fixture';
 
 const setUp = (
   options: {
@@ -44,7 +45,7 @@ describe('HomeRevealService', () => {
   });
 
   it('holds the rest on the home page until the first gesture, then lets it in', () => {
-    const { reveal } = setUp({ crossing: '8700ms' });
+    const { reveal } = setUp({ crossing: ARRIVAL_AT.css });
     const onArrived = vi.fn();
 
     reveal.start(onArrived);
@@ -56,11 +57,11 @@ describe('HomeRevealService', () => {
   });
 
   it('lets the rest in at the end of the crossing at the latest', () => {
-    const { reveal } = setUp({ crossing: '8700ms' });
+    const { reveal } = setUp({ crossing: ARRIVAL_AT.css });
     const onArrived = vi.fn();
 
     reveal.start(onArrived);
-    vi.advanceTimersByTime(8699);
+    vi.advanceTimersByTime(ARRIVAL_AT.ms - 1);
     expect(reveal.arrival()).toBe('held');
     vi.advanceTimersByTime(1);
 
@@ -69,8 +70,8 @@ describe('HomeRevealService', () => {
   });
 
   it.each([
-    ['off the home page', { crossing: '8700ms', view: 'index' as const }],
-    ['with less motion', { crossing: '8700ms', reducedMotion: true }],
+    ['off the home page', { crossing: ARRIVAL_AT.css, view: 'index' as const }],
+    ['with less motion', { crossing: ARRIVAL_AT.css, reducedMotion: true }],
     ['without a crossing token', {}],
   ])('shows all at once %s, and never runs the arrival', (_case, options) => {
     const { reveal } = setUp(options);
@@ -88,7 +89,7 @@ describe('HomeRevealService', () => {
   it.each<ObservatoryView>(['index', 'sheet', 'about', 'not-found'])(
     'shows the rest on "%s" before anything starts, and opens nothing there',
     (view) => {
-      const { reveal } = setUp({ crossing: '8700ms', view });
+      const { reveal } = setUp({ crossing: ARRIVAL_AT.css, view });
 
       expect(reveal.arrival()).toBe('shown');
       expect(reveal.isOpening()).toBe(false);
@@ -96,7 +97,7 @@ describe('HomeRevealService', () => {
   );
 
   it('opens on the home page until the rest arrives, the time before it starts included', () => {
-    const { reveal } = setUp({ crossing: '8700ms' });
+    const { reveal } = setUp({ crossing: ARRIVAL_AT.css });
 
     expect(reveal.arrival()).toBe('timed');
     expect(reveal.isOpening()).toBe(true);
@@ -108,7 +109,10 @@ describe('HomeRevealService', () => {
   });
 
   it('never opens the home page reached from another view', () => {
-    const { reveal, station } = setUp({ crossing: '8700ms', view: 'about' });
+    const { reveal, station } = setUp({
+      crossing: ARRIVAL_AT.css,
+      view: 'about',
+    });
     reveal.start(() => {});
 
     station.syncRoute('home');
@@ -118,7 +122,7 @@ describe('HomeRevealService', () => {
   });
 
   it('lets the rest in as soon as the reader leaves the home page, and plays what waited for it', () => {
-    const { reveal, station } = setUp({ crossing: '8700ms' });
+    const { reveal, station } = setUp({ crossing: ARRIVAL_AT.css });
     const arrived = vi.fn();
     reveal.start(arrived);
 

@@ -8,7 +8,10 @@ import {
   sampleEntry,
 } from '@testing/fixtures/project.fixture';
 import { resizeTo } from '@testing/doubles/browser.double';
-import { stillObservatory } from '@testing/fixtures/observatory.fixture';
+import {
+  ARRIVAL_AT,
+  stillObservatory,
+} from '@testing/fixtures/observatory.fixture';
 import { componentOf } from '@testing/fixtures/testbed.fixture';
 import { SessionHistoryService } from '@app/core/services';
 import { ObservatoryEffect } from '@app/features/observatory/states';
@@ -150,14 +153,14 @@ describe('ObservatoryPageComponent', () => {
   });
 
   describe('the arrival of the home page', () => {
-    it('holds the rest during the crossing, and lets it in at 8700 ms', async () => {
+    it('holds the rest during the crossing, and lets it in at the arrival', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, host } = await mount({ reducedMotion: false });
 
       expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
       expect(isRevealed(fixture)).toBe(false);
 
-      vi.advanceTimersByTime(8699);
+      vi.advanceTimersByTime(ARRIVAL_AT.ms - 1);
       await fixture.whenStable();
       expect(arrivals(host)).toEqual(['held', 'held', 'held', 'held']);
 
@@ -171,7 +174,7 @@ describe('ObservatoryPageComponent', () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, station } = await mount({ reducedMotion: false });
 
-      vi.advanceTimersByTime(8700);
+      vi.advanceTimersByTime(ARRIVAL_AT.ms);
       await fixture.whenStable();
       expect(station.hovered()).toBeNull();
 
@@ -183,7 +186,7 @@ describe('ObservatoryPageComponent', () => {
     it('hands the tour over to the reader who points at the orbit rule', async () => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const { fixture, station } = await mount({ reducedMotion: false });
-      vi.advanceTimersByTime(8700);
+      vi.advanceTimersByTime(ARRIVAL_AT.ms);
       await fixture.whenStable();
 
       componentOf(fixture, FeaturedBarComponent).hoveredChange.emit(null);
@@ -1487,7 +1490,7 @@ describe('ObservatoryPageComponent', () => {
       expect(surface?.dataset['arrival']).toBe('held');
       expect(surface?.inert).toBe(true);
 
-      vi.advanceTimersByTime(8700);
+      vi.advanceTimersByTime(ARRIVAL_AT.ms);
       await fixture.whenStable();
 
       expect(surface?.dataset['arrival']).toBe('shown');

@@ -3,7 +3,7 @@ import { RenderMode, type ServerRoute } from '@angular/ssr';
 import { firstValueFrom } from 'rxjs';
 import { LANGS, prefixedPath } from '@app/core/models';
 import { PATHS } from '@app/i18n';
-import { ProjectsRepositoryService } from './features/projects/services';
+import { ProjectsRepositoryService } from '@app/features/projects/services';
 
 export const serverRoutes: ServerRoute[] = [
   ...LANGS.map((lang): ServerRoute => ({

@@ -18,9 +18,9 @@ import { provideStatewise } from 'ngx-statewise';
 import { routes } from './app.routes';
 import { ConsoleErrorHandlerService } from '@app/core/services';
 import { RouteHeadStrategy } from '@app/core/strategies';
-import { ProjectsEffect, ProjectsManager } from './features/projects/states';
-import { ObservatoryEffect } from './features/observatory/states';
-import { provideI18n } from './i18n';
+import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
+import { ObservatoryEffect } from '@app/features/observatory/states';
+import { provideI18n } from '@app/i18n';
 
 export const hydrationProviders = [ɵwithDomHydration(), ɵwithEventReplay()];
 

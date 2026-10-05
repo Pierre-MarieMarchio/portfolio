@@ -126,6 +126,7 @@ interface Zone {
   why: string;
   denies: string[];
   dir?: string;
+  reachesByAlias?: boolean;
 }
 
 const ZONES: Zone[] = [
@@ -183,6 +184,13 @@ const ZONES: Zone[] = [
     why: 'composition: it may reach for any feature, never for the root that boots it',
     denies: ['root'],
     dir: 'pages',
+  },
+  {
+    files: [`${APP}/*.ts`, 'src/*.ts'],
+    name: 'root files',
+    why: 'the boot: it reaches every zone',
+    denies: [],
+    reachesByAlias: true,
   },
   {
     files: ['src/testing/**/*.ts'],
@@ -285,6 +293,17 @@ const barrelPatterns = (own: string | undefined, zones: Zone[]) =>
         }),
   );
 
+const relativeZonePattern = () => {
+  const folders = readdirSync(APP, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => escapeRegex(entry.name));
+  return {
+    regex: `^\\./(?:app/)?(?:${folders.join('|')})(?:/|$)`,
+    message:
+      "leaves the root for a zone by a relative path: import it through its alias and barrel, e.g. '@app/pages/observatory'. See docs/conventions/code.md.",
+  };
+};
+
 const GROUPS: Record<string, string[]> = {
   core: [
     '@app/core',
@@ -335,7 +354,7 @@ function zoneLaws({
   zones: Zone[];
   groups: Record<string, string[]>;
 }): Linter.Config[] {
-  return zones.map(({ files, name, why, denies, dir }) => ({
+  return zones.map(({ files, name, why, denies, dir, reachesByAlias }) => ({
     files,
     rules: {
       '@typescript-eslint/no-restricted-imports': [
@@ -350,6 +369,7 @@ function zoneLaws({
                   },
                 ]
               : []),
+            ...(reachesByAlias ? [relativeZonePattern()] : []),
             ...barrelPatterns(dir, zones),
           ],
         },

@@ -12,7 +12,7 @@ import {
 import {
   ObservatoryRouteComponent,
   ObservatoryRouteData,
-} from './pages/observatory/observatory-route.component';
+} from '@app/pages/observatory';
 
 function routesIn(lang: Lang): Route[] {
   const viewRoute = (view: 'home' | 'index' | 'about'): Route => ({

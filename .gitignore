@@ -1,14 +1,9 @@
-# Everything here is generated, local or secret. Source, config and the
-# lockfile are committed; nothing a command can rebuild is.
-
-# --- Build output ------------------------------------------------------------
 /dist/
 /out-tsc/
 /tmp/
 /bazel-out/
 *.tsbuildinfo
 
-# --- Dependencies ------------------------------------------------------------
 node_modules/
 .pnpm-store/
 .yarn/*
@@ -17,38 +12,29 @@ node_modules/
 .pnp.*
 *.tgz
 
-# --- Angular -----------------------------------------------------------------
-# The whole folder: cache today, and whatever the CLI puts there next.
 /.angular/
 .sass-cache/
 /connect.lock
 /libpeerconnection.log
 /typings/
 
-# --- Tests and coverage ------------------------------------------------------
 /coverage/
 /.nyc_output/
 __screenshots__/
-# Vitest
 .vitest/
 vite.config.*.timestamp-*
-# Playwright, once end-to-end tests arrive
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
 
-# --- Tool caches -------------------------------------------------------------
 .cache/
 .eslintcache
 .prettiercache
 .stylelintcache
-# Husky writes its own runtime here; the hooks beside it are committed.
 .husky/_/
 
-# --- Environment and secrets -------------------------------------------------
-# Real values never enter the repository; an example file documents the keys.
 .env
 .env.*
 !.env.example
@@ -59,7 +45,6 @@ vite.config.*.timestamp-*
 *.p12
 secrets/
 
-# --- Deployment tooling --------------------------------------------------------
 .vercel/
 .netlify/
 .firebase/
@@ -68,7 +53,6 @@ firebase-debug.log*
 .dev.vars
 .docker-data/
 
-# --- Logs ----------------------------------------------------------------------
 logs/
 *.log
 npm-debug.log*
@@ -78,7 +62,6 @@ pnpm-debug.log*
 lerna-debug.log*
 testem.log
 
-# --- Editors and IDEs ----------------------------------------------------------
 .idea/
 *.iml
 .project
@@ -92,56 +75,37 @@ testem.log
 *.swo
 *~
 .history/
-# VS Code: editor settings, tasks and launch files are personal.
 .vscode/
 
-# --- AI assistants ---------------------------------------------------------------
-# Local development tools, never imposed on whoever clones this repository:
-# their settings, agents, skills, hooks, memory and instruction files all stay
-# on the machine of the person who chose them. Nothing here is needed to build,
-# test or run the site.
-# Claude Code
 .claude/
 CLAUDE.md
 CLAUDE.local.md
 **/CLAUDE.md
 **/CLAUDE.local.md
-# Framing and task documents produced by the local workflow
 docs/workstreams/
-# Documents about building the project stay local: design references,
-# audits, wording notes and the docs index. Only the architecture and the
-# content guide are committed.
 docs/maquette/
 docs/audit/
 docs/wording/
-# Cross-tool instruction files
 AGENTS.md
 **/AGENTS.md
 .agents/
 .mcp.json
 mcp.json
-# OpenAI Codex
 .codex/
-# GitHub Copilot
 .github/copilot-instructions.md
 .github/instructions/
 .github/prompts/
 .github/chatmodes/
-# Cursor
 .cursor/
 .cursorrules
 .cursorignore
 .cursorindexingignore
-# Windsurf / Codeium
 .windsurf/
 .windsurfrules
 .codeium/
-# Gemini
 .gemini/
 GEMINI.md
-# Aider
 .aider*
-# Cline, Roo, Continue, Kilo, Zed, JetBrains AI
 .cline/
 .clinerules
 .clinerules/
@@ -153,15 +117,12 @@ GEMINI.md
 .junie/
 .aiassistant/
 .aiexclude
-# Amazon Q / Kiro, Tabnine
 .amazonq/
 .kiro/
 .tabnine/
 .tabnine_root
-# Local usage reports on working sessions, handed on outside this repository
 docs/session-reports/
 
-# --- Operating systems -----------------------------------------------------------
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -173,7 +134,6 @@ $RECYCLE.BIN/
 .directory
 .Trash-*
 
-# --- Archives and backups ---------------------------------------------------------
 *.bak
 *.orig
 *.tar.gz

@@ -1,6 +1,4 @@
-// @ts-check
-/** @type {Record<string, string>} */
-export const ROLE_OF = {
+export const ROLE_OF: Record<string, string> = {
   component: 'components',
   directive: 'directives',
   pipe: 'pipes',
@@ -29,8 +27,7 @@ export const ROLE_OF = {
   worker: 'engine',
 };
 
-/** @type {Record<string, string[]>} */
-export const EXTENSIONS_OF = {
+export const EXTENSIONS_OF: Record<string, string[]> = {
   component: ['ts', 'html', 'scss'],
   data: ['ts', 'json'],
 };
@@ -50,8 +47,7 @@ export const CLASS_SUFFIXES = new Set([
   'tracker',
 ]);
 
-/** @type {Record<string, string[]>} */
-export const ROLES_IN = {
+export const ROLES_IN: Record<string, string[]> = {
   core: [
     'services',
     'ports',

@@ -10,7 +10,7 @@ knowledge-commit: b299e1d
 - observatory components are the scene, opening card, title, unknown-address window, pause and dock — `src/app/features/observatory/components/index.ts:1` — origin: README.md:96 @ b299e1d
 - observatory holds models ports rules states/observatory and states/animation — `src/app/features/observatory/states/index.ts:1` — origin: README.md:101 @ b299e1d
 - src/testing holds what does not ship to production — `tsconfig.app.json:10` — origin: README.md:108 @ b299e1d
-- Shared libraries import only core — `eslint.config.js:144` — origin: README.md:79 @ b299e1d
+- Shared libraries import only core — `eslint.config.ts:144` — origin: README.md:79 @ b299e1d
 - shared/windows holds the window, its drag and its stack — `src/app/shared/windows/services/window-stack.service.ts:4` — origin: README.md:81 @ b299e1d
 - projects components are the featured bar, list, preview and sheet — `src/app/features/projects/components/index.ts:1` — origin: README.md:92 @ b299e1d
 - data/ is content shipped with the site and only the repository reads it — `src/app/features/projects/services/projects-repository.service.ts:3` — origin: README.md:114 @ b299e1d
@@ -18,7 +18,7 @@ knowledge-commit: b299e1d
 ## docs/architecture/organisation.md — 3.4 Les rôles permis dans chaque zone
 
 - features may have engine/ for observatory (no engine folder exists under features/observatory; check-structure not read) — origin: docs/architecture/organisation.md:257 @ b299e1d — status: declared
-- shared/windows role folders are components directives services rules trackers models ports — `scripts/structure-tables.mjs:88` — origin: docs/architecture/organisation.md:254 @ b299e1d
+- shared/windows role folders are components directives services rules trackers models ports — `scripts/structure-tables.ts:88` — origin: docs/architecture/organisation.md:254 @ b299e1d
 
 ## docs/architecture/organisation.md — 5. Arborescence
 
@@ -45,21 +45,21 @@ knowledge-commit: b299e1d
 
 ## README.md — La loi de dépendance
 
-- features/common imports nothing from the repository — `eslint.config.js:163` — origin: README.md:129 @ b299e1d
-- A shared library may import core only, never another library, features, i18n or pages — `eslint.config.js:144` — origin: README.md:130 @ b299e1d
-- shared/mobile-nav imports nothing from the repository, core included — `eslint.config.js:149` — origin: README.md:131 @ b299e1d
-- core imports nothing else under app/ — `eslint.config.js:142` — origin: README.md:132 @ b299e1d
-- i18n may import features shared core but never pages or the root — `eslint.config.js:179` — origin: README.md:127 @ b299e1d
-- A feature never imports another feature, i18n, pages or the root — `eslint.config.js:170` — origin: README.md:128 @ b299e1d
+- features/common imports nothing from the repository — `eslint.config.ts:163` — origin: README.md:129 @ b299e1d
+- A shared library may import core only, never another library, features, i18n or pages — `eslint.config.ts:144` — origin: README.md:130 @ b299e1d
+- shared/mobile-nav imports nothing from the repository, core included — `eslint.config.ts:149` — origin: README.md:131 @ b299e1d
+- core imports nothing else under app/ — `eslint.config.ts:142` — origin: README.md:132 @ b299e1d
+- i18n may import features shared core but never pages or the root — `eslint.config.ts:179` — origin: README.md:127 @ b299e1d
+- A feature never imports another feature, i18n, pages or the root — `eslint.config.ts:170` — origin: README.md:128 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — Les règles du lint et leurs réglages par catégorie (D17)
 
-- Only the manager imports state and updater — `eslint.config.js:399` — origin: docs/architecture/decisions.md:430 @ b299e1d
-- Only core/services/browser touches browser globals — `eslint.config.js:411` — origin: docs/architecture/decisions.md:432 @ b299e1d
-- features/common: ../../ always exits it and @testing is denied — `eslint.config.js:231` — origin: docs/architecture/decisions.md:435 @ b299e1d
-- i18n/ and pages/ zones have their own law and no zone reaches up to the root app.*.ts files (root group at line 204 denied by every zone) — `eslint.config.js:177` — origin: docs/architecture/decisions.md:416 @ b299e1d
-- The i18n/ and pages/ zones have their law and no zone reaches the root app.*.ts — `eslint.config.js:176` — origin: docs/architecture/decisions.md:416 @ b299e1d
-- features/common imports nothing from the repository; ../../ always leaves it and @testing has nothing to do there (denies core, shared, features, i18n, pages, root, escapes; escapes = ../../ and @testing, eslint.config.js:231) — `eslint.config.js:160` — origin: docs/architecture/decisions.md:435 @ b299e1d
+- Only the manager imports state and updater — `eslint.config.ts:399` — origin: docs/architecture/decisions.md:430 @ b299e1d
+- Only core/services/browser touches browser globals — `eslint.config.ts:411` — origin: docs/architecture/decisions.md:432 @ b299e1d
+- features/common: ../../ always exits it and @testing is denied — `eslint.config.ts:231` — origin: docs/architecture/decisions.md:435 @ b299e1d
+- i18n/ and pages/ zones have their own law and no zone reaches up to the root app.*.ts files (root group at line 204 denied by every zone) — `eslint.config.ts:177` — origin: docs/architecture/decisions.md:416 @ b299e1d
+- The i18n/ and pages/ zones have their law and no zone reaches the root app.*.ts — `eslint.config.ts:176` — origin: docs/architecture/decisions.md:416 @ b299e1d
+- features/common imports nothing from the repository; ../../ always leaves it and @testing has nothing to do there (denies core, shared, features, i18n, pages, root, escapes; escapes = ../../ and @testing, eslint.config.ts:231) — `eslint.config.ts:160` — origin: docs/architecture/decisions.md:435 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — `shared/` tient des librairies : ui, windows, space-scene (D20)
 
@@ -68,12 +68,12 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/organisation.md — 2.1 Où ranger un concept
 
-- Lint holds the law zone by zone with FEATURES and SHARED_LIBS compared to disk — `eslint.config.js:20` — origin: docs/architecture/organisation.md:63 @ b299e1d
-- Shared libraries do not import each other — `eslint.config.js:150` — origin: docs/architecture/organisation.md:51 @ b299e1d
+- Lint holds the law zone by zone with FEATURES and SHARED_LIBS compared to disk — `eslint.config.ts:20` — origin: docs/architecture/organisation.md:63 @ b299e1d
+- Shared libraries do not import each other — `eslint.config.ts:150` — origin: docs/architecture/organisation.md:51 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — Un projet, un fichier : identité, faits et fiche ensemble
 
-- core must not import features, shared, i18n, pages or root — `eslint.config.js:142` — origin: docs/architecture/decisions.md:142 @ b299e1d
+- core must not import features, shared, i18n, pages or root — `eslint.config.ts:142` — origin: docs/architecture/decisions.md:142 @ b299e1d
 - Nothing other than the repository reads the project data (outside specs, only the repository imports PROJECTS) — `src/app/features/projects/services/projects-repository.service.ts:3` — origin: docs/architecture/decisions.md:132 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — `core/` et `shared/` ne disent plus un mot du portfolio (D51)
@@ -82,10 +82,10 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — `pages/` ne garde que ses écrans, et l'atelier est défait (D83, amende D57 et défait « Atelier de composants en route de développement »)
 
-- pages/ only contains observatory/ and check-structure refuses any role folder there — `scripts/structure-tables.mjs:125` — origin: docs/architecture/decisions.md:2548 @ b299e1d
-- The page-head resolver lives in i18n/resolvers next to the catalogue guard — `scripts/structure-tables.mjs:120` — origin: docs/architecture/decisions.md:2554 @ b299e1d
+- pages/ only contains observatory/ and check-structure refuses any role folder there — `scripts/structure-tables.ts:125` — origin: docs/architecture/decisions.md:2548 @ b299e1d
+- The page-head resolver lives in i18n/resolvers next to the catalogue guard — `scripts/structure-tables.ts:120` — origin: docs/architecture/decisions.md:2554 @ b299e1d
 - D83: the mobile-nav browser wiring is MobileNavPlatformService implementing MOBILE_NAV_PLATFORM, provided by the page ; provideMobileNav() no longer exists — `src/app/pages/observatory/observatory-page.component.ts:143` — origin: docs/architecture/decisions.md:2549 @ b299e1d
-- D83: features/common imports nothing from the repo (lint denies core, shared, features, i18n, pages, root) — `eslint.config.js:160` — origin: docs/architecture/decisions.md:2561 @ b299e1d
+- D83: features/common imports nothing from the repo (lint denies core, shared, features, i18n, pages, root) — `eslint.config.ts:160` — origin: docs/architecture/decisions.md:2561 @ b299e1d
 
 ## docs/architecture/raisons/core-et-interface.md — `src/app/core/services/device/display-format.service.ts`
 
@@ -97,13 +97,13 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — Une nomenclature précise et modulaire (D13)
 
-- One structure everywhere zone then role folder then concept subfolder then files, each zone accepting only its listed roles — `scripts/check-structure.mjs:145` — origin: docs/architecture/decisions.md:324 @ b299e1d
+- One structure everywhere zone then role folder then concept subfolder then files, each zone accepting only its listed roles — `scripts/check-structure.ts:145` — origin: docs/architecture/decisions.md:324 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Au téléphone, la vitre est une feuille à crans de `shared/mobile-nav` (D64, amende D25, D37, D39 et D62)
 
 - shared/windows opens an optional port WINDOW_FOLD instead of importing mobile-nav — `src/app/shared/windows/components/window/window.component.ts:44` — origin: docs/architecture/decisions.md:1997 @ b299e1d
 - D64: the library does not know formats ; MOBILE_NAV_PLATFORM gains isCompact (mobile-nav-platform.port.ts:4) — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:68` — origin: docs/architecture/decisions.md:1996 @ b299e1d
-- D64: shared/windows and shared/mobile-nav do not import each other (lint denies every other library ; grep finds no cross import) — `eslint.config.js:150` — origin: docs/architecture/decisions.md:1997 @ b299e1d
+- D64: shared/windows and shared/mobile-nav do not import each other (lint denies every other library ; grep finds no cross import) — `eslint.config.ts:150` — origin: docs/architecture/decisions.md:1997 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, l'accueil est une feuille, et l'aperçu en est le plein (D86, amende D57, D58, D64 et D71)
 
@@ -119,7 +119,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/shared/space-scene/ports/scene-window-drag.port.ts`
 
-- space-scene knows nothing of windows (shared libraries do not import each other); SCENE_WINDOW_DRAG is the only hole and only a page can close it — `eslint.config.js:150` — origin: docs/architecture/raisons/space-scene.md:616 @ b299e1d
+- space-scene knows nothing of windows (shared libraries do not import each other); SCENE_WINDOW_DRAG is the only hole and only a page can close it — `eslint.config.ts:150` — origin: docs/architecture/raisons/space-scene.md:616 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-23 — Le bilingue : un catalogue à l'exécution, l'adresse fixe la langue
 
@@ -132,7 +132,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Le téléphone a une librairie de navigation, et les chapitres se tournent comme des pages (D57, amende D37)
 
-- D57: shared/mobile-nav/ imports nothing from the repo, not even core, and the lint enforces it (STANDALONE_LIBS denies core) — `eslint.config.js:149` — origin: docs/architecture/decisions.md:1777 @ b299e1d
+- D57: shared/mobile-nav/ imports nothing from the repo, not even core, and the lint enforces it (STANDALONE_LIBS denies core) — `eslint.config.ts:149` — origin: docs/architecture/decisions.md:1777 @ b299e1d
 - D57: mobile-nav words come through MOBILE_NAV_TEXTS, provided by provideI18n — `src/app/i18n/providers/i18n.provider.ts:48` — origin: docs/architecture/decisions.md:1781 @ b299e1d
 
 ## docs/architecture/decisions.md — 2026-09-28 — Les onglets du téléphone restent dans `shared/ui`, et les transitions orientées attendent les fenêtres qui durent (D61)

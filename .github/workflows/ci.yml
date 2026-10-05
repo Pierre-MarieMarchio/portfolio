@@ -1,8 +1,3 @@
-# Every pull request and every push to main or dev runs the same checks as a
-# local `npm run check`, split into jobs that run side by side. The site is
-# built once; the deploy job ships that very artifact to the OVH hosting over
-# SFTP: a push to dev feeds the password-protected staging, a push to main the
-# production.
 name: CI
 
 on:
@@ -14,15 +9,10 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same ref makes an older run pointless.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# Where the site lives. Repository variables override them, so a new domain
-# or a VPS needs no change here. The free OVH plan hosts a single site, so the
-# staging has no host of its own: on dev the site is built for a path of the
-# production host.
 env:
   SITE_URL: ${{ github.ref == 'refs/heads/dev' && vars.STAGING_SITE_URL || vars.SITE_URL || 'https://pm-marchio.fr' }}
   BASE_HREF: ${{ github.ref == 'refs/heads/dev' && (vars.STAGING_BASE_HREF || '/staging/') || vars.BASE_HREF || '/' }}
@@ -83,8 +73,6 @@ jobs:
 
   sonar:
     name: SonarQube Cloud
-    # The free plan analyses the main branch and pull requests only: what dev
-    # receives was already analysed in its pull request.
     if: github.event_name == 'pull_request' || github.ref != 'refs/heads/dev'
     needs: test
     runs-on: ubuntu-latest
@@ -93,13 +81,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Sonar tells new code from old by the history.
           fetch-depth: 0
       - uses: actions/download-artifact@v8
         with:
           name: coverage
           path: coverage
-      # A fork's pull request gets no secret: it is analysed once merged.
       - if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@v8
         with:
@@ -117,13 +103,9 @@ jobs:
       && needs.build.result == 'success'
       && (needs.sonar.result == 'success' || (github.ref == 'refs/heads/dev' && needs.sonar.result == 'skipped'))
     runs-on: ubuntu-latest
-    # Shows the site in the repository's Deployments panel.
     environment:
       name: ${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }}
       url: ${{ github.ref == 'refs/heads/dev' && format('{0}/', vars.STAGING_SITE_URL) || vars.SITE_URL }}
-    # Two deployments to the same target racing would leave whichever finishes
-    # last. Staging and production have their own group: neither waits for the
-    # other.
     concurrency:
       group: deploy-${{ github.ref == 'refs/heads/dev' && 'staging' || 'production' }}
       cancel-in-progress: false
@@ -171,18 +153,6 @@ jobs:
             echo "::error::site/.htaccess is missing from the artifact: hidden files were not uploaded"
             exit 1
           fi
-      # The staging is for the operator only. Basic authentication goes first
-      # in the .htaccess, so nothing is served before it. AuthUserFile must be
-      # an absolute path on the host, and it lives outside the served folder:
-      # the password file is never reachable by URL. The noindex header and
-      # the closed robots.txt keep search engines out, and the sitemap, which
-      # would list the staging pages, is dropped.
-      # The staging is served from a folder of the production site, so the
-      # .htaccess of the build, written for a site at the root, is rewritten
-      # for that path: Apache resolves an ErrorDocument from the host root, and
-      # the English 404 condition tests the full request path. The other rules
-      # (HTTPS, host, cache) apply unchanged in the folder, which has its own
-      # .htaccess.
       - name: Close the staging
         if: env.TARGET == 'staging'
         env:
@@ -228,9 +198,6 @@ jobs:
       - name: Install htpasswd
         if: env.TARGET == 'staging'
         run: sudo apt-get install --yes --no-install-recommends apache2-utils
-      # The password is read from the environment and piped in, never put on a
-      # command line. bcrypt hash; the file is readable by the web server,
-      # which runs as another user than the SFTP account.
       - name: Generate the staging password file
         if: env.TARGET == 'staging'
         env:
@@ -239,27 +206,6 @@ jobs:
         run: |
           printf '%s' "$STAGING_PASSWORD" | htpasswd -niB "$STAGING_USER" > "$RUNNER_TEMP/htpasswd-staging"
           chmod 644 "$RUNNER_TEMP/htpasswd-staging"
-      # The mirror makes the remote folder the exact copy of the artifact,
-      # deleting what it no longer holds. The remote folder is given without
-      # a trailing slash: lftp puts the source folder inside a destination
-      # that ends with one (www/site/), instead of filling it. The host's
-      # default index.html may be a symbolic link, which lftp does not replace
-      # with a file, so it is removed first (rm -f: no failure if absent).
-      # SFTP encrypts the whole session, and the host key is pinned: ssh
-      # refuses any host whose key is not in SFTP_KNOWN_HOSTS, so a man in the
-      # middle cannot collect the password.
-      # The user name is quoted in a file lftp reads; the password stays out of
-      # it and out of the command line, lftp takes it from LFTP_PASSWORD
-      # (--env-password).
-      # The free plan hosts a single site, so the staging folder lives inside
-      # the production folder. The production mirror --delete would wipe it as
-      # unknown content: it excludes the staging folder, relative to the
-      # production folder, so it neither deletes nor uploads it. A staging
-      # folder nested deeper is protected from its first folder that the site
-      # does not hold, since mirror deletes such a folder as a whole. In turn,
-      # the staging mirror must stay inside its own folder: that folder is a
-      # subfolder of the production one, never the production folder itself,
-      # which --delete would empty of the production site.
       - name: Mirror the site over SFTP
         env:
           STAGING_HTPASSWD_PATH: ${{ vars.STAGING_HTPASSWD_PATH }}
@@ -268,7 +214,6 @@ jobs:
           known_hosts="$RUNNER_TEMP/known_hosts"
           printf '%s\n' "$SFTP_KNOWN_HOSTS" > "$known_hosts"
           remote_dir=$(printf '%s' "$FTP_REMOTE_DIR" | sed 's|/*$||')
-          # A bare login directory would let mirror --delete wipe the whole host.
           if [ -z "$remote_dir" ] || [ "$remote_dir" = "." ] || [ "$remote_dir" = ".." ] || [[ "$remote_dir" == *..* ]]; then
             echo "::error::FTP_REMOTE_DIR must name a folder under the login directory, got: $FTP_REMOTE_DIR"
             exit 1

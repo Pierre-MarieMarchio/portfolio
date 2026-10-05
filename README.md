@@ -145,7 +145,7 @@ Quand deux features ont besoin d'un même contrat, il **descend** dans un port
 - sinon dans `features/<consommateur>/ports/`, et la composition y répond
   (`provideI18n` pour les tranches de textes).
 
-La loi est dans `eslint.config.js` (`zoneLaws()`). **Ajouter une feature** ou
+La loi est dans `eslint.config.ts` (`zoneLaws()`). **Ajouter une feature** ou
 **une librairie**, c'est ajouter son nom à `FEATURES` ou à `SHARED_LIBS` : le
 lint refuse de tourner tant que la liste et le disque ne concordent pas. Les
 imports qui traversent une zone passent par un alias (`@app/*`, `@shared/*`,
@@ -214,7 +214,7 @@ est tenu par un spec.
 Le lint borne aussi la taille et la forme du code : 300 lignes par fichier,
 40 par fonction, complexité 8, profondeur 2, 4 paramètres, et, dans les
 gabarits, une complexité conditionnelle de 4 et cyclomatique de 12. Les noms
-suivent `NAMES` (`eslint.config.js`). Stylelint (`stylelint.config.mjs`) vérifie
+suivent `NAMES` (`eslint.config.ts`). Stylelint (`stylelint.config.ts`) vérifie
 les `.scss`, et laisse la mise en forme à Prettier. Zéro avertissement : toute
 règle enfreinte est une erreur qui échoue le lint.
 

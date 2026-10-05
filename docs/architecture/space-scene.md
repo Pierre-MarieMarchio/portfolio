@@ -391,7 +391,7 @@ knowledge-commit: b299e1d
 
 ## docs/architecture/raisons/space-scene.md — `src/app/shared/space-scene/ports/scene-window-drag.port.ts`
 
-- space-scene knows nothing of windows — `eslint.config.js:150` — origin: docs/architecture/raisons/space-scene.md:616 @ b299e1d
+- space-scene knows nothing of windows — `eslint.config.ts:150` — origin: docs/architecture/raisons/space-scene.md:616 @ b299e1d
 - The rank is also the distance of the planet to the centre of the object (scene code outside this zone, not read). — origin: docs/contenu.md:11 @ b299e1d — status: declared
 
 ## docs/architecture/decisions.md — 2026-09-29 — Au téléphone, la vitre garde son flou quand la caméra voyage (D67, amende D46)

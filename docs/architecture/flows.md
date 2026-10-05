@@ -72,7 +72,7 @@ knowledge-commit: b299e1d
 ## Local gate (`npm run check`)
 
 1. format:check, typecheck:tools (JS configs and scripts, `tsconfig.tools.json:19-24`) — `package.json:22`, `package.json:27`
-2. lint: ESLint then Stylelint, `--max-warnings 0` — `package.json:18`; ESLint first asserts folders vs lists — `eslint.config.js:15-46`
+2. lint: ESLint then Stylelint, `--max-warnings 0` — `package.json:18`; ESLint first asserts folders vs lists — `eslint.config.ts:15-46`
 3. test: `ng test --watch=false` (Vitest runner, `angular.json:82`) — `package.json:16`
 4. build + `build:finish` — `package.json:12-13`; then check:prerender, check:structure --strict, check:comments src — `package.json:24`, `package.json:25`, `package.json:23`
 
@@ -80,7 +80,7 @@ knowledge-commit: b299e1d
 
 1. Husky installed by `prepare` — `package.json:26`
 2. `commit-msg` hook runs commitlint on the message — `.husky/commit-msg:1`
-3. rule set = config-conventional, nothing else — `commitlint.config.js:2`
+3. rule set = config-conventional, nothing else — `commitlint.config.ts:2`
 
 ## CI (.github/workflows/ci.yml, read to check claims; outside the zone globs)
 
@@ -162,9 +162,9 @@ knowledge-commit: b299e1d
 ## Build and post-build
 
 1. `ng build && build:finish` — `package.json:12`
-2. 404 pages moved to 404.html / en/404.html, noindex — `scripts/finish-build.mjs:50`, `scripts/finish-build.mjs:95`
-3. sitemap.xml and robots.txt from page-head links — `scripts/finish-build.mjs:107`
-4. check:prerender reads dist — `scripts/check-prerender.mjs:346`
+2. 404 pages moved to 404.html / en/404.html, noindex — `scripts/finish-build.ts:50`, `scripts/finish-build.ts:95`
+3. sitemap.xml and robots.txt from page-head links — `scripts/finish-build.ts:107`
+4. check:prerender reads dist — `scripts/check-prerender.ts:346`
 
 ## Desktop window drag
 

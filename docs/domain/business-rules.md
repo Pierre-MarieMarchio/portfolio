@@ -136,12 +136,12 @@ knowledge-commit: b299e1d
 
 - `npm run check` = format:check → typecheck:tools → lint → test → build → check:prerender → check:structure → check:comments — `package.json:22`
 - lint fails on any warning (ESLint and Stylelint) — `package.json:18`
-- every commit message passes commitlint config-conventional — `.husky/commit-msg:1`, `commitlint.config.js:2`
-- lint refuses to run if `FEATURES`/`SHARED_LIBS` disagree with the folders on disk — `eslint.config.js:20`, `eslint.config.js:37`
-- dependency law per zone (core, each shared lib, features/common, each feature, i18n, pages) — `eslint.config.js:137-188`; mobile-nav may not import core — `eslint.config.js:30`, `eslint.config.js:149`
-- only managers import `*.state`/`*.updater` (outside `states/`) — `eslint.config.js:390-406`
-- browser globals banned outside `core/services/browser/` and specs — `eslint.config.js:409-439`
-- size/complexity bounds in production TS and scripts: 300 lines/file, 40/function, complexity 8, depth 2, cognitive 10, 4 params — `eslint.config.js:314-325`, `eslint.config.js:337-352`; lifted for specs and src/testing except max-params — `eslint.config.js:355-365`
+- every commit message passes commitlint config-conventional — `.husky/commit-msg:1`, `commitlint.config.ts:2`
+- lint refuses to run if `FEATURES`/`SHARED_LIBS` disagree with the folders on disk — `eslint.config.ts:20`, `eslint.config.ts:37`
+- dependency law per zone (core, each shared lib, features/common, each feature, i18n, pages) — `eslint.config.ts:137-188`; mobile-nav may not import core — `eslint.config.ts:30`, `eslint.config.ts:149`
+- only managers import `*.state`/`*.updater` (outside `states/`) — `eslint.config.ts:390-406`
+- browser globals banned outside `core/services/browser/` and specs — `eslint.config.ts:409-439`
+- size/complexity bounds in production TS and scripts: 300 lines/file, 40/function, complexity 8, depth 2, cognitive 10, 4 params — `eslint.config.ts:314-325`, `eslint.config.ts:337-352`; lifted for specs and src/testing except max-params — `eslint.config.ts:355-365`
 - initial bundle warns at 550 kB, errors at 1 MB; component style 4/8 kB — `angular.json:49-58`
 - a close-up on an unknown body id falls back to rest — `src/app/shared/space-scene/rules/scene-state.rules.ts:67`
 - `touch` means any non-desktop format, `phone` only phone — `src/app/shared/space-scene/rules/scene-state.rules.ts:105-106`
@@ -224,10 +224,10 @@ knowledge-commit: b299e1d
 - Control order Minimize, Pin, Maximize/Restore, Close; Minimize/Pin hidden on phone — `src/app/shared/windows/components/window-controls/window-controls.component.ts:26`, `src/app/shared/windows/components/window/window.component.html:23`
 - Double tap: 350 ms, 24 px apart, >10 px is a drag, controls excluded — `src/app/shared/windows/directives/double-press.directive.ts:4`, `src/app/shared/windows/directives/double-press.directive.ts:40`
 - F6 ignored while typing — `src/app/shared/windows/rules/window-cycle.rules.ts:12`
-- Prerendered page: exactly one h1, right lang, hreflang to other language, no accented French on EN pages, no open dialog — `scripts/check-prerender.mjs:164`, `scripts/check-prerender.mjs:198`
-- Sitemap holds exactly the prerendered pages, no 404; 404 pages noindex without canonical — `scripts/check-prerender.mjs:308`, `scripts/check-prerender.mjs:252`
-- No comment in src (ts-expect-error with reason allowed in specs) — `scripts/check-comments.mjs:8`, `scripts/check-comments.mjs:52`
-- At most 8 source files per folder, no empty folder, component alone in its folder — `scripts/check-structure.mjs:14`, `scripts/check-structure.mjs:290`, `scripts/check-structure.mjs:323`, `scripts/check-structure.mjs:125`
+- Prerendered page: exactly one h1, right lang, hreflang to other language, no accented French on EN pages, no open dialog — `scripts/check-prerender.ts:164`, `scripts/check-prerender.ts:198`
+- Sitemap holds exactly the prerendered pages, no 404; 404 pages noindex without canonical — `scripts/check-prerender.ts:308`, `scripts/check-prerender.ts:252`
+- No comment in src (ts-expect-error with reason allowed in specs) — `scripts/check-comments.ts:8`, `scripts/check-comments.ts:52`
+- At most 8 source files per folder, no empty folder, component alone in its folder — `scripts/check-structure.ts:14`, `scripts/check-structure.ts:290`, `scripts/check-structure.ts:323`, `scripts/check-structure.ts:125`
   CSS-level rules and invariants of the zone.
 - Every hover effect is gated on `(hover: hover)` — `src/assets/styles/mixins/_formats.scss:48` (callers: window-controls:37, featured-bar:96, :159, project-list:68, project-preview:113)
 - Touch targets reach 44 px only under a coarse pointer — `src/assets/styles/mixins/_controls.scss:28`, `src/assets/styles/_tokens.scss:42`
@@ -249,8 +249,8 @@ knowledge-commit: b299e1d
 - Arrival: held = invisible and unclickable; shown = rises and becomes clickable only after the delay (reduced motion: clickable at once) — `src/assets/styles/mixins/_arrival.scss:13-31`
 - Sheet (fiche) in a window: on phone the pager fills the body and pages scroll themselves with a top fade; beyond phone only the current page shows — `src/assets/styles/mixins/_pager.scss:15-55`, used at `src/app/features/projects/components/project-detail/project-detail.component.scss:13`
 - Long link URLs break anywhere — `src/app/features/projects/components/project-detail/project-detail.component.scss:78`
-- Stylelint, zero warnings, refuses outside _tokens.scss: the literal gutter `clamp(20px, 4vw, 44px)`, `border-radius: 2px`, any `backdrop-filter: blur(` — `stylelint.config.mjs:36-43`, `package.json:18`
-- Class names are kebab-case with optional `--modifier` (BEM-like) — `stylelint.config.mjs:23-26`
+- Stylelint, zero warnings, refuses outside _tokens.scss: the literal gutter `clamp(20px, 4vw, 44px)`, `border-radius: 2px`, any `backdrop-filter: blur(` — `stylelint.config.ts:36-43`, `package.json:18`
+- Class names are kebab-case with optional `--modifier` (BEM-like) — `stylelint.config.ts:23-26`
 
 ## src/app/features/common/**,src/app/shared/mobile-nav/**,src/app/shared/space-scene/models/_,src/app/shared/space-scene/ports/_,src/app/shared/space-scene/services/*,src/app/shared/ui/**
 

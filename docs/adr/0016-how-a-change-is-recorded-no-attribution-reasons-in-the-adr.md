@@ -13,6 +13,8 @@ Commits carry no attribution: this is a rule of the repository, not a habit
 
 The reason behind a key unit lives in an ADR entry under docs/adr, indexed by docs/ADR.md
 
+Source, config and the lockfile are committed; nothing a command can rebuild is. Text in `.gitattributes` is normalised to LF so a Windows checkout cannot rewrite the tree. Local development tools (AI assistants' settings, agents, skills, hooks, memory, instruction files) are never imposed on whoever clones the repository and stay on the machine of the person who chose them; nothing there is needed to build, test or run the site. Documents about building the project stay local (design references, audits, wording notes, docs index); only the architecture and the content guide are committed. Husky writes its own runtime under `.husky/_`; the hooks beside it are committed. Real environment values never enter the repository; an example file documents the keys (.gitignore).
+
 **Reason.** Chosen by the operator at the onboarding interview; the history already has none
 
 Answered with the attribution axis at the onboarding interview

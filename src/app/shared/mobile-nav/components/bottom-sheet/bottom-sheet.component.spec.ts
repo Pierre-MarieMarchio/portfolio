@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import type { BottomSheetDetent } from '../../models/bottom-sheet.model';
 import { BottomSheetComponent } from './bottom-sheet.component';
 import { BackLayersService } from '../../services/back-layers.service';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter, Router, Routes } from '@angular/router';
 import {
   BrowserWindowService,
   ClockService,
@@ -222,9 +222,10 @@ const foldedBottomSheet = async (isTransient: boolean) => {
   return setups;
 };
 
-const risen = async (hasCloseWatcher: boolean) => {
+const risen = async (hasCloseWatcher: boolean, opened = (): void => {}) => {
   const setups = await setup();
   setups.history.hasWatcher = hasCloseWatcher;
+  opened();
   await setups.lay();
   setups.fixture.componentInstance.detent.set('full');
   await setups.fixture.whenStable();
@@ -600,6 +601,124 @@ describe('BottomSheetComponent', () => {
         expect(host.dataset['detent']).toBe('half');
       },
     );
+
+    it.each([true, false])(
+      'takes a layer again as soon as the navigation ends, without a resize, so that back lowers it first, with a close watcher: %s',
+      async (hasCloseWatcher) => {
+        const { fixture, history, clock, leave, host } =
+          await risen(hasCloseWatcher);
+
+        await leave();
+        history.push({ navigationId: 2 });
+        clock.frame();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('full');
+
+        history.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+      },
+    );
+
+    it.each<[string, boolean, Routes]>([
+      [
+        'cancelled',
+        true,
+        [{ path: '**', canActivate: [() => false], children: [] }],
+      ],
+      ['failed', true, []],
+      [
+        'cancelled',
+        false,
+        [{ path: '**', canActivate: [() => false], children: [] }],
+      ],
+      ['failed', false, []],
+    ])(
+      'takes a layer again when the navigation is %s, so that one back lowers it, with a close watcher: %s',
+      async (_ending, hasCloseWatcher, routes) => {
+        const { fixture, history, clock, host } = await risen(hasCloseWatcher);
+        const router = TestBed.inject(Router);
+        router.resetConfig(routes);
+
+        await router.navigateByUrl('/elsewhere').catch(() => false);
+        clock.frame();
+        clock.frame();
+        await fixture.whenStable();
+
+        expect(history.backs).toEqual([]);
+
+        history.pressBack();
+        await fixture.whenStable();
+
+        expect(host.dataset['detent']).toBe('half');
+        expect(history.place).toBe(0);
+      },
+    );
+
+    it('keeps the entry it retook and drops only the one left above it by a menu, when the navigation is cancelled', async () => {
+      const { fixture, history, clock, host } = await risen(false, () => {
+        TestBed.inject(BackLayersService).push(vi.fn());
+      });
+      const router = TestBed.inject(Router);
+      router.resetConfig([
+        { path: '**', canActivate: [() => false], children: [] },
+      ]);
+
+      await router.navigateByUrl('/elsewhere').catch(() => false);
+      clock.frame();
+      clock.frame();
+      await fixture.whenStable();
+
+      expect(history.backs).toEqual([1]);
+      expect(history.place).toBe(1);
+
+      history.deliverPops();
+      history.pressBack();
+      await fixture.whenStable();
+
+      expect(host.dataset['detent']).toBe('half');
+      expect(history.place).toBe(0);
+    });
+
+    it('drops the entries of a menu and of a sheet that does not retake, when the navigation is cancelled', async () => {
+      const onBack = vi.fn();
+      const { fixture, history, clock, resize, host } = await risen(
+        false,
+        () => {
+          TestBed.inject(BackLayersService).push(onBack);
+        },
+      );
+      const router = TestBed.inject(Router);
+      router.resetConfig([
+        { path: '**', canActivate: [() => false], children: [] },
+      ]);
+      await resize(0);
+
+      await router.navigateByUrl('/elsewhere').catch(() => false);
+      const closed = onBack.mock.calls.length;
+      clock.frame();
+      clock.frame();
+      history.deliverPops();
+      await fixture.whenStable();
+
+      expect(history.backs).toEqual([2]);
+      expect(history.place).toBe(0);
+      expect(onBack).toHaveBeenCalledTimes(closed);
+      expect(host.dataset['detent']).toBe('full');
+    });
+
+    it('takes no layer when the navigation ends while it has no height', async () => {
+      const { fixture, history, leave, resize, host } = await risen(false);
+
+      await leave();
+      await resize(0);
+      history.pressBack();
+      await fixture.whenStable();
+
+      expect(host.dataset['detent']).toBe('full');
+    });
 
     it.each([true, false])(
       'takes no layer while it is out of sight, with a close watcher: %s',

@@ -328,6 +328,8 @@ knowledge-commit: b299e1d
 - D94: BackLayersService.claim takes a second callback for navigation (onLeave) which releases without changing the detent (back-claim.service.ts:70) — `src/app/shared/mobile-nav/services/back-layers.service.ts:37` — origin: docs/architecture/decisions.md:2849 @ b299e1d
 - D94: BackClaimService.follow tracks the sheet detent and visibility (wanted = active and full ; seen at line 54) — `src/app/shared/mobile-nav/services/back-claim.service.ts:32` — origin: docs/architecture/decisions.md:2850 @ b299e1d
 - D94: a hidden sheet (zero height under content-visibility) never retakes a layer (retake only when clientHeight > 0) — `src/app/shared/mobile-nav/components/bottom-sheet/bottom-sheet.component.ts:247` — origin: docs/architecture/decisions.md:2848 @ b299e1d
+- #208 (ends the D94 known limit): a sheet still drawn retakes its layer one frame after the navigation ends, is cancelled or fails, not only on the next resize — `src/app/shared/mobile-nav/services/back-claim.service.ts:60`
+- #208: without a close watcher, the layer entries a cancelled or failed navigation leaves are adopted by the layers that retake them, and the rest is removed two frames later with one swallowed `history.back(n)`, so one layer never has two entries and no entry stays without a layer — `src/app/shared/mobile-nav/services/back-layers.service.ts:88`
 
 ## docs/architecture/decisions.md — 2026-10-03 — Après une navigation, le focus va au titre visible de la fenêtre (D100, complète D68)
 

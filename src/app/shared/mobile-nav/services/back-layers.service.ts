@@ -1,6 +1,13 @@
 import { DestroyRef, inject, Service } from '@angular/core';
-import { NavigationStart, Router } from '@angular/router';
-import { SessionHistoryService } from '@app/core/services';
+import {
+  Event as RouterEvent,
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+} from '@angular/router';
+import { ClockService, SessionHistoryService } from '@app/core/services';
 import {
   closedBy,
   layerOf,
@@ -20,8 +27,11 @@ const ignore = (): void => {};
 export class BackLayersService {
   private readonly history = inject(SessionHistoryService);
   private readonly router = inject(Router);
+  private readonly clock = inject(ClockService);
   private layers: Layer[] = [];
   private swallowed = 0;
+  private left = 0;
+  private stopSweeping = ignore;
   private stops: (() => void)[] = [];
 
   constructor() {
@@ -67,13 +77,41 @@ export class BackLayersService {
     this.listen();
     const layer = { depth: this.layers.length + 1, onBack, onLeave };
     this.layers = [...this.layers, layer];
-    this.history.push(withLayer(this.history.state(), layer.depth));
+    if (layer.depth > this.left) {
+      this.history.push(withLayer(this.history.state(), layer.depth));
+    }
     return () => {
       this.release(layer);
     };
   }
 
+  private sweepSoon(): void {
+    this.left = this.layers.length === 0 ? layerOf(this.history.state()) : 0;
+    this.stopSweeping();
+    let stopSecond = ignore;
+    const stopFirst = this.clock.nextFrame(() => {
+      stopSecond = this.clock.nextFrame(() => {
+        this.sweep();
+      });
+    });
+    this.stopSweeping = () => {
+      stopFirst();
+      stopSecond();
+    };
+  }
+
+  private sweep(): void {
+    this.stopSweeping();
+    const above = this.left - Math.min(this.layers.length, this.left);
+    this.left = 0;
+    if (above > 0) {
+      this.swallowed += 1;
+      this.history.back(above);
+    }
+  }
+
   private release(layer: Layer): void {
+    this.sweep();
     const steps = stepsBack(this.depths(), layer.depth);
     if (steps === 0) {
       return;
@@ -94,8 +132,16 @@ export class BackLayersService {
       this.history.onPop((state) => {
         this.popped(state);
       }),
+      this.onFailure(() => {
+        this.sweepSoon();
+      }),
+      () => {
+        this.stopSweeping();
+      },
       this.onLeave(() => {
         this.swallowed = 0;
+        this.left = 0;
+        this.stopSweeping();
         for (const layer of this.closeAbove(0)) {
           layer.onLeave();
         }
@@ -104,8 +150,36 @@ export class BackLayersService {
   }
 
   private onLeave(callback: () => void): () => void {
+    return this.onNavigation(
+      (event) => event instanceof NavigationStart,
+      callback,
+    );
+  }
+
+  private onFailure(callback: () => void): () => void {
+    return this.onNavigation(
+      (event) =>
+        event instanceof NavigationCancel || event instanceof NavigationError,
+      callback,
+    );
+  }
+
+  public onArrive(callback: () => void): () => void {
+    return this.onNavigation(
+      (event) =>
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError,
+      callback,
+    );
+  }
+
+  private onNavigation(
+    isWanted: (event: RouterEvent) => boolean,
+    callback: () => void,
+  ): () => void {
     const watching = this.router.events.subscribe((event) => {
-      if (event instanceof NavigationStart) {
+      if (isWanted(event)) {
         callback();
       }
     });

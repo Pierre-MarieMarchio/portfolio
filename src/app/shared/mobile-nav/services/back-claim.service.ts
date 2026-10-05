@@ -7,6 +7,7 @@ import {
   untracked,
   WritableSignal,
 } from '@angular/core';
+import { ClockService } from '@app/core/services';
 import type { BottomSheetDetent } from '../models/bottom-sheet.model';
 import { BackLayersService } from './back-layers.service';
 
@@ -15,12 +16,17 @@ const ignore = (): void => {};
 @Service({ autoProvided: false })
 export class BackClaimService {
   private readonly layers = inject(BackLayersService);
+  private readonly clock = inject(ClockService);
   private release: () => void = ignore;
   private wanted = (): boolean => false;
   private lower = ignore;
+  private stopRetake = ignore;
+  private stopArriving = ignore;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
+      this.stopArriving();
+      this.stopRetake();
       this.letGo();
     });
   }
@@ -49,6 +55,18 @@ export class BackClaimService {
     if (this.wanted()) {
       this.claim();
     }
+  }
+
+  public retakeOnArrival(isDrawn: () => boolean): void {
+    this.stopArriving();
+    this.stopArriving = this.layers.onArrive(() => {
+      this.stopRetake();
+      this.stopRetake = this.clock.nextFrame(() => {
+        if (isDrawn()) {
+          this.retake();
+        }
+      });
+    });
   }
 
   public seen(isVisible: boolean): void {

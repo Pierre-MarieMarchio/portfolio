@@ -1,6 +1,9 @@
 import { Lang } from '../models/lang.model';
 
+const BILINGUAL = 'bilingual';
+
 export interface Localized<T = string> {
+  readonly kind: typeof BILINGUAL;
   readonly fr: T;
   readonly en: T;
 }
@@ -16,9 +19,12 @@ export type Resolved<T> =
         ? { readonly [K in keyof T]: Resolved<T[K]> }
         : T;
 
+export function bilingual<T = string>(fr: T, en: T): Localized<T> {
+  return { kind: BILINGUAL, fr, en };
+}
+
 function isLocalized(value: object): value is Localized<unknown> {
-  const keys = Object.keys(value);
-  return keys.length === 2 && 'fr' in value && 'en' in value;
+  return 'kind' in value && value.kind === BILINGUAL;
 }
 
 export function localize<T>(value: T, lang: Lang): Resolved<T> {

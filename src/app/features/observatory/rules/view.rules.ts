@@ -1,4 +1,9 @@
-import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
+import {
+  MinimizableWindow,
+  ObservatoryPins,
+  ObservatoryView,
+  ObservatoryWindow,
+} from '../models';
 import { OBSERVATORY_WINDOWS } from '../models/observatory.model';
 
 export type ParentView = 'home' | 'index';
@@ -32,6 +37,21 @@ export function closeTargetOf(
   view: ObservatoryView,
 ): ParentView | null {
   return windowOf(view) === window ? parentOf(view) : null;
+}
+
+export function closeLabelsOf(
+  view: ObservatoryView,
+  closeTo: Readonly<Record<ParentView, string>>,
+): Readonly<Record<MinimizableWindow, string>> {
+  const labelOf = (window: ObservatoryWindow): string => {
+    const target = closeTargetOf(window, view);
+    return target === null ? '' : closeTo[target];
+  };
+  return {
+    about: labelOf('about'),
+    index: labelOf('index'),
+    sheet: labelOf('sheet'),
+  };
 }
 
 export function windowOf(view: ObservatoryView): ObservatoryWindow | null {
@@ -123,4 +143,26 @@ export function viewAtAddress(
   return bare.startsWith(sheet) && !slug.includes('/')
     ? { view: 'sheet', slug }
     : { view: 'not-found', slug: null };
+}
+
+export interface SheetOnShow {
+  readonly slug: string | null;
+  readonly chapter: number;
+}
+
+export interface SheetFrom extends SheetOnShow {
+  readonly isShown: boolean;
+  readonly isNotFound: boolean;
+}
+
+export function sheetOnShowOf(
+  { isShown, isNotFound, slug, chapter }: SheetFrom,
+  previous: SheetOnShow | undefined,
+): SheetOnShow {
+  const next = { slug: isNotFound ? null : slug, chapter };
+  if (!previous) {
+    return next;
+  }
+  const isElsewhere = slug === null && !isNotFound;
+  return isShown && !isElsewhere ? next : previous;
 }

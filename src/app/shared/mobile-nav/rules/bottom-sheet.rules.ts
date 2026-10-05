@@ -14,6 +14,12 @@ const SLACK = 1;
 export const isAtStop = (top: number, at: number): boolean =>
   Math.abs(top - at) < SLACK;
 
+export const isFelt = (
+  isByUser: boolean,
+  from: SheetDetent | null,
+  to: SheetDetent,
+): boolean => isByUser && from !== null && from !== to;
+
 export const stopsOf = (
   detents: readonly SheetDetent[],
   { peek, half, end }: SheetRoom,
@@ -64,6 +70,20 @@ const beyond = (
   direction: number,
 ): SheetStop[] => stops.filter((stop) => (stop.at - from) * direction >= SLACK);
 
+const draggedTo = (
+  stops: readonly SheetStop[],
+  origin: SheetStop,
+  travel: number,
+): SheetDetent => {
+  const place = origin.at + travel;
+  const next = nearestTo(beyond(stops, origin.at, Math.sign(travel)), place);
+  if (!next) {
+    return origin.detent;
+  }
+  const reach = next.detent === 'folded' ? FOLD_REACH : REACH;
+  return Math.abs(travel) >= reach ? next.detent : origin.detent;
+};
+
 export const detentAfter = (
   from: SheetDetent,
   travel: number,
@@ -74,20 +94,14 @@ export const detentAfter = (
   if (!origin) {
     return from;
   }
-  const place = origin.at + travel;
   if (Math.abs(vy) > FLICK) {
+    const place = origin.at + travel;
     const direction = Math.sign(vy);
     const ahead = beyond(stops, place, direction);
     const extreme = direction > 0 ? stops.at(-1) : stops[0];
     return (nearestTo(ahead, place) ?? extreme ?? origin).detent;
   }
-  const direction = Math.sign(travel);
-  const next = nearestTo(beyond(stops, origin.at, direction), place);
-  if (!next) {
-    return origin.detent;
-  }
-  const reach = next.detent === 'folded' ? FOLD_REACH : REACH;
-  return Math.abs(travel) >= reach ? next.detent : origin.detent;
+  return draggedTo(stops, origin, travel);
 };
 
 export const speedOf = (
@@ -106,4 +120,19 @@ export const shadeFromOf = (stops: readonly SheetStop[]): number | null => {
   const full = stops.findIndex((stop) => stop.detent === 'full');
   const below = stops[full - 1];
   return full > 0 && below?.detent === 'half' ? below.at : null;
+};
+
+export const isDismissedBy = (
+  stops: readonly SheetStop[],
+  origin: SheetDetent,
+  top: number,
+  pull: number,
+): boolean => {
+  const lowest = stops[0];
+  return (
+    lowest !== undefined &&
+    lowest.detent === origin &&
+    isAtStop(top, lowest.at) &&
+    pull >= FOLD_REACH
+  );
 };

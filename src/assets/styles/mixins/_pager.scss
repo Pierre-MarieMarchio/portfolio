@@ -1,5 +1,17 @@
 @use 'formats';
 
+@property --pager-fade {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes pager-fade {
+  to {
+    --pager-fade: 8px;
+  }
+}
+
 @mixin in-window {
   @include formats.phone {
     display: flex;
@@ -15,6 +27,19 @@
     app-pager,
     app-pager-page {
       overflow-y: inherit;
+    }
+
+    @supports (animation-timeline: scroll()) {
+      app-pager-page {
+        mask-image: linear-gradient(
+          to bottom,
+          transparent,
+          #000 var(--pager-fade)
+        );
+        animation: pager-fade linear both;
+        animation-range: 0 12px;
+        animation-timeline: scroll(self y);
+      }
     }
   }
 

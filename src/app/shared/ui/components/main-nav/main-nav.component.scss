@@ -21,7 +21,8 @@ nav a {
   transition:
     color var(--t),
     border-color var(--t),
-    background var(--t);
+    background var(--t),
+    filter var(--t);
 
   &[data-active='true'] {
     @include controls.lit;

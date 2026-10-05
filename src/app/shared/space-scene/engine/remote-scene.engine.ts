@@ -52,6 +52,20 @@ const NO_NODES: Nodes = {
   hole: [],
 };
 
+const applyWrite = (
+  node: SceneNode,
+  key: NodeWrite[2],
+  value: string,
+): void => {
+  if (key.startsWith('@')) {
+    node.setAttribute(key.slice(1), value);
+  } else if (key === 'tabIndex') {
+    node.tabIndex = Number(value);
+  } else {
+    node.style[key as keyof SceneNode['style']] = value;
+  }
+};
+
 export class RemoteSceneEngine implements SceneEngine {
   private state: SceneState = NO_STATE;
   private layout: SceneLayout | null = null;
@@ -248,6 +262,12 @@ export class RemoteSceneEngine implements SceneEngine {
   }
 
   private keep(frame: SceneWorkerFrame): void {
+    this.keepBitmaps(frame);
+    this.keepWrites(frame);
+    this.keepPan(frame);
+  }
+
+  private keepBitmaps(frame: SceneWorkerFrame): void {
     if (frame.matter) {
       this.matter?.close();
       this.matter = frame.matter;
@@ -256,11 +276,17 @@ export class RemoteSceneEngine implements SceneEngine {
       this.sky?.close();
       this.sky = frame.sky;
     }
+  }
+
+  private keepWrites(frame: SceneWorkerFrame): void {
     for (const write of frame.writes) {
       if (frame.generations[write[0]] === this.generations[write[0]]) {
         this.writes.push(write);
       }
     }
+  }
+
+  private keepPan(frame: SceneWorkerFrame): void {
     const pan = this.pan;
     if (pan && frame.pan) {
       pan.by(frame.pan.x - pan.x, frame.pan.y - pan.y);
@@ -271,15 +297,8 @@ export class RemoteSceneEngine implements SceneEngine {
   private show(): void {
     for (const [group, index, key, value] of this.writes.splice(0)) {
       const node = this.nodes[group][index];
-      if (!node) {
-        continue;
-      }
-      if (key.startsWith('@')) {
-        node.setAttribute(key.slice(1), value);
-      } else if (key === 'tabIndex') {
-        node.tabIndex = Number(value);
-      } else {
-        node.style[key as keyof SceneNode['style']] = value;
+      if (node) {
+        applyWrite(node, key, value);
       }
     }
     this.paint(this.canvases.matter, this.matter);

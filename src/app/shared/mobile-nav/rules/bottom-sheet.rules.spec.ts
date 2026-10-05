@@ -1,5 +1,12 @@
 import type { SheetDetent, SheetStop } from '../models/bottom-sheet.model';
-import { detentAfter, speedOf, stopOf, stopsOf } from './bottom-sheet.rules';
+import {
+  detentAfter,
+  isDismissedBy,
+  isFelt,
+  speedOf,
+  stopOf,
+  stopsOf,
+} from './bottom-sheet.rules';
 
 const THREE: readonly SheetStop[] = [
   { detent: 'folded', at: 0 },
@@ -81,6 +88,29 @@ describe('stopsOf', () => {
       expect(stopsOf(detents, { peek: 40, half: 300, end })).toEqual(stops);
     },
   );
+
+  it.each([200, 300, 480])(
+    'puts the full stop at the end of the scroll whatever the half height (%d px)',
+    (half) => {
+      const stops = stopsOf(['folded', 'half', 'full'], {
+        peek: 40,
+        half,
+        end: 660,
+      });
+
+      expect(stopOf(stops, 'full')).toEqual({ detent: 'full', at: 660 });
+    },
+  );
+
+  it('never puts the full stop above the folded one when the content is shorter than the handle', () => {
+    const stops = stopsOf(['folded', 'half', 'full'], {
+      peek: 40,
+      half: 300,
+      end: -25,
+    });
+
+    expect(stops).toEqual([{ detent: 'full', at: 0 }]);
+  });
 });
 
 describe('stopOf', () => {
@@ -129,4 +159,41 @@ describe('speedOf', () => {
       expect(speedOf(samples, at)).toBeCloseTo(speed);
     },
   );
+});
+
+describe('isDismissedBy', () => {
+  it.each<[SheetDetent, number, number, boolean]>([
+    ['folded', 0, 64, true],
+    ['folded', 0, 200, true],
+    ['folded', 0, 63, false],
+    ['folded', 0, -100, false],
+    ['folded', 30, 100, false],
+    ['half', 260, 100, false],
+    ['full', 660, 100, false],
+  ])(
+    'three stops: from %s, at %d px, after a pull of %d px, is %s',
+    (origin, top, pull, dismissed) => {
+      expect(isDismissedBy(THREE, origin, top, pull)).toBe(dismissed);
+    },
+  );
+
+  it('never dismisses a sheet without stops', () => {
+    expect(isDismissedBy([], 'folded', 0, 200)).toBe(false);
+  });
+
+  it('takes the lowest of two stops for the one to dismiss from', () => {
+    expect(isDismissedBy(TWO, 'folded', 0, 80)).toBe(true);
+    expect(isDismissedBy(TWO, 'half', 300, 80)).toBe(false);
+  });
+});
+
+describe('isFelt', () => {
+  it.each<[boolean, SheetDetent | null, SheetDetent, boolean]>([
+    [true, 'half', 'full', true],
+    [true, 'half', 'half', false],
+    [true, null, 'half', false],
+    [false, 'half', 'full', false],
+  ])('by user %s, from %s to %s: %s', (isByUser, from, to, expected) => {
+    expect(isFelt(isByUser, from, to)).toBe(expected);
+  });
 });

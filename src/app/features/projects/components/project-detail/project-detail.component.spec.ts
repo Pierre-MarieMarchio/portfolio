@@ -11,8 +11,8 @@ import { ProjectEntry } from '../../models';
 import { PROJECTS_TEXTS } from '../../ports';
 import { ProjectDetailComponent } from './project-detail.component';
 import { WindowComponent } from '@shared/windows/components';
-import { loadWindowMenu } from '@shared/windows/components/window/window.component';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { provideMobileNavPlatform } from '@testing/doubles/mobile-nav-platform.double';
 
 const currentPage = (host: HTMLElement): HTMLElement =>
@@ -73,6 +73,7 @@ describe('ProjectDetailComponent', () => {
       slug: string;
       pinned?: boolean;
       chapter?: number;
+      current?: boolean;
     },
     entries: readonly ProjectEntry[] = ENTRIES,
   ) => {
@@ -90,6 +91,7 @@ describe('ProjectDetailComponent', () => {
     fixture.componentRef.setInput('slug', inputs.slug);
     fixture.componentRef.setInput('pinned', inputs.pinned ?? false);
     fixture.componentRef.setInput('chapter', inputs.chapter ?? 0);
+    fixture.componentRef.setInput('current', inputs.current ?? true);
     await fixture.whenStable();
 
     return {
@@ -129,10 +131,10 @@ describe('ProjectDetailComponent', () => {
   });
 
   it('opens a window titled after the project, without a rank counter', async () => {
-    const { host, texts } = await mount({ slug: 'proj-b' });
+    const { host } = await mount({ slug: 'proj-b' });
     const window = host.querySelector('.window');
 
-    expect(window?.getAttribute('aria-label')).toBe(texts.sheet.label);
+    expect(window?.getAttribute('aria-label')).toBe('Project B');
     expect(window?.querySelector('h2')?.textContent?.trim()).toBe('Project B');
     expect(host.querySelector('.meta')?.textContent?.trim()).toBe('');
   });
@@ -148,6 +150,50 @@ describe('ProjectDetailComponent', () => {
     expect(link?.getAttribute('aria-label')).toBe(texts.sheet.toIndexLabel);
     expect(link?.getAttribute('href')).toBe('/projets');
     expect(titlebarChildren.indexOf(link as Element)).toBe(0);
+  });
+
+  it('closes its window from its link to the list, without following the link', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b' });
+    const requested = vi.fn();
+    fixture.componentInstance.closed.subscribe(requested);
+    const link = host.querySelector<HTMLAnchorElement>('a.to-index');
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    link?.dispatchEvent(click);
+
+    expect(requested).toHaveBeenCalledOnce();
+    expect(click.defaultPrevented).toBe(true);
+  });
+
+  it('asks for the list instead of closing when its sheet is not the one of the address', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b', current: false });
+    const closed = vi.fn();
+    const listed = vi.fn();
+    fixture.componentInstance.closed.subscribe(closed);
+    fixture.componentInstance.listChosen.subscribe(listed);
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    host.querySelector('a.to-index')?.dispatchEvent(click);
+
+    expect(listed).toHaveBeenCalledOnce();
+    expect(closed).not.toHaveBeenCalled();
+    expect(click.defaultPrevented).toBe(true);
+  });
+
+  it('leaves the link to the browser for a click that opens it elsewhere', async () => {
+    const { fixture, host } = await mount({ slug: 'proj-b' });
+    const requested = vi.fn();
+    fixture.componentInstance.closed.subscribe(requested);
+    const click = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+
+    host.querySelector('a.to-index')?.dispatchEvent(click);
+
+    expect(requested).not.toHaveBeenCalled();
+    expect(click.defaultPrevented).toBe(false);
   });
 
   it('asks its window for a stable height, so a chapter change does not resize it', async () => {
@@ -290,6 +336,43 @@ describe('ProjectDetailComponent', () => {
     expect(emitted).toEqual([1]);
   });
 
+  describe('on the phone', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('drops the next-chapter button and keeps the chapter title in the footer', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b', chapter: 0 });
+
+      expect(host.querySelector('.position')?.textContent?.trim()).toBe(
+        'Pourquoi',
+      );
+      expect(host.querySelector('button.next')).toBeNull();
+      expect(host.querySelector('.footer')?.textContent).not.toContain(
+        texts.sheet.nextApproach('Comment'),
+      );
+    });
+
+    it('keeps the generic window name', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b' });
+
+      expect(host.querySelector('.window')?.getAttribute('aria-label')).toBe(
+        texts.sheet.label,
+      );
+    });
+
+    it('still links to the next project at the last chapter', async () => {
+      stubViewport(390, 844);
+      const { host, texts } = await mount({ slug: 'proj-b', chapter: 2 });
+
+      expect(host.querySelector('a.next')?.textContent?.trim()).toBe(
+        texts.sheet.nextProject('C'),
+      );
+    });
+  });
+
   it('links to the next project at the last chapter', async () => {
     const { host, texts } = await mount({ slug: 'proj-b', chapter: 2 });
 
@@ -299,19 +382,17 @@ describe('ProjectDetailComponent', () => {
     expect(next?.getAttribute('href')).toBe('/projet/proj-c');
   });
 
-  it('re-emits the window pin and close as its own outputs', async () => {
+  it('re-emits the window minimize, pin and close as its own outputs', async () => {
     const { fixture, host } = await mount({ slug: 'proj-b', pinned: true });
+    const minimized = recordOutput(fixture.componentInstance.minimized);
     const pinToggled = recordOutput(fixture.componentInstance.pinToggled);
     const closed = recordOutput(fixture.componentInstance.closed);
 
-    await loadWindowMenu();
-    await new Promise((resolve) => setTimeout(resolve));
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('button.menu-opener')?.click();
-    await fixture.whenStable();
-    host.querySelector<HTMLButtonElement>('[role="menuitemcheckbox"]')?.click();
+    host.querySelector<HTMLButtonElement>('button.minimize')?.click();
+    host.querySelector<HTMLButtonElement>('button.pin')?.click();
     host.querySelector<HTMLButtonElement>('button.close')?.click();
 
+    expect(minimized).toHaveLength(1);
     expect(pinToggled).toHaveLength(1);
     expect(closed).toHaveLength(1);
   });

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { stubViewport } from '@testing/doubles/browser.double';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { LanguageSwitchComponent } from './language-switch.component';
 
@@ -34,6 +35,18 @@ const mount = async () => {
 };
 
 describe('LanguageSwitchComponent', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('renders nothing on the phone, where the language lives in the contact menu', async () => {
+    stubViewport(390, 844);
+    const { host } = await mount();
+
+    expect(host.querySelector('.language')).toBeNull();
+    expect(host.querySelector('a')).toBeNull();
+  });
+
   it('offers the other language as a link to the same page', async () => {
     const { host } = await mount();
     const other = host.querySelector('.language a');

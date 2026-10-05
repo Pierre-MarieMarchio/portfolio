@@ -1,5 +1,6 @@
 import { clamp, finiteOr, halfLifeStep } from '@app/core/helpers';
-import { isCloseUp, SceneState } from '../../rules/scene-state.rules';
+import { SceneState } from '../../rules/scene-state.rules';
+import { orbitPaceOf } from '../../rules/camera/turning.rules';
 import {
   crossingPace,
   Traveling,
@@ -88,11 +89,10 @@ export class ClockMotion {
     if (state.marksShown) {
       this.marksElapsed += dt;
     }
-    const brake = isCloseUp(state) ? 0.12 : 1;
     this.turned +=
       dt *
       (1 - 0.92 * flyover) *
-      brake *
+      orbitPaceOf(state) *
       this.idle *
       this.traveling(state.reduced).spin;
   }

@@ -126,6 +126,10 @@ export class WindowDragTracker {
       outline.style.transform = OUTLINE_HIDDEN;
       return;
     }
+    this.placeOutline(outline, zone);
+  }
+
+  private placeOutline(outline: HTMLElement, zone: FrameZone): void {
     const rect = frameOfZone(zone, this.frame.area(this.frame.rect()));
     const box = this.framed.element.offsetParent?.getBoundingClientRect();
     Object.assign(outline.style, {

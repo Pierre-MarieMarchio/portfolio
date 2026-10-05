@@ -12,6 +12,7 @@ export interface SceneState {
   readonly framed: number;
   readonly step: number;
   readonly emphasised: number;
+  readonly aimed: number;
   readonly ringed: number;
   readonly marksShown: boolean;
   readonly isTagged: boolean;
@@ -33,6 +34,7 @@ export const NO_STATE: SceneState = {
   framed: -1,
   step: 0,
   emphasised: -1,
+  aimed: -1,
   ringed: -1,
   marksShown: false,
   isTagged: false,
@@ -90,6 +92,7 @@ export const sceneState = ({
     framed: framing.rank,
     step: direction.framing.kind === 'approach' ? direction.framing.step : 0,
     emphasised: rankOf(bodies, direction.emphasised),
+    aimed: rankOf(bodies, direction.aimed),
     ringed: rankOf(bodies, direction.ringed),
     marksShown: presence === 'shown' || (presence === 'held' && reduced),
     isTagged: direction.labels === 'tags',

@@ -24,6 +24,16 @@ const slice = <K extends keyof Catalog>(key: K) => {
   return computed(() => catalogs.current()[key]);
 };
 
+const linksOfLocale = (): ILinks => {
+  const locale = inject(LocaleService);
+  return {
+    home: () => pathOf('home', locale.lang()),
+    index: () => pathOf('index', locale.lang()),
+    about: () => pathOf('about', locale.lang()),
+    sheet: (slug) => pathOf('sheet', locale.lang(), slug),
+  };
+};
+
 export function provideI18n(): (Provider | EnvironmentProviders)[] {
   return [
     {
@@ -55,18 +65,7 @@ export function provideI18n(): (Provider | EnvironmentProviders)[] {
       useFactory: () => slice('pages'),
     },
     { provide: SITE_NAME, useValue: OWNER_NAME },
-    {
-      provide: LINKS,
-      useFactory: (): ILinks => {
-        const locale = inject(LocaleService);
-        return {
-          home: () => pathOf('home', locale.lang()),
-          index: () => pathOf('index', locale.lang()),
-          about: () => pathOf('about', locale.lang()),
-          sheet: (slug) => pathOf('sheet', locale.lang(), slug),
-        };
-      },
-    },
+    { provide: LINKS, useFactory: linksOfLocale },
     provideAppInitializer(() =>
       inject(CatalogLoaderService).ensure(inject(LocaleService).lang()),
     ),

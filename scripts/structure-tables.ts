@@ -122,3 +122,23 @@ export const ROLES_IN: Record<string, string[]> = {
 };
 
 export const ENGINE_ZONES = new Set(['shared/space-scene']);
+
+interface UnitException {
+  unit: RegExp;
+  why: `bundle size: ${string}` | `internal unit: ${string}`;
+}
+
+export const BARREL_EXCEPTIONS: UnitException[] = [
+  {
+    unit: /^src\/app\/features\/[a-z-]+\/states\/[a-z-]+\/[a-z-]+\.(?:state|updater|action)\.ts$/,
+    why: 'internal unit: the state, its updater and its actions are written through the manager alone, which the states barrel exports',
+  },
+  {
+    unit: /^src\/app\/i18n\/data\/(?:en|fr)(?:-profile)?\.data\.ts$/,
+    why: 'bundle size: the catalogs are loaded by import() on demand, and a barrel export moves them into the initial bundle (544.60 kB to 551.81 kB)',
+  },
+  {
+    unit: /^src\/app\/shared\/mobile-nav\/services\/swipe-steps\.service\.ts$/,
+    why: 'bundle size: the swipe service is loaded by import() on demand, and a barrel export moves it into the initial bundle (544.60 kB to 547.46 kB)',
+  },
+];

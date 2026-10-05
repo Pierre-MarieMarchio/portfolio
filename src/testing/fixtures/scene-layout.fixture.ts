@@ -1,7 +1,4 @@
-import type {
-  PanelRect,
-  SceneLayout,
-} from '@shared/space-scene/models/scene-layout.model';
+import type { PanelRect, SceneLayout } from '@shared/space-scene/models';
 import { referenceRadius } from '@shared/space-scene/rules/camera/camera-frames.rules';
 import type { SkyRoom } from '@shared/space-scene/rules/figures/figure-room.rules';
 

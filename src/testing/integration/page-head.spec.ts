@@ -6,10 +6,9 @@ import { provideStatewise } from 'ngx-statewise';
 import { RouteHeadStrategy } from '@app/core/strategies';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ProjectsEffect, ProjectsManager } from '@app/features/projects/states';
-import { CatalogLoaderService, provideI18n } from '@app/i18n';
+import { CatalogLoaderService, OWNER_NAME, provideI18n } from '@app/i18n';
 import { EN } from '@app/i18n/data/en.data';
 import { FR } from '@app/i18n/data/fr.data';
-import { OWNER_NAME } from '@app/i18n/data/owner.data';
 import { routes } from '@app/app.routes';
 
 const harness = async () => {

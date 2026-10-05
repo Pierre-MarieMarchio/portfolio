@@ -18,3 +18,5 @@ export { ConsoleErrorHandlerService } from './errors/console-error-handler.servi
 export { SessionHistoryService } from './history/session-history.service';
 export { LocaleService } from './i18n/locale.service';
 export { UserPresenceService } from './presence/user-presence.service';
+export { DocumentHeadService } from './head/document-head.service';
+export type { HeadContent } from './head/document-head.service';

@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join, posix, relative, sep } from 'node:path';
 import {
+  BARREL_EXCEPTIONS,
   CLASS_SUFFIXES,
   ENGINE_ZONES,
   EXTENSIONS_OF,
@@ -228,17 +229,14 @@ const testingFileErrors = (path: string): string[] => {
     : [`a file in ${role}/ ends with .${expected}.ts`];
 };
 
+const isBarrelUnit = (path: string): boolean =>
+  path.endsWith('.ts') &&
+  !path.includes('.spec.') &&
+  basename(path) !== 'index.ts';
+
 const crowdedFolders = (paths: string[]): string[] => {
   const sources = new Map<string, number>();
-  for (const path of paths) {
-    const file = basename(path);
-    if (
-      file === 'index.ts' ||
-      file.includes('.spec.') ||
-      !file.endsWith('.ts')
-    ) {
-      continue;
-    }
+  for (const path of paths.filter(isBarrelUnit)) {
     sources.set(dirname(path), (sources.get(dirname(path)) ?? 0) + 1);
   }
   return [...sources]
@@ -247,6 +245,58 @@ const crowdedFolders = (paths: string[]): string[] => {
       ([dir, count]) =>
         `${dir}/: ${count} source files, over ${MAX_SOURCES}: split it by concept`,
     );
+};
+
+const EXPORT_FROM = /export\s[^;]*?from\s*'([^']+)'/gs;
+
+const exportTarget = (
+  index: string,
+  specifier: string,
+  known: Set<string>,
+): string | undefined => {
+  const base = posix.join(dirname(index), specifier);
+  return [`${base}.ts`, `${base}/index.ts`].find((path) => known.has(path));
+};
+
+const exportedBy = (
+  index: string,
+  known: Set<string>,
+  seen = new Set<string>(),
+): Set<string> => {
+  if (seen.has(index)) {
+    return seen;
+  }
+  seen.add(index);
+  for (const [, specifier = ''] of readFileSync(index, 'utf8').matchAll(
+    EXPORT_FROM,
+  )) {
+    const target = exportTarget(index, specifier, known);
+    if (target) {
+      exportedBy(target, known, seen);
+    }
+  }
+  return seen;
+};
+
+const barrelErrors = (paths: string[]): string[] => {
+  const known = new Set(paths);
+  const units = paths
+    .filter(isBarrelUnit)
+    .filter(
+      (unit) => !BARREL_EXCEPTIONS.some(({ unit: rule }) => rule.test(unit)),
+    );
+  return paths
+    .filter((path) => basename(path) === 'index.ts')
+    .flatMap((index) => {
+      const exported = exportedBy(index, known);
+      return units
+        .filter((unit) => unit.startsWith(`${dirname(index)}/`))
+        .filter((unit) => !exported.has(unit))
+        .map(
+          (unit) =>
+            `${unit}: not exported by ${index}: export it, or write an exception in BARREL_EXCEPTIONS (scripts/structure-tables.ts)`,
+        );
+    });
 };
 
 const appFiles = filesUnder(APP);
@@ -259,6 +309,7 @@ const findings = [
   ...testingFiles.flatMap((path) =>
     testingFileErrors(path).map((error) => `${path}: ${error}`),
   ),
+  ...barrelErrors(appFiles),
   ...crowdedFolders([...appFiles, ...testingFiles]),
   ...[...emptyDirsUnder(APP), ...emptyDirsUnder(TESTING)].map(
     (dir) => `${dir}/: empty`,

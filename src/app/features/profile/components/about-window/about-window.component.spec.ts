@@ -6,7 +6,7 @@ import { CONTACT_EMAIL } from '../../data';
 import { PROFILE_TEXTS } from '../../ports/profile-texts.port';
 import { AboutWindowComponent } from './about-window.component';
 import { WindowComponent } from '@shared/windows/components';
-import { ScrollMemoryService } from '@shared/windows/services/scroll-memory.service';
+import { ScrollMemoryService } from '@shared/windows/services';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 import { componentOf, recordOutput } from '@testing/fixtures/testbed.fixture';
 import { stubViewport } from '@testing/doubles/browser.double';

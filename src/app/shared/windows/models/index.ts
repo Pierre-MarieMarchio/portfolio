@@ -15,3 +15,4 @@ export type {
   WindowControlView,
   WindowParts,
 } from './window-frame.model';
+export { WINDOW_ICONS } from './window-icons.model';

@@ -17,13 +17,13 @@ import { SessionHistoryService } from '@app/core/services';
 import { ObservatoryEffect } from '@app/features/observatory/states';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { ObservatorySceneComponent } from '@app/features/observatory/components';
-import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models/observatory.model';
+import { OBSERVATORY_WINDOWS } from '@app/features/observatory/models';
 import {
   BottomSheetComponent,
   PagerComponent,
 } from '@shared/mobile-nav/components';
 import { LayoutAnchorsService } from '@shared/ui/services';
-import { AboutWindowComponent } from '@app/features/profile/components/about-window/about-window.component';
+import { AboutWindowComponent } from '@app/features/profile/components';
 import { FeaturedBarComponent } from '@app/features/projects/components';
 import { OBSERVATORY_TEXTS } from '@app/features/observatory/ports';
 import { MobileNavPlatformService } from '@app/features/observatory/services';

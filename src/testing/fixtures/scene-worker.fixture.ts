@@ -6,7 +6,7 @@ import {
 import type {
   FromSceneWorker,
   ToSceneWorker,
-} from '@shared/space-scene/models/scene-worker.model';
+} from '@shared/space-scene/models';
 import { drivenHost } from '../doubles/driven-host.double';
 import { recordingContext } from '../doubles/recording-canvas.double';
 import { seededRandom } from '../doubles/seeded-random.double';

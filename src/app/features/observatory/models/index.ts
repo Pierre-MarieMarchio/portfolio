@@ -1,3 +1,4 @@
+export { OBSERVATORY_WINDOWS } from './observatory.model';
 export type {
   HeldSheet,
   MinimizableWindow,

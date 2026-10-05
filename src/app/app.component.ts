@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { PAGES_TEXTS } from './i18n';
-import { ObservatoryPageComponent } from './pages/observatory/observatory-page.component';
-import { OBSERVATORY_IDS } from './features/observatory/models/observatory-ids.model';
+import { PAGES_TEXTS } from '@app/i18n';
+import { ObservatoryPageComponent } from '@app/pages/observatory';
+import { OBSERVATORY_IDS } from '@app/features/observatory/models';
 
 @Component({
   selector: 'app-root',

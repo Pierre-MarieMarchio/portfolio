@@ -40,6 +40,7 @@ export class ContactLinksComponent {
   protected readonly links = computed<readonly SocialLink[]>(() =>
     CONTACT_ADDRESSES.map((address) => ({
       ...address,
+      title: this.texts().contactTitle[address.icon],
       label: this.texts().contact[address.icon],
     })),
   );

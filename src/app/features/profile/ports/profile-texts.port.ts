@@ -53,6 +53,12 @@ export interface ProfileTexts {
     readonly github: string;
     readonly cv: string;
   };
+  readonly contactTitle: {
+    readonly email: string;
+    readonly linkedin: string;
+    readonly github: string;
+    readonly cv: string;
+  };
   readonly contactMenu: {
     readonly open: string;
     readonly copy: string;

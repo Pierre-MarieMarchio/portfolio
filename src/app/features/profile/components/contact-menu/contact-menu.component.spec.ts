@@ -145,6 +145,14 @@ describe('ContactMenuComponent', () => {
     );
   });
 
+  it('opens the CV in a new tab', async () => {
+    const { host } = await setup();
+    const cv = host.querySelector('a[href="Pierre-Marie-Marchio-CV.pdf"]');
+
+    expect(cv?.getAttribute('target')).toBe('_blank');
+    expect(cv?.getAttribute('rel')).toBe('noopener');
+  });
+
   it('copies the address, says so, and stays open', async () => {
     const { opener, copyRow, copy, said, texts, stable } = await setup();
     opener?.click();

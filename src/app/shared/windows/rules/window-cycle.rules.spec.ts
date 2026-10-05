@@ -31,6 +31,10 @@ describe('window cycle rules', () => {
   });
 
   describe('isTypingTarget', () => {
+    afterEach(() => {
+      document.body.replaceChildren();
+    });
+
     it.each(['INPUT', 'TEXTAREA', 'SELECT'])('says yes for a %s', (tag) => {
       expect(isTypingTarget(document.createElement(tag))).toBe(true);
     });
@@ -41,7 +45,6 @@ describe('window cycle rules', () => {
       document.body.append(div);
 
       expect(isTypingTarget(div)).toBe(true);
-      div.remove();
     });
 
     it('says no for anything else, including nothing at all', () => {

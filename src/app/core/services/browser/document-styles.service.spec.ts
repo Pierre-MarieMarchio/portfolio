@@ -5,6 +5,7 @@ describe('DocumentStylesService', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--probe');
     Reflect.deleteProperty(document, 'fonts');
+    document.body.replaceChildren();
     vi.restoreAllMocks();
   });
 
@@ -32,7 +33,6 @@ describe('DocumentStylesService', () => {
 
     expect(styles.token('--probe')).toBe('#2b2f3a');
     expect(styles.token('opacity', element)).toBe('0.5');
-    element.remove();
   });
 
   it('reads a duration token in ms or s, and nothing else, in the browser', () => {

@@ -6,6 +6,7 @@ describe('CursorService', () => {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     document.getSelection()?.removeAllRanges();
+    document.body.replaceChildren();
   });
 
   it('is inert on the server: leaves the cursor alone', () => {
@@ -52,6 +53,5 @@ describe('CursorService', () => {
     cursor.blockSelection(true);
 
     expect(document.getSelection()?.toString()).toBe('');
-    mark.remove();
   });
 });

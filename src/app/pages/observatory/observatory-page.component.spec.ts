@@ -135,6 +135,7 @@ describe('ObservatoryPageComponent', () => {
   afterEach(() => {
     document.documentElement.style.removeProperty('--arrival-at');
     delete document.documentElement.dataset['format'];
+    document.body.replaceChildren();
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -712,7 +713,6 @@ describe('ObservatoryPageComponent', () => {
     expect(document.activeElement).toBe(
       host.querySelector('.slot--about [data-window-title]'),
     );
-    host.remove();
   });
 
   it('leaves the focus alone on the first load', async () => {
@@ -721,7 +721,6 @@ describe('ObservatoryPageComponent', () => {
     await fixture.whenStable();
 
     expect(document.activeElement).toBe(document.body);
-    host.remove();
   });
 
   it('moves the focus to the window title, or to the view heading, after a navigation', async () => {
@@ -740,7 +739,6 @@ describe('ObservatoryPageComponent', () => {
     station.syncRoute('home');
     await fixture.whenStable();
     expect(document.activeElement?.id).toBe('home-title');
-    host.remove();
   });
 
   it('lays out one slot per observatory window, in the order of the list', async () => {

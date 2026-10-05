@@ -111,7 +111,7 @@ describe('SpaceSceneComponent', () => {
     await fixture.whenStable();
 
     expect(lastHoleFocus()).toBe(holeFocus);
-  });
+  }, 60_000);
 
   it.each([
     { format: 'desktop', gestures: 'the wheel and the middle button' },

@@ -21,6 +21,8 @@ type Bullet = NonNullable<Chapter['bullets']>[number];
 type Figure = NonNullable<Chapter['figure']>;
 type Layer = Extract<Figure, { kind: 'layers' }>['layers'][number];
 
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
+
 function childPath(path: string, key: string): string {
   return path === '' ? key : `${path}.${key}`;
 }
@@ -54,6 +56,12 @@ function closed<T>(fields: Fields, path: string, built: T): T {
 
 function readString(value: unknown, path: string): string {
   return typeof value === 'string' ? value : expected(path, 'a string', value);
+}
+
+function readSlug(value: unknown, path: string): string {
+  return typeof value === 'string' && SLUG_PATTERN.test(value)
+    ? value
+    : expected(path, 'a slug of lowercase letters, digits and hyphens', value);
 }
 
 function readList<T>(value: unknown, path: string, read: Reader<T>): T[] {
@@ -121,7 +129,7 @@ function readProject(value: unknown, path: string): ProjectSource {
   const fields = readFields(value, path);
   const tag = optional(fields, path, 'tag', readText);
   return closed(fields, path, {
-    slug: required(fields, path, 'slug', readString),
+    slug: required(fields, path, 'slug', readSlug),
     title: required(fields, path, 'title', readText),
     short: required(fields, path, 'short', readText),
     ...(tag === undefined ? {} : { tag }),
@@ -231,7 +239,7 @@ function readEntry(value: unknown): ProjectEntry {
 function slugOf(value: unknown): string | undefined {
   const project = isRecord(value) ? value['project'] : undefined;
   const slug = isRecord(project) ? project['slug'] : undefined;
-  return typeof slug === 'string' ? slug : undefined;
+  return typeof slug === 'string' && slug !== '' ? slug : undefined;
 }
 
 function readNamedEntry(value: unknown, index: number): ProjectEntry {

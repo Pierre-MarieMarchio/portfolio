@@ -199,6 +199,32 @@ describe('shipped project content', () => {
     );
   });
 
+  it('refuses a slug that is not lowercase letters, digits and hyphens', () => {
+    const what = 'a slug of lowercase letters, digits and hyphens';
+
+    expect(() => readProjectEntries(projectWith({ slug: 'Sample' }))).toThrow(
+      `Sample: project.slug: expected ${what}, found "Sample"`,
+    );
+    expect(() =>
+      readProjectEntries(projectWith({ slug: 'my sample' })),
+    ).toThrow(`my sample: project.slug: expected ${what}, found "my sample"`);
+    expect(() =>
+      readProjectEntries(projectWith({ slug: 'my_sample' })),
+    ).toThrow(`my_sample: project.slug: expected ${what}, found "my_sample"`);
+    expect(() => readProjectEntries(projectWith({ slug: '' }))).toThrow(
+      `#0: project.slug: expected ${what}, found ""`,
+    );
+    expect(() => readProjectEntries(projectWith({ slug: 3 }))).toThrow(
+      `#0: project.slug: expected ${what}, found 3`,
+    );
+  });
+
+  it('accepts a slug made of lowercase letters, digits and hyphens', () => {
+    const [entry] = readProjectEntries(projectWith({ slug: 'sample-2-b' }));
+
+    expect(entry?.project.slug).toBe('sample-2-b');
+  });
+
   it('refuses a text carrying both en and enDraft, or neither', () => {
     expect(() =>
       readProjectEntries(

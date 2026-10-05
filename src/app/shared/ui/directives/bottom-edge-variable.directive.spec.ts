@@ -15,6 +15,17 @@ import {
 })
 class Scene {}
 
+@Component({
+  hostDirectives: [
+    {
+      directive: BottomEdgeVariableDirective,
+      inputs: ['appBottomEdgeVariable'],
+    },
+  ],
+  template: '',
+})
+class Orphan {}
+
 const edges = (bottom: () => number) =>
   vi
     .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -37,6 +48,15 @@ const mount = async () => {
       host.querySelector('section')?.style.getPropertyValue('--head-bottom'),
     header: () => host.querySelector('header'),
   };
+};
+
+const mountOrphan = async () => {
+  const fixture = TestBed.createComponent(Orphan);
+  fixture.componentRef.setInput('appBottomEdgeVariable', '--head-bottom');
+  const host = fixture.nativeElement as HTMLElement;
+  host.remove();
+  await fixture.whenStable();
+  return { fixture, host };
 };
 
 describe('BottomEdgeVariableDirective', () => {
@@ -68,5 +88,17 @@ describe('BottomEdgeVariableDirective', () => {
     resizeObserved(observers);
 
     expect(variable()).toBe('120px');
+  });
+
+  it('measures and observes nothing when its element has no container', async () => {
+    const rect = edges(() => 101.6);
+    const { fixture, host } = await mountOrphan();
+
+    expect(host.parentElement).toBeNull();
+    expect(rect).not.toHaveBeenCalled();
+    expect(observers).toHaveLength(0);
+    expect(() => {
+      fixture.destroy();
+    }).not.toThrow();
   });
 });

@@ -219,7 +219,7 @@ const extensionErrors = (suffix, spec, ext) => {
 const namedFileErrors = (path, file, where) => {
   const parsed = parsedFileName(file);
   if (!parsed) {
-    return ['has no suffix from the list (organisation.md §3.2)'];
+    return ['has no suffix from the list (scripts/structure-tables.mjs)'];
   }
   const { name, suffix, spec, ext } = parsed;
   const extensionProblems = extensionErrors(suffix, spec, ext);

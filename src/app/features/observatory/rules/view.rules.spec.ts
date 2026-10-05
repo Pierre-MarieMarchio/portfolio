@@ -1,12 +1,15 @@
 import { ObservatoryPins, ObservatoryView, ObservatoryWindow } from '../models';
 import {
   AddressOf,
+  closeLabelsOf,
   closeTargetOf,
   viewAtAddress,
   DockFrom,
   dockedOf,
   keptOf,
   parentOf,
+  sheetOnShowOf,
+  SheetFrom,
   stepBack,
   StepBackFrom,
   windowOf,
@@ -84,6 +87,26 @@ describe('closeTargetOf', () => {
     ['preview', 'index', null],
   ])('closing %s on %s leads to %s', (window, view, target) => {
     expect(closeTargetOf(window, view)).toBe(target);
+  });
+});
+
+describe('closeLabelsOf', () => {
+  const CLOSE_TO = { home: 'Home', index: 'Projects' };
+
+  it.each<
+    [ObservatoryView, Record<'about' | 'index' | 'sheet' | 'preview', string>]
+  >([
+    ['sheet', { about: '', index: '', sheet: 'Projects', preview: '' }],
+    ['not-found', { about: '', index: '', sheet: 'Projects', preview: '' }],
+    ['index', { about: '', index: 'Home', sheet: '', preview: '' }],
+    ['about', { about: 'Home', index: '', sheet: '', preview: '' }],
+    ['home', { about: '', index: '', sheet: '', preview: '' }],
+  ])('words only the window of %s with where closing leads', (view, labels) => {
+    expect(closeLabelsOf(view, CLOSE_TO)).toEqual({
+      about: labels['about'],
+      index: labels['index'],
+      sheet: labels['sheet'],
+    });
   });
 });
 
@@ -220,5 +243,43 @@ describe('viewAtAddress', () => {
       view: 'not-found',
       slug: null,
     });
+  });
+});
+
+describe('sheetOnShowOf', () => {
+  const base: SheetFrom = {
+    isShown: true,
+    isNotFound: false,
+    slug: 'alpha',
+    chapter: 2,
+  };
+  const previous = { slug: 'beta', chapter: 1 };
+
+  it('takes the first value as it comes', () => {
+    expect(sheetOnShowOf(base, undefined)).toEqual({
+      slug: 'alpha',
+      chapter: 2,
+    });
+  });
+
+  it('follows the sheet while it is shown', () => {
+    expect(sheetOnShowOf(base, previous)).toEqual({
+      slug: 'alpha',
+      chapter: 2,
+    });
+  });
+
+  it('keeps the previous value once the sheet is hidden', () => {
+    expect(sheetOnShowOf({ ...base, isShown: false }, previous)).toBe(previous);
+  });
+
+  it('keeps the previous value when the slug is null away from a 404', () => {
+    expect(sheetOnShowOf({ ...base, slug: null }, previous)).toBe(previous);
+  });
+
+  it('shows a null slug on a real 404', () => {
+    expect(
+      sheetOnShowOf({ ...base, slug: 'ghost', isNotFound: true }, previous),
+    ).toEqual({ slug: null, chapter: 2 });
   });
 });

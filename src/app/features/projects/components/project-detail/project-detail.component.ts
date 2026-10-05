@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { twoDigits } from '@app/core/helpers';
+import { DisplayFormatService } from '@app/core/services';
 import {
   PagerComponent,
   PagerPageComponent,
@@ -47,6 +48,10 @@ export class ProjectDetailComponent {
   private readonly manager = inject(ProjectsManager);
   protected readonly texts = inject(PROJECTS_TEXTS);
   protected readonly links = inject(LINKS);
+  private readonly display = inject(DisplayFormatService);
+  protected readonly isPhone = computed(
+    () => this.display.format() === 'phone',
+  );
 
   public readonly slug = input.required<string>();
   public readonly pinned = input(false);
@@ -54,8 +59,10 @@ export class ProjectDetailComponent {
   public readonly closeLabel = input('');
   public readonly chapter = input(0);
 
+  public readonly minimized = output();
   public readonly pinToggled = output();
   public readonly closed = output();
+  public readonly listChosen = output();
   public readonly chapterChange = output<number>();
 
   protected readonly scrollKey = computed(() => `sheet:${this.slug()}`);
@@ -158,6 +165,17 @@ export class ProjectDetailComponent {
       index,
       this.texts().defaultChapterTitles,
     );
+  }
+
+  protected toIndex(event: MouseEvent): void {
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      event.preventDefault();
+      if (this.current()) {
+        this.closed.emit();
+      } else {
+        this.listChosen.emit();
+      }
+    }
   }
 
   protected advance(): void {

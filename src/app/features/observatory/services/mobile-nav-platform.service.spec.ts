@@ -64,6 +64,34 @@ describe('MobileNavPlatformService', () => {
     expect(observers.map((observer) => observer.kind)).toEqual(['resize']);
   });
 
+  it('says whether an element is in sight, in the browser only', () => {
+    const observers = stubObservers();
+    const platform = platformOn('browser');
+    const seen = vi.fn();
+    const element = document.createElement('div');
+
+    const stop = platform.onVisible(element, seen);
+    observers[0]?.callback([{ isIntersecting: false }]);
+    observers[0]?.callback([{ isIntersecting: true }]);
+    stop();
+
+    expect(observers.map((observer) => observer.kind)).toEqual([
+      'intersection',
+    ]);
+    expect(observers[0]?.observed).toEqual([element]);
+    expect(seen.mock.calls).toEqual([[false], [true]]);
+    expect(observers[0]?.isDisconnected).toBe(true);
+  });
+
+  it('observes nothing for sight on the server', () => {
+    const observers = stubObservers();
+    const platform = platformOn('server');
+
+    platform.onVisible(document.createElement('div'), vi.fn());
+
+    expect(observers).toEqual([]);
+  });
+
   it('reports no snap change where the browser does not announce one', () => {
     const platform = platformOn('browser');
     const called = vi.fn();
@@ -78,6 +106,15 @@ describe('MobileNavPlatformService', () => {
     const platform = platformOn('browser');
 
     expect(platform.hasSnapChanging()).toBe(false);
+  });
+
+  it('vibrates through the browser where it can', () => {
+    const vibrate = vi.fn();
+    vi.stubGlobal('navigator', { vibrate });
+
+    platformOn('browser').vibrate(10);
+
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith(10);
   });
 
   it('says when the router starts to leave the view, until stopped', async () => {

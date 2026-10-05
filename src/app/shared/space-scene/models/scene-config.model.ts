@@ -24,6 +24,7 @@ export interface SceneConfig {
   }>;
   readonly camera: Readonly<{
     orbitRate: number;
+    closeUpTurnRate: number;
     restScale: Range;
     zoom: Readonly<{ min: number; max: number; closeLook: number }>;
   }>;
@@ -78,6 +79,7 @@ export const SCENE_CONFIG: SceneConfig = {
   },
   camera: {
     orbitRate: 0.42,
+    closeUpTurnRate: 0.8,
     restScale: { min: 0.07, max: 0.42 },
     zoom: { min: 1, max: 3, closeLook: 2.2 },
   },

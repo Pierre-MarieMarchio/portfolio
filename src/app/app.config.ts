@@ -5,8 +5,9 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
+  ɵwithDomHydration,
+  ɵwithEventReplay,
 } from '@angular/core';
-import { provideClientHydration } from '@angular/platform-browser';
 import {
   provideRouter,
   TitleStrategy,
@@ -20,6 +21,8 @@ import { RouteHeadStrategy } from '@app/core/strategies';
 import { ProjectsEffect, ProjectsManager } from './features/projects/states';
 import { ObservatoryEffect } from './features/observatory/states';
 import { provideI18n } from './i18n';
+
+export const hydrationProviders = [ɵwithDomHydration(), ɵwithEventReplay()];
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -35,7 +38,7 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     { provide: TitleStrategy, useClass: RouteHeadStrategy },
-    provideClientHydration(),
+    hydrationProviders,
     provideStatewise({
       effects: [ProjectsEffect, ObservatoryEffect],
     }),

@@ -30,7 +30,6 @@ import type {
   WindowParts,
 } from '../models/window-frame.model';
 import { WINDOW_TEXTS } from '../ports/window-texts.port';
-import { WindowStackService } from '../services/window-stack.service';
 
 const FRAME_ANIMATION_MS = 280;
 
@@ -72,7 +71,6 @@ export class WindowFrameDirective {
   private readonly display = inject(DisplayFormatService);
   private readonly clock = inject(ClockService);
   private readonly texts = inject(WINDOW_TEXTS);
-  private readonly stack = inject(WindowStackService, { optional: true });
   private readonly code = inject(FormatCodeService).load(
     ['desktop', 'tablet'],
     loadWindowFrame,
@@ -151,23 +149,9 @@ export class WindowFrameDirective {
     };
   }
 
-  public snapTo(zone: 'left' | 'right'): void {
-    this.tracker?.snapTo(zone);
-  }
-
   public toggleMaximize(): void {
     this.tracker?.toggleMaximize();
     this.animate();
-  }
-
-  public cascade(): void {
-    if (this.tracker && this.framedMode() === null) {
-      const shown =
-        this.stack
-          ?.shownFrontToBack()
-          .filter((element) => element !== this.element) ?? [];
-      this.tracker.cascadeFrom(shown);
-    }
   }
 
   private animate(): void {

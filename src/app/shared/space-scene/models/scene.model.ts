@@ -28,6 +28,7 @@ export interface SceneDirection {
   readonly presence: BodiesPresence;
   readonly labels: LabelStyle;
   readonly emphasised: string | null;
+  readonly aimed: string | null;
   readonly ringed: string | null;
   readonly turnable: boolean;
   readonly figuresShown: boolean;
@@ -40,6 +41,7 @@ export const RESTING_DIRECTION: SceneDirection = {
   presence: 'held',
   labels: 'names',
   emphasised: null,
+  aimed: null,
   ringed: null,
   turnable: true,
   figuresShown: false,

@@ -5,6 +5,7 @@ import {
   ClockService,
   DisplayFormatService,
   ElementObserverService,
+  HapticsService,
   MediaPreferencesService,
   SessionHistoryService,
 } from '@app/core/services';
@@ -18,6 +19,7 @@ export class MobileNavPlatformService implements MobileNavPlatform {
   private readonly browserWindow = inject(BrowserWindowService);
   private readonly observer = inject(ElementObserverService);
   private readonly sessionHistory = inject(SessionHistoryService);
+  private readonly haptics = inject(HapticsService);
   private readonly router = inject(Router);
 
   public isCompact(): boolean {
@@ -50,6 +52,13 @@ export class MobileNavPlatformService implements MobileNavPlatform {
     return this.observer.onResize(element, fn);
   }
 
+  public onVisible(
+    element: Element,
+    fn: (isVisible: boolean) => void,
+  ): () => void {
+    return this.observer.onVisible(element, 0, fn);
+  }
+
   public onSnapChanging(
     element: Element,
     fn: (target: Element | null) => void,
@@ -63,6 +72,10 @@ export class MobileNavPlatformService implements MobileNavPlatform {
 
   public closesOnBack(): boolean {
     return this.sessionHistory.hasCloseWatcher();
+  }
+
+  public watchClose(fn: () => void): () => void {
+    return this.sessionHistory.watchClose(fn);
   }
 
   public historyState(): unknown {
@@ -79,6 +92,10 @@ export class MobileNavPlatformService implements MobileNavPlatform {
 
   public onHistoryPop(fn: (state: unknown) => void): () => void {
     return this.sessionHistory.onPop(fn);
+  }
+
+  public vibrate(ms: number): void {
+    this.haptics.vibrate(ms);
   }
 
   public onLeave(fn: () => void): () => void {

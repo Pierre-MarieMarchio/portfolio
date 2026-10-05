@@ -14,22 +14,38 @@ import { ObservatoryView, ObservatoryWindow } from '../../models';
 import { ObservatoryEffect } from './observatory.effect';
 import { ObservatoryState } from './observatory.state';
 import { observatoryUpdater } from './observatory.updater';
+import {
+  provideSessionHistoryDouble,
+  SessionHistoryDouble,
+} from '@testing/doubles/session-history.double';
 import { provideRecordingRouter } from '@testing/fixtures/observatory.fixture';
 import { provideTexts } from '@testing/fixtures/texts.fixture';
 
+const arrive = (
+  history: SessionHistoryDouble,
+  place: number,
+  address: string,
+): void => {
+  history.place = place;
+  history.addresses[place] = address;
+};
+
 describe('ObservatoryEffect', () => {
   let navigated: string[];
+  let history: SessionHistoryDouble;
   let statewise: Statewise;
   let state: ObservatoryState;
 
   beforeEach(() => {
     navigated = [];
+    history = new SessionHistoryDouble();
 
     TestBed.configureTestingModule({
       providers: [
         provideTexts(),
         provideStatewiseTesting({ effects: [ObservatoryEffect] }),
         provideRecordingRouter(navigated),
+        provideSessionHistoryDouble(history),
       ],
     });
 
@@ -112,6 +128,41 @@ describe('ObservatoryEffect', () => {
       expect(navigated).toEqual(to);
     },
   );
+
+  describe('observatoryWindowClosed, through the history', () => {
+    it('steps back to the list instead of adding an entry when the list lies just below', async () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      arrive(history, 1, '/projets');
+      arrive(history, 2, '/projet/a');
+
+      await statewise.dispatchAsync(observatoryWindowClosed('sheet'));
+
+      expect(history.steps).toEqual([1]);
+      expect(navigated).toEqual([]);
+    });
+
+    it('replaces the sheet by the list when the list does not lie below', async () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'sheet', slug: 'a' }));
+      arrive(history, 1, '/a-propos');
+      arrive(history, 2, '/projet/a');
+
+      await statewise.dispatchAsync(observatoryWindowClosed('sheet'));
+
+      expect(history.steps).toEqual([]);
+      expect(navigated).toEqual(['/projets']);
+    });
+
+    it('steps back home from the list the same way', async () => {
+      statewise.dispatch(observatoryRouteSynced({ view: 'index', slug: null }));
+      arrive(history, 0, '/');
+      arrive(history, 1, '/projets');
+
+      await statewise.dispatchAsync(observatoryWindowClosed('index'));
+
+      expect(history.steps).toEqual([1]);
+      expect(navigated).toEqual([]);
+    });
+  });
 
   describe('observatoryEscaped', () => {
     it('clears the selection without navigating when the index has one', async () => {

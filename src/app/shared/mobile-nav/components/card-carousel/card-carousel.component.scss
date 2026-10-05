@@ -43,7 +43,8 @@ li {
   transform: scale(0.96);
   transition:
     opacity var(--mnav-duration, 180ms) var(--mnav-ease, ease),
-    transform var(--mnav-duration, 180ms) var(--mnav-ease, ease);
+    transform var(--mnav-duration, 180ms) var(--mnav-ease, ease),
+    filter var(--mnav-duration, 180ms) var(--mnav-ease, ease);
 
   &:focus-visible {
     outline: 2px solid var(--mnav-accent, highlight);
@@ -57,44 +58,8 @@ li[data-current] .card {
   transform: none;
 }
 
-.dots {
-  display: flex;
-  justify-content: center;
-}
-
-.dot {
-  display: grid;
-  place-items: center;
-  width: var(--mnav-target, 44px);
-  height: var(--mnav-target, 44px);
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-
-  &::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--mnav-ink, canvastext);
-    opacity: 0.35;
-    transition:
-      opacity var(--mnav-duration, 180ms) var(--mnav-ease, ease),
-      transform var(--mnav-duration, 180ms) var(--mnav-ease, ease);
-  }
-
-  &[aria-current]::before {
-    background: var(--mnav-accent, highlight);
-    opacity: 1;
-    transform: scale(1.4);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .card,
-  .dot::before {
+  .card {
     transition: none;
   }
 }

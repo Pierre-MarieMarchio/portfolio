@@ -112,13 +112,16 @@ const swipeFrom = async (
 };
 
 describe('PagerComponent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('rests on its first page from birth without reading its layout', async () => {
     const reads = vi.spyOn(Element.prototype, 'scrollLeft', 'get');
 
     await setup();
 
     expect(reads).not.toHaveBeenCalled();
-    reads.mockRestore();
   });
 
   it('renders every page, and lets only the current one be reached', async () => {
@@ -198,7 +201,6 @@ describe('PagerComponent', () => {
           (options as AddEventListenerOptions | undefined)?.passive === true,
       ),
     ).toBe(true);
-    addEventListener.mockRestore();
   });
 
   it('shows the page the browser announces as its next snap target, before the scroll ends', async () => {

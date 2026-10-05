@@ -492,9 +492,9 @@ describe('BottomSheetComponent', () => {
       expect(host.dataset['detent']).toBe('half');
     });
 
-    it('keeps its detent when the router leaves, and leaves the next back alone while it is hidden, with or without a close watcher', async () => {
-      for (const hasCloseWatcher of [true, false]) {
-        TestBed.resetTestingModule();
+    it.each([true, false])(
+      'keeps its detent when the router leaves, and leaves the next back alone while it is hidden, with a close watcher: %s',
+      async (hasCloseWatcher) => {
         const { fixture, platform, host } = await risen(hasCloseWatcher);
 
         platform.leave();
@@ -508,12 +508,12 @@ describe('BottomSheetComponent', () => {
 
         expect(host.dataset['detent']).toBe('full');
         expect(platform.backs).toHaveLength(backs);
-      }
-    });
+      },
+    );
 
-    it('takes a layer again when it is shown again at full after the router left, so that back lowers it first, with or without a close watcher', async () => {
-      for (const hasCloseWatcher of [true, false]) {
-        TestBed.resetTestingModule();
+    it.each([true, false])(
+      'takes a layer again when it is shown again at full after the router left, so that back lowers it first, with a close watcher: %s',
+      async (hasCloseWatcher) => {
         const { fixture, platform, host, resize } =
           await risen(hasCloseWatcher);
 
@@ -529,12 +529,12 @@ describe('BottomSheetComponent', () => {
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('half');
-      }
-    });
+      },
+    );
 
-    it('takes a layer again when it is seen again at full with no change of size, so that back lowers it first, with or without a close watcher', async () => {
-      for (const hasCloseWatcher of [true, false]) {
-        TestBed.resetTestingModule();
+    it.each([true, false])(
+      'takes a layer again when it is seen again at full with no change of size, so that back lowers it first, with a close watcher: %s',
+      async (hasCloseWatcher) => {
         const { fixture, platform, host } = await risen(hasCloseWatcher);
 
         platform.leave();
@@ -549,12 +549,12 @@ describe('BottomSheetComponent', () => {
         await fixture.whenStable();
 
         expect(host.dataset['detent']).toBe('half');
-      }
-    });
+      },
+    );
 
-    it('takes no layer while it is out of sight, with or without a close watcher', async () => {
-      for (const hasCloseWatcher of [true, false]) {
-        TestBed.resetTestingModule();
+    it.each([true, false])(
+      'takes no layer while it is out of sight, with a close watcher: %s',
+      async (hasCloseWatcher) => {
         const { fixture, platform, host } = await risen(hasCloseWatcher);
 
         platform.leave();
@@ -567,8 +567,8 @@ describe('BottomSheetComponent', () => {
 
         expect(host.dataset['detent']).toBe('full');
         expect(platform.backs).toHaveLength(backs);
-      }
-    });
+      },
+    );
 
     it('leaves the back to the page once the sheet is not full, and takes its entry back', async () => {
       const { fixture, platform } = await risen(false);

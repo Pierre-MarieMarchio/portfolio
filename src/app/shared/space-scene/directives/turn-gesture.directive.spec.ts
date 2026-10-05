@@ -56,7 +56,6 @@ describe('TurnGestureDirective', () => {
 
   afterEach(() => {
     clicks.stop();
-    TestBed.resetTestingModule();
     document.body.replaceChildren();
     document.body.style.cursor = '';
   });

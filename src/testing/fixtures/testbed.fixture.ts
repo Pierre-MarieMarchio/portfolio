@@ -1,5 +1,7 @@
 import {
+  createEnvironmentInjector,
   DebugElement,
+  EnvironmentInjector,
   OutputRef,
   PLATFORM_ID,
   ProviderToken,
@@ -18,6 +20,21 @@ export const onPlatform = (platform: Platform): void => {
 export const injectOn = <T>(token: ProviderToken<T>, platform: Platform): T => {
   onPlatform(platform);
   return TestBed.inject(token);
+};
+
+export const injectInScope = <T>(
+  token: Type<T>,
+): { readonly instance: T; readonly destroy: () => void } => {
+  const scope = createEnvironmentInjector(
+    [token],
+    TestBed.inject(EnvironmentInjector),
+  );
+  return {
+    instance: scope.get(token),
+    destroy: () => {
+      scope.destroy();
+    },
+  };
 };
 
 export const recordOutput = <T>(output: OutputRef<T>): T[] => {

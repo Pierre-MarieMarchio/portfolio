@@ -108,13 +108,16 @@ const setup = async ({ active = 0 } = {}) => {
 };
 
 describe('CardCarouselComponent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('rests on its first card from birth without reading its layout', async () => {
     const reads = vi.spyOn(Element.prototype, 'scrollLeft', 'get');
 
     await setup();
 
     expect(reads).not.toHaveBeenCalled();
-    reads.mockRestore();
   });
 
   it('renders a labelled region with one card button per item, drawn by the template', async () => {
@@ -199,7 +202,6 @@ describe('CardCarouselComponent', () => {
           (options as AddEventListenerOptions | undefined)?.passive === true,
       ),
     ).toBe(true);
-    addEventListener.mockRestore();
   });
 
   it('commits the nearest card even a couple of pixels off the exact offset', async () => {

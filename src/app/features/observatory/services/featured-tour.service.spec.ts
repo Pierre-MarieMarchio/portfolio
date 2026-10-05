@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideStatewise } from 'ngx-statewise';
 import { ObservatoryManager } from '@app/features/observatory/states';
 import { FeaturedTourService } from './featured-tour.service';
+import { injectInScope } from '@testing/fixtures/testbed.fixture';
 
 const setUp = () => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -51,28 +52,33 @@ describe('FeaturedTourService', () => {
     expect(station.hovered()).toBe('mine');
   });
 
-  it('gives way to an open preview and to another view', () => {
+  it('gives way to an open preview', () => {
     const { station, tour } = setUp();
     tour.play(() => SLUGS);
 
     station.openPreview('a');
     vi.advanceTimersByTime(4200);
-    expect(station.hovered()).toBeNull();
 
-    TestBed.resetTestingModule();
-    const other = setUp();
-    other.tour.play(() => SLUGS);
-    other.station.syncRoute('index');
-    vi.advanceTimersByTime(4200);
-    expect(other.station.hovered()).toBeNull();
+    expect(station.hovered()).toBeNull();
   });
 
-  it('stops when the station goes', () => {
+  it('gives way to another view', () => {
     const { station, tour } = setUp();
     tour.play(() => SLUGS);
 
-    TestBed.resetTestingModule();
-    vi.advanceTimersByTime(10_000);
+    station.syncRoute('index');
+    vi.advanceTimersByTime(4200);
+
+    expect(station.hovered()).toBeNull();
+  });
+
+  it('stops when the station goes', () => {
+    const { station } = setUp();
+    const { instance: tour, destroy } = injectInScope(FeaturedTourService);
+    tour.play(() => SLUGS);
+
+    destroy();
+    vi.advanceTimersByTime(4200);
 
     expect(station.hovered()).toBeNull();
   });

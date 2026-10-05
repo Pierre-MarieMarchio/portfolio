@@ -37,6 +37,10 @@ const mount = async (
 };
 
 describe('ObservatoryRouteComponent', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it.each([
     ['home', null],
     ['index', null],
@@ -82,7 +86,6 @@ describe('ObservatoryRouteComponent', () => {
     }
 
     expect([station.view(), station.slug()]).toEqual(['sheet', 'speakey']);
-    vi.restoreAllMocks();
   });
 
   it('draws nothing', async () => {

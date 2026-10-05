@@ -24,6 +24,10 @@ describe('ObservatoryManager', () => {
     manager = TestBed.inject(ObservatoryManager);
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   const holdTwo = (): void => {
     manager.syncRoute('sheet', 'a');
     manager.togglePin('sheet');
@@ -99,7 +103,6 @@ describe('ObservatoryManager', () => {
 
       expect(manager.minimized().about).toBe(false);
       expect(manager.showsAbout()).toBe(true);
-      vi.unstubAllGlobals();
     });
 
     it('exposes its state read-only', () => {
@@ -396,7 +399,6 @@ describe('ObservatoryManager', () => {
 
       expect(manager.held()).toEqual([]);
       expect(manager.pins().sheet).toBe(true);
-      vi.unstubAllGlobals();
     });
 
     it('shows no held sheet on the phone, even those held before the screen turned', () => {
@@ -405,7 +407,6 @@ describe('ObservatoryManager', () => {
       resizeTo(390, 844);
 
       expect(manager.held()).toEqual([]);
-      vi.unstubAllGlobals();
     });
 
     it('closes a held sheet without leaving the page', async () => {
@@ -498,7 +499,6 @@ describe('ObservatoryManager', () => {
       manager.syncRoute('home');
 
       expect(manager.headsSheet()).toBe(true);
-      vi.unstubAllGlobals();
     });
   });
 });

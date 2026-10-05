@@ -61,7 +61,6 @@ describe('ZoomGestureTracker', () => {
     for (const tracker of trackers.splice(0)) {
       tracker.stop();
     }
-    TestBed.resetTestingModule();
     document.body.replaceChildren();
   });
 

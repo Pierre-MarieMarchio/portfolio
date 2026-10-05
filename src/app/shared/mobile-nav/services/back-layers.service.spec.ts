@@ -140,9 +140,9 @@ describe('BackLayersService', () => {
     expect(closed).toEqual(['upper', 'lower']);
   });
 
-  it('no longer hears the back of a claimed layer once it is released, with or without a close watcher', () => {
-    for (const hasCloseWatcher of [true, false]) {
-      TestBed.resetTestingModule();
+  it.each([true, false])(
+    'no longer hears the back of a claimed layer once it is released, with a close watcher: %s',
+    (hasCloseWatcher) => {
       const { platform, layers } = setup({ hasCloseWatcher });
       const onBack = vi.fn();
 
@@ -151,12 +151,12 @@ describe('BackLayersService', () => {
       platform.pressBack();
 
       expect(onBack).not.toHaveBeenCalled();
-    }
-  });
+    },
+  );
 
-  it('lets go of a claimed layer when the router leaves the view, without closing it, with or without a close watcher', () => {
-    for (const hasCloseWatcher of [true, false]) {
-      TestBed.resetTestingModule();
+  it.each([true, false])(
+    'lets go of a claimed layer when the router leaves the view, without closing it, with a close watcher: %s',
+    (hasCloseWatcher) => {
       const { platform, layers } = setup({ hasCloseWatcher });
       const onBack = vi.fn();
       const onLeave = vi.fn();
@@ -171,6 +171,6 @@ describe('BackLayersService', () => {
 
       expect(onBack).not.toHaveBeenCalled();
       expect(onLeave).toHaveBeenCalledOnce();
-    }
-  });
+    },
+  );
 });

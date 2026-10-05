@@ -5,6 +5,7 @@ describe('ClockService', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('is inert on the server: no time, no frame, no delay', () => {
@@ -73,7 +74,6 @@ describe('ClockService', () => {
 
     expect(idle).toHaveBeenCalledWith(called, { timeout: 2000 });
     expect(cancel).toHaveBeenCalledWith(3);
-    vi.unstubAllGlobals();
   });
 
   it('falls back to a short delay where the browser has no idle callback', () => {
@@ -88,7 +88,6 @@ describe('ClockService', () => {
     vi.advanceTimersByTime(1);
 
     expect(called).toHaveBeenCalledTimes(1);
-    vi.unstubAllGlobals();
   });
 
   it('never calls back on the server when idle', () => {

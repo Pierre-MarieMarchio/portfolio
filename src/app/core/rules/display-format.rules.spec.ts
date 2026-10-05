@@ -1,5 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { DisplayConditions } from '../models/display-format.model';
-import { displayFormatOf } from './display-format.rules';
+import {
+  displayFormatOf,
+  PHONE_HEIGHT_BELOW_WITH_COARSE_POINTER,
+  PHONE_WIDTH_BELOW,
+} from './display-format.rules';
 
 const TOUCH = { hasCoarsePointer: true, cannotHover: true };
 const MOUSE = { hasCoarsePointer: false, cannotHover: false };
@@ -9,6 +15,29 @@ const at = (
   height: number,
   pointer: Pick<DisplayConditions, 'hasCoarsePointer' | 'cannotHover'>,
 ): DisplayConditions => ({ width, height, ...pointer });
+
+const FORMATS_SCSS = resolve(
+  process.cwd(),
+  'src/assets/styles/mixins/_formats.scss',
+);
+
+const scssPixels = (variable: string): number => {
+  const declaration = new RegExp(String.raw`^\$${variable}:\s*(\d+)px;`, 'm');
+  const match = declaration.exec(readFileSync(FORMATS_SCSS, 'utf8'));
+  return Number(match?.[1]);
+};
+
+describe('display format thresholds shared with the stylesheet', () => {
+  it('ties the phone width threshold to _formats.scss', () => {
+    expect(scssPixels('phone-width-below')).toBe(PHONE_WIDTH_BELOW);
+  });
+
+  it('ties the phone height threshold to _formats.scss', () => {
+    expect(scssPixels('phone-height-below-with-coarse-pointer')).toBe(
+      PHONE_HEIGHT_BELOW_WITH_COARSE_POINTER,
+    );
+  });
+});
 
 describe('displayFormatOf', () => {
   it('gives each target size its format', () => {
